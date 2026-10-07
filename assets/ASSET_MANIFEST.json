@@ -1,0 +1,658 @@
+[
+  {
+    "category": "food",
+    "file": "tile_0000.png",
+    "local_path": "assets/sprites/food/tile_0000.png",
+    "size_bytes": 192,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0000.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0001.png",
+    "local_path": "assets/sprites/food/tile_0001.png",
+    "size_bytes": 179,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0001.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0002.png",
+    "local_path": "assets/sprites/food/tile_0002.png",
+    "size_bytes": 168,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0002.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0003.png",
+    "local_path": "assets/sprites/food/tile_0003.png",
+    "size_bytes": 180,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0003.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0004.png",
+    "local_path": "assets/sprites/food/tile_0004.png",
+    "size_bytes": 192,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0004.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0005.png",
+    "local_path": "assets/sprites/food/tile_0005.png",
+    "size_bytes": 182,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0005.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0006.png",
+    "local_path": "assets/sprites/food/tile_0006.png",
+    "size_bytes": 168,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0006.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0007.png",
+    "local_path": "assets/sprites/food/tile_0007.png",
+    "size_bytes": 188,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0007.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0008.png",
+    "local_path": "assets/sprites/food/tile_0008.png",
+    "size_bytes": 210,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0008.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0009.png",
+    "local_path": "assets/sprites/food/tile_0009.png",
+    "size_bytes": 215,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0009.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0010.png",
+    "local_path": "assets/sprites/food/tile_0010.png",
+    "size_bytes": 166,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0010.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0011.png",
+    "local_path": "assets/sprites/food/tile_0011.png",
+    "size_bytes": 142,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0011.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0012.png",
+    "local_path": "assets/sprites/food/tile_0012.png",
+    "size_bytes": 164,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0012.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0013.png",
+    "local_path": "assets/sprites/food/tile_0013.png",
+    "size_bytes": 188,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0013.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0014.png",
+    "local_path": "assets/sprites/food/tile_0014.png",
+    "size_bytes": 247,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0014.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0015.png",
+    "local_path": "assets/sprites/food/tile_0015.png",
+    "size_bytes": 219,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0015.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0016.png",
+    "local_path": "assets/sprites/food/tile_0016.png",
+    "size_bytes": 188,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0016.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0017.png",
+    "local_path": "assets/sprites/food/tile_0017.png",
+    "size_bytes": 180,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0017.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0018.png",
+    "local_path": "assets/sprites/food/tile_0018.png",
+    "size_bytes": 174,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0018.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0019.png",
+    "local_path": "assets/sprites/food/tile_0019.png",
+    "size_bytes": 180,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0019.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0020.png",
+    "local_path": "assets/sprites/food/tile_0020.png",
+    "size_bytes": 188,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0020.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0021.png",
+    "local_path": "assets/sprites/food/tile_0021.png",
+    "size_bytes": 180,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0021.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0022.png",
+    "local_path": "assets/sprites/food/tile_0022.png",
+    "size_bytes": 174,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0022.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0023.png",
+    "local_path": "assets/sprites/food/tile_0023.png",
+    "size_bytes": 180,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0023.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0024.png",
+    "local_path": "assets/sprites/food/tile_0024.png",
+    "size_bytes": 121,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0024.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0025.png",
+    "local_path": "assets/sprites/food/tile_0025.png",
+    "size_bytes": 216,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0025.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0026.png",
+    "local_path": "assets/sprites/food/tile_0026.png",
+    "size_bytes": 188,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0026.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0027.png",
+    "local_path": "assets/sprites/food/tile_0027.png",
+    "size_bytes": 160,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0027.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0028.png",
+    "local_path": "assets/sprites/food/tile_0028.png",
+    "size_bytes": 188,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0028.png"
+  },
+  {
+    "category": "food",
+    "file": "tile_0029.png",
+    "local_path": "assets/sprites/food/tile_0029.png",
+    "size_bytes": 207,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Pixel%20Platformer%20Food%20Expansion/Tiles/tile_0029.png"
+  },
+  {
+    "category": "items_coins",
+    "file": "genericItem_color_001.png",
+    "local_path": "assets/sprites/items/genericItem_color_001.png",
+    "size_bytes": 1271,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Generic%20Items/Colored/genericItem_color_001.png"
+  },
+  {
+    "category": "items_coins",
+    "file": "genericItem_color_002.png",
+    "local_path": "assets/sprites/items/genericItem_color_002.png",
+    "size_bytes": 1600,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Generic%20Items/Colored/genericItem_color_002.png"
+  },
+  {
+    "category": "items_coins",
+    "file": "genericItem_color_003.png",
+    "local_path": "assets/sprites/items/genericItem_color_003.png",
+    "size_bytes": 920,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Generic%20Items/Colored/genericItem_color_003.png"
+  },
+  {
+    "category": "items_coins",
+    "file": "genericItem_color_004.png",
+    "local_path": "assets/sprites/items/genericItem_color_004.png",
+    "size_bytes": 857,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Generic%20Items/Colored/genericItem_color_004.png"
+  },
+  {
+    "category": "items_coins",
+    "file": "genericItem_color_005.png",
+    "local_path": "assets/sprites/items/genericItem_color_005.png",
+    "size_bytes": 947,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Generic%20Items/Colored/genericItem_color_005.png"
+  },
+  {
+    "category": "items_coins",
+    "file": "genericItem_color_006.png",
+    "local_path": "assets/sprites/items/genericItem_color_006.png",
+    "size_bytes": 999,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Generic%20Items/Colored/genericItem_color_006.png"
+  },
+  {
+    "category": "items_coins",
+    "file": "genericItem_color_007.png",
+    "local_path": "assets/sprites/items/genericItem_color_007.png",
+    "size_bytes": 736,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Generic%20Items/Colored/genericItem_color_007.png"
+  },
+  {
+    "category": "items_coins",
+    "file": "genericItem_color_008.png",
+    "local_path": "assets/sprites/items/genericItem_color_008.png",
+    "size_bytes": 1182,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Generic%20Items/Colored/genericItem_color_008.png"
+  },
+  {
+    "category": "items_coins",
+    "file": "genericItem_color_009.png",
+    "local_path": "assets/sprites/items/genericItem_color_009.png",
+    "size_bytes": 1094,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Generic%20Items/Colored/genericItem_color_009.png"
+  },
+  {
+    "category": "items_coins",
+    "file": "genericItem_color_010.png",
+    "local_path": "assets/sprites/items/genericItem_color_010.png",
+    "size_bytes": 1079,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Generic%20Items/Colored/genericItem_color_010.png"
+  },
+  {
+    "category": "items_coins",
+    "file": "genericItem_color_011.png",
+    "local_path": "assets/sprites/items/genericItem_color_011.png",
+    "size_bytes": 1258,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Generic%20Items/Colored/genericItem_color_011.png"
+  },
+  {
+    "category": "items_coins",
+    "file": "genericItem_color_012.png",
+    "local_path": "assets/sprites/items/genericItem_color_012.png",
+    "size_bytes": 1245,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Generic%20Items/Colored/genericItem_color_012.png"
+  },
+  {
+    "category": "items_coins",
+    "file": "genericItem_color_013.png",
+    "local_path": "assets/sprites/items/genericItem_color_013.png",
+    "size_bytes": 1138,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Generic%20Items/Colored/genericItem_color_013.png"
+  },
+  {
+    "category": "items_coins",
+    "file": "genericItem_color_014.png",
+    "local_path": "assets/sprites/items/genericItem_color_014.png",
+    "size_bytes": 1516,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Generic%20Items/Colored/genericItem_color_014.png"
+  },
+  {
+    "category": "items_coins",
+    "file": "genericItem_color_015.png",
+    "local_path": "assets/sprites/items/genericItem_color_015.png",
+    "size_bytes": 1117,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Generic%20Items/Colored/genericItem_color_015.png"
+  },
+  {
+    "category": "items_coins",
+    "file": "genericItem_color_016.png",
+    "local_path": "assets/sprites/items/genericItem_color_016.png",
+    "size_bytes": 1638,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Generic%20Items/Colored/genericItem_color_016.png"
+  },
+  {
+    "category": "items_coins",
+    "file": "genericItem_color_017.png",
+    "local_path": "assets/sprites/items/genericItem_color_017.png",
+    "size_bytes": 1751,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Generic%20Items/Colored/genericItem_color_017.png"
+  },
+  {
+    "category": "items_coins",
+    "file": "genericItem_color_018.png",
+    "local_path": "assets/sprites/items/genericItem_color_018.png",
+    "size_bytes": 654,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Generic%20Items/Colored/genericItem_color_018.png"
+  },
+  {
+    "category": "items_coins",
+    "file": "genericItem_color_019.png",
+    "local_path": "assets/sprites/items/genericItem_color_019.png",
+    "size_bytes": 667,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Generic%20Items/Colored/genericItem_color_019.png"
+  },
+  {
+    "category": "items_coins",
+    "file": "genericItem_color_020.png",
+    "local_path": "assets/sprites/items/genericItem_color_020.png",
+    "size_bytes": 1468,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Generic%20Items/Colored/genericItem_color_020.png"
+  },
+  {
+    "category": "items_coins",
+    "file": "genericItem_color_021.png",
+    "local_path": "assets/sprites/items/genericItem_color_021.png",
+    "size_bytes": 1573,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Generic%20Items/Colored/genericItem_color_021.png"
+  },
+  {
+    "category": "items_coins",
+    "file": "genericItem_color_022.png",
+    "local_path": "assets/sprites/items/genericItem_color_022.png",
+    "size_bytes": 1794,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Generic%20Items/Colored/genericItem_color_022.png"
+  },
+  {
+    "category": "items_coins",
+    "file": "genericItem_color_023.png",
+    "local_path": "assets/sprites/items/genericItem_color_023.png",
+    "size_bytes": 1787,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Generic%20Items/Colored/genericItem_color_023.png"
+  },
+  {
+    "category": "items_coins",
+    "file": "genericItem_color_024.png",
+    "local_path": "assets/sprites/items/genericItem_color_024.png",
+    "size_bytes": 912,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Generic%20Items/Colored/genericItem_color_024.png"
+  },
+  {
+    "category": "ui_buttons",
+    "file": "button_rectangle_line.png",
+    "local_path": "assets/ui/button_rectangle_line.png",
+    "size_bytes": 327,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/ui/UI%20Pack/Extra/button_rectangle_line.png"
+  },
+  {
+    "category": "ui_buttons",
+    "file": "button_rectangle_depth_line.png",
+    "local_path": "assets/ui/button_rectangle_depth_line.png",
+    "size_bytes": 399,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/ui/UI%20Pack/Extra/button_rectangle_depth_line.png"
+  },
+  {
+    "category": "ui_buttons",
+    "file": "button_round_line.png",
+    "local_path": "assets/ui/button_round_line.png",
+    "size_bytes": 1176,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/ui/UI%20Pack/Extra/button_round_line.png"
+  },
+  {
+    "category": "ui_buttons",
+    "file": "button_round_depth_line.png",
+    "local_path": "assets/ui/button_round_depth_line.png",
+    "size_bytes": 1462,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/ui/UI%20Pack/Extra/button_round_depth_line.png"
+  },
+  {
+    "category": "ui_buttons",
+    "file": "button_square_line.png",
+    "local_path": "assets/ui/button_square_line.png",
+    "size_bytes": 292,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/ui/UI%20Pack/Extra/button_square_line.png"
+  },
+  {
+    "category": "ui_buttons",
+    "file": "button_square_depth_line.png",
+    "local_path": "assets/ui/button_square_depth_line.png",
+    "size_bytes": 362,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/ui/UI%20Pack/Extra/button_square_depth_line.png"
+  },
+  {
+    "category": "ui_buttons",
+    "file": "divider.png",
+    "local_path": "assets/ui/divider.png",
+    "size_bytes": 89,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/ui/UI%20Pack/Extra/divider.png"
+  },
+  {
+    "category": "ui_buttons",
+    "file": "divider_edges.png",
+    "local_path": "assets/ui/divider_edges.png",
+    "size_bytes": 121,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/ui/UI%20Pack/Extra/divider_edges.png"
+  },
+  {
+    "category": "ui_buttons",
+    "file": "icon_arrow_down_dark.png",
+    "local_path": "assets/ui/icon_arrow_down_dark.png",
+    "size_bytes": 237,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/ui/UI%20Pack/Extra/icon_arrow_down_dark.png"
+  },
+  {
+    "category": "ui_buttons",
+    "file": "icon_arrow_up_dark.png",
+    "local_path": "assets/ui/icon_arrow_up_dark.png",
+    "size_bytes": 243,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/ui/UI%20Pack/Extra/icon_arrow_up_dark.png"
+  },
+  {
+    "category": "cards",
+    "file": "card_back.png",
+    "local_path": "assets/sprites/cards/card_back.png",
+    "size_bytes": 215,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Playing%20Cards%20Pack/Cards%20(medium)/card_back.png"
+  },
+  {
+    "category": "cards",
+    "file": "card_clubs_A.png",
+    "local_path": "assets/sprites/cards/card_clubs_A.png",
+    "size_bytes": 219,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Playing%20Cards%20Pack/Cards%20(medium)/card_clubs_A.png"
+  },
+  {
+    "category": "cards",
+    "file": "card_clubs_K.png",
+    "local_path": "assets/sprites/cards/card_clubs_K.png",
+    "size_bytes": 221,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Playing%20Cards%20Pack/Cards%20(medium)/card_clubs_K.png"
+  },
+  {
+    "category": "cards",
+    "file": "card_clubs_Q.png",
+    "local_path": "assets/sprites/cards/card_clubs_Q.png",
+    "size_bytes": 220,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Playing%20Cards%20Pack/Cards%20(medium)/card_clubs_Q.png"
+  },
+  {
+    "category": "cards",
+    "file": "card_clubs_J.png",
+    "local_path": "assets/sprites/cards/card_clubs_J.png",
+    "size_bytes": 218,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Playing%20Cards%20Pack/Cards%20(medium)/card_clubs_J.png"
+  },
+  {
+    "category": "cards",
+    "file": "card_clubs_10.png",
+    "local_path": "assets/sprites/cards/card_clubs_10.png",
+    "size_bytes": 218,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Playing%20Cards%20Pack/Cards%20(medium)/card_clubs_10.png"
+  },
+  {
+    "category": "cards",
+    "file": "card_hearts_A.png",
+    "local_path": "assets/sprites/cards/card_hearts_A.png",
+    "size_bytes": 229,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Playing%20Cards%20Pack/Cards%20(medium)/card_hearts_A.png"
+  },
+  {
+    "category": "cards",
+    "file": "card_hearts_K.png",
+    "local_path": "assets/sprites/cards/card_hearts_K.png",
+    "size_bytes": 231,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Playing%20Cards%20Pack/Cards%20(medium)/card_hearts_K.png"
+  },
+  {
+    "category": "cards",
+    "file": "card_hearts_Q.png",
+    "local_path": "assets/sprites/cards/card_hearts_Q.png",
+    "size_bytes": 230,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Playing%20Cards%20Pack/Cards%20(medium)/card_hearts_Q.png"
+  },
+  {
+    "category": "cards",
+    "file": "card_hearts_J.png",
+    "local_path": "assets/sprites/cards/card_hearts_J.png",
+    "size_bytes": 228,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Playing%20Cards%20Pack/Cards%20(medium)/card_hearts_J.png"
+  },
+  {
+    "category": "cards",
+    "file": "card_hearts_10.png",
+    "local_path": "assets/sprites/cards/card_hearts_10.png",
+    "size_bytes": 226,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Playing%20Cards%20Pack/Cards%20(medium)/card_hearts_10.png"
+  },
+  {
+    "category": "cards",
+    "file": "card_diamonds_A.png",
+    "local_path": "assets/sprites/cards/card_diamonds_A.png",
+    "size_bytes": 229,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Playing%20Cards%20Pack/Cards%20(medium)/card_diamonds_A.png"
+  },
+  {
+    "category": "cards",
+    "file": "card_diamonds_K.png",
+    "local_path": "assets/sprites/cards/card_diamonds_K.png",
+    "size_bytes": 231,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Playing%20Cards%20Pack/Cards%20(medium)/card_diamonds_K.png"
+  },
+  {
+    "category": "cards",
+    "file": "card_spades_A.png",
+    "local_path": "assets/sprites/cards/card_spades_A.png",
+    "size_bytes": 222,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Playing%20Cards%20Pack/Cards%20(medium)/card_spades_A.png"
+  },
+  {
+    "category": "cards",
+    "file": "card_spades_K.png",
+    "local_path": "assets/sprites/cards/card_spades_K.png",
+    "size_bytes": 222,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/shorepine/kenney/main/2d/Playing%20Cards%20Pack/Cards%20(medium)/card_spades_K.png"
+  },
+  {
+    "category": "audio",
+    "file": "tile-land.ogg",
+    "local_path": "assets/audio/tile-land.ogg",
+    "size_bytes": 5720,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/KenneyNL/Starter-Kit-Match-3/main/sounds/tile-land.ogg"
+  },
+  {
+    "category": "audio",
+    "file": "tile-match.ogg",
+    "local_path": "assets/audio/tile-match.ogg",
+    "size_bytes": 6785,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/KenneyNL/Starter-Kit-Match-3/main/sounds/tile-match.ogg"
+  },
+  {
+    "category": "audio",
+    "file": "tile-swap.ogg",
+    "local_path": "assets/audio/tile-swap.ogg",
+    "size_bytes": 6669,
+    "license": "CC0 1.0 Universal (Public Domain)",
+    "source": "https://raw.githubusercontent.com/KenneyNL/Starter-Kit-Match-3/main/sounds/tile-swap.ogg"
+  }
+]

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>NewPlayground • Một chỗ để chơi. Không cần cài gì.</title>
+  <meta name="description" content="Tuyển tập 150 trò chơi nhỏ miễn phí chơi ngay trên trình duyệt. Chọn game, bấm chơi, xả não vài phút.">
+  <link rel="stylesheet" href="style.css?v=20261007_v4">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23151816'/><rect x='6' y='6' width='14' height='14' rx='4' fill='%23C8FF4A'/><path d='M14 14l8 8-3 1-1 3-4-12z' fill='%23FFFFFF' stroke='%23151816' stroke-width='1.5'/></svg>">
+</head>
+<body>
+  <!-- TOP BANNER NOTIFICATION -->
+  <div class="top-announcement">
+    <span>Play for a brighter you. • Chơi miễn phí trên trình duyệt • Không quảng cáo ép buộc</span>
+  </div>
+
+  <!-- NAVIGATION HEADER -->
+  <header class="site-header">
+    <div class="header-container">
+      <a href="#" class="brand-logo" id="logoBtn">
+        <div class="logo-icon">
+          <div class="logo-accent"></div>
+          <svg class="logo-cursor" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 3L11.5 21L14.5 13.5L22 10.5L4 3Z" fill="#FFFFFF" stroke="#151816" stroke-width="2" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">new<br>playground</span>
+        </div>
+      </a>
+
+      <nav class="nav-links desktop-only">
+        <a href="#all-games" class="nav-item active" data-filter="all">Trò chơi</a>
+        <a href="#hot" class="nav-item" data-filter="hot">Mới & Hot</a>
+        <a href="#friends" class="nav-item" data-filter="friends">Chơi cùng bạn</a>
+        <a href="#about" class="nav-item" id="aboutNavBtn">Về dự án</a>
+      </nav>
+
+      <div class="header-actions">
+        <div class="search-box">
+          <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="searchInput" placeholder="Tìm kiếm trong 150 game..." autocomplete="off">
+          <button id="clearSearchBtn" class="clear-search-btn" style="display: none;">×</button>
+        </div>
+
+        <button id="randomGameBtn" class="btn btn-random desktop-only" title="Chọn ngẫu nhiên 1 game">
+          Game ngẫu nhiên
+        </button>
+
+        <button id="soundToggleBtn" class="btn-icon" title="Bật/Tắt âm thanh (Hiện đang tắt)" aria-label="Âm thanh">
+          <span class="sound-icon">🔇</span>
+        </button>
+
+        <button id="themeToggleBtn" class="btn-icon" title="Chuyển chế độ sáng/tối">
+          <span class="theme-icon">☀️</span>
+        </button>
+
+        <button id="mobileMenuBtn" class="btn-icon mobile-only" aria-label="Menu">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WRAPPER -->
+  <main class="main-content">
+    
+    <!-- HERO SECTION -->
+    <section class="hero-section">
+      <div class="hero-content">
+        <div class="hero-text-block">
+          <div class="sticker-badge rotated-sticker">
+            <span>GOOD GAMES FOR BETTER DAYS</span>
+          </div>
+          <h1 class="hero-title">
+            Một chỗ để chơi.<br>
+            <span class="hero-highlight">Không cần cài gì.</span>
+          </h1>
+          <p class="hero-subtitle">
+            Hàng Rong, Đào Vàng, Bắn Trứng, Boom Online, Road Rash, Audition... Tuyển tập 150 trò chơi kinh điển tuổi thơ chơi ngay trên trình duyệt.
+          </p>
+          <div class="hero-cta-group">
+            <button class="btn btn-hero" id="heroPlayBtn">
+              Chơi Hàng Rong <span>➔</span>
+            </button>
+            <button class="btn btn-secondary" id="heroBrowseBtn">
+              Khám phá 150 game
+            </button>
+          </div>
+          <div class="hero-features-list">
+            <span>• Y nguyên game gốc</span>
+            <span>• Miễn phí 100%</span>
+            <span>• Lưu tiến trình tự động</span>
+          </div>
+        </div>
+
+        <!-- HERO FEATURED GAME CARD (Hàng Rong / Đào Vàng) -->
+        <div class="hero-card-wrapper">
+          <div class="featured-game-card" id="featuredHeroCard">
+            <div class="featured-badge-tag">HUYỀN THOẠI TUỔI THƠ</div>
+            <div class="featured-card-media">
+              <img src="assets/ca_pho_concept_art.jpg" alt="Hàng Rong - NewPlayground" class="featured-img" onerror="this.src='https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80'">
+              <div class="saigon-stamp">
+                <span>GÁNH HÀNG RONG TUỔI THƠ</span>
+              </div>
+            </div>
+            <div class="featured-card-info">
+              <div class="featured-title-row">
+                <div>
+                  <h3 class="featured-title">Hàng Rong (Street Stall)</h3>
+                  <p class="featured-tagline">Gánh hàng vỉa hè, gom tiền mở rộng tiệm.</p>
+                </div>
+                <button class="btn btn-play-featured" id="playCaPhoBtn">Chơi ngay ➔</button>
+              </div>
+              <div class="meta-tags-row">
+                <span class="tag-pill tag-skill">Quản lý</span>
+                <span class="tag-pill">1 người</span>
+                <span class="tag-pill">3-5 phút</span>
+                <span class="tag-pill tag-new">Huyền thoại</span>
+              </div>
+            </div>
+          </div>
+          <div class="sticker-badge bottom-sticker">
+            <span>100% BẢN SẮC NGUYÊN BẢN TUỔI THƠ</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CATEGORY FILTER PILLS -->
+    <section class="filter-section">
+      <div class="filter-bar-container">
+        <button class="filter-pill active" data-category="all">Tất cả (150)</button>
+        <button class="filter-pill" data-category="hot">Huyền thoại hot</button>
+        <button class="filter-pill" data-category="quick">Chơi nhanh 5 phút</button>
+        <button class="filter-pill" data-category="friends">Chơi cùng bạn</button>
+        <button class="filter-pill" data-category="Quản lý">Quản lý</button>
+        <button class="filter-pill" data-category="Giải đố">Giải đố</button>
+        <button class="filter-pill" data-category="Hành động">Hành động</button>
+        <button class="filter-pill" data-category="Kỹ năng">Kỹ năng</button>
+        <button class="filter-pill" data-category="Chiến thuật">Chiến thuật</button>
+        <button class="filter-pill" data-category="fav">Đã thích (<span id="favCount">0</span>)</button>
+      </div>
+    </section>
+
+    <!-- SECTION: HUYỀN THOẠI TUỔI THƠ -->
+    <section class="catalog-section" id="sectionHot">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <h2 class="section-heading">Huyền thoại tuổi thơ</h2>
+        </div>
+        <button class="section-view-all" data-target="hot">Xem tất cả ➔</button>
+      </div>
+      <div class="games-grid" id="gridHot">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- SECTION: VÀO CHƠI NGAY 5 PHÚT -->
+    <section class="catalog-section" id="sectionQuick">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <h2 class="section-heading">Vào chơi ngay 5 phút</h2>
+        </div>
+        <button class="section-view-all" data-target="quick">Xem tất cả ➔</button>
+      </div>
+      <div class="games-grid" id="gridQuick">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- SECTION: CHƠI CÙNG BẠN BÈ -->
+    <section class="catalog-section" id="sectionFriends">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <h2 class="section-heading">Chơi cùng bạn bè</h2>
+        </div>
+        <button class="section-view-all" data-target="friends">Xem tất cả ➔</button>
+      </div>
+      <div class="games-grid" id="gridFriends">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- SECTION: TẤT CẢ TRÒ CHƠI / TÌM KIẾM -->
+    <section class="catalog-section" id="sectionAll">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <h2 class="section-heading" id="allSectionTitle">Tất cả 100 game kinh điển</h2>
+        </div>
+        <span class="game-count-badge" id="resultsCount">100 game</span>
+      </div>
+      <div class="games-grid" id="gridAll">
+        <!-- Rendered by JS -->
+      </div>
+      <div class="no-results" id="noResultsBlock" style="display: none;">
+        <div class="no-results-icon">🔍</div>
+        <h3>Không tìm thấy trò chơi nào phù hợp</h3>
+        <p>Thử tìm từ khóa khác như "xe", "bếp", "bóng", "bài", "mèo"...</p>
+        <button class="btn btn-secondary" id="resetSearchBtn">Xóa tìm kiếm</button>
+      </div>
+    </section>
+
+    <!-- DONATION / COMMUNITY BANNER -->
+    <section class="donation-section">
+      <div class="donation-card">
+        <div class="donation-text">
+          <h3 class="donation-title">Những trò chơi nhỏ cho những ngày thật dài.</h3>
+          <p class="donation-desc">
+            NewPlayground là dự án độc lập, mở mã nguồn, hoàn toàn miễn phí và không chèn quảng cáo gây phiền. Bạn có thể ủng hộ chi phí máy chủ và cà phê cho nhóm phát triển nếu thấy vui. ♡
+          </p>
+        </div>
+        <div class="donation-action">
+          <button class="btn btn-donation" id="openDonateModalBtn">
+            Ủng hộ dự án
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <div class="logo-icon small">
+            <div class="logo-accent"></div>
+          </div>
+          <span class="footer-brand-name">new playground</span>
+        </div>
+        <p class="footer-tagline">Play a little. Feel a little happier.</p>
+        <p class="footer-sub">Dự án game web hoài niệm thuần khiết • Thiết kế nguyên bản • Tôn trọng thời gian của bạn.</p>
+      </div>
+
+      <div class="footer-links-group">
+        <div class="footer-col">
+          <h4>Về dự án</h4>
+          <a href="#" id="footerManifestoBtn">Tuyên ngôn sản phẩm</a>
+          <a href="#" id="footerArchitectureBtn">Kiến trúc kỹ thuật</a>
+          <a href="https://github.com" target="_blank" rel="noopener">Mã nguồn GitHub (MIT)</a>
+        </div>
+        <div class="footer-col">
+          <h4>Bản quyền & Pháp lý</h4>
+          <a href="#" id="footerLicensesBtn">Giấy phép tài sản (CC0)</a>
+          <a href="#" id="footerPrivacyBtn">Quyền riêng tư (Zero-PII)</a>
+          <a href="#" id="footerTermsBtn">Nghị định 147/2024/NĐ-CP</a>
+        </div>
+        <div class="footer-col">
+          <h4>Kết nối</h4>
+          <a href="https://ko-fi.com/chunghy" target="_blank" rel="noopener">Ủng hộ qua Ko-fi</a>
+          <a href="mailto:contact@newplayground.fun">Liên hệ hợp tác</a>
+          <div class="social-pills">
+            <span class="social-tag">Discord</span>
+            <span class="social-tag">TikTok</span>
+            <span class="social-tag">YouTube</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 NewPlayground. Xây dựng bằng tất cả tình yêu dành cho game trình duyệt tuổi thơ.</p>
+    </div>
+  </footer>
+
+  <!-- MOBILE BOTTOM NAVIGATION (như trong hình mock-up) -->
+  <nav class="mobile-bottom-nav mobile-only">
+    <button class="bottom-nav-item active" data-tab="home" id="mNavHome">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </svg>
+      <span>Trang chủ</span>
+    </button>
+    <button class="bottom-nav-item" data-tab="search" id="mNavSearch">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <span>Tìm kiếm</span>
+    </button>
+    <button class="bottom-nav-item" data-tab="friends" id="mNavFriends">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+        <circle cx="9" cy="7" r="4"></circle>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+      </svg>
+      <span>Cùng bạn</span>
+    </button>
+    <button class="bottom-nav-item" data-tab="fav" id="mNavFav">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+      </svg>
+      <span>Yêu thích</span>
+    </button>
+  </nav>
+
+  <!-- MODAL: PLAY GAME (Interactive Game Window) -->
+  <div class="game-modal" id="gameModal" style="display: none;">
+    <div class="modal-backdrop" id="closeModalBackdrop"></div>
+    <div class="modal-window">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-badge" id="modalGameBadge">Game</span>
+          <h2 class="modal-game-title" id="modalGameTitle">Tên Trò Chơi</h2>
+        </div>
+        <div class="modal-header-actions">
+          <button class="modal-btn-icon" id="crtToggleBtn" title="Hiệu ứng CRT Scanlines: Tắt">📺</button>
+          <button class="modal-btn-icon" id="modalSoundToggleBtn" title="Bật/Tắt âm thanh (Hiện đang tắt)" aria-label="Âm thanh">🔇</button>
+          <button class="modal-btn-icon" id="fullscreenGameBtn" title="Toàn màn hình">⛶</button>
+          <button class="modal-btn-icon modal-close-btn" id="closeModalBtn" title="Đóng">✕</button>
+        </div>
+      </div>
+      <div class="modal-body" id="modalGameContainer">
+        <!-- Interactive Game Engine injected here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DONATE / KO-FI -->
+  <div class="game-modal" id="donateModal" style="display: none;">
+    <div class="modal-backdrop" id="closeDonateBackdrop"></div>
+    <div class="modal-window donate-window">
+      <div class="modal-header">
+        <h3 class="modal-game-title">Ủng hộ NewPlayground ☕</h3>
+        <button class="modal-btn-icon modal-close-btn" id="closeDonateBtn">✕</button>
+      </div>
+      <div class="donate-content">
+        <div class="donate-icon-badge">♡</div>
+        <h4>Cảm ơn bạn đã đồng hành!</h4>
+        <p>Mọi trò chơi trên NewPlayground đều <strong>hoàn toàn miễn phí</strong>. Sự đóng góp của bạn giúp nhóm duy trì tên miền, máy chủ và sáng tác thêm nhiều tựa game ấm áp hơn.</p>
+        <div class="donate-kofi-box">
+          <p class="donate-subtext">Trang Ko-fi chính thức của người sáng lập:</p>
+          <a href="https://ko-fi.com/chunghy" target="_blank" rel="noopener" class="btn btn-kofi">
+            Tặng một ly cà phê tại ko-fi.com/chunghy ↗
+          </a>
+          <small class="kofi-note">* Đóng góp là hoàn toàn tự nguyện và không tạo bất kỳ ưu thế gameplay nào.</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div class="toast-notification" id="toastBox"></div>
+
+  <!-- SCRIPTS -->
+  <script src="games-data.js?v=20261007_v5"></script>
+  <script src="scripts/game-feel.js?v=20261007_v5"></script>
+  <script src="scripts/engines.js?v=20261007_v5"></script>
+  <script src="scripts/engines-classics.js?v=20261007_v5"></script>
+  <script src="scripts/engines-popcap.js?v=20261007_v5"></script>
+  <script src="scripts/engines-retro50.js?v=20261007_v5"></script>
+  <script src="app.js?v=20261007_v5"></script>
+</body>
+</html>
