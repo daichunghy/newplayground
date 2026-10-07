@@ -27,6 +27,7 @@
   // 1. ENGINE: PAC-MAN ĂN ĐẬU (NAMCO 1980 AUTHENTIC MAZE)
   // =========================================================================
   function launchPacMan(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     let score = 0;
     let lives = 3;
     let level = 1;
@@ -141,7 +142,7 @@
       if (['ArrowLeft', 'a', 'A'].includes(e.key)) { setDir(-1, 0); e.preventDefault(); }
       if (['ArrowRight', 'd', 'D'].includes(e.key)) { setDir(1, 0); e.preventDefault(); }
     };
-    window.addEventListener('keydown', keyHandler);
+    listen(window, 'keydown', keyHandler);
 
     // Touch Swipe Controls for mobile smoothness
     let pmTouchStartX = 0, pmTouchStartY = 0;
@@ -485,16 +486,16 @@
     updateHUD();
     animId = requestAnimationFrame(loop);
 
-    window.__currentPacManCleanup = () => {
+    onCleanup(() => {
       cancelAnimationFrame(animId);
-      window.removeEventListener('keydown', keyHandler);
-    };
+    });
   }
 
   // =========================================================================
   // 2. ENGINE: SUPER MARIO CỔ ĐIỂN (NES PLATFORMER ENGINE)
   // =========================================================================
   function launchMario(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     let score = 0;
     let coins = 0;
     let lives = 3;
@@ -616,8 +617,8 @@
         isJumpHeld = false;
       }
     };
-    window.addEventListener('keydown', keyHandlerDown);
-    window.addEventListener('keyup', keyHandlerUp);
+    listen(window, 'keydown', keyHandlerDown);
+    listen(window, 'keyup', keyHandlerUp);
 
     // Touch Controls
     container.querySelector('#mrLeft')?.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowLeft'] = true; });
@@ -638,7 +639,7 @@
       jumpBuffer = 7;
       isJumpHeld = true;
     });
-    window.addEventListener('mouseup', () => { isJumpHeld = false; });
+    listen(window, 'mouseup', () => { isJumpHeld = false; });
 
     function update() {
       // Horizontal Momentum
@@ -1017,20 +1018,19 @@
     initLevel();
     animId = requestAnimationFrame(loop);
 
-    window.__currentMarioCleanup = () => {
+    onCleanup(() => {
       cancelAnimationFrame(animId);
-      window.removeEventListener('keydown', keyHandlerDown);
-      window.removeEventListener('keyup', keyHandlerUp);
       if (window.NP_Audio && typeof window.NP_Audio.stopBGM === 'function') {
         window.NP_Audio.stopBGM();
       }
-    };
+    });
   }
 
   // =========================================================================
   // 3. ENGINE: GUNNY 2D TỌA ĐỘ (ARTILLERY BALLISTICS BATTLE)
   // =========================================================================
   function launchGunny(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     let wind = (Math.random() * 4 - 2).toFixed(1);
     let playerAngle = 45;
     let power = 0;
@@ -1205,9 +1205,9 @@
 
     const fireBtn = container.querySelector('#gnFireBtn');
     fireBtn.addEventListener('mousedown', triggerFire);
-    window.addEventListener('mouseup', releaseFire);
+    listen(window, 'mouseup', releaseFire);
     fireBtn.addEventListener('touchstart', (e) => { e.preventDefault(); triggerFire(); });
-    window.addEventListener('touchend', releaseFire);
+    listen(window, 'touchend', releaseFire);
 
     // Keyboard controls
     const keyState = {};
@@ -1244,8 +1244,8 @@
       }
     };
 
-    window.addEventListener('keydown', onKeyDown);
-    window.addEventListener('keyup', onKeyUp);
+    listen(window, 'keydown', onKeyDown);
+    listen(window, 'keyup', onKeyUp);
 
     function updateHUD() {
       const pEl = container.querySelector('#gnPlayerHP');
@@ -1683,22 +1683,19 @@
     updateBuffUI();
     animId = requestAnimationFrame(loop);
 
-    window.__currentGunnyCleanup = () => {
+    onCleanup(() => {
       cancelAnimationFrame(animId);
-      window.removeEventListener('keydown', onKeyDown);
-      window.removeEventListener('keyup', onKeyUp);
-      window.removeEventListener('mouseup', releaseFire);
-      window.removeEventListener('touchend', releaseFire);
       if (window.NP_Audio && typeof window.NP_Audio.stopBGM === 'function') {
         window.NP_Audio.stopBGM();
       }
-    };
+    });
   }
 
   // =========================================================================
   // 4. ENGINE: NÔNG TRẠI VUI VẺ (HAPPY FARM ZING ME ENGINE)
   // =========================================================================
   function launchNongTrai(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     let coins = 150;
     let exp = 0;
     let level = 1;
@@ -2283,17 +2280,18 @@
     updateHUD();
     renderPlots();
 
-    window.__currentNongTraiCleanup = () => {
+    onCleanup(() => {
       clearInterval(farmInterval);
       clearTimeout(toastTimer);
       if (window.NP_Audio?.stopBGM) NP_Audio.stopBGM();
-    };
+    });
   }
 
   // =========================================================================
   // 5. ENGINE: CÁ LỚN NUỐT CÁ BÉ (FEEDING FRENZY POPCAP ENGINE)
   // =========================================================================
   function launchFeedingFrenzy(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     let score = 0;
     let fishSize = 1; // 1: Cá bột, 2: Cá hề vừa, 3: Vua biển sâu
     let frenzy = 0;
@@ -2393,7 +2391,7 @@
         triggerDash();
       }
     };
-    window.addEventListener('keydown', onKeyDown);
+    listen(window, 'keydown', onKeyDown);
 
     function spawnFish() {
       if (fishes.length > 20) return;
@@ -2808,19 +2806,19 @@
 
     animId = requestAnimationFrame(loop);
 
-    window.__currentFeedingCleanup = () => {
+    onCleanup(() => {
       cancelAnimationFrame(animId);
-      window.removeEventListener('keydown', onKeyDown);
       if (window.NP_Audio && typeof window.NP_Audio.stopBGM === 'function') {
         window.NP_Audio.stopBGM();
       }
-    };
+    });
   }
 
   // =========================================================================
   // 6. ENGINE: PLANTS VS ZOMBIES 2D (POPCAP LAWN DEFENSE ENGINE)
   // =========================================================================
   function launchPvZ(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     let sun = 150;
     let score = 0;
     let wave = 1;
@@ -3659,18 +3657,19 @@
 
     animId = requestAnimationFrame(loop);
 
-    window.__currentPvZCleanup = () => {
+    onCleanup(() => {
       cancelAnimationFrame(animId);
       if (window.NP_Audio && typeof window.NP_Audio.stopBGM === 'function') {
         window.NP_Audio.stopBGM();
       }
-    };
+    });
   }
 
   // =========================================================================
   // 7. ENGINE: BẮN GÀ VŨ TRỤ (CHICKEN INVADERS / GALAGA RETRO ENGINE)
   // =========================================================================
   function launchChickenInvaders(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     let score = 0;
     let wave = 1;
     let lives = 3;
@@ -3866,7 +3865,7 @@
         triggerNuke();
       }
     };
-    window.addEventListener('keydown', onKeyDown);
+    listen(window, 'keydown', onKeyDown);
 
     function updateHUD() {
       const sEl = container.querySelector('#ciScore');
@@ -4322,19 +4321,19 @@
     initWave(1);
     animId = requestAnimationFrame(loop);
 
-    window.__currentChickenCleanup = () => {
+    onCleanup(() => {
       cancelAnimationFrame(animId);
-      window.removeEventListener('keydown', onKeyDown);
       if (window.NP_Audio && typeof window.NP_Audio.stopBGM === 'function') {
         window.NP_Audio.stopBGM();
       }
-    };
+    });
   }
 
   // =========================================================================
   // 8. ENGINE: 2048 SỐ TRƯỢT (CLASSIC 2048 PUZZLE ENGINE)
   // =========================================================================
   function launchGame2048(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     let board = [
       [0, 0, 0, 0],
       [0, 0, 0, 0],
@@ -4510,7 +4509,7 @@
       if (['ArrowUp', 'w', 'W'].includes(e.key)) { move('up'); e.preventDefault(); }
       if (['ArrowDown', 's', 'S'].includes(e.key)) { move('down'); e.preventDefault(); }
     };
-    window.addEventListener('keydown', keyHandler);
+    listen(window, 'keydown', keyHandler);
 
     // Touch Swipe Gestures
     const gridEl = container.querySelector('#g2048Grid');
@@ -4555,19 +4554,19 @@
     spawnTile();
     render();
 
-    window.__current2048Cleanup = () => {
-      window.removeEventListener('keydown', keyHandler);
+    onCleanup(() => {
       if (gridEl) {
         gridEl.removeEventListener('touchstart', touchStartHandler);
         gridEl.removeEventListener('touchend', touchEndHandler);
       }
-    };
+    });
   }
 
   // =========================================================================
   // 9. ENGINE: PHÁ GẠCH DX-BALL & ARKANOID (CLASSIC BRICK BREAKER)
   // =========================================================================
   function launchDXBall(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     let score = 0;
     let lives = 3;
     let level = 1;
@@ -4612,8 +4611,8 @@
       }
     };
     const onDxKeyUp = (e) => { dxKeys[e.key] = false; };
-    window.addEventListener('keydown', onDxKeyDown);
-    window.addEventListener('keyup', onDxKeyUp);
+    listen(window, 'keydown', onDxKeyDown);
+    listen(window, 'keyup', onDxKeyUp);
 
     function initBricks() {
       bricks = [];
@@ -4895,17 +4894,16 @@
     updateHUD();
     animId = requestAnimationFrame(loop);
 
-    window.__currentDXBallCleanup = () => {
+    onCleanup(() => {
       cancelAnimationFrame(animId);
-      window.removeEventListener('keydown', onDxKeyDown);
-      window.removeEventListener('keyup', onDxKeyUp);
-    };
+    });
   }
 
   // =========================================================================
   // 10. ENGINE: ĐẨY THÙNG SOKOBAN (CLASSIC WAREHOUSE PUZZLE)
   // =========================================================================
   function launchSokoban(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     let currentLevel = 0;
     let moves = 0;
     let history = []; // Undo stack
@@ -5174,7 +5172,7 @@
       if (['ArrowRight', 'd', 'D'].includes(e.key)) { tryMove(1, 0, 'right'); e.preventDefault(); }
       if (['z', 'Z', 'Backspace'].includes(e.key)) { undo(); e.preventDefault(); }
     };
-    window.addEventListener('keydown', keyHandler);
+    listen(window, 'keydown', keyHandler);
 
     // Touch Swipe directly on board for natural mobile movement
     let skTouchX = 0, skTouchY = 0;
@@ -5214,15 +5212,13 @@
 
     initLevel(0);
 
-    window.__currentSokobanCleanup = () => {
-      window.removeEventListener('keydown', keyHandler);
-    };
   }
 
   // =========================================================================
   // 11. ENGINE: Ô ĂN QUAN DÂN GIAN VIỆT NAM (TRADITIONAL MANCALA ENGINE)
   // =========================================================================
   function launchOAnQuan(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     let board = [
       10, // Quan Trái (index 0)
       5, 5, 5, 5, 5, // Dân dưới - Bạn (index 1 to 5)
@@ -5522,13 +5518,13 @@
 
     render();
 
-    window.__currentOAnQuanCleanup = () => {};
   }
 
   // =========================================================================
   // 12. ENGINE: NUÔI CÁ NEMO (INSANIQUARIUM DELUXE POPCAP FULL VIRTUAL AQUARIUM)
   // =========================================================================
   function launchNuoiCaNemo(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     let coins = 200;
     let animId = null;
     let foodLevel = 1; // 1: Brown flake, 2: Green mega pellet
@@ -6340,17 +6336,18 @@
     updateHUD();
     animId = requestAnimationFrame(loop);
 
-    window.__currentNuoiCaCleanup = () => {
+    onCleanup(() => {
       cancelAnimationFrame(animId);
       if (alertBanner) alertBanner.style.display = 'none';
       if (window.NP_Audio?.stopBGM) NP_Audio.stopBGM();
-    };
+    });
   }
 
   // =========================================================================
   // 13. ENGINE: PONG 1972 (CLASSIC TABLE TENNIS ENGINE)
   // =========================================================================
   function launchPong(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     let pScore = 0;
     let aiScore = 0;
     let animId = null;
@@ -6385,8 +6382,8 @@
     const onPongKeyUp = (e) => {
       pongKeys[e.key] = false;
     };
-    window.addEventListener('keydown', onPongKeyDown);
-    window.addEventListener('keyup', onPongKeyUp);
+    listen(window, 'keydown', onPongKeyDown);
+    listen(window, 'keyup', onPongKeyUp);
 
     canvas.addEventListener('mousemove', (e) => {
       const rect = canvas.getBoundingClientRect();
@@ -6498,11 +6495,9 @@
 
     animId = requestAnimationFrame(loop);
 
-    window.__currentPongCleanup = () => {
+    onCleanup(() => {
       cancelAnimationFrame(animId);
-      window.removeEventListener('keydown', onPongKeyDown);
-      window.removeEventListener('keyup', onPongKeyUp);
-    };
+    });
   }
 
   // =========================================================================

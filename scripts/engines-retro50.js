@@ -62,6 +62,7 @@
   // 1. BOOM ONLINE (BnB / CRAZY ARCADE) - ĐẦY ĐỦ 3 MÀN, THÚ CƯỠI, TRÙM CUỐI
   // =========================================================================
   function launchBoomOnline(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     const TILE = 32;
     const COLS = 15;
     const ROWS = 13;
@@ -198,8 +199,8 @@
       keys[e.code] = val;
       keys[e.key] = val;
     };
-    window.addEventListener('keydown', e => onKey(e, true));
-    window.addEventListener('keyup', e => onKey(e, false));
+    listen(window, 'keydown', e => onKey(e, true));
+    listen(window, 'keyup', e => onKey(e, false));
 
     const bindBtn = (id, keyName) => {
       const el = container.querySelector(id);
@@ -697,17 +698,16 @@
 
     animId = requestAnimationFrame(loop);
 
-    window.__currentBoomOnlineCleanup = () => {
+    onCleanup(() => {
       cancelAnimationFrame(animId);
-      window.removeEventListener('keydown', onKey);
-      window.removeEventListener('keyup', onKey);
-    };
+    });
   }
 
   // =========================================================================
   // 2. AUDITION ONLINE (4 PHÍM SPACE RHYTHM DANCE) - 4 BÀI HÁT, CHANCE ĐỎ
   // =========================================================================
   function launchAudition(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     const W = 640;
     const H = 420;
 
@@ -892,7 +892,7 @@
         handleSpace();
       }
     };
-    window.addEventListener('keydown', onKey);
+    listen(window, 'keydown', onKey);
 
     const bindBtn = (id, fn) => {
       const el = container.querySelector(id);
@@ -1010,16 +1010,16 @@
 
     animId = requestAnimationFrame(loop);
 
-    window.__currentAuditionCleanup = () => {
+    onCleanup(() => {
       cancelAnimationFrame(animId);
-      window.removeEventListener('keydown', onKey);
-    };
+    });
   }
 
   // =========================================================================
   // 3. ROAD RASH - 3 CHẶNG ĐUA, VŨ KHÍ, CẢNH SÁT, NITRO BOOST
   // =========================================================================
   function launchRoadRash(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     const W = 640;
     const H = 400;
 
@@ -1080,8 +1080,8 @@
     ];
 
     const keys = {};
-    window.addEventListener('keydown', e => { keys[e.code] = true; keys[e.key] = true; });
-    window.addEventListener('keyup', e => { keys[e.code] = false; keys[e.key] = false; });
+    listen(window, 'keydown', e => { keys[e.code] = true; keys[e.key] = true; });
+    listen(window, 'keyup', e => { keys[e.code] = false; keys[e.key] = false; });
 
     const bindBtn = (id, k) => {
       const el = container.querySelector(id);
@@ -1296,16 +1296,16 @@
 
     animId = requestAnimationFrame(loop);
 
-    window.__currentRoadRashCleanup = () => {
+    onCleanup(() => {
       cancelAnimationFrame(animId);
-      window.removeEventListener('keydown', onKey);
-    };
+    });
   }
 
   // =========================================================================
   // 4. NGƯỜI MÁY XANH (MEGA MAN) - TRƯỢT GẦM, 3 ROBOT BOSSES, E-TANK
   // =========================================================================
   function launchMegaMan(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     const W = 640;
     const H = 400;
 
@@ -1389,8 +1389,8 @@
     spawnBoss(currentStage);
 
     const keys = {};
-    window.addEventListener('keydown', e => { keys[e.code] = true; keys[e.key] = true; });
-    window.addEventListener('keyup', e => { keys[e.code] = false; keys[e.key] = false; });
+    listen(window, 'keydown', e => { keys[e.code] = true; keys[e.key] = true; });
+    listen(window, 'keyup', e => { keys[e.code] = false; keys[e.key] = false; });
 
     const shootBtn = container.querySelector('#mmShoot');
     const startCharge = () => { player.charging = true; };
@@ -1426,10 +1426,10 @@
       shootBtn.addEventListener('touchend', e => { e.preventDefault(); releaseCharge(); });
     }
 
-    window.addEventListener('keydown', e => {
+    listen(window, 'keydown', e => {
       if (e.code === 'KeyJ' && !player.charging) startCharge();
     });
-    window.addEventListener('keyup', e => {
+    listen(window, 'keyup', e => {
       if (e.code === 'KeyJ') releaseCharge();
     });
 
@@ -1645,16 +1645,16 @@
 
     animId = requestAnimationFrame(loop);
 
-    window.__currentMegaManCleanup = () => {
+    onCleanup(() => {
       cancelAnimationFrame(animId);
-      window.removeEventListener('keydown', onKey);
-    };
+    });
   }
 
   // =========================================================================
   // 5. BẮN VỊT CỎ 8-BIT (DUCK HUNT) - 10 VÒNG, BẮN ĐĨA BAY, CHÓ SĂN
   // =========================================================================
   function launchDuckHunt(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     const W = 640;
     const H = 400;
 
@@ -1860,15 +1860,16 @@
 
     animId = requestAnimationFrame(loop);
 
-    window.__currentDuckHuntCleanup = () => {
+    onCleanup(() => {
       cancelAnimationFrame(animId);
-    };
+    });
   }
 
   // =========================================================================
   // 6. STREET FIGHTER II - 3 ĐỐI THỦ TOURNAMENT, SUPER SHINKU HADOUKEN
   // =========================================================================
   function launchStreetFighter(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     const W = 640;
     const H = 400;
 
@@ -1917,8 +1918,8 @@
     const fireballs = [];
 
     const keys = {};
-    window.addEventListener('keydown', e => { keys[e.code] = true; });
-    window.addEventListener('keyup', e => { keys[e.code] = false; });
+    listen(window, 'keydown', e => { keys[e.code] = true; });
+    listen(window, 'keyup', e => { keys[e.code] = false; });
 
     function ryuAttack(type) {
       if (ryu.state !== 'idle') return;
@@ -2080,16 +2081,16 @@
 
     animId = requestAnimationFrame(loop);
 
-    window.__currentStreetFighterCleanup = () => {
+    onCleanup(() => {
       cancelAnimationFrame(animId);
-      window.removeEventListener('keydown', onKey);
-    };
+    });
   }
 
   // =========================================================================
   // 7. BLOXORZ - 5 MÀN ĐỐ TIẾN CẤP, CÔNG TẮC X & SOFT, GẠCH CAM GIÒN
   // =========================================================================
   function launchBloxorz(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     const W = 640;
     const H = 400;
 
@@ -2195,7 +2196,7 @@
       if (e.key === 'ArrowUp') roll('up');
       if (e.key === 'ArrowDown') roll('down');
     };
-    window.addEventListener('keydown', onKey);
+    listen(window, 'keydown', onKey);
 
     const bind = (id, d) => {
       const el = container.querySelector(id);
@@ -2248,16 +2249,16 @@
 
     animId = requestAnimationFrame(loop);
 
-    window.__currentBloxorzCleanup = () => {
+    onCleanup(() => {
       cancelAnimationFrame(animId);
-      window.removeEventListener('keydown', onKey);
-    };
+    });
   }
 
   // =========================================================================
   // 8. THỜI ĐẠI CHIẾN TRANH (AGE OF WAR) - 5 KỶ NGUYÊN, TIẾN HÓA, THIÊN THẠCH
   // =========================================================================
   function launchAgeOfWar(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     const W = 640;
     const H = 400;
 
@@ -2568,15 +2569,16 @@
 
     animId = requestAnimationFrame(loop);
 
-    window.__currentAgeOfWarCleanup = () => {
+    onCleanup(() => {
       cancelAnimationFrame(animId);
-    };
+    });
   }
 
   // =========================================================================
   // 9. KHỦNG LONG NHẢ BÓNG (BUBBLE BOBBLE) - BONG BÓNG EXTEND, TRÁI CÂY
   // =========================================================================
   function launchBubbleBobble(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     const W = 640;
     const H = 400;
 
@@ -2661,8 +2663,8 @@
     spawnEnemies(round);
 
     const keys = {};
-    window.addEventListener('keydown', e => { keys[e.code] = true; keys[e.key] = true; });
-    window.addEventListener('keyup', e => { keys[e.code] = false; keys[e.key] = false; });
+    listen(window, 'keydown', e => { keys[e.code] = true; keys[e.key] = true; });
+    listen(window, 'keyup', e => { keys[e.code] = false; keys[e.key] = false; });
 
     function shootBubble() {
       bubbles.push({
@@ -2691,7 +2693,7 @@
     const sBtn = container.querySelector('#bbShoot');
     if (sBtn) sBtn.addEventListener('click', shootBubble);
 
-    window.addEventListener('keydown', e => {
+    listen(window, 'keydown', e => {
       if (e.code === 'KeyJ' || e.code === 'Space') shootBubble();
     });
 
@@ -2838,16 +2840,16 @@
 
     animId = requestAnimationFrame(loop);
 
-    window.__currentBubbleBobbleCleanup = () => {
+    onCleanup(() => {
       cancelAnimationFrame(animId);
-      window.removeEventListener('keydown', onKey);
-    };
+    });
   }
 
   // =========================================================================
   // 10. BẮN PHAO RAFT WARS - CHIẾN DỊCH 4 MÀN, QUỸ ĐẠO PARABOL, SHOP VŨ KHÍ
   // =========================================================================
   function launchRaftWars(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     const W = 640;
     const H = 400;
 
@@ -3060,9 +3062,9 @@
 
     animId = requestAnimationFrame(loop);
 
-    window.__currentRaftWarsCleanup = () => {
+    onCleanup(() => {
       cancelAnimationFrame(animId);
-    };
+    });
   }
 
   // =========================================================================

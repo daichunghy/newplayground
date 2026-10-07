@@ -21,6 +21,7 @@
   // 1. ZUMA DELUXE (POPCAP ẾCH BẮN NGỌC 2003)
   // =========================================================================
   function launchZuma(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     let score = 0;
     let coins = 0;
     let stage = 1;
@@ -50,6 +51,7 @@
     // Track path: generate winding stone track around the 640x480 canvas
     const trackPoints = [];
     const totalSteps = 600;
+    const totalTrackLength = (totalSteps - 1) / 0.8;
     const centerX = 320;
     const centerY = 240;
 
@@ -361,7 +363,7 @@
         swapFrogBall();
       }
     };
-    window.addEventListener('keydown', onKeyDown);
+    listen(window, 'keydown', onKeyDown);
 
     function getTrackPos(dist) {
       if (dist < 0) return { x: -999, y: -999, valid: false };
@@ -458,7 +460,7 @@
         }
 
         const leadDist = train.length > 0 ? train[0].dist : 0;
-        const skullDist = (totalSteps - 1) / 0.8;
+        const skullDist = totalTrackLength;
 
         if (leadDist >= skullDist) {
           gameState = 'GAMEOVER';
@@ -702,17 +704,17 @@
 
     animId = requestAnimationFrame(loop);
 
-    window.__currentZumaCleanup = () => {
+    onCleanup(() => {
       cancelAnimationFrame(animId);
-      window.removeEventListener('keydown', onKeyDown);
       if (window.NP_Audio && typeof window.NP_Audio.stopBGM === 'function') window.NP_Audio.stopBGM();
-    };
+    });
   }
 
   // =========================================================================
   // 2. DINER DASH (PHỤC VỤ BÀN - PLAYFIRST FLO'S DINER 2004)
   // =========================================================================
   function launchDinerDash(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     let score = 0;
     let stage = 1;
     let targetScore = 600;
@@ -1358,17 +1360,18 @@
 
     animId = requestAnimationFrame(loop);
 
-    window.__currentDinerCleanup = () => {
+    onCleanup(() => {
       cancelAnimationFrame(animId);
       clearInterval(secondTimer);
       if (window.NP_Audio && typeof window.NP_Audio.stopBGM === 'function') window.NP_Audio.stopBGM();
-    };
+    });
   }
 
   // =========================================================================
   // 3. CỜ TƯỚNG TÀN CUỘC (XIANGQI ENDGAME TACTICS)
   // =========================================================================
   function launchCoTuong(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     let currentPuzzleIdx = 0;
     let selectedCell = null;
     let validMoves = [];
@@ -1898,15 +1901,16 @@
 
     loadPuzzle(0);
 
-    window.__currentCoTuongCleanup = () => {
+    onCleanup(() => {
       if (window.NP_Audio && typeof window.NP_Audio.stopBGM === 'function') window.NP_Audio.stopBGM();
-    };
+    });
   }
 
   // =========================================================================
   // 4. BẮN BI VE TUỔI THƠ (VIETNAMESE CHILDHOOD MARBLES)
   // =========================================================================
   function launchBanBiVe(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     let score = 0;
     let round = 1;
     let maxRounds = 3;
@@ -2167,7 +2171,7 @@
 
     canvas.addEventListener('mousedown', (e) => handleDragStart(e.clientX, e.clientY));
     canvas.addEventListener('mousemove', (e) => handleDragMove(e.clientX, e.clientY));
-    window.addEventListener('mouseup', handleDragEnd);
+    listen(window, 'mouseup', handleDragEnd);
 
     canvas.addEventListener('touchstart', (e) => {
       if (e.touches && e.touches[0]) {
@@ -2183,7 +2187,7 @@
       }
     }, { passive: false });
 
-    window.addEventListener('touchend', handleDragEnd);
+    listen(window, 'touchend', handleDragEnd);
 
     function resolveCollision(c1, c2) {
       const dx = c2.x - c1.x;
@@ -2382,17 +2386,16 @@
 
     animId = requestAnimationFrame(loop);
 
-    window.__currentBanBiCleanup = () => {
+    onCleanup(() => {
       cancelAnimationFrame(animId);
-      window.removeEventListener('mouseup', handleDragEnd);
-      window.removeEventListener('touchend', handleDragEnd);
-    };
+    });
   }
 
   // =========================================================================
   // 5. ĐÁNH BÀI ĐỔI MÀU (UNO CLASSIC)
   // =========================================================================
   function launchDanhBaiUno(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     let animId = null;
     let turn = 0;
     let direction = 1;
@@ -2797,9 +2800,9 @@
 
     render();
 
-    window.__currentUnoCleanup = () => {
+    onCleanup(() => {
       if (window.NP_Audio && typeof window.NP_Audio.stopBGM === 'function') window.NP_Audio.stopBGM();
-    };
+    });
   }
 
   // Expose to window.NP_Engines

@@ -75,6 +75,18 @@ Chỉ cần mở repository trên GitHub và nhấn **Codespaces -> Create codes
 
 ## 5. Dành cho Codex & AI Agents
 
+### Kiểm tra hồi quy luồng mở/đóng game
+
+Chạy bằng Node.js 18 trở lên, không cần cài thêm thư viện:
+
+```bash
+node --test tests/game-flow.test.cjs
+```
+
+Bộ kiểm tra chạy mã nguồn thật với DOM/Canvas/âm thanh giả lập: định tuyến một engine mỗi lần mở,
+ưu tiên Retro50, đóng/mở lại/chuyển game, hủy timer và vòng lặp, dọn phím điều khiển, tương thích rung,
+và xử lý khởi tạo thất bại. Đây không phải kiểm tra hình ảnh trên trình duyệt hay xác nhận toàn bộ gameplay.
+
 Vui lòng tham khảo file [`AGENTS.md`](./AGENTS.md) để nắm rõ:
 - Cơ chế khởi tạo vòng lặp game (`requestAnimationFrame` + delta-time).
 - Cơ chế âm thanh dự phòng (Web Audio Procedural Synthesizer fallback).

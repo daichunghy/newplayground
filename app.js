@@ -852,126 +852,87 @@
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
 
-    // Cleanup previous runs if any
-    const cleanupAllEngines = () => {
-      if (typeof window.__currentHangRongCleanup === 'function') window.__currentHangRongCleanup();
-      if (typeof window.__currentDaoVangCleanup === 'function') window.__currentDaoVangCleanup();
-      if (typeof window.__currentBanTrungCleanup === 'function') window.__currentBanTrungCleanup();
-      if (typeof window.__currentKimCuongCleanup === 'function') window.__currentKimCuongCleanup();
-      if (typeof window.__currentDatBomCleanup === 'function') window.__currentDatBomCleanup();
-      if (typeof window.__currentXeTangCleanup === 'function') window.__currentXeTangCleanup();
-      if (typeof window.__currentCaroCleanup === 'function') window.__currentCaroCleanup();
-      if (typeof window.__currentSnakeCleanup === 'function') window.__currentSnakeCleanup();
-      if (typeof window.__currentTetrisCleanup === 'function') window.__currentTetrisCleanup();
-      if (typeof window.__currentFlappyCleanup === 'function') window.__currentFlappyCleanup();
-      if (typeof window.__currentFruitCleanup === 'function') window.__currentFruitCleanup();
-      if (typeof window.__currentDoMinCleanup === 'function') window.__currentDoMinCleanup();
-      if (typeof window.__currentPikachuCleanup === 'function') window.__currentPikachuCleanup();
-      if (typeof window.__currentPacManCleanup === 'function') window.__currentPacManCleanup();
-      if (typeof window.__currentMarioCleanup === 'function') window.__currentMarioCleanup();
-      if (typeof window.__currentGunnyCleanup === 'function') window.__currentGunnyCleanup();
-      if (typeof window.__currentNongTraiCleanup === 'function') window.__currentNongTraiCleanup();
-      if (typeof window.__currentFeedingCleanup === 'function') window.__currentFeedingCleanup();
-      if (typeof window.__currentPvZCleanup === 'function') window.__currentPvZCleanup();
-      if (typeof window.__currentChickenCleanup === 'function') window.__currentChickenCleanup();
-      if (typeof window.__current2048Cleanup === 'function') window.__current2048Cleanup();
-      if (typeof window.__currentDXBallCleanup === 'function') window.__currentDXBallCleanup();
-      if (typeof window.__currentSokobanCleanup === 'function') window.__currentSokobanCleanup();
-      if (typeof window.__currentOAnQuanCleanup === 'function') window.__currentOAnQuanCleanup();
-      if (typeof window.__currentNuoiCaCleanup === 'function') window.__currentNuoiCaCleanup();
-      if (typeof window.__currentPongCleanup === 'function') window.__currentPongCleanup();
-      if (typeof window.__currentZumaCleanup === 'function') window.__currentZumaCleanup();
-      if (typeof window.__currentDinerCleanup === 'function') window.__currentDinerCleanup();
-      if (typeof window.__currentCoTuongCleanup === 'function') window.__currentCoTuongCleanup();
-      if (typeof window.__currentBanBiCleanup === 'function') window.__currentBanBiCleanup();
-      if (typeof window.__currentUnoCleanup === 'function') window.__currentUnoCleanup();
-      if (typeof window.__currentArcadeCleanup === 'function') window.__currentArcadeCleanup();
-      if (typeof window.__currentBoomOnlineCleanup === 'function') window.__currentBoomOnlineCleanup();
-      if (typeof window.__currentAuditionCleanup === 'function') window.__currentAuditionCleanup();
-      if (typeof window.__currentRoadRashCleanup === 'function') window.__currentRoadRashCleanup();
-      if (typeof window.__currentMegaManCleanup === 'function') window.__currentMegaManCleanup();
-      if (typeof window.__currentDuckHuntCleanup === 'function') window.__currentDuckHuntCleanup();
-      if (typeof window.__currentStreetFighterCleanup === 'function') window.__currentStreetFighterCleanup();
-      if (typeof window.__currentBloxorzCleanup === 'function') window.__currentBloxorzCleanup();
-      if (typeof window.__currentAgeOfWarCleanup === 'function') window.__currentAgeOfWarCleanup();
-      if (typeof window.__currentBubbleBobbleCleanup === 'function') window.__currentBubbleBobbleCleanup();
-      if (typeof window.__currentRaftWarsCleanup === 'function') window.__currentRaftWarsCleanup();
-      if (window.NP_Audio && typeof window.NP_Audio.stopBGM === 'function') window.NP_Audio.stopBGM();
-    };
-    cleanupAllEngines();
+    cleanupGameRuntime();
 
-    const gId = (game.id || '').toLowerCase();
-    if (window.NP_Retro50Engines && window.NP_Retro50Engines.hasGame(game.id)) {
-      window.NP_Retro50Engines.launchGame(container, game);
-    } else if (window.NP_Engines) {
-      if (gId.includes('hang-rong') || gId.includes('ca-pho')) {
-        window.NP_Engines.launchHangRong(container, game);
-      } else if (gId.includes('dao-vang') || gId.includes('gold-miner')) {
-        window.NP_Engines.launchDaoVang(container, game);
-      } else if (gId.includes('pac-man')) {
-        window.NP_Engines.launchPacMan(container, game);
-      } else if (gId.includes('mario') || gId.includes('sonic') || gId.includes('subway') || gId.includes('paperboy')) {
-        window.NP_Engines.launchMario(container, game);
-      } else if (gId.includes('gunny') || gId.includes('cung') || gId.includes('angry-birds')) {
-        window.NP_Engines.launchGunny(container, game);
-      } else if (gId.includes('nong-trai') || gId.includes('sky-garden') || gId.includes('vuon')) {
-        window.NP_Engines.launchNongTrai(container, game);
-      } else if (gId.includes('feeding') || gId.includes('ca-lon') || gId.includes('nuot-ca')) {
-        window.NP_Engines.launchFeedingFrenzy(container, game);
-      } else if (gId.includes('nuoi-ca') || gId.includes('nemo') || gId.includes('insaniquarium') || gId.includes('dao-rong')) {
-        window.NP_Engines.launchNuoiCaNemo(container, game);
-      } else if (gId.includes('zuma')) {
-        window.NP_Engines.launchZuma(container, game);
-      } else if (gId.includes('diner')) {
-        window.NP_Engines.launchDinerDash(container, game);
-      } else if (gId.includes('co-tuong')) {
-        window.NP_Engines.launchCoTuong(container, game);
-      } else if (gId.includes('ban-bi')) {
-        window.NP_Engines.launchBanBiVe(container, game);
-      } else if (gId.includes('danh-bai') || gId.includes('uno')) {
-        window.NP_Engines.launchDanhBaiUno(container, game);
-      } else if (gId.includes('plants') || gId.includes('zombie') || gId.includes('bloons') || gId.includes('thu-thanh')) {
-        window.NP_Engines.launchPvZ(container, game);
-      } else if (gId.includes('ban-ga') || gId.includes('galaga') || gId.includes('ban-ruoi') || gId.includes('chicken')) {
-        window.NP_Engines.launchChickenInvaders(container, game);
-      } else if (gId.includes('pha-gach') || gId.includes('dx-ball') || gId.includes('arkanoid') || gId.includes('peggle')) {
-        window.NP_Engines.launchDXBall(container, game);
-      } else if (gId.includes('2048')) {
-        window.NP_Engines.launchGame2048(container, game);
-      } else if (gId.includes('sokoban') || gId.includes('day-thung') || gId.includes('ha-noi')) {
-        window.NP_Engines.launchSokoban(container, game);
-      } else if (gId.includes('o-an-quan')) {
-        window.NP_Engines.launchOAnQuan(container, game);
-      } else if (gId.includes('pong') || gId.includes('bi-lac') || gId.includes('bong-ban')) {
-        window.NP_Engines.launchPong(container, game);
-      } else if (gId.includes('line-98')) {
-        window.NP_Engines.launchLine98(container, game);
-      } else if (gId.includes('ban-trung') || gId.includes('dynomite') || gId.includes('bobble')) {
-        window.NP_Engines.launchBanTrung(container, game);
-      } else if (gId.includes('kim-cuong') || gId.includes('bejeweled') || gId.includes('chuzzle')) {
-        window.NP_Engines.launchKimCuong(container, game);
-      } else if (gId.includes('dat-bom') || gId.includes('bomberman')) {
-        window.NP_Engines.launchDatBom(container, game);
-      } else if (gId.includes('xe-tang') || gId.includes('battle-city') || gId.includes('tank-1990') || gId.includes('heavy-weapon')) {
-        window.NP_Engines.launchXeTang1990(container, game);
-      } else if (gId.includes('caro')) {
-        window.NP_Engines.launchCaro(container, game);
-      } else if (gId.includes('ran-san-moi') || gId.includes('snake')) {
-        window.NP_Engines.launchSnake(container, game);
-      } else if (gId.includes('xep-gach') || gId.includes('tetris') || gId.includes('dr-mario')) {
-        window.NP_Engines.launchTetris(container, game);
-      } else if (gId.includes('flappy')) {
-        window.NP_Engines.launchFlappyBird(container, game);
-      } else if (gId.includes('chem-hoa-qua') || gId.includes('fruit-ninja')) {
-        window.NP_Engines.launchFruitNinja(container, game);
-      } else if (gId.includes('do-min') || gId.includes('minesweeper')) {
-        window.NP_Engines.launchDoMin(container, game);
-      } else if (gId.includes('pikachu') || gId.includes('lat-the') || gId.includes('noi-hinh')) {
-        window.NP_Engines.launchPikachu(container, game);
+    const gId = typeof game.id === 'string' ? game.id.toLowerCase() : '';
+    try {
+      if (window.NP_Retro50Engines && window.NP_Retro50Engines.hasGame(gId)) {
+        window.NP_Retro50Engines.launchGame(container, game);
+      } else if (window.NP_Engines) {
+        if (gId.includes('hang-rong') || gId.includes('ca-pho')) {
+          window.NP_Engines.launchHangRong(container, game);
+        } else if (gId.includes('dao-vang') || gId.includes('gold-miner')) {
+          window.NP_Engines.launchDaoVang(container, game);
+        } else if (gId.includes('pac-man')) {
+          window.NP_Engines.launchPacMan(container, game);
+        } else if (gId.includes('mario') || gId.includes('sonic') || gId.includes('subway') || gId.includes('paperboy')) {
+          window.NP_Engines.launchMario(container, game);
+        } else if (gId.includes('gunny') || gId.includes('cung') || gId.includes('angry-birds')) {
+          window.NP_Engines.launchGunny(container, game);
+        } else if (gId.includes('nong-trai') || gId.includes('sky-garden') || gId.includes('vuon')) {
+          window.NP_Engines.launchNongTrai(container, game);
+        } else if (gId.includes('feeding') || gId.includes('ca-lon') || gId.includes('nuot-ca')) {
+          window.NP_Engines.launchFeedingFrenzy(container, game);
+        } else if (gId.includes('nuoi-ca') || gId.includes('nemo') || gId.includes('insaniquarium') || gId.includes('dao-rong')) {
+          window.NP_Engines.launchNuoiCaNemo(container, game);
+        } else if (gId.includes('zuma')) {
+          window.NP_Engines.launchZuma(container, game);
+        } else if (gId.includes('diner')) {
+          window.NP_Engines.launchDinerDash(container, game);
+        } else if (gId.includes('co-tuong')) {
+          window.NP_Engines.launchCoTuong(container, game);
+        } else if (gId.includes('ban-bi')) {
+          window.NP_Engines.launchBanBiVe(container, game);
+        } else if (gId.includes('danh-bai') || gId.includes('uno')) {
+          window.NP_Engines.launchDanhBaiUno(container, game);
+        } else if (gId.includes('plants') || gId.includes('zombie') || gId.includes('bloons') || gId.includes('thu-thanh')) {
+          window.NP_Engines.launchPvZ(container, game);
+        } else if (gId.includes('ban-ga') || gId.includes('galaga') || gId.includes('ban-ruoi') || gId.includes('chicken')) {
+          window.NP_Engines.launchChickenInvaders(container, game);
+        } else if (gId.includes('pha-gach') || gId.includes('dx-ball') || gId.includes('arkanoid') || gId.includes('peggle')) {
+          window.NP_Engines.launchDXBall(container, game);
+        } else if (gId.includes('2048')) {
+          window.NP_Engines.launchGame2048(container, game);
+        } else if (gId.includes('sokoban') || gId.includes('day-thung') || gId.includes('ha-noi')) {
+          window.NP_Engines.launchSokoban(container, game);
+        } else if (gId.includes('o-an-quan')) {
+          window.NP_Engines.launchOAnQuan(container, game);
+        } else if (gId.includes('pong') || gId.includes('bi-lac') || gId.includes('bong-ban')) {
+          window.NP_Engines.launchPong(container, game);
+        } else if (gId.includes('line-98')) {
+          window.NP_Engines.launchLine98(container, game);
+        } else if (gId.includes('ban-trung') || gId.includes('dynomite') || gId.includes('bobble')) {
+          window.NP_Engines.launchBanTrung(container, game);
+        } else if (gId.includes('kim-cuong') || gId.includes('bejeweled') || gId.includes('chuzzle')) {
+          window.NP_Engines.launchKimCuong(container, game);
+        } else if (gId.includes('dat-bom') || gId.includes('bomberman')) {
+          window.NP_Engines.launchDatBom(container, game);
+        } else if (gId.includes('xe-tang') || gId.includes('battle-city') || gId.includes('tank-1990') || gId.includes('heavy-weapon')) {
+          window.NP_Engines.launchXeTang1990(container, game);
+        } else if (gId.includes('caro')) {
+          window.NP_Engines.launchCaro(container, game);
+        } else if (gId.includes('ran-san-moi') || gId.includes('snake')) {
+          window.NP_Engines.launchSnake(container, game);
+        } else if (gId.includes('xep-gach') || gId.includes('tetris') || gId.includes('dr-mario')) {
+          window.NP_Engines.launchTetris(container, game);
+        } else if (gId.includes('flappy')) {
+          window.NP_Engines.launchFlappyBird(container, game);
+        } else if (gId.includes('chem-hoa-qua') || gId.includes('fruit-ninja')) {
+          window.NP_Engines.launchFruitNinja(container, game);
+        } else if (gId.includes('do-min') || gId.includes('minesweeper')) {
+          window.NP_Engines.launchDoMin(container, game);
+        } else if (gId.includes('pikachu') || gId.includes('lat-the') || gId.includes('noi-hinh')) {
+          window.NP_Engines.launchPikachu(container, game);
+        } else {
+          launchGameSandbox(container, game);
+        }
       } else {
-        window.NP_Engines.launchRetroArcade(container, game);
+        launchGameSandbox(container, game);
       }
-      launchGameSandbox(container, game);
+    } catch (error) {
+      cleanupGameRuntime();
+      container.textContent = 'Không thể mở trò chơi. Bạn hãy đóng rồi thử lại.';
+      console.error('Game launch failed', error);
     }
 
     // Apply CRT state if active
@@ -989,40 +950,16 @@
     const modal = document.getElementById('gameModal');
     if (modal) modal.style.display = 'none';
     document.body.style.overflow = '';
+    cleanupGameRuntime();
+  }
+
+  function cleanupGameRuntime() {
     clearInterval(gameInterval);
-    if (typeof window.__currentHangRongCleanup === 'function') window.__currentHangRongCleanup();
-    if (typeof window.__currentDaoVangCleanup === 'function') window.__currentDaoVangCleanup();
-    if (typeof window.__currentBanTrungCleanup === 'function') window.__currentBanTrungCleanup();
-    if (typeof window.__currentKimCuongCleanup === 'function') window.__currentKimCuongCleanup();
-    if (typeof window.__currentDatBomCleanup === 'function') window.__currentDatBomCleanup();
-    if (typeof window.__currentXeTangCleanup === 'function') window.__currentXeTangCleanup();
-    if (typeof window.__currentCaroCleanup === 'function') window.__currentCaroCleanup();
-    if (typeof window.__currentSnakeCleanup === 'function') window.__currentSnakeCleanup();
-    if (typeof window.__currentTetrisCleanup === 'function') window.__currentTetrisCleanup();
-    if (typeof window.__currentFlappyCleanup === 'function') window.__currentFlappyCleanup();
-    if (typeof window.__currentFruitCleanup === 'function') window.__currentFruitCleanup();
-    if (typeof window.__currentDoMinCleanup === 'function') window.__currentDoMinCleanup();
-    if (typeof window.__currentPikachuCleanup === 'function') window.__currentPikachuCleanup();
-    if (typeof window.__currentPacManCleanup === 'function') window.__currentPacManCleanup();
-    if (typeof window.__currentMarioCleanup === 'function') window.__currentMarioCleanup();
-    if (typeof window.__currentGunnyCleanup === 'function') window.__currentGunnyCleanup();
-    if (typeof window.__currentNongTraiCleanup === 'function') window.__currentNongTraiCleanup();
-    if (typeof window.__currentFeedingCleanup === 'function') window.__currentFeedingCleanup();
-    if (typeof window.__currentPvZCleanup === 'function') window.__currentPvZCleanup();
-    if (typeof window.__currentChickenCleanup === 'function') window.__currentChickenCleanup();
-    if (typeof window.__current2048Cleanup === 'function') window.__current2048Cleanup();
-    if (typeof window.__currentDXBallCleanup === 'function') window.__currentDXBallCleanup();
-    if (typeof window.__currentSokobanCleanup === 'function') window.__currentSokobanCleanup();
-    if (typeof window.__currentOAnQuanCleanup === 'function') window.__currentOAnQuanCleanup();
-    if (typeof window.__currentNuoiCaCleanup === 'function') window.__currentNuoiCaCleanup();
-    if (typeof window.__currentPongCleanup === 'function') window.__currentPongCleanup();
-    if (typeof window.__currentZumaCleanup === 'function') window.__currentZumaCleanup();
-    if (typeof window.__currentDinerCleanup === 'function') window.__currentDinerCleanup();
-    if (typeof window.__currentCoTuongCleanup === 'function') window.__currentCoTuongCleanup();
-    if (typeof window.__currentBanBiCleanup === 'function') window.__currentBanBiCleanup();
-    if (typeof window.__currentUnoCleanup === 'function') window.__currentUnoCleanup();
-    if (typeof window.__currentArcadeCleanup === 'function') window.__currentArcadeCleanup();
+    gameInterval = null;
+    if (window.NP_GameSession) window.NP_GameSession.stop();
     if (window.NP_Audio && typeof window.NP_Audio.stopBGM === 'function') window.NP_Audio.stopBGM();
+    const container = document.getElementById('modalGameContainer');
+    if (container) container.replaceChildren();
   }
 
   function closeDonateModal() {
@@ -1270,6 +1207,8 @@
   function launchGameSandbox(container, game) {
     if (window.NP_Engines && typeof window.NP_Engines.launchRetroArcade === 'function') {
       window.NP_Engines.launchRetroArcade(container, game);
+    } else {
+      container.textContent = 'Chưa tải được trò chơi. Bạn hãy tải lại trang rồi thử lại.';
     }
   }
 

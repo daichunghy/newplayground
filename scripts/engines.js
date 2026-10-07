@@ -10,6 +10,12 @@
 (function () {
   'use strict';
 
+  // Keep the legacy shared synthesizer's delayed notes in the active game session.
+  function setTimeout(callback, delay, ...args) {
+    const session = window.NP_GameSession && window.NP_GameSession.getCurrent();
+    return session ? session.setTimeout(callback, delay, ...args) : window.setTimeout(callback, delay, ...args);
+  }
+
   // --- AUDIO SYNTHESIS HELPER ---
   const AudioEngine = {
     ctx: null,
@@ -83,6 +89,7 @@
   // 1. ENGINE: HÀNG RONG (FULL WEB-GAME REMAKE)
   // =========================================================================
   function launchHangRong(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     // Persistent State
     const STORAGE_KEY = 'np_hangrong_save_v2';
     let saved = null;
@@ -1473,7 +1480,7 @@
         }
       }
     };
-    window.addEventListener('keydown', onHangRongKey);
+    listen(window, 'keydown', onHangRongKey);
 
     // Initial render
     renderCurrentTab();
@@ -1488,24 +1495,24 @@
     }
     hrAnimId = requestAnimationFrame(hrRenderLoop);
 
-    // Hook cleanup to window
-    window.__currentHangRongCleanup = () => {
+    // Preserve progress when this game session ends
+    onCleanup(() => {
       if (hrAnimId) cancelAnimationFrame(hrAnimId);
       if (bargainAnimId) cancelAnimationFrame(bargainAnimId);
-      window.removeEventListener('keydown', onHangRongKey);
       clearInterval(mainLoopInterval);
       cookingSlots.forEach(s => clearInterval(s.timer));
       if (window.NP_Audio && typeof window.NP_Audio.stopBGM === 'function') {
         window.NP_Audio.stopBGM();
       }
       saveState();
-    };
+    });
   }
 
   // =========================================================================
   // 2. ENGINE: ĐÀO VÀNG (GOLD MINER CANVAS 2D PHYSICS ENGINE)
   // =========================================================================
   function launchDaoVang(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     const HIGH_SCORE_KEY = 'np_daovang_high_score';
     let highScore = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
 
@@ -1791,7 +1798,7 @@
       if (e.key === 'ArrowDown' || e.key === 's') fireClaw();
       if (e.key === 'ArrowUp' || e.key === 'w') useDynamite();
     };
-    window.addEventListener('keydown', keyHandler);
+    listen(window, 'keydown', keyHandler);
 
     canvas.addEventListener('click', (e) => {
       if (gameState === 'playing' && clawState === 'swinging') {
@@ -2242,20 +2249,20 @@
 
     animId = requestAnimationFrame(render);
 
-    window.__currentDaoVangCleanup = () => {
+    onCleanup(() => {
       cancelAnimationFrame(animId);
       clearInterval(timerInterval);
-      window.removeEventListener('keydown', keyHandler);
       if (window.NP_Audio && typeof window.NP_Audio.stopBGM === 'function') {
         window.NP_Audio.stopBGM();
       }
-    };
+    });
   }
 
   // =========================================================================
   // 3. ENGINE: LINE 98 CỔ ĐIỂN (9x9 BFS PATHFINDING & UNDO ENGINE)
   // =========================================================================
   function launchLine98(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     const HIGH_SCORE_KEY = 'np_line98_high_score';
     let highScore = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
 
@@ -2545,6 +2552,7 @@
   // 4. ENGINE: BẮN TRỨNG KHỦNG LONG (DYNOMITE CANVAS ENGINE FULL)
   // =========================================================================
   function launchBanTrung(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     const HIGH_SCORE_KEY = 'np_bantrung_high_score';
     let highScore = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
 
@@ -2968,7 +2976,7 @@
         swapCurrentAndNext();
       }
     };
-    window.addEventListener('keydown', onKey);
+    listen(window, 'keydown', onKey);
 
     canvas.addEventListener('contextmenu', (e) => {
       e.preventDefault();
@@ -3595,19 +3603,19 @@
     initStage(1);
     animId = requestAnimationFrame(loop);
 
-    window.__currentBanTrungCleanup = () => {
+    onCleanup(() => {
       cancelAnimationFrame(animId);
-      window.removeEventListener('keydown', onKey);
       if (window.NP_Audio && typeof window.NP_Audio.stopBGM === 'function') {
         window.NP_Audio.stopBGM();
       }
-    };
+    });
   }
 
 // =========================================================================
 // 5. ENGINE: KIM CƯƠNG (BEJEWELED CỔ ĐIỂN FULL ENGINE)
 // =========================================================================
 function launchKimCuong(container, game) {
+  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
   const HIGH_SCORE_KEY = 'np_kimcuong_high_score';
   let highScore = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
 
@@ -3938,7 +3946,6 @@ function launchKimCuong(container, game) {
   renderBoard();
   updateHUD();
 
-  window.__currentKimCuongCleanup = () => {};
 }
 
 
@@ -3946,6 +3953,7 @@ function launchKimCuong(container, game) {
 // 6. ENGINE: ĐẶT BOM (BOMBERMAN CỔ ĐIỂN FULL ENGINE)
 // =========================================================================
 function launchDatBom(container, game) {
+  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
   const HIGH_SCORE_KEY = 'np_datbom_high_score';
   let highScore = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
 
@@ -4271,8 +4279,8 @@ function launchDatBom(container, game) {
   const onKeyUp = (e) => {
     keys[e.key] = false;
   };
-  window.addEventListener('keydown', onKeyDown);
-  window.addEventListener('keyup', onKeyUp);
+  listen(window, 'keydown', onKeyDown);
+  listen(window, 'keyup', onKeyUp);
 
   // Overlay Buttons
   const startBtn = container.querySelector('#dbStartGameBtn');
@@ -4966,20 +4974,19 @@ function launchDatBom(container, game) {
   initStage(1);
   animId = requestAnimationFrame(loop);
 
-  window.__currentDatBomCleanup = () => {
+  onCleanup(() => {
     cancelAnimationFrame(animId);
-    window.removeEventListener('keydown', onKeyDown);
-    window.removeEventListener('keyup', onKeyUp);
     if (window.NP_Audio && typeof window.NP_Audio.stopBGM === 'function') {
       window.NP_Audio.stopBGM();
     }
-  };
+  });
 }
 
 // =========================================================================
 // 7. ENGINE: BẮN XE TĂNG 1990 (BATTLE CITY NES FULL ENGINE)
 // =========================================================================
 function launchXeTang1990(container, game) {
+  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
   let stage = 1;
   let score = 0;
   let lives = 3;
@@ -5116,8 +5123,8 @@ function launchXeTang1990(container, game) {
     keys[e.code] = false;
   };
 
-  window.addEventListener('keydown', onKeyDown);
-  window.addEventListener('keyup', onKeyUp);
+  listen(window, 'keydown', onKeyDown);
+  listen(window, 'keyup', onKeyUp);
 
   function bindBtn(id, key) {
     const btn = container.querySelector(id);
@@ -5746,14 +5753,12 @@ function launchXeTang1990(container, game) {
   initStage(1);
   animId = requestAnimationFrame(loop);
 
-  window.__currentXeTangCleanup = () => {
+  onCleanup(() => {
     cancelAnimationFrame(animId);
-    window.removeEventListener('keydown', onKeyDown);
-    window.removeEventListener('keyup', onKeyUp);
     if (window.NP_Audio && typeof window.NP_Audio.stopBGM === 'function') {
       window.NP_Audio.stopBGM();
     }
-  };
+  });
 }
 
 
@@ -5761,6 +5766,7 @@ function launchXeTang1990(container, game) {
 // 8. ENGINE: CỜ CARO VIỆT NAM (15x15 CỔ ĐIỂN FULL AI ENGINE)
 // =========================================================================
 function launchCaro(container, game) {
+  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
   const SIZE = 15;
   let board = Array(SIZE).fill(null).map(() => Array(SIZE).fill(0)); // 0: empty, 1: X (Player), 2: O (AI)
   let moveHistory = [];
@@ -6070,7 +6076,6 @@ function launchCaro(container, game) {
 
   renderGrid();
 
-  window.__currentCaroCleanup = () => {};
 }
 
 
@@ -6078,6 +6083,7 @@ function launchCaro(container, game) {
 // 9. ENGINE: RẮN SĂN MỒI (NOKIA 3310 RETRO SNAKE FULL ENGINE)
 // =========================================================================
 function launchSnake(container, game) {
+  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
   const HIGH_SCORE_KEY = 'np_snake_high_score';
   let highScore = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
 
@@ -6215,7 +6221,7 @@ function launchSnake(container, game) {
     else if (['ArrowLeft', 'a', 'A'].includes(e.key)) { changeDir(-1, 0); e.preventDefault(); }
     else if (['ArrowRight', 'd', 'D'].includes(e.key)) { changeDir(1, 0); e.preventDefault(); }
   };
-  window.addEventListener('keydown', keyHandler);
+  listen(window, 'keydown', keyHandler);
 
   container.querySelector('#snkRestartBtn')?.addEventListener('click', () => {
     resetGame();
@@ -6478,10 +6484,9 @@ function launchSnake(container, game) {
   spawnFood();
   animId = requestAnimationFrame(loop);
 
-  window.__currentSnakeCleanup = () => {
+  onCleanup(() => {
     cancelAnimationFrame(animId);
-    window.removeEventListener('keydown', keyHandler);
-  };
+  });
 }
 
 
@@ -6489,6 +6494,7 @@ function launchSnake(container, game) {
 // 10. ENGINE: XẾP GẠCH (TETRIS CỔ ĐIỂN FULL ENGINE)
 // =========================================================================
 function launchTetris(container, game) {
+  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
   const HIGH_SCORE_KEY = 'np_tetris_high_score';
   let highScore = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
 
@@ -6913,7 +6919,7 @@ function launchTetris(container, game) {
     }
   }
 
-  window.addEventListener('keydown', handleKeyDown);
+  listen(window, 'keydown', handleKeyDown);
 
   // Mobile Touch Gestures (Swipe left/right, pull down, tap rotate)
   let touchStartX = 0;
@@ -7142,11 +7148,10 @@ function launchTetris(container, game) {
   updateHUD();
   animId = requestAnimationFrame(loop);
 
-  window.__currentTetrisCleanup = () => {
+  onCleanup(() => {
     cancelAnimationFrame(animId);
-    window.removeEventListener('keydown', handleKeyDown);
     if (window.NP_Audio?.stopBGM) NP_Audio.stopBGM();
-  };
+  });
 }
 
 
@@ -7157,6 +7162,7 @@ function launchTetris(container, game) {
 // 12. ENGINE: FLAPPY BIRD (HUYỀN THOẠI NGUYỄN HÀ ĐÔNG 2013)
 // =========================================================================
 function launchFlappyBird(container, game) {
+  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
   let score = 0;
   let highScore = parseInt(localStorage.getItem('np_flappy_high') || '0');
   let bird = { y: 200, vy: 0 };
@@ -7208,7 +7214,7 @@ function launchFlappyBird(container, game) {
       flap();
     }
   };
-  window.addEventListener('keydown', onKeyDown);
+  listen(window, 'keydown', onKeyDown);
   canvas.addEventListener('click', flap);
   canvas.addEventListener('touchstart', (e) => {
     e.preventDefault();
@@ -7384,9 +7390,9 @@ function launchFlappyBird(container, game) {
 
   animId = requestAnimationFrame(loop);
 
-  window.__currentFlappyCleanup = () => {
+  onCleanup(() => {
     cancelAnimationFrame(animId);
-  };
+  });
 }
 
 
@@ -7394,6 +7400,7 @@ function launchFlappyBird(container, game) {
 // 13. ENGINE: CHÉM HOA QUẢ (FRUIT NINJA CỔ ĐIỂN FULL ENGINE)
 // =========================================================================
 function launchFruitNinja(container, game) {
+  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
   let score = 0;
   let combo = 0;
   let lives = 3;
@@ -7437,7 +7444,7 @@ function launchFruitNinja(container, game) {
   canvas.addEventListener('mousemove', (e) => {
     if (isSwiping) addTrailPoint(e);
   });
-  window.addEventListener('mouseup', () => { isSwiping = false; });
+  listen(window, 'mouseup', () => { isSwiping = false; });
 
   canvas.addEventListener('touchstart', (e) => {
     e.preventDefault();
@@ -7448,7 +7455,7 @@ function launchFruitNinja(container, game) {
     e.preventDefault();
     if (isSwiping) addTrailPoint(e.touches[0]);
   });
-  window.addEventListener('touchend', () => { isSwiping = false; });
+  listen(window, 'touchend', () => { isSwiping = false; });
 
   let floatingScores = [];
   let screenShake = 0;
@@ -7789,9 +7796,9 @@ function launchFruitNinja(container, game) {
 
   animId = requestAnimationFrame(loop);
 
-  window.__currentFruitCleanup = () => {
+  onCleanup(() => {
     cancelAnimationFrame(animId);
-  };
+  });
 }
 
 
@@ -7799,6 +7806,7 @@ function launchFruitNinja(container, game) {
 // 14. ENGINE: DÒ MÌN (MINESWEEPER WINDOWS 98 CỔ ĐIỂN)
 // =========================================================================
 function launchDoMin(container, game) {
+  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
   const ROWS = 9;
   const COLS = 9;
   const MINES = 10;
@@ -8102,16 +8110,14 @@ function launchDoMin(container, game) {
       updateHUD();
     }
   };
-  window.addEventListener('mouseup', globalMouseUp);
-  window.addEventListener('touchend', globalMouseUp);
+  listen(window, 'mouseup', globalMouseUp);
+  listen(window, 'touchend', globalMouseUp);
 
   initBoard();
 
-  window.__currentDoMinCleanup = () => {
+  onCleanup(() => {
     clearInterval(timerInterval);
-    window.removeEventListener('mouseup', globalMouseUp);
-    window.removeEventListener('touchend', globalMouseUp);
-  };
+  });
 }
 
 
@@ -8119,6 +8125,7 @@ function launchDoMin(container, game) {
 // 15. ENGINE: PIKACHU NỐI HÌNH CỔ ĐIỂN (KAWAII 2003 FULL ENGINE)
 // =========================================================================
 function launchPikachu(container, game) {
+  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
   const ROWS = 8;
   const COLS = 12;
   let board = [];
@@ -8717,14 +8724,15 @@ function launchPikachu(container, game) {
 
   initBoard();
 
-  window.__currentPikachuCleanup = () => {
+  onCleanup(() => {
     clearInterval(timerInterval);
     if (bannerEl) bannerEl.style.display = 'none';
-  };
+  });
 }
 
 
   function launchRetroArcade(container, game) {
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     let lives = 3;
     let level = 1;
     let score = 0;
@@ -8759,8 +8767,8 @@ function launchPikachu(container, game) {
     const ctx = canvas.getContext('2d');
 
     const keys = {};
-    window.addEventListener('keydown', (e) => { keys[e.key] = true; });
-    window.addEventListener('keyup', (e) => { keys[e.key] = false; });
+    listen(window, 'keydown', (e) => { keys[e.key] = true; });
+    listen(window, 'keyup', (e) => { keys[e.key] = false; });
 
     const leftBtn = container.querySelector('#arcLeft');
     const rightBtn = container.querySelector('#arcRight');
@@ -8786,7 +8794,7 @@ function launchPikachu(container, game) {
       if (window.NP_Juice) window.NP_Juice.vibrate(8);
     };
     if (fireBtn) fireBtn.addEventListener('click', fireLaser);
-    window.addEventListener('keydown', (e) => { if (e.code === 'Space') fireLaser(); });
+    listen(window, 'keydown', (e) => { if (e.code === 'Space') fireLaser(); });
 
     // Touch direct drag on canvas
     canvas.addEventListener('touchmove', (e) => {
@@ -8984,9 +8992,9 @@ function launchPikachu(container, game) {
     }
     animId = requestAnimationFrame(loop);
 
-    window.__currentArcadeCleanup = () => {
+    onCleanup(() => {
       cancelAnimationFrame(animId);
-    };
+    });
   }
 
   // --- EXPORT TO GLOBAL SCOPE ---

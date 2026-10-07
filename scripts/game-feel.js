@@ -11,6 +11,13 @@
 (function () {
   'use strict';
 
+  // Shared audio effects belong to the game that scheduled them, when one is open.
+  function setTimeout(callback, delay, ...args) {
+    const session = window.NP_GameSession && window.NP_GameSession.getCurrent();
+    return session ? session.setTimeout(callback, delay, ...args) : window.setTimeout(callback, delay, ...args);
+  }
+  const screenShakes = new WeakMap();
+
   // =========================================================================
   // 1. ADVANCED PROCEDURAL AUDIO ENGINE (ZERO ASSETS, 100% WEB AUDIO API)
   // =========================================================================
@@ -743,8 +750,23 @@
     // Screenshake applied to HTML elements or canvases
     screenShake(element, intensity = 8, durationMs = 250) {
       if (!element) return;
+      const previous = screenShakes.get(element);
+      if (previous) previous();
       const start = performance.now();
       const origTransform = element.style.transform || '';
+      const session = window.NP_GameSession && window.NP_GameSession.getCurrent();
+      const scheduleFrame = session ? session.requestAnimationFrame : window.requestAnimationFrame.bind(window);
+      const cancelFrame = session ? session.cancelAnimationFrame : window.cancelAnimationFrame.bind(window);
+      let frameId = null;
+      let unregisterCleanup = () => {};
+      const reset = () => {
+        cancelFrame(frameId);
+        element.style.transform = origTransform;
+        screenShakes.delete(element);
+        unregisterCleanup();
+      };
+      screenShakes.set(element, reset);
+      if (session) unregisterCleanup = session.onCleanup(reset);
 
       function step(now) {
         const elapsed = now - start;
@@ -754,12 +776,12 @@
           const dx = (Math.random() * 2 - 1) * currentIntensity;
           const dy = (Math.random() * 2 - 1) * currentIntensity;
           element.style.transform = `translate(${dx}px, ${dy}px)`;
-          requestAnimationFrame(step);
+          frameId = scheduleFrame(step);
         } else {
-          element.style.transform = origTransform;
+          reset();
         }
       }
-      requestAnimationFrame(step);
+      frameId = scheduleFrame(step);
     },
 
     // Camera shake offset helper for pure Canvas render loops
@@ -975,7 +997,14 @@
     // =======================================================================
     // 3. TACTILE HAPTIC FEEDBACK ENGINE (WEB VIBRATION API)
     // =======================================================================
-    vibrate: {
+    // Callable for custom durations/patterns, with the existing named presets.
+    vibrate: Object.assign(function (pattern) {
+      try {
+        if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+          navigator.vibrate(pattern);
+        }
+      } catch (e) {}
+    }, {
       light() {
         try {
           if (typeof navigator !== 'undefined' && navigator.vibrate) {
@@ -1011,7 +1040,7 @@
           }
         } catch (e) {}
       }
-    },
+    }),
 
     // Attach tactile touch feedback to all interactive game controls
     initTactileControls() {
