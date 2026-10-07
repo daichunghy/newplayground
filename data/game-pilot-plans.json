@@ -1,0 +1,241 @@
+{
+  "version": 1,
+  "updated_at": "2026-10-07",
+  "plans": [
+    {
+      "id": "do-min-minesweeper",
+      "order": 1,
+      "reference_version": "Minesweeper cổ điển; đối chiếu riêng với tiện ích của Minesweeper Online",
+      "code_file": "scripts/engines.js",
+      "source_review": "Nguồn hiện có: bàn 9×9/10 mìn; ô đầu và vùng lân cận được tránh mìn; có chế độ cắm cờ.",
+      "source_urls": [
+        "https://minesweeper.online/help/gameplay"
+      ],
+      "evidence": "Desk research and source review; no competitor playthrough or device measurements yet",
+      "observation_date": "2026-10-07",
+      "rules_task": "Chốt luật mở vùng trống, chord và thắng khi mở hết ô không mìn; bảng 3 độ khó; tách no-guess thành chế độ riêng nếu chọn.",
+      "controls_task": "Chuột trái mở, phải cắm cờ; mobile có nút đổi chế độ; nghiên cứu long-press không gây mở nhầm; zoom bàn khó.",
+      "progression_items_task": "Không thêm vật phẩm làm sai luật; mục tiêu tốc độ và tỷ lệ thắng theo từng độ khó; lưu kỷ lục theo cấu hình bàn.",
+      "visual_feel_task": "Bàn, số, cờ và trạng thái thắng/thua phải dễ phân biệt ở 360px; animation không trì hoãn lượt.",
+      "acceptance": "Chuỗi open/flag/chord/win/loss/restart khép kín; bàn khó không tràn viewport; timer và lịch sử không chạy sau đóng.",
+      "estimated_person_days": null,
+      "release_ready": false
+    },
+    {
+      "id": "tro-choi-2048",
+      "order": 2,
+      "reference_version": "2048 bản gốc Gabriele Cirulli",
+      "code_file": "scripts/engines-classics.js",
+      "source_review": "Nguồn hiện có: bàn 4×4, sinh ô 2/4 tỷ lệ 90/10, phím mũi tên/WASD, lưu điểm cao.",
+      "source_urls": [
+        "https://play2048.co/about",
+        "https://github.com/gabrielecirulli/2048"
+      ],
+      "evidence": "Desk research and source review; no competitor playthrough or device measurements yet",
+      "observation_date": "2026-10-07",
+      "rules_task": "Đối chiếu mỗi ô chỉ ghép một lần trong lượt; nước không đổi bàn không sinh ô; đạt 2048, tiếp tục và hết nước đi.",
+      "controls_task": "Swipe có ngưỡng và một lượt mỗi gesture; chống hai sự kiện touch/mouse; ghi nhận input-to-feedback.",
+      "progression_items_task": "Lưu cả bàn, điểm và trạng thái thắng; Undo là biến thể được ghi rõ, không tự thêm vào bản tham chiếu.",
+      "visual_feel_task": "Animation di chuyển trước khi pop ghép, khóa input đúng thời gian; tương phản số và thông báo điểm.",
+      "acceptance": "Chuỗi 2-2-2-2 ghép đúng; reload phục hồi bàn; swipe một lần chỉ chạy một lượt; tiếp tục sau thắng được.",
+      "estimated_person_days": null,
+      "release_ready": false
+    },
+    {
+      "id": "line-98",
+      "order": 3,
+      "reference_version": "Color Lines 1992 / biến thể Lines 98 cần chọn một bản",
+      "code_file": "scripts/engines.js",
+      "source_review": "Nguồn hiện có: preview ba bóng, lưu điểm cao; engine có BFS và Undo.",
+      "source_urls": [
+        "https://www.mobygames.com/game/9862/color-lines/",
+        "https://en.wikipedia.org/wiki/Color_Lines"
+      ],
+      "evidence": "Desk research and source review; no competitor playthrough or device measurements yet",
+      "observation_date": "2026-10-07",
+      "rules_task": "Khóa kích thước, số màu, luật đường đi và xóa >=5 theo bốn trục; chốt sinh bóng sau lượt ăn điểm và bàn gần đầy.",
+      "controls_task": "Chọn bóng rồi chọn ô; phản hồi không có đường; animation không đổi luật; mobile cùng một hệ tọa độ.",
+      "progression_items_task": "Chuẩn hóa bảng điểm, preview và Undo; lưu board/preview/RNG; không ghép level vào mode endless gốc.",
+      "visual_feel_task": "Dùng ký hiệu phụ cho màu, highlight đường đi, cỡ bóng rõ; tắt hiệu ứng khi người chơi cần thao tác nhanh.",
+      "acceptance": "Đường bị chặn không di chuyển; giao hai đường không đếm trùng; Undo khôi phục board, preview và điểm.",
+      "estimated_person_days": null,
+      "release_ready": false
+    },
+    {
+      "id": "hang-rong",
+      "order": 4,
+      "reference_version": "Game nguyên bản Việt Nam; benchmark time-management",
+      "code_file": "scripts/engines.js",
+      "source_review": "Nguồn hiện có: năm giai đoạn, kho hàng, công thức, nâng cấp, kinh nghiệm; đã sửa lệch ngưỡng mở giai đoạn.",
+      "source_urls": [
+        "https://developers.poki.com/guide/player-fit-test",
+        "https://www.dinerdashadventures.com/help-faq/"
+      ],
+      "evidence": "Desk research and source review; no competitor playthrough or device measurements yet",
+      "observation_date": "2026-10-07",
+      "rules_task": "Lập bảng cấp -> ca -> công thức -> nguyên liệu -> chi phí -> lợi nhuận -> nâng cấp; mô phỏng khả năng hết tiền/không có món bán.",
+      "controls_task": "Click/tap nhận đơn, nấu, giao; chống double-tap; hiển thị trạng thái trạm và thứ tự ưu tiên khách.",
+      "progression_items_task": "Đối chiếu nguyên liệu của từng công thức với kho ban đầu/mua hàng; ca có tổng kết, thắng/thua và lý do quay lại.",
+      "visual_feel_task": "Thay emoji bằng bộ sprite món/khách/quầy đồng nhất; giữ visual feedback đã giao/nấu/thiếu hàng riêng biệt.",
+      "acceptance": "Cấp 4/8/15/25 khớp bảng mở khóa đã chốt; save lỗi không làm mất khả năng chơi; không rơi vào ca không thể hoàn thành.",
+      "estimated_person_days": null,
+      "release_ready": false
+    },
+    {
+      "id": "xep-gach-tetris",
+      "order": 5,
+      "reference_version": "Chọn rõ bản Tetris cổ điển hoặc luật hiện đại, không trộn",
+      "code_file": "scripts/engines.js",
+      "source_review": "Nguồn hiện có: bàn 10×20, next/hold, rơi nhanh, phím xoay; sinh loại khối bằng chọn ngẫu nhiên.",
+      "source_urls": [
+        "https://play.tetris.com/about"
+      ],
+      "evidence": "Desk research and source review; no competitor playthrough or device measurements yet",
+      "observation_date": "2026-10-07",
+      "rules_task": "Khóa rotation/wall-kick, randomizer, lock delay, scoring, top-out, level/gravity; lập bảng khác biệt với bản tham chiếu.",
+      "controls_task": "Đo DAS/ARR từ bản tham chiếu; chỉnh giữ phím độc lập repeat của OS; touch có nút >=44px và thao tác không trùng.",
+      "progression_items_task": "Hold/ghost/next và loại ghi điểm chỉ xuất hiện nếu nằm trong mode đã chốt; không bán khối hay lợi thế.",
+      "visual_feel_task": "Ghost khác màu khối thật, preview đọc được; tốc độ mô phỏng độc lập màn 60/120Hz.",
+      "acceptance": "Xoay sát tường/trần đúng luật; giữ phím đúng nhịp; hard-drop không lặp vì key repeat; mất focus không giữ phím.",
+      "estimated_person_days": null,
+      "release_ready": false
+    },
+    {
+      "id": "pac-man",
+      "order": 6,
+      "reference_version": "PAC-MAN arcade 1980; trang Museum+ dùng xác định bộ bản gốc",
+      "code_file": "scripts/engines-classics.js",
+      "source_review": "Nguồn hiện có: level, ghost, đổi hướng bằng mũi tên/WASD; một nhánh chọn hướng ghost dùng ngẫu nhiên.",
+      "source_urls": [
+        "https://www.bandainamcoent.com/games/pac-man-museum-plus"
+      ],
+      "evidence": "Desk research and source review; no competitor playthrough or device measurements yet",
+      "observation_date": "2026-10-07",
+      "rules_task": "Nghiên cứu target tile từng ghost, scatter/chase/frightened, đường hầm, power pellet, fruit và tốc độ theo màn.",
+      "controls_task": "Buffer rẽ trước giao lộ; grid snapping; không rẽ xuyên tường; đo sai số giữa phím và tile-turn.",
+      "progression_items_task": "Bảng pellet/fruit/life/bonus/ghost-score theo màn; cần inventory hành vi đầy đủ trước khi tuyên bố tương đương.",
+      "visual_feel_task": "Tường, nhân vật và hitbox nhất quán; hiệu ứng frightened dễ nhận biết; tốc độ theo time-step.",
+      "acceptance": "Ghost không chỉ random giống nhau; chuyển mode đúng bảng; ăn pellet cuối chuyển màn; mất mạng/reset giữ đúng score.",
+      "estimated_person_days": null,
+      "release_ready": false
+    },
+    {
+      "id": "zuma-ech-ban-ngoc",
+      "order": 7,
+      "reference_version": "Zuma Deluxe; không nhập tính năng Revenge nếu chưa chọn mode",
+      "code_file": "scripts/engines-popcap.js",
+      "source_review": "Nguồn hiện có: stage, tốc độ đạn, swap bằng Space/C, bonus coin; cần đối chiếu luật chuỗi.",
+      "source_urls": [
+        "https://www.ea.com/games/zuma/zuma",
+        "https://www.ea.com/games/zuma/zumas-revenge"
+      ],
+      "evidence": "Desk research and source review; no competitor playthrough or device measurements yet",
+      "observation_date": "2026-10-07",
+      "rules_task": "Tài liệu path, khoảng cách bóng, điểm chèn, match-3, gap pullback, combo và ngưỡng thoát hiểm; level dữ liệu hóa.",
+      "controls_task": "Chuyển clientX/Y sang canvas đúng scale; tap bắn chỉ một đạn; chuột/phím đổi bóng; đo aim và tốc độ bóng theo thời gian.",
+      "progression_items_task": "Inventory loại power-up, thời gian hiệu lực, xuất hiện và scoring; so sánh đường khó/chậm với số màu.",
+      "visual_feel_task": "Bóng phân biệt bằng họa tiết ngoài màu; muzzle/trail/impact không che điểm chèn; giữ frame pacing khi chain dài.",
+      "acceptance": "Va chạm gần đoạn uốn không chèn sai nhánh; chuỗi co sau match đúng; FPS không thay tốc độ đoàn bóng.",
+      "estimated_person_days": null,
+      "release_ready": false
+    },
+    {
+      "id": "dat-bom-bomberman",
+      "order": 8,
+      "reference_version": "Bomberman; phải chọn game solo cụ thể, không nhập luật BnB",
+      "code_file": "scripts/engines.js",
+      "source_review": "Nguồn hiện có: lưới 13×11, stage, crate/item ngẫu nhiên; nhánh Space và J; cần phân biệt item kiểu bom nước.",
+      "source_urls": [
+        "https://dds.konami.com/games/manual/pcemini/en_Bomber93.pdf"
+      ],
+      "evidence": "Desk research and source review; no competitor playthrough or device measurements yet",
+      "observation_date": "2026-10-07",
+      "rules_task": "Khóa fuse, phạm vi nổ, chain reaction, chặn blast theo tường/crate, đi ra khỏi ô bom, exit và điều kiện qua màn.",
+      "controls_task": "Tách chuyển ô/bẻ góc khỏi tốc độ vẽ; Space edge-trigger đặt một bom; kiểm tra hai hướng cùng lúc, thả phím và focus.",
+      "progression_items_task": "Bảng fire/capacity/speed/pass-item theo bản đã chọn; nếu giữ water-bomb/needle thì ghi thành mode khác có luật riêng.",
+      "visual_feel_task": "Blast đọc được, danger không bị hạt che; nhân vật/crate/exit theo bộ art nhất quán.",
+      "acceptance": "Chain không nổ qua tường; không khóa người chơi trong ô spawn; chết/qua màn/reset đưa về trạng thái nhất quán.",
+      "estimated_person_days": null,
+      "release_ready": false
+    },
+    {
+      "id": "mario-co-dien",
+      "order": 9,
+      "reference_version": "Super Mario Bros. NES 1985; danh mục nội dung đầy đủ cần lập tiếp",
+      "code_file": "scripts/engines-classics.js",
+      "source_review": "Nguồn hiện có: platformer chạy/nhảy; keydown và keyup thay đổi trạng thái nhảy; chưa chứng minh parity NES.",
+      "source_urls": [
+        "https://www.nintendo.com/en-gb/Games/NES/Super-Mario-Bros-803853.html",
+        "https://mario.nintendo.com/history/"
+      ],
+      "evidence": "Desk research and source review; no competitor playthrough or device measurements yet",
+      "observation_date": "2026-10-07",
+      "rules_task": "Đặc tả gia tốc, chạy, nhảy theo giữ nút, trọng lực, collision, camera, pipe, enemy, checkpoint và world/level inventory.",
+      "controls_task": "Đo jump height/airtime/run-up/braking bằng video và frame-count; chỉ thêm coyote-time nếu chọn deviation có ghi nhận.",
+      "progression_items_task": "Power-up state machine, coin/life, enemy interactions, end-level và checkpoint; backlog nội dung theo từng màn/boss.",
+      "visual_feel_task": "Sprite đọc được ở native scale; art/camera parallax nhất quán; motion của nhân vật và camera không giật.",
+      "acceptance": "Nhảy thấp/cao theo giữ nút; không xuyên nền; hitbox trạng thái đúng; có chuỗi màn và hồi sinh; parity chưa được chứng nhận.",
+      "estimated_person_days": null,
+      "release_ready": false
+    },
+    {
+      "id": "diner-dash",
+      "order": 10,
+      "reference_version": "Diner Dash bản PC; Adventures chỉ là benchmark nâng cấp mobile",
+      "code_file": "scripts/engines-popcap.js",
+      "source_review": "Nguồn hiện có: stage, màu khách và chuyển trạm; đã có luồng phục vụ prototype.",
+      "source_urls": [
+        "https://www.dinerdashadventures.com/help-faq/",
+        "https://glumobile.helpshift.com/hc/en/102-diner-dash-adventures/faq/8261-what-s-the-difference-between-upgrading-and-leveling-up-customers/?s=clans"
+      ],
+      "evidence": "Desk research and source review; no competitor playthrough or device measurements yet",
+      "observation_date": "2026-10-07",
+      "rules_task": "Chốt nhóm khách, seating color-match, queue, order-ticket, hai tay mang đồ, delivery/payment/cleaning; tìm manual/video PC.",
+      "controls_task": "Tap queue/task đổi trạm; đo thời gian chạy và ưu tiên đơn; task có feedback đang chờ và đang làm.",
+      "progression_items_task": "Bảng target từng ca, loại khách/kiên nhẫn, layout bàn, nâng cấp và tốc độ; không đem hearts/IAP Adventures sang PC mặc định.",
+      "visual_feel_task": "Trạng thái bàn trống/ngồi/đặt món/chờ món/trả tiền/bẩn nhìn khác nhau; nhân vật di chuyển có easing nhưng không đổi logic.",
+      "acceptance": "Không kẹt khách giữa trạm; task hủy/reorder có luật; một ca đầy đủ đạt hoặc trượt target; tải lại hồi phục mốc ca.",
+      "estimated_person_days": null,
+      "release_ready": false
+    },
+    {
+      "id": "plants-vs-zombies-2d",
+      "order": 11,
+      "reference_version": "Plants vs. Zombies PC 2009; không dùng thông số PvZ2/3",
+      "code_file": "scripts/engines-classics.js",
+      "source_review": "Nguồn hiện có: wave, lane, cây và mặt trời; spawn mặt trời có nhánh xác suất theo lượt update.",
+      "source_urls": [
+        "https://akamai.cdn.ea.com/eadownloads/u/f/manuals/GAME-PVZ/en_US_readme.html"
+      ],
+      "evidence": "Desk research and source review; no competitor playthrough or device measurements yet",
+      "observation_date": "2026-10-07",
+      "rules_task": "Chuẩn hóa sun economy, seed cooldown, projectile/collision, armor, plant/zombie counters, wave schedule và lawn mower.",
+      "controls_task": "Chọn seed/tap ô/tap sun; tọa độ CSS-canvas thống nhất; shovel/cancel dễ tìm; không spawn/tick theo FPS.",
+      "progression_items_task": "Ma trận day/night/pool/fog/roof, seed inventory và mở khóa theo level; ghi riêng những nhóm chưa triển khai.",
+      "visual_feel_task": "Silhouette mỗi vai trò khác nhau; projectile và damaged-state rõ; screenshake không làm khó đặt cây.",
+      "acceptance": "Cùng seed/time-step cho cùng wave; đổi refresh rate không đổi kinh tế; hết wave thắng, breach thua và retry cùng luật.",
+      "estimated_person_days": null,
+      "release_ready": false
+    },
+    {
+      "id": "danh-bai-uno",
+      "order": 12,
+      "reference_version": "UNO Mattel: chọn một edition/instruction sheet cố định",
+      "code_file": "scripts/engines-popcap.js",
+      "source_review": "Nguồn hiện có: shuffle, AI chọn bài hợp lệ, đổi màu; chưa đối chiếu toàn bộ luật edition.",
+      "source_urls": [
+        "https://m.service.mattel.com/us/Technical/productDetail?prodno=W2085",
+        "https://service.mattel.com/us/results.aspx?ContentType=Product&N=4294967270+4294965484&No=60&Ntk=Product&Ntt=uno&Ntx=mode%2Bmatchany&Nty=1&SubContentType=IS"
+      ],
+      "evidence": "Desk research and source review; no competitor playthrough or device measurements yet",
+      "observation_date": "2026-10-07",
+      "rules_task": "Khóa deck, matching, skip/reverse/+2/wild/+4, challenge, draw/play, gọi UNO, reshuffle và cách tính round score.",
+      "controls_task": "Tap chọn bài rõ valid/invalid; picker màu 4 lựa chọn; thao tác bot không khóa UI; chống double-play.",
+      "progression_items_task": "House-rules như stacking tách cấu hình, default theo sheet; AI levels quyết định bằng chiến lược, không biết bài người chơi.",
+      "visual_feel_task": "Màu có ký hiệu kèm theo, text bài rõ ở màn hẹp; animation reveal/deal không tạo race turn.",
+      "acceptance": "Deck conservation đúng; lượt đặc biệt/reshuffle/last-card xử lý nhất quán; thắng vòng và tích điểm rõ; xác định edition trước parity.",
+      "estimated_person_days": null,
+      "release_ready": false
+    }
+  ]
+}

@@ -112,6 +112,7 @@ function harness({ loadEngines = true, loadApp = true } = {}) {
   const run = file => vm.runInContext(read(file), context, { filename: file });
   run('scripts/game-session.js'); run('scripts/game-feel.js');
   if (loadEngines) for (const file of ['engines.js', 'engines-classics.js', 'engines-popcap.js', 'engines-retro50.js']) run('scripts/' + file);
+  run('scripts/game-registry.js');
   if (loadApp) vm.runInContext(read('app.js').replace('let allGames = [];', 'let allGames = globalThis.__testGames;'), context, { filename: 'app.js' });
   return {
     context, window, document, timers, frames, errors, vibrations, stored,
@@ -128,18 +129,19 @@ function assertStopped(h) {
   assert.equal(h.container.children.length, 0, 'closed game DOM removed');
 }
 
-test('one specialized or generic launcher per catalog selection; Retro50 has priority', () => {
+test('catalog routing uses one exact launcher for prototypes and none for planned games', () => {
   const h = harness(); const calls = [];
   for (const name of Object.keys(h.context.NP_Engines)) h.context.NP_Engines[name] = () => calls.push(name);
-  h.context.NP_Retro50Engines.launchGame = () => calls.push('retro50');
   for (const game of games) {
     calls.length = 0;
     assert.equal(h.context.openGameById(game.id), true);
-    assert.equal(calls.length, 1, game.id + ' must start exactly one engine');
+    assert.equal(calls.length, h.context.NP_GameRegistry.isPlayable(game.id) ? 1 : 0,
+      game.id + ' must use its exact launcher or remain visibly planned');
   }
-  for (const [id, expected] of [['hang-rong', 'launchHangRong'], ['zuma-ech-ban-ngoc', 'launchZuma'], ['line-98', 'launchLine98'], ['ran-san-moi-snake', 'launchSnake'], ['boom-online-bnb', 'retro50'], ['bubble-bobble-khung-long-bong-bong', 'retro50'], ['lemonade-tycoon', 'launchRetroArcade']]) {
+  for (const [id, expected] of [['hang-rong', 'launchHangRong'], ['zuma-ech-ban-ngoc', 'launchZuma'], ['line-98', 'launchLine98'], ['ran-san-moi-snake', 'launchSnake'], ['boom-online-bnb', 'launchBoomOnline'], ['bubble-bobble-khung-long-bong-bong', 'launchBubbleBobble']]) {
     calls.length = 0; h.context.openGameById(id); assert.deepEqual(calls, [expected]);
   }
+  calls.length = 0; h.context.openGameById('lemonade-tycoon'); assert.deepEqual(calls, []);
   assert.equal(h.context.openGameById('not-in-catalog'), false);
 });
 

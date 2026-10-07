@@ -1,7 +1,7 @@
 # BÁO CÁO NGHIÊN CỨU & ĐẶC TẢ CHI TIẾT 50 TỰA GAME HOÀI NIỆM MỚI (101 - 150)
 ## HỆ SINH THÁI NEWPLAYGROUND • NES • ARCADE THÙNG • POPCAP • FLASH • PC 1980-2000s
-**Slogan:** Play a little. Feel a little happier.  
-**Tiêu chuẩn văn bản:** Ưu tiên font Calibri (cỡ 10-12pt cho nội dung, 12-16pt cho đề mục), hiển thị sắc nét, thoáng mắt, chuẩn dấu tiếng Việt tuyệt đối trên mọi nền tảng.  
+**Slogan:** Play a little. Feel a little happier.
+**Tiêu chuẩn văn bản:** Ưu tiên font Calibri (cỡ 10-12pt cho nội dung, 12-16pt cho đề mục), hiển thị sắc nét, thoáng mắt, chuẩn dấu tiếng Việt tuyệt đối trên mọi nền tảng.
 **Trạng thái:** Sẵn sàng tích hợp 100% vào `data/games.json`, `games-data.js` và phát triển các Engine Canvas 2D / Web Audio.
 
 ---
