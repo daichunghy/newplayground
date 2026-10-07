@@ -172,6 +172,11 @@
         desc: 'Thương hiệu vỉa hè huyền thoại, khách xếp hàng dài từ sáng đến tối!'
       }
     ];
+    state.stageIndex = Math.max(0, Math.min(STAGES.length - 1,
+      Number.isInteger(state.stageIndex) ? state.stageIndex : 0));
+    while (state.stageIndex < STAGES.length - 1 && state.level >= STAGES[state.stageIndex].targetLevel) {
+      state.stageIndex++;
+    }
 
     // Master Recipes Catalog
     const ALL_RECIPES = {
@@ -356,7 +361,7 @@
         state.coins += 50;
 
         // Check stage progression
-        if (state.stageIndex < STAGES.length - 1 && state.level >= STAGES[state.stageIndex + 1].targetLevel) {
+        if (state.stageIndex < STAGES.length - 1 && state.level >= STAGES[state.stageIndex].targetLevel) {
           state.stageIndex++;
           showFeedback(`🏆 Bạn đã mở khóa: ${STAGES[state.stageIndex].name}!`);
         }

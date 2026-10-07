@@ -1,6 +1,6 @@
 # TÀI LIỆU ĐẶC TẢ & THU THẬP DỮ LIỆU 50 TRÒ CHƠI KINH ĐIỂN
 ## BỘ DỮ LIỆU THIẾT KẾ CƠ CHẾ, TÍNH NĂNG, VẬT PHẨM & TÀI SẢN NGUỒN MỞ HỢP PHÁP
-**Dự án:** NewPlayground (Hệ sinh thái game web hoài niệm & nguyên bản)  
+**Dự án:** NewPlayground (Hệ sinh thái game web hoài niệm & nguyên bản)
 **Tiêu chuẩn văn bản:** Font Calibri, chuẩn hóa hiển thị đa nền tảng, thiết kế rõ ràng và chuyên nghiệp.
 
 ---

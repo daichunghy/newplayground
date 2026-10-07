@@ -1,6 +1,6 @@
 # DANH MỤC 100 TRÒ CHƠI NEWPLAYGROUND (PHIÊN BẢN 1.0)
 ## TUYỂN TẬP GAME WEB HOÀI NIỆM • ĐỜI THƯỜNG • KHÔNG CẦN CÀI ĐẶT
-**Slogan:** Play a little. Feel a little happier.  
+**Slogan:** Play a little. Feel a little happier.
 **Tiêu chuẩn văn bản:** Font Calibri, chuẩn hóa hiển thị đa nền tảng, thiết kế rõ ràng và chuyên nghiệp.
 
 ---

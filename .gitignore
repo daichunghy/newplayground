@@ -30,3 +30,6 @@ build/
 .env
 .env.local
 .env.*.local
+
+# Prepared static release artifact
+.pages-site/
