@@ -13,12 +13,13 @@ Source: [Halfbrick Support, “What are the game modes?”](https://halfbrick.he
 ## Candidate scope
 
 - Original title: **Vườn Bật Nảy**; no borrowed logo, characters, setting, blade, dojo, music, or source.
-- Core: swipe through fruit launched in deterministic waves; earn points; avoid dark hazard orbs; three missed fruits end a run; 60-second round can finish with a score.
+- Core: swipe through fruit launched in deterministic waves; earn points; avoid dark hazard orbs; three missed fruits end a run; a 60-second run advances through three authored courses and ends with a score.
+- Course progression is mechanical as well as visual: **Mầm Non** has the slowest, smallest groups and fewest bombs; **Gió Ngang** adds crosswind and fruit sway; **Mưa Quả** shortens the spawn gap and raises group, bomb, and wind pressure. Each group starts with fruit so a course never opens with an unavoidable bomb-only wave.
 - Touch/mouse pointer swipes and keyboard arrow aiming plus Space slashes.
 - Pause, restart, visibility/focus pause, and session cleanup.
-- Procedural vector shapes, including the project-authored cover at `assets/covers/vuon-bat-nay.svg`; no external assets/audio.
+- Course names appear in the HUD and canvas; transitions are announced through the existing live status. The three courses use original color and wind-line treatments, with the project-authored cover at `assets/covers/vuon-bat-nay.svg`; no external assets/audio.
 - The rules model is fixed-step only: `advance()` accepts exactly one 60 Hz step per call, and the view accumulates frame time before stepping. Variable-duration model calls are rejected.
 
 ## Rights and acceptance caveats
 
-The reference title appears in the catalog, but no trademark or naming clearance was performed. The candidate uses a distinct name and newly drawn geometric fruit/hazards; no asset, music, level, character, or code was copied. Review local naming/marketplace policy and obtain any needed legal clearance before public release. Eight focused tests pass (five deterministic model and three DOM-double UI/lifecycle). Browser/mobile playability, visual QA, touch-device behavior, accessibility, performance, playtest and rights review remain open.
+The reference title appears in the catalog, but no trademark or naming clearance was performed. The candidate uses a distinct name and newly drawn geometric fruit/hazards; no asset, music, level, character, or code was copied. Review local naming/marketplace policy and obtain any needed legal clearance before public release. Ten focused checks pass (six deterministic model and four DOM-double UI/lifecycle), including all three timed course boundaries and the stage HUD/announcement. A Chromium smoke now exercises the second-course transition; its result is pending on the next PR head. Physical-device, accessibility, performance, novice playtest and rights review remain open.

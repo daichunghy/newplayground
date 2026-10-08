@@ -298,13 +298,14 @@ test('Mầm Chớp title and HUD fit the game panel at a phone width with named 
       const node = document.querySelector(selector), box = node.getBoundingClientRect();
       return { left: box.left, right: box.right, width: box.width, height: box.height, clientWidth: node.clientWidth, clientHeight: node.clientHeight, scrollWidth: node.scrollWidth };
     };
+    const nav = document.querySelector('#mcStageNav');
     return {
       panel: rect('.mc-game'),
       title: rect('.mc-topline h2'),
       stage: rect('#mcStageName'),
       hud: rect('.mc-hud'),
       nav: rect('#mcStageNav'),
-      stageButtons: [...document.querySelectorAll('#mcStageNav .mc-stage-button')].map(button => {
+      stageButtons: [...nav.querySelectorAll('.mc-stage-button')].map(button => {
         const box = button.getBoundingClientRect();
         return {
           left: box.left, right: box.right, width: box.width, height: box.height,
@@ -339,6 +340,7 @@ test('Mầm Chớp title and HUD fit the game panel at a phone width with named 
   expect(layout.title.scrollWidth, JSON.stringify(layout)).toBeLessThanOrEqual(layout.title.clientWidth + 1);
   await closeGame(page);
 });
+
 test('Mạch Gió opens its three-stage campaign with locked routes and a fresh one-button flight', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 780 });
   await loadPortal(page);
@@ -457,6 +459,38 @@ test('Mục Tiêu Bay presents a named flight and warns before its authored turn
   expect(liveMessages.indexOf('Gió sắp đổi chiều.')).toBeLessThan(liveMessages.indexOf('Mục tiêu đổi chiều.'));
   await page.locator('#bvbPause').click();
   await expect(page.locator('#bvbOverlayTitle')).toHaveText('Tạm dừng');
+  await closeGame(page);
+  expect(errors).toEqual([]);
+});
+
+test('Vườn Bật Nảy reaches its second authored course and announces the new wind', async ({ page }) => {
+  await loadPortal(page);
+  await page.evaluate(() => {
+    const original = window.NP_FruitSweepModel;
+    window.NP_FruitSweepModel = {
+      ...original,
+      create(options) {
+        const model = original.create(options);
+        window.__fruitSweepModel = model;
+        return model;
+      }
+    };
+  });
+  const errors = watchErrors(page);
+  await openGame(page, 'chem-hoa-qua');
+  await expect(page.locator('#fsStage')).toHaveText('1/3 · Mầm Non');
+  await page.locator('#fsCanvas').click({ position: { x: 320, y: 210 } });
+  await page.evaluate(() => {
+    const model = window.__fruitSweepModel;
+    for (let tick = 0; tick < 1200; tick += 1) {
+      const view = model.advance();
+      for (const object of view.objects) {
+        if (object.kind === 'fruit') model.slice(object.x, object.y, object.x + 0.1, object.y + 0.1);
+      }
+    }
+  });
+  await expect(page.locator('#fsStage')).toHaveText('2/3 · Gió Ngang');
+  await expect(page.locator('#fsStatus')).toHaveText('Chặng 2/3 · Gió Ngang');
   await closeGame(page);
   expect(errors).toEqual([]);
 });
