@@ -430,6 +430,11 @@ test('Mục Tiêu Bay presents a named flight and warns before its authored turn
   await loadPortal(page);
   await page.evaluate(() => {
     const base = window.NP_BanVitBayModel;
+    window.__bvbLiveMessages = [];
+    new MutationObserver(() => {
+      const live = document.querySelector('#bvbLive');
+      if (live?.textContent) window.__bvbLiveMessages.push(live.textContent);
+    }).observe(document.documentElement, { childList: true, characterData: true, subtree: true });
     window.NP_BanVitBayModel = {
       ...base,
       create(options) {
@@ -438,6 +443,7 @@ test('Mục Tiêu Bay presents a named flight and warns before its authored turn
           game.advance(base.FLIGHT_MS);
           game.advance(base.RESULT_MS);
         }
+        game.advance(1000);
         return game;
       }
     };
@@ -446,8 +452,9 @@ test('Mục Tiêu Bay presents a named flight and warns before its authored turn
   await openGame(page, 'duck-hunt-ban-vit');
   await expect(page.locator('#modalGameTitle')).toHaveText('Mục Tiêu Bay');
   await expect(page.locator('#bvbCanvas')).toHaveAttribute('aria-label', /Chặng 4 trong 5: Đảo Gió/);
-  await expect(page.locator('#bvbLive')).toHaveText('Gió sắp đổi chiều.', { timeout: 5_000 });
-  await expect(page.locator('#bvbLive')).toHaveText('Mục tiêu đổi chiều.', { timeout: 3_000 });
+  await page.waitForFunction(() => window.__bvbLiveMessages.includes('Gió sắp đổi chiều.') && window.__bvbLiveMessages.includes('Mục tiêu đổi chiều.'), null, { timeout: 5_000 });
+  const liveMessages = await page.evaluate(() => window.__bvbLiveMessages);
+  expect(liveMessages.indexOf('Gió sắp đổi chiều.')).toBeLessThan(liveMessages.indexOf('Mục tiêu đổi chiều.'));
   await page.locator('#bvbPause').click();
   await expect(page.locator('#bvbOverlayTitle')).toHaveText('Tạm dừng');
   await closeGame(page);

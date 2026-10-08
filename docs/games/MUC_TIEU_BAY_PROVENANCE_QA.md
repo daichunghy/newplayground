@@ -16,7 +16,7 @@
 ## Five-flight course iteration — 8 October 2026
 
 - The quick five-target gallery remains five flights with three shots and a 3.2-second window. Each flight now has a named authored path: Quét Ngang, Cánh Cao, Lượn Cỏ, Đảo Gió, Gió Cuối. Vertical arcs, lateral drift, speed, and the fourth/fifth flight reversal distinguish the aiming decisions while keeping the same pointer/keyboard/touch controls.
-- The later direction change is telegraphed with an amber ring 300 ms ahead and announced to assistive technology. A new flight label is also provided in the canvas label and visible scene.
+- The later direction change is telegraphed with an amber ring 700 ms ahead and announced to assistive technology. A new flight label is also provided in the canvas label and visible scene.
 - This is candidate-authored variety, not Duck Hunt round parity. No light-gun behavior, targets, sprites, or maps from an edition are copied.
 
 ## QA record

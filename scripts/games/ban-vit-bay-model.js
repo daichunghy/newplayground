@@ -110,7 +110,7 @@
       if (state.phase === 'flying') {
         state.elapsed += STEP;
         const t = state.target;
-        if (t.turnAtMs && !t.warned && state.elapsed >= t.turnAtMs - 300) {
+        if (t.turnAtMs && !t.warned && state.elapsed >= t.turnAtMs - 700) {
           t.warned = true;
           state.events.push({ kind: 'turn-warning', number: state.index + 1 });
         }
