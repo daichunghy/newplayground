@@ -303,12 +303,32 @@ test('Mầm Chớp title and HUD fit the game panel at a phone width with named 
       title: rect('.mc-topline h2'),
       stage: rect('#mcStageName'),
       hud: rect('.mc-hud'),
+      nav: rect('#mcStageNav'),
+      stageButtons: [...document.querySelectorAll('#mcStageNav .mc-stage-button')].map(button => {
+        const box = button.getBoundingClientRect();
+        return {
+          left: box.left, right: box.right, width: box.width, height: box.height,
+          ariaLabel: button.getAttribute('aria-label'),
+          spanDisplay: getComputedStyle(button.querySelector('span')).display
+        };
+      }),
       stageText: document.querySelector('#mcStageName').textContent
     };
   });
 
   await expect(page.locator('#mcStageName')).toHaveText('Chặng 1/3 · Vườn Hoang');
   await expect(page.locator('#mcStage0')).toHaveAttribute('aria-label', 'Chặng 1: Vườn Hoang');
+  expect(layout.stageButtons.map(button => button.ariaLabel)).toEqual([
+    'Chặng 1: Vườn Hoang', 'Chặng 2: Mương Sương', 'Chặng 3: Nhà Kính Vỡ'
+  ]);
+  expect(layout.nav.scrollWidth, JSON.stringify(layout)).toBeLessThanOrEqual(layout.nav.clientWidth + 1);
+  for (const button of layout.stageButtons) {
+    expect(button.spanDisplay, JSON.stringify(button)).toBe('none');
+    expect(button.width, JSON.stringify(button)).toBeGreaterThanOrEqual(44);
+    expect(button.height, JSON.stringify(button)).toBeGreaterThanOrEqual(44);
+    expect(button.left, JSON.stringify({ button, nav: layout.nav })).toBeGreaterThanOrEqual(layout.nav.left - 1);
+    expect(button.right, JSON.stringify({ button, nav: layout.nav })).toBeLessThanOrEqual(layout.nav.right + 1);
+  }
   expect(layout.hud.left, JSON.stringify(layout)).toBeGreaterThanOrEqual(layout.panel.left);
   expect(layout.hud.right, JSON.stringify(layout)).toBeLessThanOrEqual(layout.panel.right + 1);
   expect(layout.title.right, JSON.stringify(layout)).toBeLessThanOrEqual(layout.panel.right + 1);
