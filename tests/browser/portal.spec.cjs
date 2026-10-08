@@ -287,3 +287,31 @@ test('mobile Chromium emulation can tap 2048, lemonade, and Hàng Rong controls'
     await context.close();
   }
 });
+
+test('Mầm Chớp title and HUD fit the game panel at a phone width with named stage choices', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 780 });
+  await loadPortal(page);
+  await openGame(page, 'rockman-mega-man');
+
+  const layout = await page.evaluate(() => {
+    const rect = selector => {
+      const node = document.querySelector(selector), box = node.getBoundingClientRect();
+      return { left: box.left, right: box.right, width: box.width, clientWidth: node.clientWidth, scrollWidth: node.scrollWidth };
+    };
+    return {
+      panel: rect('.mc-game'),
+      title: rect('.mc-topline h2'),
+      stage: rect('#mcStageName'),
+      hud: rect('.mc-hud'),
+      stageText: document.querySelector('#mcStageName').textContent
+    };
+  });
+
+  await expect(page.locator('#mcStageName')).toHaveText('Chặng 1/3 · Vườn Hoang');
+  await expect(page.locator('#mcStage0')).toHaveAttribute('aria-label', 'Chặng 1: Vườn Hoang');
+  expect(layout.hud.left, JSON.stringify(layout)).toBeGreaterThanOrEqual(layout.panel.left);
+  expect(layout.hud.right, JSON.stringify(layout)).toBeLessThanOrEqual(layout.panel.right + 1);
+  expect(layout.title.right, JSON.stringify(layout)).toBeLessThanOrEqual(layout.panel.right + 1);
+  expect(layout.title.scrollWidth, JSON.stringify(layout)).toBeLessThanOrEqual(layout.title.clientWidth + 1);
+  await closeGame(page);
+});
