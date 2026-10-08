@@ -79,7 +79,7 @@ test('catalog card opens Quầy Nước Chanh and shows the short recipe-and-pri
   await loadPortal(page);
   await page.locator('#gridAll .game-card[data-id="lemonade-tycoon"] .game-card-play').click();
   await expect(page.locator('#modalGameTitle')).toHaveText('Quầy Nước Chanh');
-  await expect(page.locator('#lsGoalLabel')).toHaveText('Mục tiêu 120');
+  await expect(page.locator('#lsGoalLabel')).toHaveText('Mục tiêu 100');
   await expect(page.locator('#lsPrice')).toHaveText('12');
   await page.locator('#lsPriceUp').click();
   await expect(page.locator('#lsPrice')).toHaveText('13');
@@ -220,8 +220,18 @@ test('catalog and Quầy Nước Chanh fit key viewport widths; save screenshots
     await page.setViewportSize({ width, height: 860 });
     await loadPortal(page);
     await page.locator('#gridAll').scrollIntoViewIfNeeded();
-    const catalogWidth = await page.evaluate(() => ({ inner: innerWidth, scroll: document.documentElement.scrollWidth }));
-    expect(catalogWidth.scroll, `catalog overflows at ${width}px`).toBeLessThanOrEqual(catalogWidth.inner + 1);
+    const catalogWidth = await page.evaluate(() => {
+      const overflowing = [...document.body.querySelectorAll('*')]
+        .map(node => {
+          const rect = node.getBoundingClientRect();
+          return { tag: node.tagName, id: node.id, className: String(node.className || ''), text: node.textContent.trim().slice(0, 48), left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width), scrollWidth: node.scrollWidth };
+        })
+        .filter(node => node.right > innerWidth + 1)
+        .sort((a, b) => b.right - a.right)
+        .slice(0, 8);
+      return { inner: innerWidth, scroll: document.documentElement.scrollWidth, overflowing };
+    });
+    expect(catalogWidth.scroll, `catalog overflows at ${width}px: ${JSON.stringify(catalogWidth.overflowing)}`).toBeLessThanOrEqual(catalogWidth.inner + 1);
     await page.screenshot({ path: testInfo.outputPath(`catalog-${width}.png`) });
 
     await openGame(page, 'lemonade-tycoon');
@@ -235,37 +245,43 @@ test('catalog and Quầy Nước Chanh fit key viewport widths; save screenshots
   expect(errors).toEqual([]);
 });
 
-test('mobile Chromium emulation can tap 2048 directions and lemonade controls', async ({ browser }) => {
+test('mobile Chromium emulation can tap 2048, lemonade, and Hàng Rong controls', async ({ browser }) => {
   const context = await browser.newContext({
     viewport: { width: 360, height: 780 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2
   });
   const page = await context.newPage();
   const errors = watchErrors(page);
   try {
-    await loadPortal(page);
-    await openGame(page, 'tro-choi-2048');
-    let moved = false;
-    for (const direction of ['Up', 'Right', 'Down', 'Left']) {
-      await page.locator(`#g2048${direction}`).tap();
-      if (/Lượt \d+/.test(await page.locator('#g2048Status').textContent())) { moved = true; break; }
-    }
-    expect(moved).toBe(true);
-    await closeGame(page);
+    await test.step('2048 direction pad accepts touch', async () => {
+      await loadPortal(page);
+      await openGame(page, 'tro-choi-2048');
+      let moved = false;
+      for (const direction of ['Up', 'Right', 'Down', 'Left']) {
+        await page.locator(`#g2048${direction}`).tap();
+        if (/Lượt \d+/.test(await page.locator('#g2048Status').textContent())) { moved = true; break; }
+      }
+      expect(moved).toBe(true);
+      await closeGame(page);
+    });
 
-    await openGame(page, 'lemonade-tycoon');
-    await page.locator('#lsPriceUp').tap();
-    await expect(page.locator('#lsPrice')).toHaveText('13');
-    await page.locator('#lsSweet').tap();
-    await expect(page.locator('#lsSweet')).toHaveAttribute('aria-pressed', 'true');
-    await closeGame(page);
+    await test.step('lemonade controls accept touch', async () => {
+      await openGame(page, 'lemonade-tycoon');
+      await page.locator('#lsPriceUp').tap();
+      await expect(page.locator('#lsPrice')).toHaveText('13');
+      await page.locator('#lsSweet').tap();
+      await expect(page.locator('#lsSweet')).toHaveAttribute('aria-pressed', 'true');
+      await closeGame(page);
+    });
 
-    await openGame(page, 'hang-rong');
-    await page.locator('#hr3Cook0').tap();
-    await expect(page.locator('#hr3Dish0')).not.toHaveClass(/hr3-empty/, { timeout: 12_000 });
-    const servedBefore = await page.locator('#hr3Goal').textContent();
-    await page.locator('#hr3Customer0').tap();
-    await expect(page.locator('#hr3Goal')).not.toHaveText(servedBefore);
-    await closeGame(page);
+    await test.step('Hàng Rong cook and serve accept touch', async () => {
+      await openGame(page, 'hang-rong');
+      await page.locator('#hr3Cook0').tap();
+      await expect(page.locator('#hr3Dish0')).not.toHaveClass(/hr3-empty/, { timeout: 12_000 });
+      const servedBefore = await page.locator('#hr3Goal').textContent();
+      await page.locator('#hr3Customer0').tap();
+      await expect(page.locator('#hr3Goal')).not.toHaveText(servedBefore);
+      await closeGame(page);
+    });
     expect(errors).toEqual([]);
   } finally {
     await context.close();

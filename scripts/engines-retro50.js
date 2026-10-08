@@ -322,8 +322,6 @@
       container.textContent = 'Đấu Phao chưa sẵn sàng.';
       return;
     }
-    const title = document.getElementById('modalGameTitle');
-    if (title) title.textContent = 'Đấu Phao';
     return engine.mount(container, window.NP_GameSession.start());
   }
 
