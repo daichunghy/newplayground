@@ -55,7 +55,10 @@ function assertInvariants(board) {
     assert.equal(typeof cell.mine, 'boolean');
     assert.equal(typeof cell.revealed, 'boolean');
     assert.equal(typeof cell.flagged, 'boolean');
+    assert.equal(typeof cell.questioned, 'boolean');
     assert.equal(cell.revealed && cell.flagged, false, `revealed flag at ${index}`);
+    assert.equal(cell.revealed && cell.questioned, false, `revealed question mark at ${index}`);
+    assert.equal(cell.flagged && cell.questioned, false, `overlapping marks at ${index}`);
     assert.equal(cell.revealed && cell.mine, false, `revealed mine at ${index}`);
     const expected = cell.mine ? 0 : neighbors(view, index).filter(i => view.cells[i].mine).length;
     assert.equal(cell.adjacent, expected, `incorrect clue at ${index}`);
@@ -208,7 +211,7 @@ test('invalid indices are harmless for every public operation and do not generat
   const board = create('pocket', () => { throw new Error('unexpected generation'); });
   const invalid = [-1, 48, 1000000, 0.5, NaN, Infinity, -Infinity, undefined, null, '0', {}, [], Symbol('index')];
   for (const index of invalid) {
-    for (const operation of ['flag', 'reveal', 'chord']) assertNoChange(board, () => board[operation](index));
+    for (const operation of ['flag', 'question', 'cycleMark', 'reveal', 'chord']) assertNoChange(board, () => board[operation](index));
     assert.deepEqual(board.neighbors(index), []);
   }
 });
@@ -352,7 +355,7 @@ for (const presetId of Object.keys(PRESETS)) {
     assert.equal(board.view().flagCount, 0);
     assert.equal(board.view().explodedIndex, null);
     assertInvariants(board);
-    for (const operation of ['flag', 'reveal', 'chord']) {
+    for (const operation of ['flag', 'question', 'cycleMark', 'reveal', 'chord']) {
       for (const index of [0, board.view().firstIndex, board.view().cells.findIndex(cell => cell.mine)]) {
         assertNoChange(board, () => board[operation](index));
       }
@@ -406,7 +409,7 @@ test('direct mine loss identifies the explosion, does not count a mine as safe, 
   assert.equal(board.view().revealedCount, count);
   assertInvariants(board);
   for (let index = 0; index < board.view().cells.length; index++) {
-    for (const operation of ['flag', 'reveal', 'chord']) assertNoChange(board, () => board[operation](index));
+    for (const operation of ['flag', 'question', 'cycleMark', 'reveal', 'chord']) assertNoChange(board, () => board[operation](index));
   }
 });
 
@@ -414,7 +417,7 @@ test('prestart save roundtrips with flags and generates only on the first unflag
   const board = create('pocket', seeded(5));
   board.flag(0); board.flag(12);
   const saved = copy(board.serialize());
-  assert.deepEqual(saved, { version: 1, presetId: 'pocket', status: 'ready', firstIndex: null, mines: [], revealed: [], flags: [0, 12] });
+  assert.deepEqual(saved, { version: 1, presetId: 'pocket', status: 'ready', firstIndex: null, mines: [], revealed: [], flags: [0, 12], questions: [] });
   const restored = restore(saved);
   assert.ok(restored);
   assert.deepEqual(restored.view(), board.view());
@@ -426,6 +429,57 @@ test('prestart save roundtrips with flags and generates only on the first unflag
   assert.equal(restored.view().cells[0].flagged, true);
   assert.equal(restored.view().cells[12].flagged, true);
   assertInvariants(restored);
+});
+
+test('tentative question marks cycle with flags without counting as confirmed mines', () => {
+  const board = create('pocket', () => { throw new Error('marks cannot start the timer or generator'); });
+  assert.equal(board.cycleMark(3).reason, 'flag');
+  assert.equal(board.view().flagCount, 1);
+  assert.equal(board.cycleMark(3).reason, 'question');
+  assert.equal(board.view().flagCount, 0);
+  assert.equal(board.view().cells[3].questioned, true);
+  assert.equal(board.cycleMark(3).reason, 'clear');
+  board.question(4);
+  assert.equal(board.view().cells[4].questioned, true);
+  board.flag(4);
+  assert.equal(board.view().cells[4].flagged, true);
+  assert.equal(board.view().cells[4].questioned, false);
+  board.question(4);
+  assert.equal(board.view().cells[4].flagged, false);
+  assert.equal(board.view().cells[4].questioned, true);
+  const copy = restore(board.serialize());
+  assert.ok(copy);
+  assert.equal(copy.view().cells[4].questioned, true);
+  assert.equal(copy.view().flagCount, 0);
+  assertInvariants(copy);
+  const legacySave = board.serialize(); delete legacySave.questions;
+  const legacyCopy = restore(legacySave);
+  assert.ok(legacyCopy, 'schema-1 saves created before tentative marks remain readable');
+  assert.deepEqual(legacyCopy.serialize().questions, []);
+});
+
+test('revealing or chording treats question-marked cells as unmarked cells', () => {
+  const board = create('beginner', seeded(14));
+  const first = 40, tentative = 39;
+  board.question(tentative);
+  board.reveal(first);
+  if (!board.view().cells[tentative].revealed) {
+    const result = board.reveal(tentative);
+    assert.ok(['reveal', 'win'].includes(result.kind));
+    assert.equal(board.view().cells[tentative].questioned, false);
+  }
+
+  const fixture = chordFixture();
+  for (const mine of fixture.mines) fixture.board.flag(mine);
+  fixture.board.question(fixture.safe[0]);
+  const result = fixture.board.chord(fixture.index);
+  assert.ok(['chord', 'win'].includes(result.kind));
+  assert.equal(fixture.board.view().cells[fixture.safe[0]].questioned, false);
+
+  const mismatch = chordFixture();
+  for (const mine of mismatch.mines.slice(1)) mismatch.board.flag(mine);
+  mismatch.board.question(mismatch.mines[0]);
+  assert.equal(mismatch.board.chord(mismatch.index).reason, 'flags-mismatch');
 });
 
 for (const presetId of Object.keys(PRESETS)) {
@@ -495,11 +549,13 @@ test('corrupt saves are rejected without exceptions or mutation of the input', (
     ['too many mines', changed({ mines: [...valid.mines, safeHidden] })],
     ['revealed mine', changed({ revealed: [...valid.revealed, mine] })],
     ['revealed flagged cell', changed({ flags: [valid.revealed[0]] })],
+    ['question overlaps a flag', changed({ flags: [safeHidden], questions: [safeHidden] })],
+    ['revealed question cell', changed({ questions: [valid.revealed[0]] })],
     ['mine on first index', changed({ mines: [valid.firstIndex, ...valid.mines.slice(1)] })],
     ['mine beside first index', changed({ mines: [valid.firstIndex - 1, ...valid.mines.slice(1)] })],
     ['already solved playing save', changed({ revealed: Array.from({ length: 81 }, (_, i) => i).filter(i => !valid.mines.includes(i)) })]
   ];
-  for (const field of ['mines', 'revealed', 'flags']) {
+  for (const field of ['mines', 'revealed', 'flags', 'questions']) {
     for (const value of [undefined, null, {}, '0,1', [81], [-1], [0.5], ['0'], [null], [NaN], [Infinity], [0, 0]]) {
       cases.push([`${field}: ${String(value)}`, changed({ [field]: value })]);
     }
@@ -524,7 +580,7 @@ test('restore rejects sparse save arrays instead of creating inconsistent cell c
   sparseFlags.flags = Array(1);
   assert.equal(restore(sparseFlags), null);
   const valid = newPlayingBoard().serialize();
-  for (const field of ['mines', 'revealed', 'flags']) {
+  for (const field of ['mines', 'revealed', 'flags', 'questions']) {
     const corrupted = copy(valid);
     if (corrupted[field].length === 0) corrupted[field] = Array(1);
     else delete corrupted[field][0];

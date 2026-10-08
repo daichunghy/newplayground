@@ -57,6 +57,18 @@ function singleRunOrder() {
   return createDeckOrder(piles);
 }
 
+function openingRevealHintOrder() {
+  const cards = M.cardsInOrder();
+  const rankFive = cards.find(card => card.rank === 5).id;
+  const rankSix = cards.find(card => card.rank === 6).id;
+  const rest = M.shuffledDeck(77).filter(id => id !== rankFive && id !== rankSix);
+  const order = Array(104);
+  order[5] = rankFive;
+  order[11] = rankSix;
+  for (let index = 0, cursor = 0; index < order.length; index++) if (!order[index]) order[index] = rest[cursor++];
+  return order;
+}
+
 test('seeded one-suit deal repeats exactly and uses two decks, ten columns and five stock rows', () => {
   const first = M.create({ seed: 'spider-seed' }).view();
   const again = M.create({ seed: 'spider-seed' }).view();
@@ -115,6 +127,31 @@ test('stock deals ten face-up cards and is blocked while any tableau column is e
   assert.equal(game.view().canDeal, false);
   assert.equal(game.dealStock(), false);
   assert.equal(game.view().tableaus.flat().length + game.view().completedRuns * 13, 104);
+});
+
+test('hint prefers a legal move that exposes a face-down card without mutating the deal', () => {
+  const game = M.create({ seed: 77, deckOrder: openingRevealHintOrder() });
+  const before = game.view();
+  const hint = game.findHint();
+  assert.equal(hint.kind, 'move');
+  assert.equal(hint.revealsCard, true);
+  assert.equal(game.canMove(hint.source, hint.target), true);
+  assert.equal(before.tableaus[hint.source.pile][hint.source.index - 1].faceUp, false);
+  assert.deepEqual(game.view(), before, 'looking at a hint does not spend a move or alter the board');
+});
+
+test('hint suggests the stock when no tableau move is available', () => {
+  const game = M.create({ seed: 97 });
+  assert.equal(game.view().hasLegalMove, false);
+  assert.deepEqual(game.findHint(), { kind: 'deal' });
+  assert.equal(game.view().stockCount, 50);
+});
+
+test('hint is unavailable after a terminal stuck position', () => {
+  const game = M.create({ seed: 526 });
+  for (let row = 0; row < 5; row++) assert.equal(game.dealStock(), true);
+  assert.equal(game.view().status, 'stuck');
+  assert.equal(game.findHint(), null);
 });
 
 test('a completed run auto-removes and undo or restart restores the position', () => {

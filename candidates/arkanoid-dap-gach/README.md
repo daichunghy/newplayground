@@ -6,13 +6,13 @@ An original, solo-first paddle-and-ball candidate for catalog work item `arkanoi
 
 - Move with ←/→ or A/D. Move the pointer over the board or drag on touch screens to steer.
 - Press Space or tap the board to launch. Press P or Escape to pause.
-- Clear three short rounds. Color walls break in one hit, silver walls in two, and gold walls bounce the ball without counting toward the clear.
-- Break the marked carrier wall, then catch its falling capsule to widen the paddle for eight seconds.
+- Clear three short rounds with distinct fields: an open rim with side lanes, staggered crossbars, then a narrow core with wider wings. Color walls break in one hit, silver walls in two, and gold walls bounce the ball without counting toward the clear.
+- Break the marked carrier wall, then catch its falling capsule to widen the paddle for eight seconds. Its lane shifts from the left side, to the lower left-center, then to the center.
 - Three lives. Restart is available at any time.
 
 ## Candidate files and verification
 
-- `model.js` contains the deterministic 120 Hz rules and authored round fields.
+- `model.js` contains the deterministic 120 Hz rules, three authored brick silhouettes, round cues, and round-specific capsule lanes.
 - `view.js` contains the canvas renderer, input, concise HUD, and session cleanup contract. It exports `window.NP_OrbitBrick.mount(container, session, audio)`.
 - `style.css`, `cover.svg`, and `index.html` provide a fully original standalone play surface and cover.
 - Tests: `node --test tests/arkanoid-model.test.cjs tests/arkanoid-view.test.cjs` from the repository root.

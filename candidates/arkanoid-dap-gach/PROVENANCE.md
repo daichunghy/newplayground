@@ -10,10 +10,13 @@ The original catalog key `arkanoid-dap-gach` does not identify a platform, regio
 
 ## Candidate choices
 
-- Three original fields use one-hit color walls, two-hit silver walls, and indestructible gold blockers. Gold walls do not count toward the field-clear condition.
+- Three original fields use distinct silhouettes and routes: an open rim with side lanes, staggered crossbars, then a narrow core with wider wings. Each uses one-hit color walls, two-hit silver walls, and two indestructible gold blockers; gold walls do not count toward the field-clear condition.
+- The expansion carrier moves from the left-side lane in round 1 to the lower left-center in round 2, then the center in round 3, giving each field a different capsule route. Short field names and cues appear at serve time; they describe these original candidate patterns, not a source-game board set.
 - Color rows use the NES manual's point schedule; silver walls score 50 times the candidate round when broken. Capturing an expansion capsule scores the manual's NES value of 100.
 - One marked color wall per round releases an originalized falling capsule. The marker is a small double arrow drawn in the candidate canvas. Catching it widens the paddle for eight seconds. The fixed carrier, drop timing, one-effect scope, and eight-second duration are this candidate's design decisions: the NES manual does not document this schedule or duration.
 - All three level layouts, the paddle/ship, ball, brick rendering, capsule artwork, cover, and visual effects were made for this candidate. No game screenshots, original sprites, logos, audio recordings, code, board data, or named characters were reused. Optional game sound uses short synthesized tones through the host audio interface; no audio files are included.
+
+The campaign intentionally remains three rounds. Its launch speeds are 310, 324, and 338 px/s, below the 370 px/s cap, so the shipped loop does not cycle fields after reaching the speed cap. Extending the campaign would need additional authored fields or new mechanics rather than reusing these three unchanged.
 
 ## Integration and QA boundaries
 

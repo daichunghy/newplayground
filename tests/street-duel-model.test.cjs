@@ -5,8 +5,15 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const source = fs.readFileSync(path.join(__dirname, '../scripts/engines-retro50.js'), 'utf8');
-function makeModel() {
-  const window = {};
+function makeModel(randomSeeds) {
+  const window = randomSeeds ? {
+    crypto: {
+      getRandomValues(values) {
+        values[0] = randomSeeds.shift();
+        return values;
+      }
+    }
+  } : {};
   vm.runInNewContext(source, { window, document: {}, console });
   return window.NP_StreetDuelModel;
 }
@@ -23,6 +30,23 @@ test('same seed and input stream produce identical CPU rounds', () => {
     return JSON.stringify(last.view);
   };
   assert.equal(run(), run());
+});
+
+test('ordinary CPU matches vary across fresh models when no seed is supplied', () => {
+  const M = makeModel([0x12345678, 0x9abcdef0]);
+  const run = () => {
+    const game = M.create({ mode: 'cpu' });
+    const trace = [];
+    for (let i = 0; i < 260; i++) {
+      const result = game.step(50, {});
+      trace.push({
+        fighters: result.view.fighters.map(fighter => [fighter.x, fighter.hp, fighter.action?.kind]),
+        events: result.events.map(event => [event.type, event.side, event.move])
+      });
+    }
+    return JSON.stringify(trace);
+  };
+  assert.notEqual(run(), run(), 'fresh default seeds lead to different CPU decisions');
 });
 
 test('CPU starts with equal health, closes distance, and makes telegraphed attacks', () => {

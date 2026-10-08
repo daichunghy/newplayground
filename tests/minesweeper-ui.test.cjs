@@ -37,6 +37,27 @@ test('stable cells, separate flag mode and single timer start', () => {
   h.context.closeGameModal(); assertStopped(h); assert.equal(h.document.listenerCount(), baselineDocument);
 });
 
+test('question mode marks uncertain cells without starting play and persists them accessibly', () => {
+  const h = harness(); open(h);
+  click(h, 'dmQuestionMode'); tap(h, 1);
+  assert.equal(saved(h).board.status, 'ready');
+  assert.deepEqual(saved(h).board.questions, [1]);
+  assert.deepEqual(saved(h).board.flags, []);
+  assert.equal(cells(h)[1].textContent, '?');
+  assert.equal(cells(h)[1].classList.contains('dm-questioned'), true);
+  assert.match(cells(h)[1].getAttribute('aria-label'), /chưa chắc/);
+  assert.equal(el(h, 'dmQuestionMode').getAttribute('aria-pressed'), 'true');
+  input(h, 'pointerdown', 2); h.flushTimeouts(); input(h, 'pointerup', 2);
+  assert.deepEqual(saved(h).board.questions, [1, 2]);
+
+  input(h, 'keydown', 1, { key: 'q' });
+  assert.equal(el(h, 'dmQuestionMode').getAttribute('aria-pressed'), 'false');
+  input(h, 'keydown', 1, { key: 'Enter' });
+  assert.equal(saved(h).board.status, 'playing');
+  assert.equal(saved(h).board.questions.includes(1), false);
+  h.context.closeGameModal(); assertStopped(h);
+});
+
 test('bounded keyboard navigation, one tab stop, repeat safety and accessible labels', () => {
   const h = harness(); open(h);
   input(h, 'keydown', 0, { key: 'ArrowLeft' }); assert.equal(cells(h)[0].tabIndex, 0);
@@ -55,7 +76,9 @@ test('long hold commits on release and suppresses the synthetic click', () => {
   assert.ok(cells(h)[0].classList.contains('dm-holding')); assert.equal(h.stored.has(KEY), false);
   input(h, 'pointerup', 0); assert.deepEqual(saved(h).board.flags, [0]);
   tap(h, 0); assert.deepEqual(saved(h).board.flags, [0]); assert.equal(saved(h).board.status, 'ready');
-  input(h, 'pointerdown', 0, { pointerType: 'mouse' }); input(h, 'contextmenu', 0, { pointerType: 'mouse' }); assert.deepEqual(saved(h).board.flags, []);
+  input(h, 'pointerdown', 0, { pointerType: 'mouse' }); input(h, 'contextmenu', 0, { pointerType: 'mouse' });
+  assert.deepEqual(saved(h).board.flags, []); assert.deepEqual(saved(h).board.questions, [0]);
+  input(h, 'contextmenu', 0, { pointerType: 'mouse' }); assert.deepEqual(saved(h).board.questions, []);
   h.context.closeGameModal(); assertStopped(h);
 });
 

@@ -67,7 +67,7 @@
           <button class="dd-control" id="ddRight" type="button" aria-label="Lái phải">→</button>
           <button class="dd-control dd-attack" id="ddAttack" type="button" aria-label="Tạt xe bên cạnh">Tạt</button>
         </div>
-        <p class="dd-help">Giữ ↑ để tăng tốc · ← → để né · Space để tạt</p>
+        <p class="dd-help">Giữ ↑ để tăng tốc · ← → để né · Space/Tạt sát xe để ghìm đối thủ; hụt mất đà.</p>
         <p class="dd-live" id="ddLive" role="status" aria-live="polite" aria-atomic="true">Đường đang mở.</p>
         <p class="dd-save-note" id="ddSaveNote" role="status" aria-live="polite" hidden></p>
       </section>`;
@@ -142,7 +142,7 @@
       for (const event of model.drain()) {
         tone(event.kind);
         if (event.kind === 'hit') announce('Tạt trúng. Đối thủ chậm lại.');
-        else if (event.kind === 'swing') announce('Tạt hụt. Canh gần hơn.');
+        else if (event.kind === 'swing') announce('Tạt hụt. Mất đà; chờ đối thủ vào gần hơn.');
         else if (event.kind === 'crash') announce(`Va chạm. Còn ${event.remaining} lượt chịu đòn.`);
         else if (event.kind === 'avoided') announce('Né gọn.');
         else if (event.kind === 'rival-finish') announce('Một tay đua đã về đích.');

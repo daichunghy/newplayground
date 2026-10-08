@@ -17,6 +17,7 @@ const el = (h, id) => h.container.querySelector(`#${id}`);
 test('shows a clear start action, original title, four touch targets, and concise controls', () => {
   const h = setup();
   assert.match(h.container.innerHTML, /Nhịp Mây/);
+  assert.equal(el(h, 'nmSong').textContent, 'Đoạn 1/3 · Mây Sớm');
   assert.equal(h.container.querySelectorAll('.nm-lane').length, 4);
   assert.ok(el(h, 'nmSpace'));
   assert.match(h.container.innerHTML, />Chơi<\/button>/);
@@ -47,7 +48,7 @@ test('D/F/J/K or arrows grade lanes, Space closes each phrase, and repeats do no
   h.close();
 });
 
-test('pause, resume, restart, and end keep frame ownership bounded', () => {
+test('pause, resume, and restart keep frame ownership bounded across the three-song set', () => {
   const h = setup(); el(h, 'nmOverlayAction').click();
   assert.equal(h.frames.size, 1);
   h.frame(); h.frame();
@@ -57,9 +58,19 @@ test('pause, resume, restart, and end keep frame ownership bounded', () => {
   h.advance(3000); h.frame(); assert.equal(h.api.snapshot().time, pausedAt);
   el(h, 'nmPause').click(); assert.equal(h.frames.size, 1);
   el(h, 'nmRestart').click(); assert.equal(h.api.snapshot().status, 'playing'); assert.equal(h.frames.size, 1);
-  for (let i = 0; i < 1400 && h.api.snapshot().status === 'playing'; i++) h.frame();
-  assert.equal(h.api.snapshot().status, 'ended'); assert.equal(h.frames.size, 0);
-  assert.match(el(h, 'nmOverlayTitle').textContent, /khép lại/);
+  for (let song = 0; song < 3; song++) {
+    for (let i = 0; i < 1600 && h.api.snapshot().status === 'playing'; i++) h.frame();
+    if (song < 2) {
+      assert.equal(h.api.snapshot().status, 'song-ended'); assert.equal(h.frames.size, 0);
+      assert.equal(el(h, 'nmSong').textContent, `Đoạn ${song + 1}/3 · ${['Mây Sớm','Đèn Phố','Mưa Nhịp'][song]}`);
+      el(h, 'nmOverlayAction').click();
+      assert.equal(h.api.snapshot().status, 'playing'); assert.equal(h.api.snapshot().songIndex, song + 1); assert.equal(h.frames.size, 1);
+    } else {
+      assert.equal(h.api.snapshot().status, 'ended'); assert.equal(h.frames.size, 0);
+      assert.match(el(h, 'nmOverlayTitle').textContent, /Bộ nhịp khép lại/);
+      assert.equal(h.api.snapshot().results.length, 3);
+    }
+  }
   el(h, 'nmOverlayAction').click(); assert.equal(h.api.snapshot().status, 'playing'); assert.equal(h.frames.size, 1);
   h.close();
 });

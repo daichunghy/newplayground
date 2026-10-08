@@ -157,6 +157,36 @@ test('touch-style click selects and moves a valid run; keyboard undo and stock d
   assert.equal(container.activeElement.dataset.index, '5');
 });
 
+test('hint highlights a reveal move and H repeats it without autoplay', () => {
+  const { container, window, game } = domHarness({ seed: 77, deckOrder: arrangeOpeningMove() });
+  const model = game.getModel(), before = model.view();
+  const hint = model.findHint();
+  assert.equal(hint.kind, 'move');
+  assert.equal(hint.revealsCard, true);
+  container.dispatch('click', { target: container.querySelector('#spHint') });
+  assert.match(container.querySelector('#spStatus').textContent, /Gợi ý: Cột/);
+  assert.match(container.querySelector('#spTableau').innerHTML, /sp-selected/);
+  assert.match(container.querySelector('#spTableau').innerHTML, /sp-hint-target/);
+  assert.equal(model.view().moves, 0);
+  assert.deepEqual(model.view(), before);
+  assert.equal(window.dispatch('keydown', { key: 'h' }).defaultPrevented, true);
+  assert.equal(model.view().moves, 0);
+});
+
+test('hint recommends stock only when no tableau move exists and waits for the player', () => {
+  const { container, game } = domHarness({ seed: 97 });
+  const model = game.getModel();
+  assert.equal(model.view().hasLegalMove, false);
+  container.dispatch('click', { target: container.querySelector('#spHint') });
+  assert.equal(container.querySelector('#spStatus').textContent, 'Gợi ý: Chia thêm một hàng.');
+  assert.equal(container.querySelector('#spStock').classList.contains('sp-hint-target'), true);
+  assert.equal(model.view().stockCount, 50);
+  const stock = container.querySelector('#spStock');
+  container.dispatch('click', { target: stock });
+  assert.equal(model.view().stockCount, 40);
+  assert.equal(stock.classList.contains('sp-hint-target'), false);
+});
+
 test('restart replays its deal, new deal changes seed, and cleanup removes input handlers', () => {
   const { container, window, session, game } = domHarness({ seed: 'spider-reset' });
   const model = game.getModel();

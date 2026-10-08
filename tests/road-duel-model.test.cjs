@@ -24,6 +24,29 @@ function runCourse(model, useSideCheck = true) {
   return model.view();
 }
 
+function runAvoidancePolicy(stageIndex, attackPolicy = 'none') {
+  const model = M.create(stageIndex, { unlockedStage: stageIndex });
+  let hits = 0, misses = 0;
+  for (let i = 0; i < 6000 && model.view().status === 'playing'; i++) {
+    const v = model.view(), hazard = v.hazardsAhead.find(item => item.ahead < 48);
+    const safeLanes = hazard ? [-0.34, 0, 0.34].filter(lane => Math.abs(lane - hazard.lane) > 0.2) : [0];
+    const target = safeLanes.sort((a, b) => Math.abs(a - v.lane) - Math.abs(b - v.lane))[0];
+    const steer = v.lane < target - 0.02 ? 1 : v.lane > target + 0.02 ? -1 : 0;
+    model.advance(M.STEP, { accelerate: true, steer });
+
+    const after = model.view();
+    const riderInRange = after.rivals.some(rider => rider.finishAt === null && rider.stun <= 0 &&
+      Math.abs(rider.distance - after.distance) <= 24 && Math.abs(rider.lane - after.lane) <= 0.34);
+    if ((attackPolicy === true || attackPolicy === 'timed') && after.attackReady && riderInRange) model.act('attack');
+    else if (attackPolicy === 'reckless' && i % 43 === 15) model.act('attack');
+    for (const event of model.drain()) {
+      if (event.kind === 'hit') hits++;
+      if (event.kind === 'swing') misses++;
+    }
+  }
+  return { result: model.view(), hits, misses };
+}
+
 test('fresh race starts moving immediately on one compact original track', () => {
   const v = M.create().view();
   assert.equal(v.status, 'playing');
@@ -87,20 +110,23 @@ test('one melee action disrupts the nearest nearby rider and respects cooldown',
   const v = g.view();
   assert.equal(v.hits, 1);
   const target = v.rivals.find(r => r.id === 1);
-  assert.ok(target.stun > 1.4);
+  assert.ok(target.stun > 1.15);
   assert.equal(g.act('attack'), false);
   assert.ok(g.drain().some(e => e.kind === 'hit' && e.id === 1));
   run(g, 0.8);
   assert.equal(g.view().attackReady, true);
 });
 
-test('missed melee swings do not affect distant riders or damage the player', () => {
+test('a missed side-check costs momentum without damaging the player or distant riders', () => {
   const g = M.create();
-  run(g, 8.2, { accelerate: true });
+  run(g, 2, { brake: true });
+  run(g, 0.5, { accelerate: true });
+  const before = g.view();
   assert.equal(g.act('attack'), true);
   assert.equal(g.view().hits, 0);
   assert.equal(g.view().crashes, 0);
-  assert.ok(g.drain().some(e => e.kind === 'swing' && e.hit === false));
+  assert.equal(g.view().speed, before.speed - M.ATTACK_MISS_SPEED_LOSS);
+  assert.ok(g.drain().some(e => e.kind === 'swing' && e.hit === false && e.speedLoss === M.ATTACK_MISS_SPEED_LOSS));
 });
 
 test('three avoidable road impacts end the race cleanly', () => {
@@ -171,7 +197,7 @@ test('simple full-throttle riding meets the rising hazard pressure across the cu
     return g.view();
   });
   assert.equal(results[0].crashes, 1); assert.equal(results[0].status, 'won'); assert.equal(results[0].place, 1);
-  assert.equal(results[1].crashes, 2); assert.equal(results[1].status, 'won'); assert.equal(results[1].place, 2);
+  assert.equal(results[1].crashes, 2); assert.equal(results[1].status, 'won'); assert.equal(results[1].place, 3);
   assert.equal(results[2].crashes, 3); assert.equal(results[2].status, 'lost');
   assert.ok(results[2].distance < results[2].trackLength);
 });
@@ -186,9 +212,9 @@ test('early steering earns faster recorded times and clean driving beats the fin
     if (stage < 2) {
       const baseline = straight.view();
       assert.equal(baseline.status, 'won');
-      assert.equal(baseline.place, stage === 0 ? 1 : 2, 'the first is forgiving; the second rewards steering for first');
+      assert.equal(baseline.place, stage === 0 ? 1 : 3, 'later rivals challenge a no-steer ride');
       assert.equal(safe.status, 'won');
-      assert.equal(safe.place, 1);
+      assert.equal(safe.place, stage === 0 ? 1 : 2);
       assert.equal(safe.crashes, 0);
       assert.ok(safe.finishTimeMs < baseline.finishTimeMs, M.STAGES[stage].name + ' rewards early hazard avoidance');
     } else {
@@ -198,6 +224,21 @@ test('early steering earns faster recorded times and clean driving beats the fin
     }
     assert.equal(guided.progress().bestTimes[stage], safe.finishTimeMs);
   }
+});
+
+test('timed combat improves the final course rank while missed swings make reckless attacks slower', () => {
+  const clean = M.STAGES.map((_, stage) => runAvoidancePolicy(stage));
+  const timed = M.STAGES.map((_, stage) => runAvoidancePolicy(stage, 'timed'));
+  assert.deepEqual(clean.map(item => item.result.place), [1, 2, 3]);
+  assert.deepEqual(timed.map(item => item.result.place), [1, 2, 2]);
+  assert.ok(clean.every(item => item.result.status === 'won' && item.result.crashes === 0 && item.hits === 0));
+  assert.ok(timed.every(item => item.result.status === 'won' && item.result.crashes === 0 && item.hits > 0 && item.misses === 0));
+  assert.equal(timed[2].result.finishTimeMs, clean[2].result.finishTimeMs);
+
+  const reckless = runAvoidancePolicy(2, 'reckless');
+  assert.equal(reckless.result.status, 'won');
+  assert.ok(reckless.misses > 0);
+  assert.ok(reckless.result.finishTimeMs > timed[2].result.finishTimeMs);
 });
 
 test('a clean drive qualifies through the cup, records ranks, and unlocks one race at a time', () => {

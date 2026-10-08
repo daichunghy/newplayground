@@ -136,17 +136,18 @@
     function messageFor(v) {
       if (gameMessage) return gameMessage;
       if (v.status === 'paused') return 'Đã tạm dừng.';
-      if (v.status === 'ready' && v.round > 1) return `Vòng ${v.round} · chạm hoặc nhấn Space để phóng.`;
-      if (v.status === 'ready') return 'Chạm hoặc nhấn Space để phóng bóng.';
+      const theme = M.roundTheme(v.round);
+      if (v.status === 'ready') return `Vòng ${v.round} · ${theme.name}: ${theme.cue} Chạm hoặc nhấn Space để phóng.`;
       if (v.status === 'over') return `Hết lượt · ${v.score} điểm.`;
       if (v.status === 'won') return `Đã qua ${v.maxRounds} vòng · ${v.score} điểm.`;
-      return `Vòng ${v.round} · còn ${v.remaining} khối.`;
+      return `Vòng ${v.round} · ${theme.name} · còn ${v.remaining} khối.`;
     }
     function update() {
       if (!alive) return;
       const v = model.view(), signature = [v.status, v.score, v.round, v.lives, v.remaining, v.power.ticksRemaining, gameMessage].join('|');
       if (signature === lastHUD) return;
       lastHUD = signature;
+      const theme = M.roundTheme(v.round);
       el('ogScore').textContent = String(v.score); el('ogRound').textContent = `${v.round} / ${v.maxRounds}`; el('ogLives').textContent = `${v.lives} / ${M.MAX_LIVES}`;
       const ended = v.status === 'over' || v.status === 'won';
       el('ogOverlay').hidden = v.status === 'playing'; el('ogPause').disabled = ended;
@@ -154,7 +155,7 @@
       el('ogPause').setAttribute('aria-label', v.status === 'paused' ? 'Tiếp tục' : 'Tạm dừng');
       el('ogStart').textContent = ended ? 'Chơi lại' : v.status === 'paused' ? 'Tiếp tục' : v.status === 'ready' && v.round > 1 ? 'Vòng tiếp' : 'Bắt đầu';
       el('ogTitle').textContent = v.status === 'over' ? 'Hết lượt' : v.status === 'won' ? 'Qua ba vòng!' : v.status === 'paused' ? 'Đang tạm dừng' : v.round > 1 ? `Vòng ${v.round}` : 'Vệ Tinh Giữ Quỹ Đạo';
-      el('ogText').textContent = ended ? `Bạn đạt ${v.score} điểm.` : v.status === 'paused' ? 'Bóng đang nghỉ. Tiếp tục khi sẵn sàng.' : 'Đỡ bóng và phá tường. Chạm hoặc nhấn Space để phóng.';
+      el('ogText').textContent = ended ? `Bạn đạt ${v.score} điểm.` : v.status === 'paused' ? 'Bóng đang nghỉ. Tiếp tục khi sẵn sàng.' : v.status === 'ready' ? `${theme.name}: ${theme.cue} Chạm hoặc nhấn Space để phóng.` : 'Đỡ bóng và phá tường. Chạm hoặc nhấn Space để phóng.';
       el('ogStatus').textContent = messageFor(v);
     }
 
@@ -171,7 +172,10 @@
       for (const event of list || []) {
         if (['brick', 'paddle', 'life', 'round', 'launch', 'capsule-collected', 'gold-wall'].includes(event.kind)) sound(event.kind);
         if (event.kind === 'life') gameMessage = event.lives ? `Mất một lượt · còn ${event.lives}. Chạm hoặc nhấn Space để tiếp tục.` : `Hết lượt · ${event.score} điểm.`;
-        if (event.kind === 'round') gameMessage = `Đã phá xong tường · vòng ${event.round} bắt đầu.`;
+        if (event.kind === 'round') {
+          const theme = M.roundTheme(event.round);
+          gameMessage = `Vòng ${event.round} · ${theme.name}: ${theme.cue}`;
+        }
         if (event.kind === 'won') gameMessage = `Đã qua ${event.round} vòng · ${event.score} điểm.`;
         if (event.kind === 'capsule-collected') gameMessage = 'Tấm đỡ được mở rộng trong 8 giây.';
         if (event.kind === 'brick' || event.kind === 'paddle' || event.kind === 'launch') gameMessage = '';

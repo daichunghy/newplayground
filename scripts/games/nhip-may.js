@@ -16,7 +16,7 @@
     container.classList.add('nm-host');
     container.innerHTML = `
       <section class="nm-game" aria-label="Nhịp Mây">
-        <header class="nm-top"><div><h2>Nhịp Mây</h2></div>
+        <header class="nm-top"><div><h2>Nhịp Mây</h2><span class="nm-song" id="nmSong">Đoạn 1/3 · Mây Sớm</span></div>
           <div class="nm-hud"><span>Điểm <b id="nmScore">0</b></span><span>Combo <b id="nmCombo">0</b></span></div></header>
         <div class="nm-stage-wrap"><canvas id="nmCanvas" class="nm-stage" width="640" height="400" role="img" aria-label="Bốn làn nốt nhạc và phím Space để chốt nhịp" aria-describedby="nmHelp">Nhịp Mây.</canvas>
           <div class="nm-overlay" id="nmOverlay"><div class="nm-card"><span class="nm-mark" aria-hidden="true">✦</span><h3 id="nmOverlayTitle">Sẵn sàng</h3><p id="nmOverlayText">Bấm nốt; chốt Space.</p><button class="nm-button nm-primary" id="nmOverlayAction" type="button">Chơi</button></div></div>
@@ -54,7 +54,8 @@
     }
     function setFeedback(text) { el('nmFeedback').textContent = text; }
     function updateHud() {
-      const s = model.view(); el('nmScore').textContent = String(s.score); el('nmCombo').textContent = String(s.combo);
+      const s = model.view(); el('nmSong').textContent = `Đoạn ${s.songNumber}/3 · ${s.song.name}`;
+      el('nmScore').textContent = String(s.score); el('nmCombo').textContent = String(s.combo);
       el('nmPause').disabled = !['playing','paused'].includes(s.status);
       el('nmPause').textContent = s.status === 'paused' ? 'Tiếp tục' : 'Tạm dừng';
       el('nmSound').setAttribute('aria-pressed', soundOn ? 'true' : 'false'); el('nmSound').setAttribute('aria-label', `Âm thanh ${soundOn ? 'bật' : 'tắt'}`); el('nmSound').textContent = soundOn ? '♫' : '♪';
@@ -95,10 +96,10 @@
         ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.stroke(); ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = isSpace ? "700 14px Calibri, Inter, sans-serif" : "800 24px Calibri, Inter, sans-serif"; ctx.fillText(isSpace ? 'SPACE' : M.LANES[note.lane].label, cx, y + 1); ctx.restore();
       }
       if (s.status === 'playing' && soundOn) {
-        const beat = Math.floor(s.time / M.BEAT);
-        if (beat > pulseIndex) { for (let i = pulseIndex + 1; i <= beat && i < M.SONG_BEATS; i++) playTone([196, 220, 247, 220][Math.floor(i / 8) % 4], .055, i % 4 === 0 ? 'triangle' : 'sine', i % 4 === 0 ? .026 : .013); pulseIndex = beat; }
+        const beat = Math.floor(s.time * s.song.bpm / 60);
+        if (beat > pulseIndex) { for (let i = pulseIndex + 1; i <= beat && i < s.song.beats; i++) playTone([196, 220, 247, 220][Math.floor(i / 8) % 4], .055, i % 4 === 0 ? 'triangle' : 'sine', i % 4 === 0 ? .026 : .013); pulseIndex = beat; }
       }
-      ctx.fillStyle = 'rgba(247,229,198,.66)'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.font = "600 12px Calibri, Inter, sans-serif"; ctx.fillText(`${M.BPM} BPM · ${Math.min(M.SONG_BEATS, Math.floor(s.time / M.BEAT))}/${M.SONG_BEATS} nhịp`, 18, H - 18);
+      ctx.fillStyle = 'rgba(247,229,198,.66)'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.font = "600 12px Calibri, Inter, sans-serif"; ctx.fillText(`${s.song.bpm} BPM · ${Math.min(s.song.beats, Math.floor(s.time * s.song.bpm / 60))}/${s.song.beats} nhịp`, 18, H - 18);
     }
     function showOverlay(title, text, action, visible = true) {
       el('nmOverlay').hidden = !visible; el('nmOverlayTitle').textContent = title; el('nmOverlayText').textContent = text; el('nmOverlayAction').textContent = action;
@@ -118,9 +119,16 @@
         playTone(150, .1, 'sine', .024);
       }
       draw(); updateHud();
+      if (state.status === 'song-ended') {
+        lastFrame = null;
+        const result = state.results[state.results.length - 1];
+        showOverlay(`Đoạn ${state.songNumber} xong`, `${result.hits}/${result.total} nốt đúng · ${result.stars} sao`, `Sang đoạn ${state.songNumber + 1} · Enter`);
+        setFeedback(`Qua ${state.song.name} · ${result.stars} sao.`);
+        return;
+      }
       if (state.status === 'ended') {
-        lastFrame = null; showOverlay('Đoạn nhạc khép lại', `Điểm ${state.score} · nhịp dài nhất ${state.bestCombo}`, 'Chơi lại · Enter');
-        setFeedback(`Kết thúc · ${state.hits} nốt đúng · ${state.misses} lần lỡ nhịp.`);
+        lastFrame = null; showOverlay('Bộ nhịp khép lại', `Tổng ${state.totalScore} điểm · 3 đoạn`, 'Chơi lại · Enter');
+        setFeedback(`Kết thúc · ${state.results.map(result => `${result.stars} sao`).join(' · ')}.`);
         return;
       }
       raf = requestAnimationFrame(frame);
@@ -129,7 +137,11 @@
     function pause() { if (!alive || !model.pause()) return; if (raf !== null) cancelAnimationFrame(raf); raf = null; lastFrame = null; showOverlay('Tạm nghỉ', 'Các nốt sẽ chờ ở đây cho tới khi bạn tiếp tục.', 'Tiếp tục · Enter'); setFeedback('Đang tạm dừng.'); draw(); updateHud(); }
     function begin() {
       if (!alive) return;
-      if (model.view().status === 'ended') model = M.create();
+      if (model.view().status === 'song-ended') {
+        model.nextSong(); pulseIndex = -1; seenMisses = 0; showOverlay('', '', '', false);
+        setFeedback(`Vào nhịp · ${model.view().song.name}.`); draw(); updateHud(); run(); return;
+      }
+      if (model.view().status === 'ended') { model = M.create(); pulseIndex = -1; seenMisses = 0; }
       if (model.view().status === 'paused') { model.resume(); showOverlay('', '', '', false); setFeedback('Trở lại nhịp.'); run(); return; }
       if (model.view().status === 'ready') { model.start(); pulseIndex = -1; showOverlay('', '', '', false); startAudio(); setFeedback('Bấm theo nốt khi chạm vạch sáng.'); draw(); updateHud(); run(); }
     }

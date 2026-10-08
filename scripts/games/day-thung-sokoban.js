@@ -12,11 +12,28 @@
     ArrowDown: 'down', s: 'down', S: 'down',
     ArrowLeft: 'left', a: 'left', A: 'left'
   };
+  const SAVE_KEY = 'np_day_thung_sokoban_v2';
 
   function mount(container, options = {}) {
     const modelApi = options.modelApi || window.NP_DayThungSokobanModel;
     if (!container || !modelApi) throw new TypeError('Đẩy Thùng needs a container and its model');
-    const model = options.model || modelApi.create();
+    let canSave = true;
+    let storageNotice = '';
+    function loadModel() {
+      try {
+        const saved = window.localStorage?.getItem(SAVE_KEY);
+        if (!saved) return modelApi.create();
+        const restored = modelApi.restore(JSON.parse(saved));
+        if (restored) return restored;
+        canSave = false;
+        storageNotice = 'Bản lưu không đọc được · bắt đầu màn mới.';
+      } catch (_) {
+        canSave = false;
+        storageNotice = 'Tiến độ chưa lưu được.';
+      }
+      return modelApi.create();
+    }
+    const model = options.model || loadModel();
     if (!model || typeof model.view !== 'function' || typeof model.move !== 'function') {
       throw new TypeError('Đẩy Thùng needs a working puzzle model');
     }
@@ -74,7 +91,8 @@
       const boxSet = new Set(view.boxes.map(pointKey));
       const wallSet = new Set(view.walls);
       stage.textContent = `Màn ${view.levelIndex + 1}/${modelApi.LEVELS.length} · ${view.levelName}`;
-      counter.textContent = `${view.moves} bước · ${view.pushes} lần đẩy`;
+      const best = view.bestMoves?.[view.levelIndex];
+      counter.textContent = `${view.moves} bước · ${view.pushes} lần đẩy${best === null || best === undefined ? '' : ` · tốt nhất ${best}`}`;
       if (view.status === 'won') {
         status.textContent = view.levelIndex + 1 === modelApi.LEVELS.length
           ? 'Xong cả kho! Bạn đã đưa mọi thùng vào đích.'
@@ -82,6 +100,7 @@
       } else {
         status.textContent = notice || `Còn ${view.boxes.length} thùng. Đẩy từng thùng vào ô đích.`;
       }
+      if (storageNotice) status.textContent += ` · ${storageNotice}`;
       undoButton.disabled = view.moves === 0;
       nextButton.hidden = view.status !== 'won';
       nextButton.textContent = view.levelIndex + 1 === modelApi.LEVELS.length ? 'Chơi lại từ đầu' : 'Màn tiếp';
@@ -108,6 +127,16 @@
       board.innerHTML = markup;
     }
 
+    function persist() {
+      if (!canSave || !model.serialize || !window.localStorage) return;
+      try {
+        window.localStorage.setItem(SAVE_KEY, JSON.stringify(model.serialize()));
+      } catch (_) {
+        canSave = false;
+        storageNotice = 'Tiến độ chưa lưu được.';
+      }
+    }
+
     function takeStep(direction) {
       if (destroyed) return false;
       notice = '';
@@ -117,6 +146,7 @@
         render();
         return false;
       }
+      persist();
       render();
       return true;
     }
@@ -139,10 +169,10 @@
         takeStep(direction);
       } else if (event.key === 'z' || event.key === 'Z' || event.key === 'Backspace') {
         event.preventDefault?.();
-        if (model.undo()) { notice = ''; render(); }
+        if (model.undo()) { notice = ''; persist(); render(); }
       } else if (event.key === 'r' || event.key === 'R') {
         event.preventDefault?.();
-        model.reset(); notice = ''; render();
+        model.reset(); notice = ''; persist(); render();
       }
     }
 
@@ -161,11 +191,12 @@
       takeStep(Math.abs(dx) >= Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down'));
     }
 
-    function onUndo() { if (model.undo()) { notice = ''; render(); } }
-    function onReset() { model.reset(); notice = ''; render(); board.focus?.(); }
+    function onUndo() { if (model.undo()) { notice = ''; persist(); render(); } }
+    function onReset() { model.reset(); notice = ''; persist(); render(); board.focus?.(); }
     function onNext() {
       if (model.nextLevel()) notice = '';
       else if (model.view().status === 'won') { model.selectLevel(0); notice = ''; }
+      persist();
       render();
       board.focus?.();
     }

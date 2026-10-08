@@ -13,6 +13,7 @@
   const MIN_SPEED = 12;
   const MAX_LANE = 0.44;
   const MAX_CRASHES = 3;
+  const ATTACK_MISS_SPEED_LOSS = 2.5;
   const STAGES = Object.freeze([
     Object.freeze({
       id: 'bai-cat', name: 'Bãi Cát', palette: 'dune', curve: 1, trackLength: 720,
@@ -24,9 +25,9 @@
         { id: 'barrier-2', at: 574, lane: 0.30, kind: 'barrier' }
       ]),
       riders: Object.freeze([
-        { id: 1, lane: -0.30, distance: 10, pace: 22.1, color: '#f19a65' },
-        { id: 2, lane: 0.30, distance: 22, pace: 23.3, color: '#89c8cc' },
-        { id: 3, lane: 0.30, distance: 34, pace: 24.1, color: '#d8bc70' }
+        { id: 1, lane: -0.30, distance: 10, pace: 24.1, color: '#f19a65' },
+        { id: 2, lane: 0.30, distance: 22, pace: 25.3, color: '#89c8cc' },
+        { id: 3, lane: 0.30, distance: 34, pace: 26.1, color: '#d8bc70' }
       ])
     }),
     Object.freeze({
@@ -41,9 +42,9 @@
         { id: 'cloud-van-3', at: 716, lane: -0.30, kind: 'van' }
       ]),
       riders: Object.freeze([
-        { id: 1, lane: -0.30, distance: 12, pace: 28.4, color: '#f2aa77' },
-        { id: 2, lane: 0.30, distance: 24, pace: 29.3, color: '#8bcbd0' },
-        { id: 3, lane: 0, distance: 36, pace: 30.2, color: '#e3c579' }
+        { id: 1, lane: -0.30, distance: 12, pace: 30.4, color: '#f2aa77' },
+        { id: 2, lane: 0.30, distance: 24, pace: 31.3, color: '#8bcbd0' },
+        { id: 3, lane: 0, distance: 36, pace: 32.2, color: '#e3c579' }
       ])
     }),
     Object.freeze({
@@ -59,9 +60,9 @@
         { id: 'ridge-van-3', at: 756, lane: -0.30, kind: 'van' }
       ]),
       riders: Object.freeze([
-        { id: 1, lane: -0.30, distance: 10, pace: 29.6, color: '#f5a375' },
-        { id: 2, lane: 0.30, distance: 22, pace: 30.1, color: '#92c9c6' },
-        { id: 3, lane: 0, distance: 34, pace: 30.6, color: '#e0bd72' }
+        { id: 1, lane: -0.30, distance: 10, pace: 31.6, color: '#f5a375' },
+        { id: 2, lane: 0.30, distance: 22, pace: 32.1, color: '#92c9c6' },
+        { id: 3, lane: 0, distance: 34, pace: 32.6, color: '#e0bd72' }
       ])
     })
   ]);
@@ -172,7 +173,7 @@
         if (rider.finishAt !== null) continue;
         const old = rider.distance;
         rider.stun = Math.max(0, rider.stun - dt);
-        const pace = rider.stun > 0 ? rider.pace * 0.22 : rider.pace;
+        const pace = rider.stun > 0 ? rider.pace * 0.45 : rider.pace;
         rider.distance = Math.min(stage.trackLength, rider.distance + pace * dt);
         if (old < stage.trackLength && rider.distance >= stage.trackLength) {
           const fraction = (stage.trackLength - old) / Math.max(0.0001, rider.distance - old);
@@ -248,10 +249,14 @@
         .filter(r => r.finishAt === null && r.stun <= 0 && Math.abs(r.distance - state.distance) <= 24 && Math.abs(r.lane - state.lane) <= 0.34)
         .sort((a, b) => Math.abs(a.distance - state.distance) - Math.abs(b.distance - state.distance) || a.id - b.id)[0];
       if (target) {
-        target.stun = 1.45;
+        target.stun = 1.2;
         state.hits++;
         emit('hit', { id: target.id, stun: target.stun });
-      } else emit('swing', { hit: false });
+      } else {
+        const oldSpeed = state.speed;
+        state.speed = Math.max(MIN_SPEED, state.speed - ATTACK_MISS_SPEED_LOSS);
+        emit('swing', { hit: false, speedLoss: oldSpeed - state.speed });
+      }
       return true;
     }
 
@@ -293,5 +298,6 @@
   }
 
   return Object.freeze({ VERSION, PROGRESS_VERSION, TRACK_LENGTH, STEP, MAX_SPEED, MAX_CRASHES,
+    ATTACK_MISS_SPEED_LOSS,
     STAGES, HAZARDS: copy(HAZARDS), validProgress, create });
 });

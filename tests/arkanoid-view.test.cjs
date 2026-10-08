@@ -107,10 +107,16 @@ test('play surface is brief, accessible, original, and touch-sized', () => {
   assert.match(h.container.innerHTML, /Vệ Tinh Giữ Quỹ Đạo/);
   assert.match(h.container.innerHTML, /Space phóng/);
   assert.match(h.container.innerHTML, /Khối bạc cần 2 chạm · khối vàng chắn bóng/);
+  assert.match(h.get('ogStatus').textContent, /Vành mở: Khe giữa dẫn sang hai cánh/);
   assert.equal(h.mounted.isReducedMotion(), true); assert.equal(h.get('ogCanvas').dataset.motion, 'reduced');
   const css = read('candidates/arkanoid-dap-gach/style.css');
   assert.match(css, /min-height:44px/); assert.match(css, /touch-action:none/); assert.match(css, /prefers-reduced-motion/);
   h.close(); assert.equal(h.window.listenerCount(), 0);
+});
+
+test('integrated portal model and view stay in sync with the candidate files', () => {
+  assert.equal(read('scripts/games/arkanoid-model.js'), read('candidates/arkanoid-dap-gach/model.js'));
+  assert.equal(read('scripts/games/arkanoid.js'), read('candidates/arkanoid-dap-gach/view.js'));
 });
 
 test('pointer and keyboard inputs move the paddle and launch play', () => {

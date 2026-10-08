@@ -14,6 +14,8 @@
     let alive = true;
     let selected = null;
     let dragged = null;
+    let hintedMove = null;
+    let hintMessage = null;
 
     container.classList.add('sp-host');
     container.innerHTML = `
@@ -26,7 +28,7 @@
             <button class="sp-action sp-new" id="spNew" data-action="new" type="button">Ván mới</button>
           </div>
         </header>
-        <div class="sp-statusline"><p id="spStatus" role="status" aria-live="polite" aria-atomic="true">Chạm một lá hoặc dãy liền chất, rồi chạm vị trí đến.</p><span id="spProgress">0 / 8 dãy</span></div>
+        <div class="sp-statusline"><p id="spStatus" role="status" aria-live="polite" aria-atomic="true">Chạm một lá hoặc dãy liền chất, rồi chạm vị trí đến.</p><button class="sp-action sp-hint-button" id="spHint" data-action="hint" type="button" aria-label="Gợi ý một nước đi" title="Gợi ý · H">Gợi ý</button><span id="spProgress">0 / 8 dãy</span></div>
         <div class="sp-board-scroll" tabindex="0" aria-label="Bàn bài, có thể cuộn ngang trên màn hình nhỏ">
           <div class="sp-board">
             <div class="sp-toolbar">
@@ -38,7 +40,7 @@
             <div class="sp-tableau" id="spTableau" role="group" aria-label="Mười cột bài"></div>
           </div>
         </div>
-        <footer class="sp-footer"><p>Xếp K xuống Át. Đủ 13 lá cùng chất thì dãy tự thu.</p><p class="sp-shortcuts">Z hoàn tác · D chia · Esc bỏ chọn</p></footer>
+        <footer class="sp-footer"><p>Xếp K xuống Át. Đủ 13 lá cùng chất thì dãy tự thu.</p><p class="sp-shortcuts">Z hoàn tác · D chia · H gợi ý · Esc bỏ chọn</p></footer>
       </section>`;
 
     const el = id => container.querySelector(`#${id}`);
@@ -70,6 +72,7 @@
     function statusText(view) {
       if (view.status === 'won') return 'Tuyệt! Cả 8 dãy đã thu. Chơi lại hoặc chia ván mới.';
       if (view.status === 'stuck') return 'Hết nọc và nước đi. Hoàn tác hoặc chia ván mới.';
+      if (hintMessage) return hintMessage;
       if (view.lastEvent === 'run-completed') return 'Đủ K xuống Át cùng chất. Dãy đã thu.';
       if (view.lastEvent === 'stock-deal') return 'Đã chia 10 lá, mỗi cột một lá.';
       if (view.lastEvent === 'undo') return 'Đã hoàn tác một nước.';
@@ -82,12 +85,14 @@
       if (!alive) return;
       const view = model.view();
       const stock = el('spStock');
+      stock.classList.toggle('sp-hint-target', hintedMove?.kind === 'deal');
       stock.disabled = !view.canDeal;
       stock.innerHTML = view.stockCount
         ? `<span class="sp-stock-card" aria-hidden="true"><i>✦</i></span><span class="sp-stock-count">${view.stockCount}</span>`
         : '<span class="sp-stock-empty" aria-hidden="true">·</span><span class="sp-stock-count">Hết nọc</span>';
       stock.setAttribute('aria-label', view.canDeal ? `Chia một hàng mới, còn ${view.stockCount} lá trong nọc` : view.stockCount ? 'Chia bị khóa khi có cột trống' : 'Nọc đã hết');
       el('spUndo').disabled = !view.canUndo;
+      el('spHint').disabled = view.status !== 'playing';
       el('spProgress').textContent = `${view.completedRuns} / 8 dãy`;
       el('spRuns').textContent = view.completedRuns ? `${view.completedRuns} dãy đã thu` : '';
       const tableau = el('spTableau');
@@ -102,7 +107,8 @@
         }).join('');
         const blank = pile.length ? '' : `<button class="sp-empty-pile" data-target="tableau" data-pile="${pileIndex}" type="button" aria-label="Cột ${pileIndex + 1} trống, nhận mọi dãy liền chất"></button>`;
         const height = Math.max(145, offset + 94);
-        return `<div class="sp-pile" data-target="tableau" data-pile="${pileIndex}" style="height:${height}px" role="group" aria-label="Cột ${pileIndex + 1}, ${pile.length} lá${pile.length && !pile[pile.length - 1].faceUp ? ', lá trên cùng úp' : ''}">${blank}${cards}</div>`;
+        const hinted = hintedMove?.kind === 'move' && hintedMove.target.pile === pileIndex ? ' sp-hint-target' : '';
+        return `<div class="sp-pile${hinted}" data-target="tableau" data-pile="${pileIndex}" style="height:${height}px" role="group" aria-label="Cột ${pileIndex + 1}, ${pile.length} lá${pile.length && !pile[pile.length - 1].faceUp ? ', lá trên cùng úp' : ''}">${blank}${cards}</div>`;
       }).join('');
       el('spStatus').textContent = statusText(view);
       el('spStatus').classList.toggle('sp-result', view.status !== 'playing');
@@ -112,11 +118,15 @@
       if (!source || !target || !model.move(source, target)) return false;
       selected = null;
       dragged = null;
+      hintedMove = null;
+      hintMessage = null;
       render();
       focusTarget(target.pile);
       return true;
     }
     function select(source) {
+      hintedMove = null;
+      hintMessage = null;
       if (model.isMovable(source)) selected = sourceEqual(selected, source) ? null : source;
       render();
       focusSource(selected || source);
@@ -128,6 +138,22 @@
       if (source) select(source);
     }
     function act(action) {
+      if (action === 'hint') {
+        selected = null;
+        hintedMove = model.findHint();
+        if (hintedMove?.kind === 'move') {
+          selected = hintedMove.source;
+          hintMessage = hintedMove.revealsCard
+            ? `Gợi ý: Cột ${hintedMove.source.pile + 1} → ${hintedMove.target.pile + 1} để lật lá.`
+            : `Gợi ý: Cột ${hintedMove.source.pile + 1} → ${hintedMove.target.pile + 1}.`;
+        } else if (hintedMove?.kind === 'deal') hintMessage = 'Gợi ý: Chia thêm một hàng.';
+        else hintMessage = 'Chưa thấy nước đi. Hoàn tác hoặc chia ván mới.';
+        render();
+        if (hintedMove?.kind === 'move') focusSource(hintedMove.source);
+        return;
+      }
+      hintedMove = null;
+      hintMessage = null;
       if (action === 'deal' && model.dealStock()) { selected = null; render(); }
       else if (action === 'undo' && model.undo()) { selected = null; render(); el('spUndo').focus?.(); }
       else if (action === 'restart') { model.restart(); selected = null; render(); el('spRestart').focus?.(); }
@@ -173,12 +199,15 @@
       if (event.key === 'Escape') {
         const previous = selected;
         selected = null;
+        hintedMove = null;
+        hintMessage = null;
         render();
         if (previous) focusSource(previous);
         event.preventDefault?.();
       }
       else if (event.key === 'z' || event.key === 'Z') { act('undo'); event.preventDefault?.(); }
       else if (event.key === 'd' || event.key === 'D') { act('deal'); event.preventDefault?.(); }
+      else if (event.key === 'h' || event.key === 'H') { act('hint'); event.preventDefault?.(); }
     });
     onCleanup(() => {
       alive = false;

@@ -46,11 +46,58 @@
         '# @    #',
         '########'
       ])
+    }),
+    Object.freeze({
+      name: 'Kho hai ngõ',
+      map: Object.freeze([
+        '#########',
+        '#.    . #',
+        '# @ $   #',
+        '#    $# #',
+        '#  #    #',
+        '#       #',
+        '#########'
+      ])
+    }),
+    Object.freeze({
+      name: 'Lối rẽ hẹp',
+      map: Object.freeze([
+        '#########',
+        '#.    # #',
+        '#    $ ##',
+        '#   @.  #',
+        '# # $   #',
+        '#    #  #',
+        '#########'
+      ])
+    }),
+    Object.freeze({
+      name: 'Chuyến hàng cuối',
+      map: Object.freeze([
+        '#########',
+        '#    @  #',
+        '#   ##$ #',
+        '#.      #',
+        '#   $  .#',
+        '# $    .#',
+        '#########'
+      ])
     })
   ]);
 
   const clone = value => JSON.parse(JSON.stringify(value));
   const key = point => `${point.x},${point.y}`;
+  const HISTORY_LIMIT = 1000;
+
+  function freshProgress() {
+    return { unlockedLevel: 0, bestMoves: Array(LEVELS.length).fill(null) };
+  }
+
+  function validProgress(progress) {
+    return progress && Number.isSafeInteger(progress.unlockedLevel) && progress.unlockedLevel >= 0 && progress.unlockedLevel < LEVELS.length &&
+      Array.isArray(progress.bestMoves) && progress.bestMoves.length === LEVELS.length &&
+      progress.bestMoves.every(moves => moves === null || Number.isSafeInteger(moves) && moves >= 0);
+  }
 
   function parseLevel(index) {
     const source = LEVELS[index];
@@ -78,9 +125,10 @@
     return { name: source.name, width, height, walls: [...walls], goals, boxes, player };
   }
 
-  function create(levelIndex = 0) {
+  function create(levelIndex = 0, savedProgress = null) {
     let selectedLevel = Number.isInteger(levelIndex) && levelIndex >= 0 && levelIndex < LEVELS.length ? levelIndex : 0;
     let initial = parseLevel(selectedLevel);
+    const progress = validProgress(savedProgress) ? clone(savedProgress) : freshProgress();
     let state;
     let history = [];
 
@@ -136,7 +184,13 @@
       }
       state.player = next;
       state.moves += 1;
-      if (checkWin()) state.status = 'won';
+      if (checkWin()) {
+        state.status = 'won';
+        progress.unlockedLevel = Math.max(progress.unlockedLevel, Math.min(selectedLevel + 1, LEVELS.length - 1));
+        const currentBest = progress.bestMoves[selectedLevel];
+        if (currentBest === null || state.moves < currentBest) progress.bestMoves[selectedLevel] = state.moves;
+      }
+      if (history.length > HISTORY_LIMIT) history.shift();
       return true;
     }
 
@@ -153,7 +207,7 @@
     }
 
     function selectLevel(index) {
-      if (!Number.isInteger(index) || index < 0 || index >= LEVELS.length) return false;
+      if (!Number.isInteger(index) || index < 0 || index >= LEVELS.length || index > progress.unlockedLevel) return false;
       selectedLevel = index;
       initial = parseLevel(selectedLevel);
       state = freshState();
@@ -166,10 +220,69 @@
       return selectLevel(selectedLevel + 1);
     }
 
-    function view() { return clone(state); }
+    function view() { return clone({ ...state, unlockedLevel: progress.unlockedLevel, bestMoves: progress.bestMoves }); }
 
-    return { move, undo, reset, selectLevel, nextLevel, view };
+    function serialize() {
+      return clone({ version: 2, levelIndex: selectedLevel, progress, state, history });
+    }
+
+    function restoreSnapshot(snapshot) {
+      if (!snapshot || !validState(snapshot.state, selectedLevel) || !Array.isArray(snapshot.history) || snapshot.history.length > HISTORY_LIMIT ||
+        snapshot.history.some(entry => !validState(entry, selectedLevel) || entry.status !== 'playing')) return false;
+      state = clone(snapshot.state); history = clone(snapshot.history);
+      return true;
+    }
+
+    return { move, undo, reset, selectLevel, nextLevel, view, serialize, _restore: restoreSnapshot };
   }
 
-  return { DIRECTIONS, LEVELS, create };
+  function validState(state, levelIndex) {
+    if (!state || state.levelIndex !== levelIndex || state.status !== 'playing' && state.status !== 'won') return false;
+    const source = parseLevel(levelIndex), walls = new Set(source.walls), boxKeys = new Set();
+    if (state.levelName !== source.name || state.width !== source.width || state.height !== source.height ||
+      JSON.stringify(state.walls) !== JSON.stringify(source.walls) || JSON.stringify(state.goals) !== JSON.stringify(source.goals) ||
+      !Number.isSafeInteger(state.moves) || state.moves < 0 || !Number.isSafeInteger(state.pushes) || state.pushes < 0 || state.pushes > state.moves ||
+      !Array.isArray(state.boxes) || state.boxes.length !== source.boxes.length || !state.player || !Number.isSafeInteger(state.player.x) || !Number.isSafeInteger(state.player.y)) return false;
+    for (const box of state.boxes) {
+      if (!box || !Number.isSafeInteger(box.x) || !Number.isSafeInteger(box.y)) return false;
+      const boxKey = key(box);
+      if (box.x < 0 || box.x >= source.width || box.y < 0 || box.y >= source.height || walls.has(boxKey) || boxKeys.has(boxKey)) return false;
+      boxKeys.add(boxKey);
+    }
+    const playerKey = key(state.player);
+    if (state.player.x < 0 || state.player.x >= source.width || state.player.y < 0 || state.player.y >= source.height || walls.has(playerKey) || boxKeys.has(playerKey)) return false;
+    const won = source.goals.every(goal => boxKeys.has(key(goal)));
+    return (state.status === 'won') === won;
+  }
+
+  function validTransition(before, after) {
+    if (!before || !after || before.levelIndex !== after.levelIndex || before.status !== 'playing' ||
+      after.moves !== before.moves + 1) return false;
+    const dx = after.player.x - before.player.x, dy = after.player.y - before.player.y;
+    if (Math.abs(dx) + Math.abs(dy) !== 1) return false;
+    const source = parseLevel(before.levelIndex), walls = new Set(source.walls);
+    const target = key(after.player), box = before.boxes.find(point => key(point) === target);
+    let expected = new Set(before.boxes.map(key));
+    if (walls.has(target)) return false;
+    if (box) {
+      const destination = { x: after.player.x + dx, y: after.player.y + dy }, destinationKey = key(destination);
+      if (walls.has(destinationKey) || expected.has(destinationKey)) return false;
+      expected.delete(target); expected.add(destinationKey);
+    }
+    const actual = new Set(after.boxes.map(key));
+    return after.pushes === before.pushes + (box ? 1 : 0) && expected.size === actual.size && [...expected].every(k => actual.has(k));
+  }
+
+  function restore(raw) {
+    if (!raw || raw.version !== 2 || !Number.isSafeInteger(raw.levelIndex) || raw.levelIndex < 0 || raw.levelIndex >= LEVELS.length ||
+      !validProgress(raw.progress) || raw.levelIndex > raw.progress.unlockedLevel || !validState(raw.state, raw.levelIndex) ||
+      !Array.isArray(raw.history) || raw.history.length !== Math.min(raw.state.moves, HISTORY_LIMIT) ||
+      raw.history.some(entry => !validState(entry, raw.levelIndex) || entry.status !== 'playing') ||
+      raw.history.some((entry, index) => index > 0 && !validTransition(raw.history[index - 1], entry)) ||
+      raw.history.length > 0 && !validTransition(raw.history[raw.history.length - 1], raw.state)) return null;
+    const model = create(raw.levelIndex, raw.progress);
+    return model._restore(raw) ? model : null;
+  }
+
+  return { DIRECTIONS, LEVELS, HISTORY_LIMIT, create, restore, validProgress };
 });

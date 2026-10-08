@@ -179,6 +179,35 @@
       }
       return false;
     }
+    function findHint() {
+      if (status !== 'playing') return null;
+      let best = null;
+      for (let from = 0; from < COLUMN_COUNT; from++) {
+        const pile = tableaus[from];
+        for (let index = 0; index < pile.length; index++) {
+          const moving = sourceRun({ zone: 'tableau', pile: from, index });
+          if (!moving) continue;
+          for (let to = 0; to < COLUMN_COUNT; to++) {
+            const source = { zone: 'tableau', pile: from, index };
+            const target = { zone: 'tableau', pile: to };
+            if (!canMove(source, target)) continue;
+            const revealsCard = index > 0 && !pile[index - 1].faceUp;
+            const destination = tableaus[to];
+            const buildsOnRun = destination.length > 0;
+            let joinedLength = moving.length;
+            for (let cursor = destination.length - 1; cursor > 0; cursor--) {
+              if (!destination[cursor - 1].faceUp || destination[cursor - 1].rank !== destination[cursor].rank + 1) break;
+              joinedLength++;
+            }
+            const score = (revealsCard ? 100000 : 0) + (buildsOnRun ? 1000 : 0) + joinedLength * 10 + moving.length;
+            if (!best || score > best.score) best = { score, hint: { kind: 'move', source, target, revealsCard } };
+          }
+        }
+      }
+      if (best) return best.hint;
+      if (canDealStock(tableaus, stock.length)) return { kind: 'deal' };
+      return null;
+    }
     function removeCompletedRuns() {
       const removed = sweepCompletedRuns(tableaus);
       completedRuns.push(...removed.map(run => ({ pile: run.pile, move: moves })));
@@ -208,6 +237,7 @@
       view,
       isMovable(source) { return status === 'playing' && Boolean(sourceRun(source)); },
       canMove,
+      findHint,
       move(source, target) {
         if (!canMove(source, target)) return false;
         history.push(snapshot());

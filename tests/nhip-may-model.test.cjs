@@ -6,6 +6,19 @@ function advance(model, seconds) {
   while (seconds > 1e-9) { const step = Math.min(.1, seconds); model.advance(step); seconds -= step; }
 }
 
+function clearCurrentSong(model) {
+  const start = model.view().time;
+  assert.equal(model.view().status, 'playing');
+  for (const note of model.view().notes) {
+    advance(model, note.time - model.view().time);
+    const result = note.kind === 'space' ? model.pressSpace() : model.press(note.lane);
+    assert.ok(['Đẹp','Ổn'].includes(result.grade), `hit ${note.kind} at beat ${note.beat}`);
+  }
+  const last = model.view().notes.at(-1);
+  advance(model, last.time + M.EARLY + .01 - model.view().time);
+  return { elapsed: model.view().time - start, state: model.view() };
+}
+
 test('the original chart is deterministic and starts with a readable four-lane session', () => {
   const a = M.create(), b = M.create();
   assert.deepEqual(a.view(), b.view());
@@ -16,6 +29,8 @@ test('the original chart is deterministic and starts with a readable four-lane s
   assert.equal(a.view().notes.length, 32);
   assert.equal(a.view().notes.filter(note => note.kind === 'space').length, 8);
   assert.equal(M.CHART.length, 24);
+  assert.equal(M.SONGS.length, 3);
+  assert.equal(a.view().song.name, 'Mây Sớm');
   assert.equal(a.start(), true); assert.equal(a.start(), false);
 });
 
@@ -52,12 +67,26 @@ test('each four-beat phrase ends with a Space finish note', () => {
   assert.equal(M.SPACE_BEATS.length, 8);
 });
 
-test('the session ends at the chart boundary and only then accepts a restart model', () => {
+test('three authored songs increase tempo and syncopation, grade clears, and finish as one set', () => {
+  assert.deepEqual(M.SONGS.map(song => song.name), ['Mây Sớm','Đèn Phố','Mưa Nhịp']);
+  assert.ok(M.SONGS[0].bpm < M.SONGS[1].bpm && M.SONGS[1].bpm < M.SONGS[2].bpm);
+  assert.deepEqual(M.SONGS.map(song => song.chart.length), [24,32,45]);
+  assert.ok(M.SONGS[2].chart.some(([beat]) => !Number.isInteger(beat)), 'final song uses off-beat notes');
   const game = M.create(); game.start();
-  advance(game, game.view().notes.at(-1).time + M.EARLY + .01);
-  assert.equal(game.view().status, 'ended');
-  assert.equal(game.press(0).grade, null);
-  const restarted = M.create(); assert.equal(restarted.view().status, 'ready');
+  for (let song = 0; song < M.SONGS.length; song++) {
+    const { state } = clearCurrentSong(game);
+    assert.equal(state.results[song].name, M.SONGS[song].name);
+    assert.equal(state.results[song].stars, 3);
+    assert.equal(state.results[song].hits, state.results[song].total);
+    if (song < M.SONGS.length - 1) {
+      assert.equal(state.status, 'song-ended');
+      assert.equal(game.press(0).grade, null);
+      assert.equal(game.nextSong(), true);
+    } else assert.equal(state.status, 'ended');
+  }
+  assert.equal(game.view().results.length, 3);
+  assert.equal(game.view().totalScore, game.view().results.reduce((sum, result) => sum + result.score, 0));
+  assert.equal(M.restore(game.view()).view().status, 'ended');
 });
 
 test('pause freezes chart time; malformed saves are rejected', () => {

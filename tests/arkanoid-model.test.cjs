@@ -26,6 +26,28 @@ test('round fields are deterministic and distinguish color, silver, and indestru
   assert.equal(M.create().view().status, 'ready');
 });
 
+test('three authored silhouettes create distinct routes and move the expansion capsule lane', () => {
+  const fields = [1, 2, 3].map(round => M.roundBricks(round));
+  const signatures = fields.map(field => field.map(brick => brick.id).sort((a, b) => a - b));
+  assert.notDeepEqual(signatures[0], signatures[1]);
+  assert.notDeepEqual(signatures[1], signatures[2]);
+  assert.notDeepEqual(signatures[0], signatures[2]);
+  assert.deepEqual(fields.map(field => field.filter(brick => brick.type === 'gold').length), [2, 2, 2]);
+  assert.deepEqual(fields.map(field => {
+    const carrier = field.find(brick => brick.carriesExpand);
+    return [carrier.row, carrier.col];
+  }), [[3, 2], [6, 3], [5, 5]]);
+  assert.deepEqual([1, 2, 3].map(round => M.roundTheme(round).name), ['Vành mở', 'Giằng so le', 'Lõi đôi']);
+  assert.equal(M.MAX_ROUNDS, 3);
+  const speeds = [1, 2, 3].map(round => {
+    const state = M.initialState(); state.round = round;
+    const model = M.makeModel(state); model.launch();
+    return Math.round(Math.hypot(model.view().ball.vx, model.view().ball.vy));
+  });
+  assert.deepEqual(speeds, [310, 324, 338]);
+  assert.ok(speeds.every(speed => speed < M.MAX_SPEED));
+});
+
 test('launch is normalized, fixed-step deterministic, and rejects a second launch', () => {
   const a = M.create(), b = M.create();
   assert.equal(a.launch(), true); assert.equal(a.launch(), false);
@@ -113,6 +135,8 @@ test('clearing rounds preserves score and lives, then the third clear wins', () 
   const firstEvents = first.advance(M.STEP);
   assert.equal(first.view().round, 2); assert.equal(first.view().status, 'ready');
   assert.equal(first.view().score, 270); assert.equal(first.view().lives, 2);
+  assert.equal(first.view().ball.vx, 0); assert.equal(first.view().ball.vy, 0);
+  assert.notDeepEqual(first.view().bricks.map(brick => brick.id).sort((a, b) => a - b), M.roundBricks(1).map(brick => brick.id).sort((a, b) => a - b));
   assert.ok(firstEvents.some(event => event.kind === 'round' && event.round === 2));
 
   const thirdState = first.serialize(); thirdState.round = 3; thirdState.bricks = []; thirdState.status = 'playing';

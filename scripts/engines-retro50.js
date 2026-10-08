@@ -92,7 +92,7 @@
     return engine.mount(container, window.NP_GameSession.start());
   }
 
-  // Deterministic, original Vietnamese 1v1 fighter. Only the broad duel loop is shared.
+  // Seeded, original Vietnamese 1v1 fighter. Only the broad duel loop is shared.
   const StreetDuelModel = (() => {
     const WIDTH = 900, FLOOR = 350, ROUND_MS = 45000;
     const MOVES = {
@@ -102,9 +102,19 @@
     };
     const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
     const clone = x => JSON.parse(JSON.stringify(x));
+    function freshSeed() {
+      try {
+        if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
+          const value = new Uint32Array(1);
+          window.crypto.getRandomValues(value);
+          return value[0] || 0x4e41594c;
+        }
+      } catch (_) {}
+      return ((Date.now() ^ Math.floor(Math.random() * 0x100000000)) >>> 0) || 0x4e41594c;
+    }
     const makeFighter = side => ({ side, x: side ? 645 : 255, y: 0, vy: 0, grounded: true, hp: 100, facing: side ? -1 : 1, guarding: false, action: null, hitFlashMs: 0 });
     function create(options = {}) {
-      let seed = (Number(options.seed) >>> 0) || 0x4e41594c;
+      let seed = options.seed === undefined ? freshSeed() : (Number(options.seed) >>> 0) || 0x4e41594c;
       const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
       let state, events = [], cpu = { ms: 0, move: 0, guard: false, attack: null };
       function startRound(n) {
@@ -210,7 +220,7 @@
       <div class="nd-help"><strong>P1:</strong> A/D đi · W nhảy · S đỡ · J đấm · K đá · L Vân Bộ <span id="ndP2Help" hidden>　<strong>P2:</strong> ←/→ đi · ↑ nhảy · ↓ đỡ · 1/2/3 ra đòn</span></div>
       <div class="nd-touch" aria-label="Nút điều khiển cảm ứng"><button type="button" data-nd-hold="left" aria-label="Đi trái">◀</button><button type="button" data-nd-hold="right" aria-label="Đi phải">▶</button><button type="button" data-nd-hold="jump" aria-label="Nhảy">NHẢY</button><button type="button" data-nd-hold="guard" aria-label="Đỡ">ĐỠ</button><button type="button" class="nd-attack" data-nd-tap="punch">ĐẤM</button><button type="button" class="nd-attack" data-nd-tap="kick">ĐÁ</button><button type="button" class="nd-attack" data-nd-tap="special">VÂN BỘ</button></div></section>`;
     const $ = s => container.querySelector(s), canvas = $('#ndStage'), ctx = canvas.getContext('2d');
-    const model = StreetDuelModel.create({ mode: 'cpu', seed: 20261008 });
+    const model = StreetDuelModel.create({ mode: 'cpu' });
     let keys = new Set(), taps = [{}, {}], lastTime = 0, frame = null, audio = null, muted = false, flash = 0, hitText = '';
     const heldTouch = { left: false, right: false, guard: false };
     const keyMap = { KeyA:[0,'left'],KeyD:[0,'right'],KeyW:[0,'jump'],KeyS:[0,'guard'],KeyJ:[0,'punch'],KeyK:[0,'kick'],KeyL:[0,'special'],ArrowLeft:[1,'left'],ArrowRight:[1,'right'],ArrowUp:[1,'jump'],ArrowDown:[1,'guard'],Digit1:[1,'punch'],Digit2:[1,'kick'],Digit3:[1,'special'] };

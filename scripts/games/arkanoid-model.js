@@ -12,25 +12,36 @@
   const BRICK_ROWS = 8, BRICK_COLS = 10, BRICK_WIDTH = 52, BRICK_HEIGHT = 15, BRICK_GAP_X = 7, BRICK_GAP_Y = 6, BRICK_TOP = 54;
   const COLOR_SCORES = [50, 60, 70, 80, 90, 100, 110, 120];
   const PALETTE = ['#eee7d8', '#ff9b62', '#74d9ee', '#80daa2', '#fa6f79', '#779eff', '#d58cf0', '#f3d26a'];
+  // Three authored fields change the ball's useful routes, durable blockers, and capsule lane.
+  // The compact row strings use # for a brick and . for a gap, from left to right.
+  const ROUND_LAYOUTS = [
+    {
+      name: 'Vành mở', cue: 'Khe giữa dẫn sang hai cánh.', carrier: [3, 2], gold: [[2, 4], [2, 5]],
+      rows: ['..######..', '.########.', '##########', '###....###', '##......##', '##.####.##', '##########', '..........']
+    },
+    {
+      name: 'Giằng so le', cue: 'Trụ lệch nhau dưới hai thanh ngang.', carrier: [6, 3], gold: [[2, 4], [5, 5]],
+      rows: ['#..##..##.', '.##..##..#', '##########', '#..##..##.', '.##..##..#', '##########', '..####....', '##########']
+    },
+    {
+      name: 'Lõi đôi', cue: 'Lõi giữa hẹp, hai nhánh rộng.', carrier: [5, 5], gold: [[4, 3], [4, 6]],
+      rows: ['....##....', '...####...', '..######..', '.########.', '##.####.##', '##########', '.##.##.##.', '....##....']
+    }
+  ];
   const finite = Number.isFinite;
   const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
   const clone = value => JSON.parse(JSON.stringify(value));
   const brickLeft = (WIDTH - (BRICK_COLS * BRICK_WIDTH + (BRICK_COLS - 1) * BRICK_GAP_X)) / 2;
 
   function roundBricks(round) {
-    const pattern = (round - 1) % MAX_ROUNDS, bricks = [];
+    const layoutIndex = (round - 1) % MAX_ROUNDS, layout = ROUND_LAYOUTS[layoutIndex], bricks = [];
     for (let row = 0; row < BRICK_ROWS; row++) {
       for (let col = 0; col < BRICK_COLS; col++) {
-        let keep = true;
-        if (pattern === 0) keep = row < 6 && (col > 0 && col < 9 || row === 5);
-        if (pattern === 1) keep = row < BRICK_ROWS && ((row + col * 2) % 5 !== 0 || row === 6);
-        if (pattern === 2) keep = row < 7 && col > 0 && col < 9 && (Math.abs(col - 4.5) <= (row < 3 ? 4 : 2) || row === 6);
-        if (!keep) continue;
+        if (layout.rows[row][col] !== '#') continue;
 
-        const gold = pattern === 0 ? row === 3 && (col === 4 || col === 5)
-          : pattern === 1 ? col === 2 && row >= 2 && row <= 5
-            : row === 4 && (col === 3 || col === 6);
-        const silver = !gold && row > 0 && row < 6 && (row * 3 + col + round) % 7 === 0;
+        const gold = layout.gold.some(([goldRow, goldCol]) => row === goldRow && col === goldCol);
+        const carriesExpand = row === layout.carrier[0] && col === layout.carrier[1];
+        const silver = !gold && !carriesExpand && row > 0 && row < 7 && (row * 3 + col + round) % 7 === 0;
         bricks.push({
           id: row * BRICK_COLS + col, row, col,
           x: brickLeft + col * (BRICK_WIDTH + BRICK_GAP_X),
@@ -40,14 +51,17 @@
           hits: silver ? 2 : gold ? null : 1,
           points: gold ? 0 : silver ? 50 * round : COLOR_SCORES[row],
           color: row,
-          carriesExpand: false
+          carriesExpand
         });
       }
     }
-    // One candidate-authored color wall carries the same simple capsule every round.
-    const carrier = bricks.find(brick => brick.type === 'color' && brick.row >= 3);
-    if (carrier) carrier.carriesExpand = true;
     return bricks;
+  }
+
+  function roundTheme(round) {
+    const index = (Math.max(1, Math.trunc(Number(round) || 1)) - 1) % MAX_ROUNDS;
+    const { name, cue } = ROUND_LAYOUTS[index];
+    return { name, cue };
   }
 
   function initialState() {
@@ -236,6 +250,6 @@
     WIDTH, HEIGHT, STEP, MAX_LIVES, MAX_ROUNDS, BALL_RADIUS, START_SPEED, SPEED_PER_ROUND, MAX_SPEED,
     PADDLE_WIDTH, EXPANDED_WIDTH, PADDLE_HEIGHT, PADDLE_Y, PADDLE_SPEED,
     BRICK_ROWS, BRICK_COLS, BRICK_WIDTH, BRICK_HEIGHT, BRICK_GAP_X, BRICK_GAP_Y, BRICK_TOP,
-    COLOR_SCORES: clone(COLOR_SCORES), PALETTE: clone(PALETTE), roundBricks, create, makeModel, initialState
+    COLOR_SCORES: clone(COLOR_SCORES), PALETTE: clone(PALETTE), roundTheme, roundBricks, create, makeModel, initialState
   };
 });

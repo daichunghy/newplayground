@@ -12,7 +12,9 @@ The catalog label does not distinguish the 2004 EA Standard listing, 2006 Steam 
 
 ## Original candidate
 
-`sea-garden-1` is a single 60-second aquarium round. Tap the water to drop food; nearby fish swim over, eat and grow. Every second meal produces a pearl that floats up and automatically adds to the goal. Strange visitors periodically cross the tank. Tap one three times to repel it before it nips a fish. Each fish survives two nips; losing all fish or reaching the timer ends the round. Collect eight pearls to win.
+`sea-garden-1` keeps a single 60-second round and eight-pearl goal, split across three earned reef zones: **Rạn Nông**, **Rạn Sâu**, and **Vịnh Ngọc**. The pearl quotas are 2, 3 and 3. A new zone opens only after the current quota is automatically collected, so the player must engage with feeding to reach the later reefs. Tap water to drop food; nearby fish swim over, eat and grow. Every second meal produces a pearl that floats up and adds to the goal. Visitors gain health and arrive sooner in later zones, while fish movement speeds up slightly. Tap a visitor repeatedly to clear it before it nips a fish. Each fish survives two nips; losing all fish or reaching the timer ends the round.
+
+The quotas add a clear short progression and the zones add a modest pressure ramp within the same care/feed/defend loop. There is no store, currency, purchase, or setup screen.
 
 This candidate removes the reference's store, money, food upgrades, fish purchases, egg pieces, pets, mode selection and long level progression. The one interaction changes by target: empty water drops food; tapping a visitor zaps it. Keyboard Space drops food in the tank or zaps the nearest visitor. These are original design choices intended to preserve the care/feed/defend rhythm without reproducing the full economy. They are not claims about the historical game's tuning.
 
@@ -24,6 +26,6 @@ This candidate removes the reference's store, money, food upgrades, fish purchas
 
 ## Local checks
 
-- `node --test --test-concurrency=1 tests/sea-garden-model.test.cjs tests/sea-garden-ui.test.cjs`: 13 pass (8 model, 5 DOM/event-double UI).
-- Model coverage includes deterministic fish/food behavior, pearl auto-collection, alien arrival/zapping/bites, win/loss, bounds and frame partitioning. UI coverage checks the exact catalog route, pointer feeding/zapping, Space input, pause/restart/blur/close cleanup, optional help and touch target size.
+- `node --test --test-concurrency=1 tests/sea-garden-model.test.cjs tests/sea-garden-ui.test.cjs`: 15 pass (9 model, 6 DOM/event-double UI).
+- Model coverage includes deterministic fish/food behavior, pearl auto-collection, quota-gated reef transitions, all three alien threat profiles, a complete eight-pearl win, loss, bounds and frame partitioning. UI coverage checks the exact catalog route, pointer-fed completion across all three zones, pointer zapping, Space input, pause/restart/blur/close cleanup, optional help and touch target size.
 - Canvas/audio are mocked. Real browser rendering, touch hardware, accessibility, sound quality, balance and human playtest acceptance remain pending.

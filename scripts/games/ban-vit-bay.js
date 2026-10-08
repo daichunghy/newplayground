@@ -3,10 +3,29 @@
   'use strict';
   const NAME = 'Mục Tiêu Bay';
 
-  function mount(container, session) {
+  function mount(container, session, options = {}) {
     const M = window.NP_BanVitBayModel;
     if (!M || !session) throw new Error('Mục Tiêu Bay is not ready');
     const { listen, requestAnimationFrame, cancelAnimationFrame, onCleanup } = session;
+    const seedFactory = typeof options.seedFactory === 'function'
+      ? options.seedFactory
+      : () => {
+          const values = new Uint32Array(1);
+          try {
+            window.crypto?.getRandomValues?.(values);
+            if (values[0]) return values[0];
+          } catch (_) { /* Fall back when secure randomness is unavailable. */ }
+          return ((Date.now() ^ Math.floor(Math.random() * 0x100000000)) >>> 0) || 1;
+        };
+    let lastSeed = null;
+    function newModel() {
+      let seed = seedFactory();
+      seed = Number.isFinite(seed) ? (Math.trunc(seed) >>> 0) : (Date.now() >>> 0);
+      if (!seed) seed = 1;
+      if (seed === lastSeed) seed = ((seed + 1) >>> 0) || 1;
+      lastSeed = seed;
+      return M.create({ seed });
+    }
     container.classList.add('bvb-host');
     container.innerHTML = `
       <section class="bvb-game" aria-label="${NAME}">
@@ -38,7 +57,7 @@
     const el = id => container.querySelector('#' + id);
     const canvas = el('bvbCanvas'), ctx = canvas.getContext('2d');
     canvas.width = M.WIDTH; canvas.height = M.HEIGHT;
-    let model = M.create(), alive = true, paused = false, frame = null, lastFrame = null, accumulator = 0, lastHud = '';
+    let model = newModel(), alive = true, paused = false, frame = null, lastFrame = null, accumulator = 0, lastHud = '';
 
     function announce(text) { el('bvbLive').textContent = text; }
     function schedule() {
@@ -58,7 +77,7 @@
     }
     function restart() {
       if (!alive) return;
-      cancelAnimationFrame(frame); frame = null; model = M.create(); paused = false; accumulator = 0; lastFrame = null; lastHud = '';
+      cancelAnimationFrame(frame); frame = null; model = newModel(); paused = false; accumulator = 0; lastFrame = null; lastHud = '';
       update(); announce('Ván mới.'); el('bvbCanvas').focus({ preventScroll: true }); schedule();
     }
     function act(action, value) {

@@ -8,7 +8,7 @@ The primary digital rule references reviewed on 2026-10-08 are [MobilityWare’s
 
 This candidate chooses a **one-suit, two-deck edition**: 104 spades, dealt 6/5 cards across ten columns with the top card face up, leaving five stock rows of ten. This is the Easy/1 Suit class described by Arkadium. Spades are a local presentation choice, not a claim that every one-suit Spider build uses spades. Moves build down by rank; any same-suit descending suffix can move as a group; any eligible card or group can fill an empty column; a complete K-to-A run is removed immediately. Stock deals are blocked until all ten columns are occupied.
 
-No exact catalog build or named commercial edition was identified. This implementation makes no parity claim. It uses seeded random deals, unrestricted one-action undo across stock deals and run removal, and no scoring, clock, hint, leaderboard, winning-deal mode, or persistence. A random deal is not guaranteed to be solvable. The old Spider rules and modern digital versions can differ; this candidate follows the documented digital convention for automatic run removal and empty-column stock blocking.
+No exact catalog build or named commercial edition was identified. This implementation makes no parity claim. It uses seeded random deals and unrestricted one-action undo across stock deals and run removal. Its optional hint selects a legal move that uncovers a face-down card when available; otherwise it favors building a longer descending run, then recommends stock only when no tableau move exists. It highlights the source and destination without making the move. It does not solve a deal or guarantee solvability. There is no scoring, clock, leaderboard, winning-deal mode, or persistence. The old Spider rules and modern digital versions can differ; this candidate follows the documented digital convention for automatic run removal and empty-column stock blocking.
 
 ## Original art and content provenance
 
@@ -18,9 +18,9 @@ The card faces, backs, table surface, typography, colors, and layout are rendere
 
 - `scripts/games/spider-model.js` — independent deterministic rules model.
 - `scripts/games/spider.js` and `scripts/games/spider.css` — click/touch-first view with optional desktop drag and keyboard shortcuts.
-- `tests/spider-model.test.cjs` and `tests/spider-ui.test.cjs` — focused rule and DOM-double tests.
+- `tests/spider-model.test.cjs` and `tests/spider-ui.test.cjs` — focused rule, hint and DOM-double tests.
 - The candidate commit deliberately left shared portal wiring unchanged. Local integration now adds the exact catalog launcher, scripts/styles, title, cover, asset records, copy budget, and route/cleanup tests. Keep browser/device acceptance and release approval pending.
 
 ## Verification limits
 
-The focused Node tests exercise the model and UI through a DOM double. They do not replace visual QA in a real browser or on touch hardware. The isolated candidate has no catalog route or cover by design, so this branch cannot verify in-app route selection, shared-shell fit, or real device gestures. Those checks belong after a reviewed integration.
+The focused Node tests exercise the model and UI through a DOM double. They do not replace visual QA in a real browser or on touch hardware. Local integration checks the exact catalog route and cover, but real device gestures, browser layout and screen-reader behavior remain unverified.

@@ -19,17 +19,22 @@
 - The later direction change is telegraphed with an amber ring 700 ms ahead and announced to assistive technology. A new flight label is also provided in the canvas label and visible scene.
 - This is candidate-authored variety, not Duck Hunt round parity. No light-gun behavior, targets, sprites, or maps from an edition are copied.
 
+## Fresh replay patterns — 8 October 2026
+
+- The rules model remains reproducible when callers provide a seed. The mounted game now generates a fresh seed on entry and on each retry, so the random starting side, height, and movement phase produce a different five-flight pattern instead of replaying the model's fixed default sequence every time.
+- This adds replay variety without changing the five-flight loop, shot count, timing, or authored course profiles. The UI test injects two known seeds and verifies a retry starts with the second one; model tests continue to verify same-seed determinism.
+
 ## QA record
 
 Run from the repository root:
 
 ```sh
-node --test tests/ban-vit-bay-model.test.cjs tests/ban-vit-bay-ui.test.cjs
+node --test --test-concurrency=1 tests/ban-vit-bay-model.test.cjs tests/ban-vit-bay-ui.test.cjs
 python3 -m http.server 8080
 ```
 
 Open `http://localhost:8080/ban-vit-bay-preview.html` for the standalone playable preview.
 
-Baseline result before the course iteration: **10 passed, 0 failed**. The current focused suite has one added deterministic test for distinct course motion and the warned reversal; local count is now 12 model/UI tests. Existing deterministic checks cover seeded motion, aim bounds, hit/score, shot limits, timeouts, round completion, pause, and invalid time steps. DOM/lifecycle doubles check immediate start, pointer/touch/keyboard inputs, accessible labels and touch sizes, pause and visibility/blur recovery, finish/retry, and session cleanup.
+The focused suite has 12 model/UI tests. Deterministic checks cover seeded motion, aim bounds, hit/score, shot limits, timeouts, course variation, round completion, pause, and invalid time steps. DOM/lifecycle doubles check immediate start, pointer/touch/keyboard inputs, accessible labels and touch sizes, pause and visibility/blur recovery, finish/retry with a fresh seed, and session cleanup.
 
 An actual Chromium smoke has been added for the named fourth flight and its telegraphed turn; its current result will be reported separately. This remains distinct from touch-hardware latency, accessibility review, and human playtest.

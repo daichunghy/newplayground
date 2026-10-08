@@ -494,3 +494,107 @@ test('Vườn Bật Nảy reaches its second authored course and announces the n
   await closeGame(page);
   expect(errors).toEqual([]);
 });
+
+test('Nhịp Mây plays all three original charts and offers one continue between songs', async ({ page }) => {
+  await loadPortal(page);
+  await page.evaluate(() => {
+    const original = window.NP_NhipMayModel;
+    window.NP_NhipMayModel = {
+      ...original,
+      create() {
+        const model = original.create(), advance = model.advance.bind(model);
+        model.advance = () => {
+          let state = model.view();
+          for (let step = 0; step < 10 && state.status === 'playing'; step += 1) state = advance(0.1);
+          return state;
+        };
+        return model;
+      }
+    };
+  });
+  const errors = watchErrors(page);
+  await openGame(page, 'audition-nhip-dieu');
+  await expect(page.locator('#nmSong')).toHaveText('Đoạn 1/3 · Mây Sớm');
+  await page.locator('#nmOverlayAction').click();
+  await expect(page.locator('#nmOverlayTitle')).toHaveText('Đoạn 1 xong');
+  await page.locator('#nmOverlayAction').click();
+  await expect(page.locator('#nmSong')).toHaveText('Đoạn 2/3 · Đèn Phố');
+  await expect(page.locator('#nmOverlayTitle')).toHaveText('Đoạn 2 xong');
+  await page.locator('#nmOverlayAction').click();
+  await expect(page.locator('#nmSong')).toHaveText('Đoạn 3/3 · Mưa Nhịp');
+  await expect(page.locator('#nmOverlayTitle')).toHaveText('Bộ nhịp khép lại');
+  await closeGame(page);
+  expect(errors).toEqual([]);
+});
+
+test('Đẩy Thùng clears six authored rooms through real keyboard input and unlocks the final restart', async ({ page }) => {
+  await loadPortal(page);
+  const errors = watchErrors(page);
+  await openGame(page, 'day-thung-sokoban');
+  const solutions = [
+    ['right','right','up','left','left','left'],
+    ['left','up','right','down','right','up'],
+    ['up','up','left','up','right','right'],
+    ['right','down','right','down','right','up','up','left','up','right','down','left','left','left','down','left','up'],
+    ['right','down','left','down','left','up','up','up','right','up','right','down','up','left','left','left'],
+    ['right','down','down','left','down','right','down','left','left','up','right','up','left','left','left','down','left','down','right','right','right','right','right']
+  ];
+  for (let level = 0; level < solutions.length; level += 1) {
+    await expect(page.locator('.np-soko-stage')).toContainText(`Màn ${level + 1}/6`);
+    for (const direction of solutions[level]) {
+      const key = { up: 'ArrowUp', right: 'ArrowRight', down: 'ArrowDown', left: 'ArrowLeft' }[direction];
+      await page.locator('.np-soko-board').focus();
+      await page.keyboard.press(key);
+    }
+    await expect(page.locator('.np-soko-next')).toBeVisible();
+    if (level < solutions.length - 1) await page.locator('.np-soko-next').click();
+  }
+  await expect(page.locator('.np-soko-stage')).toContainText('Màn 6/6 · Chuyến hàng cuối');
+  await expect(page.locator('.np-soko-status')).toContainText('Xong cả kho');
+  await expect(page.locator('.np-soko-next')).toHaveText('Chơi lại từ đầu');
+  await closeGame(page);
+  expect(errors).toEqual([]);
+});
+
+test('Bể Sao advances its reef pressure without a store, timer pause, or new setup screen', async ({ page }) => {
+  await loadPortal(page);
+  await page.evaluate(() => {
+    const original = window.NP_SeaGardenModel;
+    window.NP_SeaGardenModel = {
+      ...original,
+      create(options) {
+        const game = original.create(options), advance = game.advance.bind(game);
+        let ticks = 0;
+        game.advance = () => {
+          const events = [];
+          for (let tick = 0; tick < 10 && game.view().status === 'playing'; tick += 1) {
+            const view = game.view();
+            if (view.fish.length && ticks % 5 === 0) {
+              const fish = view.fish[(Math.floor(ticks / 5) % view.fish.length)];
+              game.dropFood(fish.x, fish.y);
+            }
+            for (const alien of game.view().aliens) {
+              if (alien.x < 0 || alien.x > original.WIDTH) continue;
+              for (let hit = 0; hit < alien.hp; hit += 1) game.actionAt(alien.x, alien.y);
+            }
+            events.push(...advance(original.TICK_MS));
+            ticks += 1;
+          }
+          return events;
+        };
+        return game;
+      }
+    };
+  });
+  const errors = watchErrors(page);
+  await openGame(page, 'nuoi-ca-nemo');
+  await expect(page.locator('#seaZone')).toHaveText('1/3 · Rạn Nông');
+  await expect(page.locator('#seaGoal')).toHaveText('Ngọc vùng: 0 / 2');
+  await expect(page.locator('#seaPearls')).toHaveText('0 / 8');
+  await expect(page.locator('.sea-game details')).toHaveCount(1);
+  await expect(page.locator('#seaZone')).toHaveText('3/3 · Vịnh Ngọc', { timeout: 8_000 });
+  await expect(page.locator('#seaGoal')).toHaveText('Ngọc vùng: 0 / 3');
+  await expect(page.locator('#seaPearls')).toHaveText('8 / 8');
+  await closeGame(page);
+  expect(errors).toEqual([]);
+});

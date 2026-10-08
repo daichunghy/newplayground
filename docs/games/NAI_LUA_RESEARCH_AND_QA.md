@@ -13,7 +13,7 @@
 - Immediate solo play against a same-health CPU; a button switches to local two-player. First to two rounds wins, with a 45-second round clock, health bars, movement, jump, held guard, light punch, kick, a readable special-move windup, and replay.
 - The animation loop stops at a completed match, and window blur or hidden-tab transitions clear held keys/touch and stop animation until focus/visibility returns. Replay and mode changes start one loop.
 - P1: A/D move, W jump, hold S to guard, J punch, K kick, L Vân Bộ. P2: arrows move/jump/guard, 1/2/3 attack. Touch buttons mirror P1 actions; local two-player is keyboard-only.
-- The CPU uses deterministic seeded choices, approaches at a readable pace, attacks inside range, and sometimes guards visible windups. This is a basic candidate policy, not a measured balance result.
+- Ordinary new matches use a fresh random seed for CPU choices; an explicit model seed remains repeatable for tests and reproducible runs. CPU approach, attack/guard probabilities, fighter health, and round rules are unchanged. This is a basic candidate policy, not a measured balance result.
 - The rooftop, skyline, fighters, costumes, poses, HUD, effects, and colors are newly drawn with Canvas 2D vector paths. Short tones are synthesized with Web Audio after input; there are no imported sprites, screenshots, music, recordings, third-party game code, or external assets.
 - This bounded build does not implement a tournament roster, character selection, multiple stages, crouching/low attacks, combo buffering, dizzy/stun, long campaign, network play, remappable controls, or platform-specific controller support.
 
@@ -32,7 +32,7 @@ node --check scripts/engines-retro50.js
 node --test --test-concurrency=1 tests/street-duel-model.test.cjs tests/street-duel-ui.test.cjs
 ```
 
-The deterministic model tests cover seeded repeatability, movement, jump, attack startup/hit timing, guard chip damage, draw/intermission, a two-round match, and replay reset. DOM-double tests cover the exact historic route, immediate CPU default, HUD and touch controls, keyboard/touch input, local 2P toggle, hidden-tab/window-blur stop and resume, terminal animation-loop stop, replay starting one loop, close/reopen, and release of animation/input listeners. Canvas drawing and Web Audio are mocked/unavailable in these tests.
+The model tests cover explicit-seed repeatability, varying default seeds on fresh models, movement, jump, attack startup/hit timing, guard chip damage, draw/intermission, a two-round match, and replay reset. DOM-double tests cover the exact historic route, immediate CPU default, HUD and touch controls, keyboard/touch input, local 2P toggle, hidden-tab/window-blur stop and resume, terminal animation-loop stop, replay starting one loop, close/reopen, and release of animation/input listeners. Canvas drawing and Web Audio are mocked/unavailable in these tests.
 
 **Browser/device QA is pending.** A headless Chromium/Playwright check was attempted, but the browser process aborted before opening a page because its process-singleton socket call was denied by the execution sandbox (`socket() failed: Operation not permitted`). No real browser layout/render result was collected. No touch device, controller, screen-reader, performance, or human balance/playtest evidence was collected. The DOM double does not establish that the game feels fair or that its visuals scale well on a device.
 

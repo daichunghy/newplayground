@@ -15,7 +15,7 @@
   function build(presetId = 'beginner', random = Math.random) {
     if (!Object.hasOwn(PRESETS, presetId)) throw new RangeError('Unknown difficulty');
     const { rows, cols, mines } = PRESETS[presetId];
-    const cells = Array.from({ length: rows * cols }, () => ({ mine: false, adjacent: 0, revealed: false, flagged: false }));
+    const cells = Array.from({ length: rows * cols }, () => ({ mine: false, adjacent: 0, revealed: false, flagged: false, questioned: false }));
     let status = 'ready', revealedCount = 0, flagCount = 0, firstIndex = null, explodedIndex = null;
     const valid = i => Number.isInteger(i) && i >= 0 && i < cells.length;
     const active = () => status === 'ready' || status === 'playing';
@@ -53,7 +53,7 @@
       while (queue.length) {
         const i = queue.pop(), cell = cells[i];
         if (cell.revealed || cell.flagged || cell.mine) continue;
-        cell.revealed = true; revealedCount++; changed.push(i);
+        cell.revealed = true; cell.questioned = false; revealedCount++; changed.push(i);
         if (cell.adjacent === 0) queue.push(...neighbors(i));
       }
     }
@@ -61,6 +61,7 @@
     function reveal(index) {
       if (!valid(index) || !active() || cells[index].flagged) return result('none');
       if (cells[index].revealed) return chord(index);
+      cells[index].questioned = false;
       const started = status === 'ready';
       if (started) generate(index);
       if (cells[index].mine) {
@@ -72,9 +73,24 @@
     }
     function flag(index) {
       if (!valid(index) || !active() || cells[index].revealed) return result('none');
-      cells[index].flagged = !cells[index].flagged;
+      if (cells[index].flagged) cells[index].flagged = false;
+      else { cells[index].flagged = true; cells[index].questioned = false; }
       flagCount += cells[index].flagged ? 1 : -1;
       return result('flag', [index]);
+    }
+    function question(index) {
+      if (!valid(index) || !active() || cells[index].revealed) return result('none');
+      if (cells[index].flagged) { cells[index].flagged = false; flagCount--; }
+      cells[index].questioned = !cells[index].questioned;
+      return result('question', [index]);
+    }
+    function cycleMark(index) {
+      if (!valid(index) || !active() || cells[index].revealed) return result('none');
+      const cell = cells[index];
+      if (!cell.flagged && !cell.questioned) { cell.flagged = true; flagCount++; }
+      else if (cell.flagged) { cell.flagged = false; flagCount--; cell.questioned = true; }
+      else cell.questioned = false;
+      return result('mark', [index], false, cell.flagged ? 'flag' : cell.questioned ? 'question' : 'clear');
     }
     function chord(index) {
       if (!valid(index) || status !== 'playing' || !cells[index].revealed || !cells[index].adjacent) return result('none');
@@ -100,13 +116,15 @@
       return { version: 1, presetId, status, firstIndex,
         mines: cells.flatMap((c, i) => c.mine ? [i] : []),
         revealed: cells.flatMap((c, i) => c.revealed ? [i] : []),
-        flags: cells.flatMap((c, i) => c.flagged ? [i] : []) };
+        flags: cells.flatMap((c, i) => c.flagged ? [i] : []),
+        questions: cells.flatMap((c, i) => c.questioned ? [i] : []) };
     }
     function hydrate(saved) {
       if (!saved || saved.version !== 1 || saved.presetId !== presetId || !['ready', 'playing'].includes(saved.status)) return false;
-      const lists = [saved.mines, saved.revealed, saved.flags];
+      const questions = Object.hasOwn(saved, 'questions') ? saved.questions : [];
+      const lists = [saved.mines, saved.revealed, saved.flags, questions];
       if (lists.some(a => !Array.isArray(a) || Array.from(a).some(i => !valid(i)) || new Set(a).size !== a.length)) return false;
-      if (saved.flags.some(i => saved.revealed.includes(i))) return false;
+      if (saved.flags.some(i => saved.revealed.includes(i) || questions.includes(i)) || questions.some(i => saved.revealed.includes(i))) return false;
       if (saved.status === 'ready') {
         if (saved.mines.length || saved.revealed.length || saved.firstIndex !== null) return false;
       } else {
@@ -117,11 +135,12 @@
       saved.mines.forEach(i => { cells[i].mine = true; });
       saved.revealed.forEach(i => { cells[i].revealed = true; });
       saved.flags.forEach(i => { cells[i].flagged = true; });
+      questions.forEach(i => { cells[i].questioned = true; });
       firstIndex = saved.firstIndex; status = saved.status;
       revealedCount = saved.revealed.length; flagCount = saved.flags.length;
       countClues(); return true;
     }
-    return { reveal, flag, chord, neighbors, view, serialize, hydrate };
+    return { reveal, flag, question, cycleMark, chord, neighbors, view, serialize, hydrate };
   }
   function create(...args) {
     const { hydrate, ...board } = build(...args);

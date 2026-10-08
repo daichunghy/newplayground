@@ -58,6 +58,7 @@
           <div class="dm-modes" role="group" aria-label="Thao tác chạm">
             <button class="dm-button dm-mode" id="dmRevealMode" type="button" aria-pressed="true">Mở</button>
             <button class="dm-button dm-mode" id="dmFlagMode" type="button" aria-pressed="false">${ICONS.flag} Cờ</button>
+            <button class="dm-button dm-mode" id="dmQuestionMode" type="button" aria-pressed="false" aria-label="Đánh dấu chưa chắc" title="Dấu hỏi · Q">?</button>
           </div>
           <button class="dm-button" id="dmPause" type="button" aria-label="Tạm dừng">Ⅱ</button>
         </div>
@@ -69,8 +70,8 @@
         <div class="dm-result" id="dmResult" hidden><h4 id="dmResultTitle"></h4><p id="dmResultText" class="np-game-sr"></p><button class="dm-button dm-primary" id="dmPlayAgain" type="button">Chơi lại</button></div>
         <p class="np-game-sr" id="dmStatus" role="status" aria-live="polite" aria-atomic="true">Chọn một ô để bắt đầu. Ô đầu và các ô sát cạnh luôn an toàn.</p>
         <div class="dm-records" id="dmRecords" hidden></div>
-        <details class="dm-help np-help"><summary aria-label="Cách chơi">?</summary><p>Mở ô. Số là mìn quanh ô. Cắm cờ khi chắc.</p></details>
-        <p id="dmKeyboardHelp" class="np-game-sr">Mũi tên di chuyển; Enter/Space mở hoặc cắm cờ theo chế độ; F cắm cờ; Home/End đến đầu/cuối hàng.</p>
+        <details class="dm-help np-help"><summary aria-label="Cách chơi">?</summary><p>Mở ô. Số là mìn quanh ô. Cắm cờ khi chắc; dùng ? để ghi ô còn phân vân.</p></details>
+        <p id="dmKeyboardHelp" class="np-game-sr">Mũi tên di chuyển; Enter/Space mở hoặc đánh dấu theo chế độ; F cắm/gỡ cờ; Q đổi sang dấu hỏi; Home/End đến đầu/cuối hàng.</p>
         <p class="dm-storage-note" id="dmStorageNote" hidden>Không lưu được ván này.</p>
       </section>`;
     const el = id => container.querySelector('#' + id);
@@ -154,7 +155,7 @@
       v.cells.forEach((cell, i) => {
         const mineVisible = (ended && cell.mine), wrongFlag = v.status === 'lost' && cell.flagged && !cell.mine;
         const flagVisible = cell.flagged || (v.status === 'won' && cell.mine);
-        const key = `${cell.revealed}/${flagVisible}/${mineVisible}/${wrongFlag}/${paused}/${v.status}/${v.explodedIndex === i}`;
+        const key = `${cell.revealed}/${flagVisible}/${cell.questioned}/${mineVisible}/${wrongFlag}/${paused}/${v.status}/${v.explodedIndex === i}`;
         if (rendered[i] === key) return;
         rendered[i] = key;
         const node = cellEls[i];
@@ -165,6 +166,7 @@
         if (wrongFlag) { node.textContent = '×'; label = 'cắm cờ sai, ô an toàn'; }
         else if (flagVisible && (v.status !== 'lost' || cell.mine)) { node.innerHTML = ICONS.flag; label = ended ? 'mìn được đánh dấu' : 'đã cắm cờ'; }
         else if (mineVisible) { node.innerHTML = ICONS.mine; label = v.explodedIndex === i ? 'mìn đã nổ' : 'có mìn'; }
+        else if (cell.questioned) { node.textContent = '?'; node.classList.add('dm-questioned'); label = 'chưa chắc có mìn'; }
         else if (cell.revealed) { node.textContent = cell.adjacent || ''; label = cell.adjacent ? `${cell.adjacent} mìn xung quanh` : 'ô trống'; }
         node.setAttribute('aria-label', `Hàng ${Math.floor(i / v.cols) + 1}, cột ${i % v.cols + 1}: ${label}`);
         node.setAttribute('aria-disabled', paused || ended ? 'true' : 'false');
@@ -189,11 +191,12 @@
       mode = next;
       el('dmRevealMode').setAttribute('aria-pressed', mode === 'reveal' ? 'true' : 'false');
       el('dmFlagMode').setAttribute('aria-pressed', mode === 'flag' ? 'true' : 'false');
-      announce(mode === 'flag' ? 'Chế độ cắm cờ. Chạm để cắm hoặc gỡ cờ.' : 'Chế độ mở ô. Chạm ô số đã mở để mở nhanh.');
+      el('dmQuestionMode').setAttribute('aria-pressed', mode === 'question' ? 'true' : 'false');
+      announce(mode === 'flag' ? 'Chế độ cắm cờ. Chạm để cắm hoặc gỡ cờ.' : mode === 'question' ? 'Chế độ dấu hỏi. Chạm để đánh dấu hoặc bỏ dấu ô chưa chắc.' : 'Chế độ mở ô. Chạm ô số đã mở để mở nhanh.');
     }
     function act(index, action = mode) {
       if (!alive || paused || terminal() || !el('dmConfirm').hidden) return;
-      const result = action === 'flag' ? board.flag(index) : board.reveal(index);
+      const result = action === 'flag' ? board.flag(index) : action === 'question' ? board.question(index) : action === 'mark' ? board.cycleMark(index) : board.reveal(index);
       if (result.kind === 'none') {
         if (result.reason === 'flags-mismatch') announce('Số cờ xung quanh chưa khớp ô số. Kiểm tra cờ trước khi mở nhanh.');
         return;
@@ -208,6 +211,8 @@
       }
       render(); save(); sound(result.kind);
       if (result.kind === 'flag') announce(board.view().cells[index].flagged ? 'Đã cắm cờ.' : 'Đã gỡ cờ.');
+      else if (result.kind === 'question') announce(board.view().cells[index].questioned ? 'Đã đánh dấu chưa chắc.' : 'Đã bỏ dấu hỏi.');
+      else if (result.kind === 'mark') announce(result.reason === 'flag' ? 'Đã cắm cờ.' : result.reason === 'question' ? 'Đã đánh dấu chưa chắc.' : 'Đã bỏ dấu đánh dấu.');
       else if (result.status === 'won') announce(`Bạn thắng trong ${timeText(duration())}. Tất cả ô an toàn đã mở.`);
       else if (result.status === 'lost') announce('Chạm mìn. Ván đã kết thúc. Bạn có thể xem lại bàn và chơi ván tiếp.');
       else announce(`Đã mở ${result.changed.length} ô. Còn ${board.view().rows * board.view().cols - board.view().mines - board.view().revealedCount} ô an toàn.`);
@@ -254,7 +259,7 @@
       const i = eventIndex(e); if (i === null) return;
       e.preventDefault();
       if (pointer?.type === 'touch' || pointer?.type === 'pen' || [...suppressedClicks.values()].includes(i)) return;
-      focusCell(i); act(i, 'flag');
+      focusCell(i); act(i, 'mark');
     });
     listen(grid, 'keydown', e => {
       const i = eventIndex(e); if (i === null || paused) return;
@@ -266,8 +271,12 @@
       else if (e.key === 'ArrowDown') next = Math.min(v.rows - 1, r + 1) * v.cols + c;
       else if (e.key === 'Home') next = e.ctrlKey ? 0 : r * v.cols;
       else if (e.key === 'End') next = e.ctrlKey ? v.cells.length - 1 : (r + 1) * v.cols - 1;
-      else if (['Enter', ' ', 'f', 'F'].includes(e.key)) {
-        e.preventDefault(); if (!e.repeat) act(i, e.key.toLowerCase() === 'f' ? 'flag' : mode); return;
+      else if (['Enter', ' ', 'f', 'F', 'q', 'Q', '?'].includes(e.key)) {
+        e.preventDefault(); if (!e.repeat) {
+          if (e.key.toLowerCase() === 'q' || e.key === '?') setMode(mode === 'question' ? 'reveal' : 'question');
+          else act(i, e.key.toLowerCase() === 'f' ? 'flag' : mode);
+        }
+        return;
       } else return;
       e.preventDefault(); focusCell(next, true);
     });
@@ -292,13 +301,14 @@
       const bounds = cellEls[i].getBoundingClientRect();
       const inside = e.clientX >= bounds.left && e.clientX <= bounds.right && e.clientY >= bounds.top && e.clientY <= bounds.bottom;
       cancelPointer(held || cancelled || target !== i || !inside);
-      if (held && !cancelled && target === i && inside) { focusCell(i); act(i, 'flag'); }
+      if (held && !cancelled && target === i && inside) { focusCell(i); act(i, mode === 'question' ? 'question' : 'flag'); }
     });
     listen(grid, 'pointerleave', () => { if (pointer) cancelGesture(); });
     listen(window, 'pointerup', e => { if (pointer?.id === e.pointerId) cancelPointer(true); });
     listen(window, 'pointercancel', e => { if (pointer?.id === e.pointerId) cancelPointer(true); });
     listen(el('dmRevealMode'), 'click', () => setMode('reveal'));
     listen(el('dmFlagMode'), 'click', () => setMode('flag'));
+    listen(el('dmQuestionMode'), 'click', () => setMode('question'));
     listen(el('dmPause'), 'click', () => { if (el('dmConfirm').hidden) setPaused(!paused); });
     listen(el('dmResume'), 'click', () => { if (el('dmConfirm').hidden) setPaused(false); else el('dmConfirmYes').focus(); });
     listen(el('dmRestart'), 'click', () => requestNew(board.view().presetId));

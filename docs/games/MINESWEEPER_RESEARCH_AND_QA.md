@@ -1,10 +1,10 @@
 # Dò Mìn: nghiên cứu, phạm vi và chứng cứ triển khai
 
-Cập nhật: 07/10/2026. Game ID: `do-min-minesweeper`. Build ứng viên: `ms1` trên nhánh cục bộ `codex/minesweeper-polish-20261007`, dựa trên gói vận hành `be99262c`. **Chưa phát hành, chưa nghiệm thu thiết bị, chưa công nhận replica hoàn chỉnh.**
+Cập nhật: 08/10/2026. Game ID: `do-min-minesweeper`. Build ứng viên: `ms1` trên nhánh cục bộ `codex/minesweeper-polish-20261007`, dựa trên gói vận hành `be99262c`. **Chưa phát hành, chưa nghiệm thu thiết bị, chưa công nhận replica hoàn chỉnh.**
 
 ## 1. Phạm vi được chọn sau nghiên cứu
 
-Vòng chơi Minesweeper cổ điển, single-player, tiếng Việt: đặt mìn sau lượt mở đầu, đọc số, mở vùng trống, cắm/gỡ cờ, chord, thắng/thua, xem lại bàn, chơi lại. Bốn cấu hình độc lập:
+Vòng chơi Minesweeper cổ điển, single-player, tiếng Việt: đặt mìn sau lượt mở đầu, đọc số, mở vùng trống, cắm/gỡ cờ, tùy chọn ghi dấu hỏi cho ô chưa chắc, chord, thắng/thua, xem lại bàn, chơi lại. Dấu hỏi là ghi chú: không ảnh hưởng bộ đếm mìn/chord và không ngăn mở ô. Bốn cấu hình độc lập:
 
 | ID | Cột × hàng | Mìn | Mục đích |
 |---|---:|---:|---|
@@ -17,11 +17,12 @@ Cả bốn bàn bảo vệ ô đầu tiên và mọi ô lân cận hợp lệ. �
 
 ## 2. Đối chiếu nguồn và quyết định
 
-Mức chứng cứ dưới đây là **source-reviewed** ngày 07/10/2026. Chưa quan sát một phiên chơi đối thủ hoặc đo timing trên thiết bị; con số timing input là lựa chọn thiết kế của bản này.
+Mức chứng cứ dưới đây được cập nhật ngày 08/10/2026. Chưa quan sát một phiên chơi đối thủ hoặc đo timing trên thiết bị; con số timing input là lựa chọn thiết kế của bản này.
 
 | Câu hỏi | Nguồn trực tiếp | Áp dụng vào bản này |
 |---|---|---|
 | Preset và safe-opening so với no-guess | [JSMinesweeper, tài liệu của tác giả](https://github.com/DavidNHill/JSMinesweeper#how-to-use-the-player) | Ba preset cổ điển, pocket ghi riêng; không quảng cáo no-guess |
+| Dấu hỏi tùy chọn | [Minesweeper Classic, bản tái hiện mã nguồn mở](https://github.com/enis1enis2/minesweeper-classic) (không phải nguồn Microsoft chính thức) | Đối chiếu quy ước cờ → dấu hỏi → bỏ dấu; không dùng mã/hình của dự án này |
 | Thắng và chord | [Minesweeper Online: Gameplay](https://minesweeper.online/help/gameplay) | Mở hết ô an toàn là thắng; cờ không bắt buộc. Chord đòi số cờ bằng số trên ô; cờ sai có thể gây thua |
 | Hủy thao tác chạm | [W3C: Pointer cancellation](https://www.w3.org/WAI/WCAG22/Understanding/pointer-cancellation.html), [MDN: Pointer Events](https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events) | Chỉ cắm cờ khi thả giữ tay trong ô gốc; kéo, hủy và đa chạm không commit |
 | Kích thước mục tiêu | [W3C: Target minimum](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html), [Target enhanced](https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html) | 44 × 44 CSS px theo yêu cầu repo; không thu nhỏ Expert. WCAG AA minimum là 24 px có ngoại lệ, 44 px là enhanced |
@@ -36,6 +37,7 @@ Các nguồn chỉ dùng đối chiếu hành vi và hướng dẫn kỹ thuật
 ## 3. Luật và state machine
 
 - `ready`: chưa sinh mìn, cờ được đặt trước, đồng hồ chưa chạy.
+- Ô che có thể luân phiên trống → cờ → dấu hỏi → trống. Dấu hỏi ghi nhớ điều chưa chắc; nó không tính vào cờ lân cận và vẫn có thể bị reveal/flood/chord mở.
 - Mở ô chưa cắm cờ lần đầu: Fisher–Yates hữu hạn trên tập ô ngoài vùng an toàn, sinh đúng số mìn, rồi chuyển `playing`.
 - Flood-fill lặp, không recursion; dừng ở ô số, không tự mở ô cờ.
 - Chord trên ô số đã mở: kiểm tra số cờ lân cận; mở các ô không cờ khi khớp. Cờ sai có thể làm lộ mìn, trạng thái chuyển `lost`.
@@ -49,7 +51,7 @@ Các nguồn chỉ dùng đối chiếu hành vi và hướng dẫn kỹ thuật
 | Hành động | Binding | Thông số hiện tại | Đo thiết bị |
 |---|---|---|---|
 | Mở/chord | Nhấp hoặc tap; Enter/Space theo mode | State cập nhật ngay trong handler; không khóa chờ animation | Chưa đo input-to-paint |
-| Cờ | Chuột phải, F, hoặc nút chọn chế độ | Áp dụng tức thì; cờ không mở ô | Chưa kiểm tra touch thật |
+| Đánh dấu | Chuột phải luân phiên cờ → dấu hỏi → trống; F hoặc mode cờ/dấu hỏi | Cờ xác nhận; dấu hỏi ghi nhớ; dấu hỏi không bảo vệ ô khi mở/chord | Chưa kiểm tra touch thật |
 | Giữ tay | Touch/pen | 450 ms chỉ làm viền “đã sẵn sàng”; release trong ô mới commit | Chưa hiệu chỉnh bằng playtest |
 | Hủy hold | Di chuyển / pointercancel / second touch / ra ngoài | Di chuyển >10 CSS px hủy; suppression theo pointer/gesture đến click của đúng lần thả | Cần kiểm tra pan thực và Safari |
 | Điều hướng | Mũi tên; Home/End; Ctrl+Home/End | Không wrap cạnh; một tab stop; chỉ cuộn ô cần xem | Cần screen-reader audit |
@@ -73,7 +75,7 @@ Art direction: xanh rêu/kem, ô đóng có viền nổi nhẹ, ô mở phẳng;
 
 ## 6. Save và hồi phục
 
-Key mới `np_minesweeper_v1`, JSON schema 1. Chỉ chứa difficulty, stats riêng mỗi preset, board đang chơi (mine/reveal/flag indices, firstIndex, status) và elapsed milliseconds. Không gửi analytics hoặc dữ liệu tới server.
+Key mới `np_minesweeper_v1`, JSON schema 1. Chỉ chứa difficulty, stats riêng mỗi preset, board đang chơi (mine/reveal/flag/question indices, firstIndex, status) và elapsed milliseconds. Save schema 1 cũ không có `questions` vẫn restore như danh sách rỗng. Không gửi analytics hoặc dữ liệu tới server.
 
 - Save sau mỗi thao tác thay đổi board, pause, close, pagehide. Không ghi storage mỗi tick đồng hồ.
 - Restore kiểm tra preset, kích thước/count/range/uniqueness, overlap cờ/ô mở, vùng first-click, không cho lộ mine hoặc active-board đã thắng. Clue được tính lại từ mine indices.
@@ -83,11 +85,11 @@ Key mới `np_minesweeper_v1`, JSON schema 1. Chỉ chứa difficulty, stats ri�
 
 ## 7. Kiểm chứng đã chạy và cổng còn mở
 
-Lệnh: `node --test tests/*.test.cjs`.
+Lệnh scoped sau bổ sung dấu hỏi: `node --test tests/minesweeper-model.test.cjs tests/minesweeper-ui.test.cjs`.
 
 Tại checkpoint: **101/101 pass** gồm 75 model, 11 Minesweeper UI contract bằng DOM double, 12 portal/session regression và 3 dialog-focus tests. Chi tiết: `docs/qa/minesweeper-node-tests-20261007.txt`.
 
-Đã kiểm tra tự động: 4 preset; corner/edge/center opening; số mìn và clue; flood độc lập; flags; đúng/sai chord; thắng không cần cờ; terminal lock; RNG lặp; save roundtrip/corrupt/sparse; keyboard; mode; long-press/synthetic click; cancel/drag/multi-touch; clock/pause; restart/difficulty confirmation; stats; storage lỗi; repeated resets và cleanup. Portal regression vẫn kiểm tra đủ 150 catalog entries với 42 exact launchers/108 planned notices.
+Đã kiểm tra tự động: 4 preset; corner/edge/center opening; số mìn và clue; flood độc lập; cờ và dấu hỏi; dấu hỏi không được tính trong chord; đúng/sai chord; thắng không cần cờ; terminal lock; RNG lặp; save roundtrip/corrupt/sparse và tương thích save cũ; keyboard; mode; long-press/synthetic click; cancel/drag/multi-touch; clock/pause; restart/difficulty confirmation; stats; storage lỗi; repeated resets và cleanup. Scoped model/UI-double run: **90/90 pass**. Portal regression vẫn kiểm tra đủ 150 catalog entries với 42 exact launchers/108 planned notices.
 
 `node scripts/release-preflight.mjs --prepare` pass. Đã sửa packager để copy CSS được tham chiếu, giữ registry và phần Hàng Rong từ PR bàn giao. CI nay chạy bộ test trước preflight. Header modal xuống dòng ở điện thoại, nút 44px; dialog có focus entry/trap/restore; thẻ catalog có nút chơi bằng bàn phím. Thay đổi này vẫn cần QA layout/browser. Đã sửa lại guard ID không phải chuỗi trong portal, vốn bị gói bàn giao bỏ mất.
 

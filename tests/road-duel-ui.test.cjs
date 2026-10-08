@@ -191,6 +191,19 @@ test('touch-style held controls steer and accelerate; melee is one edge-triggere
   h.session.stop();
 });
 
+test('close-range melee guidance explains the miss cost and the live message confirms it', () => {
+  const h = mount();
+  assert.match(h.container.innerHTML, /Space\/Tạt sát xe để ghìm đối thủ; hụt mất đà/);
+  const model = h.mounted.getModel();
+  for (let i = 0; i < 120; i++) model.advance(M.STEP, { brake: true });
+  for (let i = 0; i < 30; i++) model.advance(M.STEP, { accelerate: true });
+  const speedBefore = model.view().speed;
+  h.container.querySelector('#ddAttack').click();
+  assert.equal(model.view().speed, speedBefore - M.ATTACK_MISS_SPEED_LOSS);
+  assert.match(h.container.querySelector('#ddLive').textContent, /Tạt hụt\. Mất đà/);
+  h.session.stop();
+});
+
 test('keyboard steering still works while a touch control button has focus', () => {
   const h = mount();
   const gas = h.container.querySelector('#ddGas');

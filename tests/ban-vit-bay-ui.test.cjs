@@ -5,11 +5,11 @@ const { harness, assertStopped, read } = require('./support/browser-harness.cjs'
 const M = require('../scripts/games/ban-vit-bay-model.js');
 
 const el = (h, id) => h.container.querySelector('#' + id);
-function launch() {
+function launch(options = {}) {
   const h = harness({ loadEngines: false, loadApp: false });
   h.context.NP_BanVitBayModel = M;
   vm.runInContext(read('scripts/games/ban-vit-bay.js'), h.context, { filename: 'scripts/games/ban-vit-bay.js' });
-  h.mountResult = h.context.NP_BanVitBay.mount(h.container, h.context.NP_GameSession.start());
+  h.mountResult = h.context.NP_BanVitBay.mount(h.container, h.context.NP_GameSession.start(), options);
   return h;
 }
 function close(h) { h.context.NP_GameSession.stop(); h.container.innerHTML = ''; assertStopped(h); assert.deepEqual(h.errors, []); }
@@ -69,7 +69,9 @@ test('pause, tab switching, resume and blur all stop the loop safely', () => {
 });
 
 test('a compact five-flight round ends clearly and can be retried', () => {
-  const h = launch(), model = h.mountResult.getModel();
+  const seeds = [101, 101];
+  const h = launch({ seedFactory: () => seeds.shift() }), model = h.mountResult.getModel();
+  const firstSeed = model.view().seed;
   for (let flight = 0; flight < M.FLIGHTS; flight++) {
     for (let shot = 0; shot < M.SHOTS_PER_FLIGHT; shot++) el(h, 'bvbFire').click();
     assert.equal(model.view().phase, 'miss');
@@ -82,6 +84,7 @@ test('a compact five-flight round ends clearly and can be retried', () => {
   el(h, 'bvbOverlayAction').click();
   assert.equal(h.mountResult.getModel().view().status, 'playing');
   assert.equal(h.mountResult.getModel().view().remaining, 5);
+  assert.notEqual(h.mountResult.getModel().view().seed, firstSeed, 'retry draws a fresh target pattern even if the seed source repeats');
   close(h);
 });
 

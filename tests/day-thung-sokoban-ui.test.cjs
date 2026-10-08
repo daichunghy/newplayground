@@ -3,8 +3,8 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const { harness, read } = require('./support/browser-harness.cjs');
 
-function setup() {
-  const h = harness({ loadEngines: false, loadApp: false });
+function setup(options = {}) {
+  const h = harness({ loadEngines: false, loadApp: false, ...options });
   vm.runInContext(read('scripts/games/day-thung-sokoban-model.js'), h.context, { filename: 'day-thung-sokoban-model.js' });
   vm.runInContext(read('scripts/games/day-thung-sokoban.js'), h.context, { filename: 'day-thung-sokoban.js' });
   const ui = h.context.NP_DayThungSokoban.mount(h.container);
@@ -97,6 +97,48 @@ test('undo, restart, and level progression update visible state and win announce
   element(h, '.np-soko-undo').click();
   assert.equal(ui.model.view().moves, 0);
   close(h, ui);
+});
+
+test('active puzzle, undo history, unlock, and best moves survive closing and reopening', () => {
+  const { h, ui } = setup();
+  for (const direction of ['right','right','up','left']) element(h, `.np-soko-arrow.is-${direction}`).click();
+  const saved = JSON.parse(h.stored.get('np_day_thung_sokoban_v2'));
+  assert.equal(saved.version, 2);
+  assert.equal(saved.state.moves, 4);
+  assert.equal(saved.history.length, 4);
+  close(h, ui);
+  const resumed = setup({ storage: h.stored });
+  assert.equal(resumed.ui.model.view().moves, 4);
+  key(element(resumed.h, '.np-soko-board'), 'z');
+  assert.equal(resumed.ui.model.view().moves, 3);
+  for (const direction of ['left','left','left']) element(resumed.h, `.np-soko-arrow.is-${direction}`).click();
+  assert.equal(resumed.ui.model.view().status, 'won');
+  assert.equal(resumed.ui.model.view().unlockedLevel, 1);
+  assert.equal(resumed.ui.model.view().bestMoves[0], 6);
+  element(resumed.h, '.np-soko-next').click();
+  close(resumed.h, resumed.ui);
+  const reopened = setup({ storage: resumed.h.stored });
+  assert.equal(reopened.ui.model.view().levelIndex, 1);
+  assert.equal(reopened.ui.model.view().unlockedLevel, 1);
+  assert.equal(reopened.ui.model.view().moves, 0);
+  close(reopened.h, reopened.ui);
+});
+
+test('future, corrupt, and denied saves remain untouched while a new puzzle stays playable', () => {
+  const key = 'np_day_thung_sokoban_v2';
+  for (const raw of ['{broken', JSON.stringify({ version: 99 })]) {
+    const { h, ui } = setup({ storage: new Map([[key, raw]]) });
+    element(h, '.np-soko-arrow.is-right').click();
+    assert.equal(h.stored.get(key), raw);
+    assert.match(element(h, '.np-soko-status').textContent, /Bản lưu không đọc được|Tiến độ chưa lưu được/);
+    close(h, ui);
+  }
+  const denied = setup();
+  denied.h.context.localStorage.setItem = () => { throw Error('quota'); };
+  element(denied.h, '.np-soko-arrow.is-right').click();
+  assert.equal(denied.ui.model.view().player.x, 5);
+  assert.match(element(denied.h, '.np-soko-status').textContent, /Tiến độ chưa lưu được/);
+  close(denied.h, denied.ui);
 });
 
 test('session cleanup is idempotent and removes keyboard and pointer listeners', () => {
