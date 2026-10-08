@@ -3,7 +3,7 @@
 Date: 2026-10-07
 Catalog ID: `flappy-bird`
 Candidate title: **Mạch Gió**
-Status: original, local-only candidate. It does not claim to be a Flappy Bird product, an authorized remake, or a complete recreation.
+Status: original review candidate in PR #2. It does not claim to be a Flappy Bird product, an authorized remake, or a complete recreation.
 
 ## Reference and evidence level
 
@@ -19,7 +19,7 @@ The contemporary interview supports this broad loop: tap to flap upward against 
 
 The sources do **not** establish authoritative numeric gravity, flap impulse, scrolling speed, pipe width, gap size, height randomization, collision tolerance, or exact scoring frame. The candidate's values are authored tuning choices, not measured reference values; do not call them pixel-perfect or parity values. The catalog name also does not establish rights to distribute the historical title or any original game material.
 
-## Original candidate scope
+## Initial one-run candidate scope (superseded by the 2026-10-08 campaign iteration)
 
 Mạch Gió keeps the recognizable one-input lift-and-gap timing loop in a new visual setting. A small faceted glider falls under constant gravity; pointer/tap or Space gives it an upward impulse. Stepped stone gates scroll left, and a fixed, deterministic eight-center pattern gives each gate a visible gap. Passing one gate scores one point.
 
@@ -47,10 +47,27 @@ The artwork is drawn from original geometric primitives: a faceted amber glider,
 | Pause/resume | P or pause button | Stops/restarts the animation frame loop |
 | Replay | One button press after game over; pointer/Space also starts a fresh run | Resets score and attempts |
 
-The model is deterministic and fixed-step. There is no campaign, unlock, power-up, persistent score, or audio system. A compact HUD shows score, attempts remaining, and the next gate number. Responsive canvas scaling, focus/visibility cleanup, pause, and replay are implemented; device behavior still needs browser acceptance.
+At the initial one-run checkpoint, the model was deterministic and fixed-step with no campaign, unlock, power-up, persistent progress, or audio system. A compact HUD shows score, attempts remaining, and the next gate number. Responsive canvas scaling, focus/visibility cleanup, pause, and replay are implemented; device behavior still needs browser acceptance.
 
 ## Rights and acceptance gates
 
-All candidate code, drawing, styling, and cover geometry are original. No code or art was copied from a public clone. The legacy `flappy-bird` catalog ID and historical title still need title/route rights review before release. The original candidate is wired locally to the retained catalog route. The old branded title is replaced in visible metadata with Mạch Gió; rights to the historical catalog ID and route remain unresolved.
+All candidate code, drawing, styling, and cover geometry are original. No code or art was copied from a public clone. The legacy `flappy-bird` catalog ID and historical title still need title/route rights review before release. The original candidate is wired to the retained catalog route on the review branch; no live release is included. The old branded title is replaced in visible metadata with Mạch Gió; rights to the historical catalog ID and route remain unresolved.
 
 Automated model and DOM-double tests cover gravity, impulse, deterministic stepping, scoring, collision, lives, replay, controls, pause, and cleanup. They are not browser/device playtests. Still pending: real desktop and mobile browser rendering, tap/Space feel, canvas scaling and accessibility checks, frame pacing/input latency, balance with new players, original-build comparison, and rights/title review. Do not label the candidate accepted or reference-complete until those checks have evidence.
+
+
+## Three-stage campaign iteration — 2026-10-08
+
+Mạch Gió now keeps the one-input lift-and-gap loop across three authored stages. Each route has four gates, a named setting and its own sky/stone palette; later stages narrow the gaps and increase scroll speed. Gate centers create a distinct slalom in each route. No new obstacle types, powers or controls were added.
+
+| Route | Gap | Speed | Gate centers | Clear goal |
+|---|---:|---:|---|---:|
+| Ngõ sớm | 116 | 2.55 | 164, 190, 158, 198 | 4 gates |
+| Bờ kênh | 108 | 2.75 | 166, 188, 160, 192 | 4 gates |
+| Mái phố | 100 | 3.00 | 155, 165, 185, 188 | 4 gates |
+
+A clear earns one to three stars from the tries remaining, unlocks the next route and records each stage's best stars. Three collisions are allowed per stage; route positions reset after a collision while already-earned gates stay scored. Players can select an unlocked stage, retry it, replay the final route, and resume their unlocked route/best stars after reopening. Midair physics are not saved.
+
+The original 60 Hz gravity and flap values remain candidate tuning, not reference measurements. A deterministic model witness launches with one flap and then flaps every 32 simulation ticks; it clears all three stages from a fresh stage start. `tests/flappy-bird-model.test.cjs` checks that witness, stage geometry, score-once, retries, stars, unlock/replay and progress restore. `tests/flappy-bird-ui.test.cjs` covers route selection, stored progress, pause, retry, save failure and cleanup; DOM/Canvas doubles are not browser QA.
+
+The campaign browser smoke is in `tests/browser/portal.spec.cjs`. The previous PR browser run is not evidence for this code. Current local verification is 10 model + 5 UI tests, plus route/copy integration checks; real browser/device, human balance, original-build comparison and historical title/route rights remain pending.

@@ -339,3 +339,21 @@ test('Mầm Chớp title and HUD fit the game panel at a phone width with named 
   expect(layout.title.scrollWidth, JSON.stringify(layout)).toBeLessThanOrEqual(layout.title.clientWidth + 1);
   await closeGame(page);
 });
+test('Mạch Gió opens its three-stage campaign with locked routes and a fresh one-button flight', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 780 });
+  await loadPortal(page);
+  await openGame(page, 'flappy-bird');
+  await expect(page.locator('#modalGameTitle')).toHaveText('Mạch Gió');
+  await expect(page.locator('#fgStageName')).toHaveText('Chặng 1/3 · Ngõ sớm');
+  await expect(page.locator('#fgScore')).toHaveText('0 / 4');
+  await expect(page.locator('#fgStage0')).toHaveAttribute('aria-current', 'step');
+  await expect(page.locator('#fgStage1')).toBeDisabled();
+  await expect(page.locator('#fgStage2')).toBeDisabled();
+  await page.locator('#fgStart').click();
+  await expect(page.locator('#fgStatus')).toContainText('lượt');
+  await page.locator('#fgPause').click();
+  await expect(page.locator('#fgTitle')).toHaveText('Tạm dừng');
+  await page.locator('#fgStart').click();
+  await expect(page.locator('#fgOverlay')).toBeHidden();
+  await closeGame(page);
+});
