@@ -22,11 +22,13 @@ function close(h) {
 
 test('mount starts immediately with a small HUD, accessible canvas and touch controls', () => {
   const h = launch();
-  for (const id of ['bgtCanvas', 'bgtScore', 'bgtTime', 'bgtHull', 'bgtLeft', 'bgtRight', 'bgtFire', 'bgtPause', 'bgtRestart', 'bgtOverlay']) assert.ok(el(h, id), id);
+  for (const id of ['bgtCanvas', 'bgtScore', 'bgtTime', 'bgtHull', 'bgtWave', 'bgtWaveProgress', 'bgtLeft', 'bgtRight', 'bgtFire', 'bgtPause', 'bgtRestart', 'bgtOverlay']) assert.ok(el(h, id), id);
   assert.equal(h.mountResult.getModel().view().status, 'playing');
+  assert.equal(el(h, 'bgtWave').textContent, 'Chặng 1/3 · Mạch Sương');
+  assert.equal(el(h, 'bgtWaveProgress').textContent, '0/3');
   assert.equal(el(h, 'bgtCanvas').focused, true);
-  assert.match(el(h, 'bgtCanvas').getAttribute('aria-label'), /Di chuyển trái phải/);
-  assert.match(read('scripts/games/ban-ga-vu-tru.js'), /giữ Space/);
+  assert.match(el(h, 'bgtCanvas').getAttribute('aria-label'), /Lái trái phải/);
+  assert.match(read('scripts/games/ban-ga-vu-tru.js'), /Space\/Bắn/);
   assert.match(read('scripts/games/ban-ga-vu-tru.css'), /min-height:46px/);
   assert.match(read('scripts/games/ban-ga-vu-tru.css'), /prefers-reduced-motion/);
   close(h);

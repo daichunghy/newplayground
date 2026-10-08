@@ -174,7 +174,7 @@ Full Node suite `node --test --test-concurrency=1 tests/*.test.cjs`: 625/625 pas
 
 ## Candidate Tuyến Sáng — 08/10/2026
 
-Đã tích hợp lượt bắn tàu vũ trụ solo 60 giây: lướt ngang, giữ bắn vào các khối sáng, né tia cam; ba lượt trúng thì kết thúc. Không có gà/trứng/đùi gà, vật phẩm nâng súng, boss hay chiến dịch. CI5 có nhiều edition/format nhưng danh mục không chỉ phiên bản; nguồn Bandai Namco chỉ dùng để đối chiếu vòng shooter formation chung. Tàu và khối địch đều do dự án vẽ; cover đã vào manifest. 5 model + 4 DOM-double UI/lifecycle tests pass; route và copy gate cũng chạy trong full suite. Browser/device/accessibility/playtest cùng quyền title/route còn pending.
+Đã mở rộng **Tuyến Sáng** thành campaign ba chặng: Mạch Sương cần 3 mục tiêu, Vành Lục 5, Lõi Rạng 7; mục tiêu bay và tia bắn tăng tốc theo chặng. Mỗi chặng đã qua có khoảng nghỉ 1,5 giây, xóa đạn đối phương và cấp khiên ngắn; hạ mục tiêu thứ 15 thắng, còn sống tới 60 giây là kết quả riêng. Giữ điều khiển lái/bắn solo và hình học tự tạo; không thêm menu chọn mode. CI5 có nhiều edition/format nhưng danh mục không chỉ phiên bản; nguồn Bandai Namco chỉ dùng cho vòng shooter chung. 6 model + 6 DOM-double UI/lifecycle tests pass; Chromium smoke mới được thêm để kiểm tra vào chặng hai, đang chờ CI. Browser/device/accessibility/balance/playtest cùng quyền title/route còn pending.
 
 ## Candidate Bài Nhện — 08/10/2026
 

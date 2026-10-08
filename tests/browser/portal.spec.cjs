@@ -391,3 +391,37 @@ test('Cá Lớn Nuốt Cá Bé resumes the saved reef stage and releases control
   await closeGame(page);
   expect(errors).toEqual([]);
 });
+
+test('Tuyến Sáng clears its first wave, shows the next target, and keeps pause usable', async ({ page }) => {
+  await loadPortal(page);
+  await page.evaluate(() => {
+    const base = window.NP_BanGaVuTruModel;
+    window.NP_BanGaVuTruModel = {
+      ...base,
+      create(seed) {
+        const state = base.create(seed).serialize();
+        state.ticks = 100;
+        state.score = 200;
+        state.kills = 2;
+        state.waveIndex = 0;
+        state.waveKills = 2;
+        state.nextSpawnTick = 100000;
+        state.drifters = [{ id: state.nextId++, x: 320, y: 100, vx: 0, vy: 0, radius: 13, tint: 0, fireAtTick: 100000 }];
+        state.shots = [{ id: state.nextId++, x: 320, y: 117, vy: -base.PLAYER_SHOT_SPEED, radius: 3 }];
+        return base.makeModel(state);
+      }
+    };
+  });
+  const errors = watchErrors(page);
+  await openGame(page, 'ban-ga-vu-tru');
+  await expect(page.locator('#modalGameTitle')).toHaveText('Tuyến Sáng');
+  await expect(page.locator('#bgtWave')).toHaveText('Chặng 2/3 · Vành Lục', { timeout: 5_000 });
+  await expect(page.locator('#bgtWaveProgress')).toHaveText('0/5');
+  await expect(page.locator('#bgtStatus')).toContainText('Đã qua Mạch Sương');
+  await page.locator('#bgtPause').click();
+  await expect(page.locator('#bgtOverlayTitle')).toHaveText('Tạm dừng');
+  await page.locator('#bgtContinue').click();
+  await expect(page.locator('#bgtOverlay')).toBeHidden();
+  await closeGame(page);
+  expect(errors).toEqual([]);
+});

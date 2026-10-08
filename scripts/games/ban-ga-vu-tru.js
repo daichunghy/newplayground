@@ -26,17 +26,18 @@
       <link rel="stylesheet" href="scripts/games/ban-ga-vu-tru.css" data-bgt-styles>
       <section class="bgt-game" aria-label="Tuyến Sáng">
         <header class="bgt-header">
-          <div class="bgt-title"><span>ĐỘI TUẦN SAO</span><h2>Tuyến Sáng</h2></div>
+          <div class="bgt-title"><h2>Tuyến Sáng</h2></div>
           <div class="bgt-hud" aria-label="Trạng thái ván">
             <div><span>Điểm</span><strong id="bgtScore">0</strong></div>
             <div><span>Giây</span><strong id="bgtTime">60</strong></div>
             <div><span>Khiên</span><strong id="bgtHull">● ● ●</strong></div>
           </div>
         </header>
+        <div class="bgt-wave-line"><strong id="bgtWave" aria-live="polite" aria-atomic="true">Chặng 1/3 · Mạch Sương</strong><span id="bgtWaveProgress">0/3</span></div>
         <div class="bgt-stage">
           <canvas class="bgt-canvas" id="bgtCanvas" width="640" height="520" tabindex="0" role="img"
-            aria-label="Tàu ở cuối màn hình. Di chuyển trái phải và giữ nút bắn để hạ các khối sáng đang trôi xuống. Né tia năng lượng màu cam."
-            aria-describedby="bgtHelp">Tàu vũ trụ bắn các khối sáng đang trôi xuống.</canvas>
+            aria-label="Lái trái phải, giữ bắn, né tia cam. Hạ mục tiêu."
+            aria-describedby="bgtHelp">Tàu điều khiển; khối sáng, tia cam.</canvas>
           <div class="bgt-overlay" id="bgtOverlay" hidden>
             <div class="bgt-card">
               <span class="bgt-card-mark" aria-hidden="true">✦</span>
@@ -46,7 +47,7 @@
             </div>
           </div>
         </div>
-        <p class="bgt-status" id="bgtStatus" role="status" aria-live="polite" aria-atomic="true">Sẵn sàng.</p>
+        <p class="bgt-status" id="bgtStatus" role="status" aria-live="polite" aria-atomic="true">Hạ mục tiêu, né tia cam.</p>
         <div class="bgt-controls" aria-label="Điều khiển">
           <button class="bgt-button bgt-move" id="bgtLeft" type="button" aria-label="Di chuyển sang trái">←</button>
           <button class="bgt-button bgt-move" id="bgtRight" type="button" aria-label="Di chuyển sang phải">→</button>
@@ -54,7 +55,7 @@
           <button class="bgt-button bgt-utility" id="bgtPause" type="button" aria-label="Tạm dừng">Ⅱ</button>
           <button class="bgt-button bgt-utility" id="bgtRestart" type="button" aria-label="Chơi lại">↻</button>
         </div>
-        <p class="bgt-help" id="bgtHelp">← → / A D để lái · giữ Space hoặc Bắn · P tạm dừng · 60 giây</p>
+        <p class="bgt-help" id="bgtHelp">← → / A D · Space/Bắn · P</p>
       </section>`;
 
     const el = id => container.querySelector('#' + id);
@@ -117,7 +118,12 @@
       const v = model.view();
       ctx.clearRect(0, 0, M.WIDTH, M.HEIGHT);
       const sky = ctx.createLinearGradient(0, 0, 0, M.HEIGHT);
-      sky.addColorStop(0, '#101d36'); sky.addColorStop(.55, '#182941'); sky.addColorStop(1, '#263b50');
+      const skies = [
+        ['#101d36', '#182941', '#263b50'],
+        ['#162038', '#23324b', '#3b4658'],
+        ['#171b31', '#292f48', '#493b4c']
+      ][v.waveIndex];
+      sky.addColorStop(0, skies[0]); sky.addColorStop(.55, skies[1]); sky.addColorStop(1, skies[2]);
       ctx.fillStyle = sky; ctx.fillRect(0, 0, M.WIDTH, M.HEIGHT);
       const haze = ctx.createRadialGradient(M.WIDTH * .5, M.HEIGHT * .24, 5, M.WIDTH * .5, M.HEIGHT * .24, 290);
       haze.addColorStop(0, 'rgba(73, 155, 161, .14)'); haze.addColorStop(1, 'rgba(14, 29, 49, 0)');
@@ -149,22 +155,30 @@
     function updateHud(force = false) {
       if (!alive) return;
       const v = model.view();
-      const stamp = [v.status, v.score, v.hull, v.remainingSeconds].join('|');
+      const stamp = [v.status, v.score, v.hull, v.remainingSeconds, v.waveIndex, v.waveKills, v.waveBreakTicks].join('|');
       if (!force && stamp === hudStamp) return;
       hudStamp = stamp;
       el('bgtScore').textContent = String(v.score);
       el('bgtTime').textContent = String(v.remainingSeconds);
       el('bgtHull').textContent = Array.from({ length: M.MAX_HULL }, (_, i) => i < v.hull ? '●' : '○').join(' ');
-      el('bgtPause').disabled = v.status === 'over' || v.status === 'complete';
-      const terminal = v.status === 'over' || v.status === 'complete';
+      el('bgtWave').textContent = `Chặng ${v.waveNumber}/3 · ${v.wave.name}`;
+      el('bgtWave').setAttribute('aria-label', `Chặng ${v.waveNumber} trong 3: ${v.wave.name}`);
+      el('bgtWaveProgress').textContent = `${v.waveKills}/${v.waveGoal}`;
+      el('bgtWaveProgress').setAttribute('aria-label', `${v.waveKills} trên ${v.waveGoal} mục tiêu`);
+      container.dataset.wave = String(v.waveIndex);
+      const terminal = ['over', 'complete', 'won'].includes(v.status);
+      el('bgtPause').disabled = terminal;
       const paused = v.status === 'paused';
       el('bgtOverlay').hidden = !(terminal || paused);
-      el('bgtOverlayTitle').textContent = terminal ? (v.status === 'complete' ? 'Hết giờ' : 'Tàu đã dừng') : 'Tạm dừng';
-      el('bgtOverlayText').textContent = terminal ? `Bạn ghi ${v.score} điểm.` : 'Đường bay đang nghỉ.';
+      el('bgtOverlayTitle').textContent = terminal ? (v.status === 'won' ? 'Đã dọn tuyến!' : v.status === 'complete' ? 'Hết giờ' : 'Tàu đã dừng') : 'Tạm dừng';
+      el('bgtOverlayText').textContent = terminal
+        ? v.status === 'won' ? `Hạ đủ ${v.kills} mục tiêu · ${v.score} điểm.` : `Hạ ${v.kills}/${v.campaignGoal} mục tiêu · ${v.score} điểm.`
+        : 'Đường bay đang nghỉ.';
       el('bgtContinue').textContent = terminal ? 'Chơi lại' : 'Chơi tiếp';
-      el('bgtStatus').textContent = terminal
-        ? `${v.status === 'complete' ? 'Hết giờ' : 'Ván kết thúc'} · ${v.score} điểm.`
-        : paused ? 'Đang tạm dừng.' : `Điểm ${v.score} · ${v.remainingSeconds} giây · ${v.hull} khiên.`;
+      if (terminal) el('bgtStatus').textContent = v.status === 'won'
+        ? `Đã dọn đủ ba chặng · ${v.kills} mục tiêu · ${v.score} điểm.`
+        : `${v.status === 'complete' ? 'Hết giờ' : 'Tàu đã dừng'} · ${v.kills}/${v.campaignGoal} mục tiêu · ${v.score} điểm.`;
+      else if (paused) el('bgtStatus').textContent = 'Đang tạm dừng.';
     }
 
     function schedule() {
@@ -176,7 +190,15 @@
       if (lastFrame === null) lastFrame = now;
       const elapsed = Math.min(100, Math.max(0, now - lastFrame));
       lastFrame = now;
-      model.advance(elapsed);
+      const events = model.advance(elapsed);
+      for (const event of events) {
+        if (event.kind === 'wave-cleared') {
+          const next = model.view();
+          el('bgtStatus').textContent = `Đã qua ${M.WAVES[event.wave - 1].name} · ${next.wave.name} sau 1,5 giây.`;
+        } else if (event.kind === 'hull-hit') {
+          el('bgtStatus').textContent = `Tàu trúng tia · còn ${event.hull} khiên.`;
+        }
+      }
       draw(); updateHud(); schedule();
     }
 
@@ -241,7 +263,7 @@
     listen(el('bgtPause'), 'click', togglePause);
     listen(el('bgtRestart'), 'click', restart);
     listen(el('bgtContinue'), 'click', () => {
-      if (['over', 'complete'].includes(model.view().status)) restart();
+      if (['over', 'complete', 'won'].includes(model.view().status)) restart();
       else togglePause();
     });
     listen(window, 'blur', () => { if (model.view().status === 'playing') togglePause(); else releaseInputs(); });

@@ -2,6 +2,10 @@
 .bgt-host *{box-sizing:border-box}
 .bgt-game{--bgt-ink:#f4f2e5;--bgt-soft:#b8c9c7;--bgt-edge:rgba(190,225,221,.17);width:min(100%,760px);margin:0 auto;padding:clamp(12px,2.5vw,22px);border:1px solid var(--bgt-edge);border-radius:26px;background:radial-gradient(ellipse at 52% -14%,rgba(87,156,158,.2),transparent 56%),linear-gradient(152deg,#14263a,#101d30 72%);box-shadow:0 22px 56px rgba(0,0,0,.34);color:var(--bgt-ink)}
 .bgt-header{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:2px 3px 16px}
+.bgt-wave-line{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:-4px 3px 10px;padding:7px 10px;border:1px solid rgba(188,225,218,.13);border-radius:11px;background:rgba(234,251,239,.035);color:#d6e8df;font-size:11px;font-variant-numeric:tabular-nums}
+.bgt-wave-line strong{font-weight:750}.bgt-wave-line span{color:#a9c4bc;white-space:nowrap}
+.bgt-host[data-wave="1"] .bgt-game{background:radial-gradient(ellipse at 52% -14%,rgba(126,126,183,.22),transparent 56%),linear-gradient(152deg,#1b2941,#172239 72%)}
+.bgt-host[data-wave="2"] .bgt-game{background:radial-gradient(ellipse at 52% -14%,rgba(181,108,137,.22),transparent 56%),linear-gradient(152deg,#29263f,#1c2137 72%)}
 .bgt-title span{display:block;color:#9fd8cc;font-size:10px;font-weight:800;letter-spacing:.18em}
 .bgt-title h2{margin:3px 0 0;font-size:clamp(21px,4vw,28px);line-height:1;font-weight:750;letter-spacing:-.025em}
 .bgt-hud{display:flex;align-items:stretch;gap:6px}

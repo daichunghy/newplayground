@@ -10,11 +10,18 @@ Reviewed 8 October 2026. This original candidate is integrated locally under cat
 
 The catalog entry is titled “Bắn Gà Vũ Trụ (Chicken Invaders)” and summarizes a ship dodging falling eggs and collecting drumsticks to strengthen shots. It does not name a version, edition, platform build, or reference link. No exact version can be selected from the available brief. The candidate consequently preserves only the generic move, shoot, dodge and score loop. It makes no claims about parity with any Chicken Invaders release.
 
-## Original candidate scope
+## Initial survival-run scope (superseded by the campaign iteration)
 
 `Tuyến Sáng` is a one-player, 60-second arcade run. Move the ship left and right, hold fire to send a simple beam, and avoid slowly drifting faceted lights and aimed orange bolts. Clearing a drifter adds 100 points. Three hull hits end the run; reaching zero seconds completes it. Pause and replay are available throughout. The interface starts in play immediately.
 
-The release scope deliberately omits multiplayer, chickens, eggs, food collectibles, weapon levels, pickups, named enemies, scripted waves, bosses, levels, cutscenes and a campaign. These are original prototype decisions, not descriptions of the unverified source edition.
+The initial release scope omitted multiplayer, chickens, eggs, food collectibles, weapon levels, pickups, named enemies, scripted waves, bosses, levels, cutscenes and a campaign. Those exclusions have since been revisited for authored waves; the remaining exclusions are original prototype decisions, not descriptions of the unverified source edition.
+
+## Three-wave campaign iteration — 8 October 2026
+
+- The one-minute run now has three named waves: Mạch Sương (3 targets), Vành Lục (5), and Lõi Rạng (7). Clear all 15 faceted drifters to finish the campaign; each still adds 100 points. Surviving to the timer is a separate partial result.
+- Later waves spawn faster, drift faster, allow more active targets and fire faster aimed bolts. A 1.5-second clear between waves removes remaining enemies and bolts and grants a brief shield. Movement and hold-to-fire controls remain the same, with no mode menu or extra weapon system.
+- The wave label, target count and background palette change during play. Restart begins a fresh first wave. All geometry, wave names and tuning are project-authored; none of the wave structure or entities is presented as Chicken Invaders content.
+- Focused model/UI checks now cover stage pacing, the clear checkpoint, target progress, final clear and replay lifecycle. A Chromium smoke is added for the first stage transition; its result is reported separately from local tests. Physical-device, accessibility, balance, playtest, and catalog title/route rights remain pending.
 
 ## Originality, assets and rights status
 
