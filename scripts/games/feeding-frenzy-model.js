@@ -6,11 +6,19 @@
 })(typeof window === 'object' ? window : null, function () {
   'use strict';
 
+  const VERSION = 2;
   const WIDTH = 680;
   const HEIGHT = 420;
   const TARGET = 12;
+  const STAGE_GOAL = 4;
   const DURATION = 90;
+  const STAGES = Object.freeze([
+    Object.freeze({ id: 'vung-nuoc', name: 'Vũng Nước', place: 'Rìa cát nắng', preyInterval: .85, predatorInterval: 9, predatorLimit: 1, palette: ['#90dbea', '#258eaa', '#12566c'] }),
+    Object.freeze({ id: 'ran-san-ho', name: 'Rạn San Hô', place: 'Qua dải san hô đỏ', preyInterval: .78, predatorInterval: 8, predatorLimit: 2, palette: ['#a4d9e4', '#327f9f', '#193f65'] }),
+    Object.freeze({ id: 'bien-xanh', name: 'Biển Xanh', place: 'Vùng nước sâu', preyInterval: .72, predatorInterval: 7, predatorLimit: 3, palette: ['#6eb9d2', '#23628b', '#132e55'] })
+  ]);
   const OTHER = Object.freeze({ playing: 'playing', won: 'won', lost: 'lost', timeout: 'timeout' });
+  const stageForScore = score => Math.min(STAGES.length - 1, Math.floor(score / STAGE_GOAL));
 
   function validSeed(seed) { return Number.isInteger(seed) && seed > 0 && seed <= 0xffffffff; }
   function cloneFish(fish) { return fish.map(item => ({ ...item })); }
@@ -33,9 +41,10 @@
   }
 
   function validateState(state) {
-    if (!state || state.version !== 1 || !validSeed(state.seed) || !Number.isInteger(state.rng) || state.rng <= 0 || !Number.isInteger(state.nextId) || state.nextId < 1 ||
+    if (!state || state.version !== VERSION || !validSeed(state.seed) || !Number.isInteger(state.rng) || state.rng <= 0 || !Number.isInteger(state.nextId) || state.nextId < 1 ||
       !Number.isFinite(state.time) || state.time < 0 || state.time > DURATION || !Number.isFinite(state.spawnTimer) || state.spawnTimer < 0 || state.spawnTimer >= 0.85 ||
-      !Number.isFinite(state.predatorTimer) || state.predatorTimer < 0 || state.predatorTimer >= 5.5 || !Number.isInteger(state.score) || state.score < 0 || state.score > TARGET ||
+      !Number.isFinite(state.predatorTimer) || state.predatorTimer < 0 || state.predatorTimer >= 9 || !Number.isInteger(state.score) || state.score < 0 || state.score > TARGET ||
+      !Number.isInteger(state.stageIndex) || state.stageIndex !== stageForScore(state.score) ||
       !Number.isInteger(state.lives) || state.lives < 0 || state.lives > 3 || !Number.isInteger(state.tier) || state.tier < 1 || state.tier > 3 ||
       !Object.values(OTHER).includes(state.status) || !state.player || ![state.player.x, state.player.y, state.player.vx, state.player.vy, state.player.radius, state.player.invulnerable].every(Number.isFinite) ||
       !Array.isArray(state.fish) || state.fish.length > 24 || !state.fish.every(validFish)) {
@@ -43,7 +52,8 @@
     }
     if (state.player.x < state.player.radius || state.player.x > WIDTH - state.player.radius || state.player.y < state.player.radius || state.player.y > HEIGHT - state.player.radius ||
       state.player.radius !== 11 + state.tier * 4 || state.player.invulnerable < 0 || state.player.invulnerable > 1.2 ||
-      ![-1, 1].includes(state.player.facing) || state.tier !== Math.min(3, 1 + Math.floor(state.score / 4)) ||
+      ![-1, 1].includes(state.player.facing) || state.tier !== Math.min(3, 1 + Math.floor(state.score / STAGE_GOAL)) ||
+      state.fish.filter(fish => fish.kind === 'predator').length > STAGES[state.stageIndex].predatorLimit ||
       state.fish.some(fish => fish.x < -fish.radius || fish.x > WIDTH + fish.radius || fish.y < fish.radius || fish.y > HEIGHT - fish.radius || fish.id >= state.nextId ||
         (fish.kind === 'predator' ? fish.tier !== 4 : fish.tier > 2)) ||
       new Set(state.fish.map(fish => fish.id)).size !== state.fish.length) throw new TypeError('Inconsistent feeding-frenzy state');
@@ -57,8 +67,8 @@
 
   function makeState(seed) {
     const state = {
-      version: 1, seed, rng: seed >>> 0, nextId: 1, time: 0, spawnTimer: 0, predatorTimer: 0,
-      score: 0, lives: 3, tier: 1, status: 'playing', event: '',
+      version: VERSION, seed, rng: seed >>> 0, nextId: 1, time: 0, spawnTimer: 0, predatorTimer: 0,
+      score: 0, stageIndex: 0, lives: 3, tier: 1, status: 'playing', event: '',
       player: { x: WIDTH / 2, y: HEIGHT / 2, vx: 0, vy: 0, radius: 15, invulnerable: 0, facing: 1 },
       fish: []
     };
@@ -66,7 +76,6 @@
     for (let i = 0; i < 2; i += 1) spawnFish(state, 'prey', 1, i % 2 ? 1 : -1);
     spawnFish(state, 'prey', 2, 1);
     spawnFish(state, 'predator', 4, -1);
-    spawnFish(state, 'predator', 4, 1);
     return state;
   }
 
@@ -89,7 +98,7 @@
     let state = options.snapshot ? validateState(options.snapshot) : makeState(seed);
     const initialSeed = options.snapshot ? state.seed : seed;
 
-    function view() { return snapshotState(state); }
+    function view() { return { ...snapshotState(state), stage: STAGES[state.stageIndex], stageProgress: state.score - state.stageIndex * STAGE_GOAL }; }
 
     function step(dt, input = { x: 0, y: 0 }) {
       if (state.status !== 'playing') return false;
@@ -129,15 +138,21 @@
       }
 
       const survivors = [];
+      let stageChanged = false;
       for (let index = 0; index < state.fish.length; index += 1) {
         const fish = state.fish[index];
         const distance = Math.hypot(player.x - fish.x, player.y - fish.y);
         if (distance <= player.radius + fish.radius) {
           if (fish.tier < state.tier) {
+            const previousStage = state.stageIndex;
             state.score = Math.min(TARGET, state.score + 1);
-            state.tier = Math.min(3, 1 + Math.floor(state.score / 4));
+            state.stageIndex = stageForScore(state.score);
+            state.tier = Math.min(3, 1 + Math.floor(state.score / STAGE_GOAL));
             player.radius = 11 + state.tier * 4;
-            state.event = state.score >= TARGET ? 'win' : 'eat';
+            player.x = Math.max(player.radius, Math.min(WIDTH - player.radius, player.x));
+            player.y = Math.max(player.radius, Math.min(HEIGHT - player.radius, player.y));
+            stageChanged ||= state.stageIndex !== previousStage;
+            state.event = state.score >= TARGET ? 'win' : stageChanged ? 'stage' : 'eat';
             if (state.score >= TARGET) {
               state.status = 'won';
               survivors.push(...state.fish.slice(index + 1));
@@ -164,18 +179,27 @@
       }
       state.fish = survivors;
       if (state.status === 'playing') {
+        if (stageChanged) {
+          const stage = STAGES[state.stageIndex];
+          let predators = state.fish.filter(fish => fish.kind === 'predator').length;
+          while (predators < stage.predatorLimit) {
+            spawnFish(state, 'predator', 4, nextRandom(state) < 0.5 ? -1 : 1);
+            predators++;
+          }
+        }
+        const stage = STAGES[state.stageIndex];
         state.spawnTimer += dt;
-        while (state.spawnTimer >= 0.85) {
-          state.spawnTimer -= 0.85;
+        while (state.spawnTimer >= stage.preyInterval) {
+          state.spawnTimer -= stage.preyInterval;
           if (state.fish.filter(fish => fish.kind === 'prey').length < 16) {
             const tier = Math.floor(nextRandom(state) * state.tier);
             spawnFish(state, 'prey', tier, nextRandom(state) < 0.5 ? -1 : 1);
           }
         }
         state.predatorTimer += dt;
-        if (state.predatorTimer >= 5.5) {
-          state.predatorTimer -= 5.5;
-          if (state.fish.filter(fish => fish.kind === 'predator').length < 3) spawnFish(state, 'predator', 4, nextRandom(state) < 0.5 ? -1 : 1);
+        if (state.predatorTimer >= stage.predatorInterval) {
+          state.predatorTimer -= stage.predatorInterval;
+          if (state.fish.filter(fish => fish.kind === 'predator').length < stage.predatorLimit) spawnFish(state, 'predator', 4, nextRandom(state) < 0.5 ? -1 : 1);
         }
         if (state.score >= TARGET && state.tier === 3) state.status = 'won';
         else if (state.time >= DURATION) state.status = 'timeout';
@@ -192,6 +216,9 @@
     return Object.freeze({ view, step, reset, serialize });
   }
 
-  function restore(snapshot) { return create({ seed: snapshot?.seed, snapshot }); }
-  return Object.freeze({ WIDTH, HEIGHT, TARGET, DURATION, create, restore });
+  function restore(snapshot) {
+    if (!snapshot || typeof snapshot !== 'object') throw new TypeError('Invalid feeding-frenzy snapshot');
+    return create({ seed: snapshot.seed, snapshot });
+  }
+  return Object.freeze({ VERSION, WIDTH, HEIGHT, TARGET, STAGE_GOAL, DURATION, STAGES, stageForScore, create, restore });
 });

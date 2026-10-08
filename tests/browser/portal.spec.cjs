@@ -357,3 +357,37 @@ test('Mạch Gió opens its three-stage campaign with locked routes and a fresh 
   await expect(page.locator('#fgOverlay')).toBeHidden();
   await closeGame(page);
 });
+
+test('Cá Lớn Nuốt Cá Bé resumes the saved reef stage and releases controls on pause', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 780 });
+  await loadPortal(page);
+  await page.evaluate(() => {
+    const model = window.NP_FeedingFrenzyModel;
+    const snapshot = model.create({ seed: 1827 }).serialize();
+    snapshot.score = 4;
+    snapshot.stageIndex = 1;
+    snapshot.tier = 2;
+    snapshot.player.radius = 19;
+    snapshot.player.x = 19;
+    snapshot.player.y = 19;
+    localStorage.setItem('np_feeding_frenzy_save_v2', JSON.stringify(model.restore(snapshot).serialize()));
+  });
+  const errors = watchErrors(page);
+  await openGame(page, 'feeding-frenzy');
+  await expect(page.locator('#modalGameTitle')).toHaveText('Cá Lớn Nuốt Cá Bé');
+  await expect(page.locator('#feedingZone')).toHaveText('Chặng 2/3 · Rạn San Hô');
+  await expect(page.locator('#feedingScore')).toHaveText('4 / 12');
+  await expect(page.locator('#feedingOverlay')).toBeVisible();
+  await page.locator('#feedingAgain').click();
+  await expect(page.locator('#feedingOverlay')).toBeHidden();
+  await page.locator('#feedingPause').click();
+  await expect(page.locator('#feedingAgain')).toHaveText('Tiếp tục');
+  await closeGame(page);
+
+  await openGame(page, 'feeding-frenzy');
+  await expect(page.locator('#feedingZone')).toHaveText('Chặng 2/3 · Rạn San Hô');
+  await expect(page.locator('#feedingScore')).toHaveText('4 / 12');
+  await expect(page.locator('#feedingOverlay')).toBeVisible();
+  await closeGame(page);
+  expect(errors).toEqual([]);
+});

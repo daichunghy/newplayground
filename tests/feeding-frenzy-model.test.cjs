@@ -30,6 +30,41 @@ test('the fish grows after four prey and only eats smaller fish', () => {
   assert.equal(game.view().score, before);
 });
 
+test('each four-prey milestone changes reef, background profile, and predator count', () => {
+  const first = M.create({ seed: 22 }), initial = first.serialize();
+  assert.equal(first.view().stageIndex, 0);
+  assert.equal(initial.fish.filter(fish => fish.kind === 'predator').length, 1);
+  const prey = initial.fish.find(fish => fish.kind === 'prey' && fish.tier === 0);
+  initial.fish = initial.fish.filter(fish => fish.kind === 'predator');
+  for (let id = 0; id < 4; id += 1) initial.fish.push({ ...prey, id: initial.nextId++, x: initial.player.x, y: initial.player.y, vx: 0, vy: 0 });
+  const firstZone = M.restore(initial); firstZone.step(0);
+  assert.equal(firstZone.view().score, 4); assert.equal(firstZone.view().stageIndex, 1);
+  assert.equal(firstZone.view().stage.name, 'Rạn San Hô'); assert.equal(firstZone.view().stageProgress, 0);
+  assert.equal(firstZone.view().fish.filter(fish => fish.kind === 'predator').length, 2);
+  assert.equal(firstZone.view().event, 'stage');
+
+  const second = firstZone.serialize(), medium = { ...prey, tier: 1, radius: 14 };
+  second.fish = second.fish.filter(fish => fish.kind === 'predator');
+  for (let id = 0; id < 4; id += 1) second.fish.push({ ...medium, id: second.nextId++, x: second.player.x, y: second.player.y, vx: 0, vy: 0 });
+  const deep = M.restore(second); deep.step(0);
+  assert.equal(deep.view().score, 8); assert.equal(deep.view().stageIndex, 2);
+  assert.equal(deep.view().stage.name, 'Biển Xanh'); assert.equal(deep.view().stageProgress, 0);
+  assert.equal(deep.view().fish.filter(fish => fish.kind === 'predator').length, 3);
+});
+
+test('growth at a wall is clamped so the versioned save still restores', () => {
+  const game = M.create({ seed: 41 }), state = game.serialize(), prey = state.fish.find(fish => fish.kind === 'prey' && fish.tier === 0);
+  state.score = 3; state.stageIndex = 0; state.tier = 1;
+  state.player.x = state.player.radius; state.player.y = state.player.radius;
+  state.fish = state.fish.filter(fish => fish.kind === 'predator');
+  state.fish.push({ ...prey, id: state.nextId++, x: state.player.x, y: state.player.y, vx: 0, vy: 0 });
+  const edge = M.restore(state); edge.step(0);
+  assert.equal(edge.view().score, 4); assert.equal(edge.view().tier, 2);
+  assert.ok(edge.view().player.x >= edge.view().player.radius);
+  assert.ok(edge.view().player.y >= edge.view().player.radius);
+  assert.deepEqual(M.restore(edge.serialize()).view(), edge.view());
+});
+
 test('reaching twelve prey ends the round immediately without score overflow', () => {
   const game = withFish(state => {
     const template = state.fish[0];
@@ -74,4 +109,6 @@ test('inputs are bounded and invalid fixed steps and snapshots are rejected', ()
   assert.throws(() => M.create({ seed: 0 }), /seed/);
   const broken = game.serialize(); broken.player.radius += 1;
   assert.throws(() => M.restore(broken), /state/);
+  assert.throws(() => M.restore(null), /snapshot/);
+  assert.throws(() => M.restore({ ...game.serialize(), version: 1 }), /snapshot/);
 });
