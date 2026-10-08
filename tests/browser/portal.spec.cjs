@@ -296,7 +296,7 @@ test('Mầm Chớp title and HUD fit the game panel at a phone width with named 
   const layout = await page.evaluate(() => {
     const rect = selector => {
       const node = document.querySelector(selector), box = node.getBoundingClientRect();
-      return { left: box.left, right: box.right, width: box.width, clientWidth: node.clientWidth, scrollWidth: node.scrollWidth };
+      return { left: box.left, right: box.right, width: box.width, height: box.height, clientWidth: node.clientWidth, clientHeight: node.clientHeight, scrollWidth: node.scrollWidth };
     };
     return {
       panel: rect('.mc-game'),
@@ -312,6 +312,10 @@ test('Mầm Chớp title and HUD fit the game panel at a phone width with named 
   expect(layout.hud.left, JSON.stringify(layout)).toBeGreaterThanOrEqual(layout.panel.left);
   expect(layout.hud.right, JSON.stringify(layout)).toBeLessThanOrEqual(layout.panel.right + 1);
   expect(layout.title.right, JSON.stringify(layout)).toBeLessThanOrEqual(layout.panel.right + 1);
+  expect(layout.stage.width, JSON.stringify(layout)).toBeGreaterThan(120);
+  expect(layout.title.width, JSON.stringify(layout)).toBeGreaterThan(120);
+  expect(layout.stage.clientHeight, JSON.stringify(layout)).toBeLessThanOrEqual(32);
+  expect(layout.title.clientHeight, JSON.stringify(layout)).toBeLessThanOrEqual(32);
   expect(layout.title.scrollWidth, JSON.stringify(layout)).toBeLessThanOrEqual(layout.title.clientWidth + 1);
   await closeGame(page);
 });
