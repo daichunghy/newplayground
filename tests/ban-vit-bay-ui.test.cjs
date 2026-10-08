@@ -21,6 +21,7 @@ test('mount begins play immediately with accessible pointer, touch, and keyboard
   assert.equal(model.view().status, 'playing');
   assert.equal(el(h, 'bvbOverlay').hidden, true);
   assert.equal(el(h, 'bvbCanvas').focused, true);
+  assert.match(el(h, 'bvbCanvas').getAttribute('aria-label'), /Chặng 1 trong 5: Quét Ngang/);
   assert.match(el(h, 'bvbCanvas').getAttribute('aria-label'), /Chạm để bắn/);
   assert.match(read('scripts/games/ban-vit-bay.js'), /arrowleft.*arrowright.*arrowup.*arrowdown/s);
   assert.match(read('scripts/games/ban-vit-bay.css'), /min-width:46px/);

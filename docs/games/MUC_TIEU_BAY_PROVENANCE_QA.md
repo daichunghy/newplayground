@@ -13,6 +13,12 @@
 - Controls: pointer movement aims, pointer/touch press shoots at the pressed position, arrow keys/WASD move the reticle, Space/Enter fires, and visible 46-pixel touch buttons provide aim and fire. Pause, hidden-tab/blur pausing, and lifecycle cleanup are included.
 - The design intentionally contains no hunting dog, laugh, clay mode, second player, power-ups, campaign, currency, original title/logo, original in-game copy, or game audio. The mechanics are described in new short Vietnamese text.
 
+## Five-flight course iteration — 8 October 2026
+
+- The quick five-target gallery remains five flights with three shots and a 3.2-second window. Each flight now has a named authored path: Quét Ngang, Cánh Cao, Lượn Cỏ, Đảo Gió, Gió Cuối. Vertical arcs, lateral drift, speed, and the fourth/fifth flight reversal distinguish the aiming decisions while keeping the same pointer/keyboard/touch controls.
+- The later direction change is telegraphed with an amber ring 300 ms ahead and announced to assistive technology. A new flight label is also provided in the canvas label and visible scene.
+- This is candidate-authored variety, not Duck Hunt round parity. No light-gun behavior, targets, sprites, or maps from an edition are copied.
+
 ## QA record
 
 Run from the repository root:
@@ -24,6 +30,6 @@ python3 -m http.server 8080
 
 Open `http://localhost:8080/ban-vit-bay-preview.html` for the standalone playable preview.
 
-Result on 2026-10-08: **10 passed, 0 failed**. The deterministic model checks seeded motion, aim bounds, hit/score, shot limits, timeouts, round completion, pause, and invalid time steps. DOM/lifecycle doubles check immediate start, pointer/touch/keyboard inputs, accessible labels and touch sizes, pause and visibility/blur recovery, finish/retry, and session cleanup.
+Baseline result before the course iteration: **10 passed, 0 failed**. The current focused suite has one added deterministic test for distinct course motion and the warned reversal; local count is now 12 model/UI tests. Existing deterministic checks cover seeded motion, aim bounds, hit/score, shot limits, timeouts, round completion, pause, and invalid time steps. DOM/lifecycle doubles check immediate start, pointer/touch/keyboard inputs, accessible labels and touch sizes, pause and visibility/blur recovery, finish/retry, and session cleanup.
 
-This is source-level model/DOM QA. No real browser/device visual, pointer-latency, or touch-hardware run was performed. The work is an independent candidate module; it is not yet connected to the shared app shell or catalog.
+An actual Chromium smoke has been added for the named fourth flight and its telegraphed turn; its current result will be reported separately. This remains distinct from touch-hardware latency, accessibility review, and human playtest.

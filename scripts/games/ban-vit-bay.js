@@ -117,12 +117,16 @@
         ctx.beginPath(); ctx.moveTo(x, y + 16); ctx.quadraticCurveTo(x + lean, y + 6, x + lean + 2, y - 5); ctx.stroke();
         if (i % 4 === 0) { ctx.fillStyle = '#dfd08b'; ctx.beginPath(); ctx.arc(x + lean + 2, y - 6, 3, 0, Math.PI * 2); ctx.fill(); }
       }
-      ctx.fillStyle = '#344e4c'; ctx.font = '700 16px Calibri, Inter, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(`MỤC TIÊU ${Math.min(v.index + 1, M.FLIGHTS)} / ${M.FLIGHTS}`, 18, 28);
+      ctx.fillStyle = '#344e4c'; ctx.font = '700 16px Calibri, Inter, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(`CHẶNG ${Math.min(v.index + 1, M.FLIGHTS)} / ${M.FLIGHTS} · ${v.target?.courseName || 'KẾT THÚC'}`, 18, 28);
       if (v.target) {
         const t = v.target, elapsed = v.elapsed;
         const flip = t.vx < 0;
         if (t.outcome === 'hit') bird(t.x, t.y + Math.min(45, v.resultMs / 7), Math.sin(elapsed / 55) * .5, true, flip);
         else if (t.outcome === 'flying') bird(t.x, t.y, Math.sin(elapsed / 65) * .55, false, flip);
+        if (t.warned && !t.turned && t.outcome === 'flying') {
+          ctx.strokeStyle = '#a64934'; ctx.lineWidth = 3; ctx.setLineDash([5, 5]);
+          ctx.beginPath(); ctx.arc(t.x, t.y, 34, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+        }
       }
       const a = v.aim;
       ctx.strokeStyle = '#f8f2dc'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(a.x, a.y, 15, 0, Math.PI * 2); ctx.stroke();
@@ -146,6 +150,8 @@
         el('bvbOverlayTitle').textContent = terminal ? 'Hết lượt' : 'Tạm dừng';
         el('bvbOverlayText').textContent = terminal ? `Trúng ${v.hits} / ${M.FLIGHTS} · ${v.score} điểm` : 'Sẵn sàng tiếp tục?';
         el('bvbOverlayAction').textContent = terminal ? 'Chơi lại' : 'Tiếp tục';
+        const course = v.target?.courseName || 'Kết thúc';
+        canvas.setAttribute('aria-label', `Chặng ${Math.min(v.index + 1, M.FLIGHTS)} trong ${M.FLIGHTS}: ${course}. Chạm để bắn; dùng mũi tên hoặc WASD để ngắm, Space để bắn.`);
       }
       const timeLeft = v.status === 'over' || v.phase !== 'flying' ? 0 : Math.max(0, M.FLIGHT_MS - v.elapsed);
       el('bvbTimeFill').style.width = `${Math.round(timeLeft / M.FLIGHT_MS * 100)}%`;
@@ -163,6 +169,9 @@
         for (const event of model.advance(M.STEP)) {
           if (event.kind === 'escape') announce('Vịt bay mất.');
           if (event.kind === 'finish') announce(`Kết thúc. Trúng ${event.hits} / ${M.FLIGHTS}.`);
+          if (event.kind === 'flight') announce(`Chặng ${event.number}: ${M.COURSES[event.number - 1].name}.`);
+          if (event.kind === 'turn-warning') announce('Gió sắp đổi chiều.');
+          if (event.kind === 'turn') announce('Mục tiêu đổi chiều.');
         }
       }
       update(); schedule();

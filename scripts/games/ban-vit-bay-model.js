@@ -8,6 +8,13 @@
 
   const WIDTH = 800, HEIGHT = 450, STEP = 20, FLIGHTS = 5;
   const SHOTS_PER_FLIGHT = 3, HIT_RADIUS = 34, FLIGHT_MS = 3200, RESULT_MS = 420;
+  const COURSES = Object.freeze([
+    Object.freeze({ name: 'Quét Ngang', speed: 1, yAmplitude: 12, yPeriod: 300, sideSway: 0, turnAtMs: null }),
+    Object.freeze({ name: 'Cánh Cao', speed: 1.05, yAmplitude: 34, yPeriod: 240, sideSway: 0, turnAtMs: null }),
+    Object.freeze({ name: 'Lượn Cỏ', speed: 1.08, yAmplitude: 48, yPeriod: 190, sideSway: 26, turnAtMs: null }),
+    Object.freeze({ name: 'Đảo Gió', speed: 1.1, yAmplitude: 32, yPeriod: 240, sideSway: 0, turnAtMs: 1800 }),
+    Object.freeze({ name: 'Gió Cuối', speed: 1.24, yAmplitude: 44, yPeriod: 170, sideSway: 22, turnAtMs: 1600 })
+  ]);
   const finite = Number.isFinite;
   const clone = value => JSON.parse(JSON.stringify(value));
 
@@ -25,13 +32,21 @@
     };
 
     function spawn() {
+      const course = COURSES[state.index];
       const side = rand() < .5 ? -1 : 1;
       state.target = {
         x: side < 0 ? 70 : WIDTH - 70,
         y: 155 + rand() * 150,
         baseY: 155 + rand() * 145,
-        vx: side * (115 + rand() * 50 + state.index * 8),
+        vx: side * (115 + rand() * 50 + state.index * 8) * course.speed,
         phase: rand() * Math.PI * 2,
+        courseName: course.name,
+        yAmplitude: course.yAmplitude,
+        yPeriod: course.yPeriod,
+        sideSway: course.sideSway,
+        turnAtMs: course.turnAtMs,
+        warned: false,
+        turned: false,
         outcome: 'flying'
       };
       state.elapsed = 0;
@@ -94,10 +109,20 @@
       if (state.status !== 'playing') return;
       if (state.phase === 'flying') {
         state.elapsed += STEP;
-        state.target.x += state.target.vx * STEP / 1000;
-        if (state.target.x < 34 || state.target.x > WIDTH - 34) state.target.vx *= -1;
-        state.target.x = Math.max(34, Math.min(WIDTH - 34, state.target.x));
-        state.target.y = state.target.baseY + Math.sin(state.target.phase + state.elapsed / 220) * 25;
+        const t = state.target;
+        if (t.turnAtMs && !t.warned && state.elapsed >= t.turnAtMs - 300) {
+          t.warned = true;
+          state.events.push({ kind: 'turn-warning', number: state.index + 1 });
+        }
+        if (t.turnAtMs && !t.turned && state.elapsed >= t.turnAtMs) {
+          t.vx *= -1;
+          t.turned = true;
+          state.events.push({ kind: 'turn', number: state.index + 1 });
+        }
+        t.x += (t.vx + Math.sin(t.phase + state.elapsed / 140) * t.sideSway) * STEP / 1000;
+        if (t.x < 34 || t.x > WIDTH - 34) t.vx *= -1;
+        t.x = Math.max(34, Math.min(WIDTH - 34, t.x));
+        t.y = t.baseY + Math.sin(t.phase + state.elapsed / t.yPeriod) * t.yAmplitude;
         if (state.elapsed >= FLIGHT_MS) finishFlight('escape');
       } else {
         state.resultMs += STEP;
@@ -129,5 +154,5 @@
     return { act, advance, drain, view, reset: () => create({ seed: state.seed }) };
   }
 
-  return Object.freeze({ WIDTH, HEIGHT, STEP, FLIGHTS, SHOTS_PER_FLIGHT, HIT_RADIUS, FLIGHT_MS, RESULT_MS, create });
+  return Object.freeze({ WIDTH, HEIGHT, STEP, FLIGHTS, COURSES, SHOTS_PER_FLIGHT, HIT_RADIUS, FLIGHT_MS, RESULT_MS, create });
 });

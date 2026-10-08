@@ -45,6 +45,27 @@ test('three misses settle one flight; escape is a miss and the fifth flight fini
   assert.equal(game.view().target, null);
 });
 
+test('five authored courses vary movement, and the direction change is telegraphed', () => {
+  assert.deepEqual(M.COURSES.map(course => course.name), ['Quét Ngang', 'Cánh Cao', 'Lượn Cỏ', 'Đảo Gió', 'Gió Cuối']);
+  assert.equal(new Set(M.COURSES.map(course => `${course.speed}/${course.yAmplitude}/${course.yPeriod}/${course.sideSway}/${course.turnAtMs}`)).size, M.FLIGHTS);
+  const game = M.create({ seed: 25 }); game.drain();
+  for (let flight = 0; flight < 3; flight++) {
+    assert.equal(game.view().target.courseName, M.COURSES[flight].name);
+    game.advance(M.FLIGHT_MS);
+    game.advance(M.RESULT_MS);
+  }
+  assert.equal(game.view().index, 3);
+  assert.equal(game.view().target.courseName, 'Đảo Gió');
+  const warning = game.advance(M.COURSES[3].turnAtMs - 300);
+  assert.ok(warning.some(event => event.kind === 'turn-warning'));
+  assert.equal(game.view().target.turned, false);
+  const vxBefore = game.view().target.vx;
+  const turned = game.advance(300);
+  assert.ok(turned.some(event => event.kind === 'turn'));
+  assert.equal(game.view().target.turned, true);
+  assert.equal(Math.sign(game.view().target.vx), -Math.sign(vxBefore));
+});
+
 test('pause freezes timing and only resumes through the explicit action', () => {
   const game = M.create({ seed: 22 }); game.drain();
   game.advance(360);

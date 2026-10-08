@@ -425,3 +425,31 @@ test('Tuyến Sáng clears its first wave, shows the next target, and keeps paus
   await closeGame(page);
   expect(errors).toEqual([]);
 });
+
+test('Mục Tiêu Bay presents a named flight and warns before its authored turn', async ({ page }) => {
+  await loadPortal(page);
+  await page.evaluate(() => {
+    const base = window.NP_BanVitBayModel;
+    window.NP_BanVitBayModel = {
+      ...base,
+      create(options) {
+        const game = base.create(options);
+        for (let flight = 0; flight < 3; flight += 1) {
+          game.advance(base.FLIGHT_MS);
+          game.advance(base.RESULT_MS);
+        }
+        return game;
+      }
+    };
+  });
+  const errors = watchErrors(page);
+  await openGame(page, 'duck-hunt-ban-vit');
+  await expect(page.locator('#modalGameTitle')).toHaveText('Mục Tiêu Bay');
+  await expect(page.locator('#bvbCanvas')).toHaveAttribute('aria-label', /Chặng 4 trong 5: Đảo Gió/);
+  await expect(page.locator('#bvbLive')).toHaveText('Gió sắp đổi chiều.', { timeout: 5_000 });
+  await expect(page.locator('#bvbLive')).toHaveText('Mục tiêu đổi chiều.', { timeout: 3_000 });
+  await page.locator('#bvbPause').click();
+  await expect(page.locator('#bvbOverlayTitle')).toHaveText('Tạm dừng');
+  await closeGame(page);
+  expect(errors).toEqual([]);
+});
