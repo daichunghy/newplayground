@@ -35,3 +35,21 @@ Fish motion and collisions use a deterministic seeded model with bounded fixed t
 - Growth clamps the player back inside the tank before serializing, preventing edge-of-screen growth from making a save invalid. The UI splits accepted 100–160 ms frame gaps into model-safe steps and pauses after longer gaps.
 - A Chromium smoke exercises resuming a saved second-zone run, pause, close and reopen. It supplements model and DOM-double tests; it does not establish mobile hardware performance, screen-reader acceptance, difficulty balance or human playability.
 - Game code, shape artwork and sound synthesis are project-authored. The old route/title still needs review. No edition-specific parity is claimed.
+
+## Swimming response pass — 2026-10-08
+
+The prior model assigned the requested direction directly to the player at 178 px/s on every step. A 100 ms right input therefore moved 17.8 px immediately; a direction change applied at once; releasing input set velocity to zero with no coasting. The new model keeps the same 178 px/s cap and makes player motion a deterministic, bounded velocity change. It uses 1,450 px/s² acceleration from rest, 1,750 px/s² while turning or reversing, and 1,950 px/s² braking after release. The existing v2 save already stores `player.vx` and `player.vy`, so the snapshot schema and storage key remain unchanged.
+
+Representative isolated-model trajectories (no fish or collisions; 680×420 canvas):
+
+| Maneuver | Direct-velocity baseline | New motion |
+| --- | --- | --- |
+| Hold right for 100 ms | 17.8 px; already at 178 px/s | 7.25 px; reaches 145 px/s, then reaches cruise after 123 ms total |
+| Hold right for 300 ms | 53.4 px | 42.47 px; reaches the same 178 px/s cap |
+| Release from 178 px/s | Stops at once | Travels 8.12 px and stops within 91 ms |
+| Turn from full right to full up | Heading changes at once | Sweeps an arc; reaches the new heading in about 144 ms |
+| Reverse from full right to full left | Reverses at once | Cancels forward speed before reversing; reaches full left speed in about 203 ms |
+
+Boundary and interruption behavior was checked at all four tank edges: outward velocity is removed when the player reaches a wall, and opposite input moves back into the tank from rest. Keyboard keyup and pointer cancellation clear their held targets; the UI also pauses and clears inputs on window blur. Deterministic player trajectories with the same input changes differ by less than 1e-8 px across 100 ms and 60 Hz step partitions. This partition check isolates player movement with fish removed; browser-device feel and human playtesting still need review.
+
+Compatibility checks construct an old-format v2 save with the previous full-speed velocity, restore it, apply the new release brake, serialize it again, and restore that partial-brake state. The existing key and v2 schema are retained; recovered games remain paused until the player continues, then their saved momentum decays with no key or pointer held. Focused verification: `node --test tests/feeding-frenzy-model.test.cjs tests/feeding-frenzy-ui.test.cjs` (22 passed).

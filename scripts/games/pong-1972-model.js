@@ -11,10 +11,24 @@
   const LEFT_X = 38, RIGHT_X = WIDTH - LEFT_X - PADDLE_WIDTH;
   const PADDLE_SPEED = 470, START_SPEED = 365, MAX_SPEED = 555;
   const WIN_SCORE = 7, SERVE_MS = 620, CPU_SPEED = 235, CPU_DEADBAND = 18;
+  const CPU_PREDICT_X = WIDTH * 0.63;
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const finite = Number.isFinite;
   const clone = value => JSON.parse(JSON.stringify(value));
   const validSide = side => side === 'left' || side === 'right';
+
+  function predictInterceptY(ball) {
+    if (!ball || !finite(ball.x) || !finite(ball.y) || !finite(ball.vx) || !finite(ball.vy) || ball.vx <= 0.000001) return HEIGHT / 2;
+    const minY = BALL_RADIUS;
+    const maxY = HEIGHT - BALL_RADIUS;
+    const span = maxY - minY;
+    const targetX = RIGHT_X - BALL_RADIUS;
+    const time = Math.max(0, (targetX - ball.x) / ball.vx);
+    const unfolded = ball.y - minY + ball.vy * time;
+    const period = span * 2;
+    const wrapped = ((unfolded % period) + period) % period;
+    return minY + (wrapped <= span ? wrapped : period - wrapped);
+  }
 
   function initialState(mode = 'solo') {
     if (!['solo', 'versus'].includes(mode)) throw new RangeError('Invalid Pong mode');
@@ -81,7 +95,9 @@
 
     function moveCpu(dt) {
       const paddle = state.paddles.right;
-      const target = state.status === 'playing' && state.ball.vx > 0 ? state.ball.y : HEIGHT / 2;
+      const target = state.status === 'playing' && state.ball.vx > 0
+        ? state.ball.x >= CPU_PREDICT_X ? predictInterceptY(state.ball) : state.ball.y
+        : HEIGHT / 2;
       const distance = target - paddle.y;
       if (Math.abs(distance) > CPU_DEADBAND) {
         paddle.y += Math.sign(distance) * Math.min(Math.abs(distance), CPU_SPEED * dt);
@@ -240,5 +256,6 @@
   }
 
   return Object.freeze({ WIDTH, HEIGHT, STEP_MS, BALL_RADIUS, PADDLE_WIDTH, PADDLE_HEIGHT,
-    LEFT_X, RIGHT_X, PADDLE_SPEED, CPU_SPEED, CPU_DEADBAND, START_SPEED, MAX_SPEED, WIN_SCORE, SERVE_MS, create });
+    LEFT_X, RIGHT_X, PADDLE_SPEED, CPU_SPEED, CPU_DEADBAND, CPU_PREDICT_X,
+    START_SPEED, MAX_SPEED, WIN_SCORE, SERVE_MS, predictInterceptY, create });
 });

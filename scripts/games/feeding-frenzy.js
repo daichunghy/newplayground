@@ -128,7 +128,8 @@
     function canvasPoint(event) { const rect = canvas.getBoundingClientRect(); return { x: (event.clientX - rect.left) * canvas.width / rect.width, y: (event.clientY - rect.top) * canvas.height / rect.height }; }
     listen(canvas, 'pointerdown', event => { if (event.button !== undefined && event.button !== 0) return; event.preventDefault(); canvas.focus?.({ preventScroll: true }); pointer = canvasPoint(event); pointerActive = true; });
     listen(window, 'pointermove', event => { if (!pointerActive) return; pointer = canvasPoint(event); });
-    listen(window, 'pointerup', () => { pointerActive = false; }); listen(canvas, 'pointercancel', () => { pointerActive = false; });
+    function releasePointer() { pointerActive = false; }
+    listen(window, 'pointerup', releasePointer); listen(canvas, 'pointercancel', releasePointer); listen(window, 'pointercancel', releasePointer);
     listen(canvas, 'keydown', event => { const key = event.key.length === 1 ? event.key.toLowerCase() : event.key; if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'w', 'a', 's', 'd'].includes(key)) { event.preventDefault(); keys.add(key); } });
     listen(window, 'keyup', event => { const key = event.key.length === 1 ? event.key.toLowerCase() : event.key; keys.delete(key); });
     listen(canvas, 'blur', () => keys.clear());

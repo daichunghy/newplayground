@@ -394,6 +394,40 @@ test('Cá Lớn Nuốt Cá Bé resumes the saved reef stage and releases control
   expect(errors).toEqual([]);
 });
 
+test('Cá Lớn Nuốt Cá Bé accelerates into a swim and coasts after keyboard release', async ({ page }) => {
+  const errors = watchErrors(page);
+  await loadPortal(page);
+  await page.evaluate(() => {
+    const base = window.NP_FeedingFrenzyModel;
+    window.__feedingModels = [];
+    window.NP_FeedingFrenzyModel = {
+      ...base,
+      create(options) {
+        const game = base.create(options);
+        window.__feedingModels.push(game);
+        return game;
+      }
+    };
+  });
+  await openGame(page, 'feeding-frenzy');
+  const canvas = page.locator('#feedingCanvas');
+  await canvas.focus();
+  const start = await page.evaluate(() => window.__feedingModels.at(-1).view().player);
+  await page.keyboard.down('ArrowRight');
+  await page.waitForTimeout(220);
+  const moving = await page.evaluate(() => window.__feedingModels.at(-1).view().player);
+  await page.keyboard.up('ArrowRight');
+  await page.waitForTimeout(180);
+  const coasting = await page.evaluate(() => window.__feedingModels.at(-1).view().player);
+
+  expect(moving.x - start.x, 'held input moves the fish across the tank').toBeGreaterThan(12);
+  expect(moving.vx, 'the fish builds real swimming speed').toBeGreaterThan(100);
+  expect(coasting.x, 'momentum carries the fish after key release').toBeGreaterThan(moving.x);
+  expect(Math.abs(coasting.vx), 'released steering brakes without a snap').toBeLessThan(moving.vx);
+  await closeGame(page);
+  expect(errors).toEqual([]);
+});
+
 test('Tuyến Sáng clears its first wave, shows the next target, and keeps pause usable', async ({ page }) => {
   await loadPortal(page);
   await page.evaluate(() => {

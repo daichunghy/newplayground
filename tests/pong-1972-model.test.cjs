@@ -23,6 +23,60 @@ test('the table opens in solo mode with a fair CPU and stays bounded', () => {
   assert.equal(M.WIN_SCORE, 7); assert.equal(M.STEP_MS, 1000 / 120);
 });
 
+test('CPU intercept prediction reflects the ball off both table edges', () => {
+  const straight = { x: 400, y: 230, vx: 300, vy: 100 };
+  const bank = { x: 400, y: 440, vx: 300, vy: 200 };
+  assert.equal(M.predictInterceptY(straight), 344);
+  assert.equal(M.predictInterceptY(bank), 238);
+  assert.equal(M.predictInterceptY({ ...straight, vx: -300 }), M.HEIGHT / 2);
+  assert.equal(M.predictInterceptY({ ...straight, vx: 0 }), M.HEIGHT / 2);
+});
+
+test('solo CPU moves toward a banked-ball intercept instead of chasing its current height', () => {
+  const game = M.create();
+  let anticipated = false;
+  for (let tick = 0; tick < 3000 && !anticipated; tick += 1) {
+    const before = game.view();
+    if (before.ball.vx < 0) {
+      const desired = before.ball.y - 40;
+      game.setTarget('left', Math.max(M.PADDLE_HEIGHT / 2, Math.min(M.HEIGHT - M.PADDLE_HEIGHT / 2, desired)));
+    } else if (before.ball.vx > 0) game.releaseTarget('left');
+
+    const predicted = M.predictInterceptY(before.ball);
+    const currentDelta = before.ball.y - before.paddles.right.y;
+    const predictedDelta = predicted - before.paddles.right.y;
+    if (before.ball.vx > 0 && before.ball.x >= M.CPU_PREDICT_X
+      && Math.abs(currentDelta) > 30 && Math.abs(predictedDelta) > 30 && currentDelta * predictedDelta < 0) {
+      const beforeY = before.paddles.right.y;
+      game.advance(M.STEP_MS);
+      const afterY = game.view().paddles.right.y;
+      assert.equal(Math.sign(afterY - beforeY), Math.sign(predictedDelta));
+      assert.ok(Math.abs(afterY - beforeY) <= M.CPU_SPEED * M.STEP_MS / 1000 + 1e-7);
+      anticipated = true;
+      break;
+    }
+    game.advance(M.STEP_MS);
+  }
+  assert.equal(anticipated, true, 'the CPU should reposition for a reflected shot before it reaches the paddle');
+});
+
+test('solo remains winnable when the player deliberately aims each return', () => {
+  const game = M.create();
+  let steps = 0;
+  while (game.view().status !== 'won' && steps < 30000) {
+    const view = game.view();
+    if (view.ball.vx < 0) {
+      const aim = view.ball.y + 40;
+      game.setTarget('left', Math.max(M.PADDLE_HEIGHT / 2, Math.min(M.HEIGHT - M.PADDLE_HEIGHT / 2, aim)));
+    } else if (view.ball.vx > 0) game.releaseTarget('left');
+    game.advance(M.STEP_MS);
+    steps++;
+  }
+  assert.equal(game.view().winner, 'left');
+  assert.equal(game.view().score.left, M.WIN_SCORE);
+  assert.ok(steps < 30000);
+});
+
 test('same inputs and fixed steps replay exactly; view objects cannot mutate the model', () => {
   const a = M.create(), b = M.create();
   step(a, 410, { left: -1, right: 1 });

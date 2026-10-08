@@ -12,6 +12,10 @@
   const TARGET = 12;
   const STAGE_GOAL = 4;
   const DURATION = 90;
+  const PLAYER_SPEED = 178;
+  const PLAYER_ACCELERATION = 1450;
+  const PLAYER_TURN_RATE = 1750;
+  const PLAYER_BRAKE = 1950;
   const STAGES = Object.freeze([
     Object.freeze({ id: 'vung-nuoc', name: 'Vũng Nước', place: 'Rìa cát nắng', preyInterval: .85, predatorInterval: 9, predatorLimit: 1, palette: ['#90dbea', '#258eaa', '#12566c'] }),
     Object.freeze({ id: 'ran-san-ho', name: 'Rạn San Hô', place: 'Qua dải san hô đỏ', preyInterval: .78, predatorInterval: 8, predatorLimit: 2, palette: ['#a4d9e4', '#327f9f', '#193f65'] }),
@@ -35,6 +39,46 @@
 
   function randomRange(state, min, max) { return min + nextRandom(state) * (max - min); }
 
+  function movePlayer(player, nx, ny, dt) {
+    const targetX = nx * PLAYER_SPEED;
+    const targetY = ny * PLAYER_SPEED;
+    const dx = targetX - player.vx;
+    const dy = targetY - player.vy;
+    const distance = Math.hypot(dx, dy);
+    const currentSpeed = Math.hypot(player.vx, player.vy);
+    const hasInput = nx !== 0 || ny !== 0;
+    const alignment = currentSpeed > 0 ? (player.vx * targetX + player.vy * targetY) / (currentSpeed * PLAYER_SPEED) : 1;
+    const rate = !hasInput ? PLAYER_BRAKE : currentSpeed > 1 && alignment < 1 - 1e-9 ? PLAYER_TURN_RATE : PLAYER_ACCELERATION;
+    let nextVX = player.vx;
+    let nextVY = player.vy;
+    let moveX = player.vx * dt;
+    let moveY = player.vy * dt;
+    if (distance <= 1e-9) {
+      nextVX = targetX;
+      nextVY = targetY;
+    } else if (dt > 0) {
+      const accelerationTime = Math.min(dt, distance / rate);
+      const scale = Math.min(1, rate * accelerationTime / distance);
+      nextVX = player.vx + dx * scale;
+      nextVY = player.vy + dy * scale;
+      const cruiseTime = Math.max(0, dt - accelerationTime);
+      moveX = (player.vx + nextVX) * 0.5 * accelerationTime + targetX * cruiseTime;
+      moveY = (player.vy + nextVY) * 0.5 * accelerationTime + targetY * cruiseTime;
+    }
+    player.vx = nextVX;
+    player.vy = nextVY;
+    if (nx) player.facing = Math.sign(nx);
+
+    const minX = player.radius;
+    const maxX = WIDTH - player.radius;
+    const minY = player.radius;
+    const maxY = HEIGHT - player.radius;
+    player.x = Math.max(minX, Math.min(maxX, player.x + moveX));
+    player.y = Math.max(minY, Math.min(maxY, player.y + moveY));
+    if ((player.x <= minX && player.vx < 0) || (player.x >= maxX && player.vx > 0)) player.vx = 0;
+    if ((player.y <= minY && player.vy < 0) || (player.y >= maxY && player.vy > 0)) player.vy = 0;
+  }
+
   function validFish(item) {
     return item && Number.isInteger(item.id) && item.id >= 0 && Number.isInteger(item.tier) && item.tier >= 0 && item.tier <= 4 &&
       (item.kind === 'prey' || item.kind === 'predator') && [item.x, item.y, item.vx, item.vy, item.radius, item.phase].every(Number.isFinite) && item.radius > 0;
@@ -51,7 +95,7 @@
       throw new TypeError('Invalid feeding-frenzy snapshot');
     }
     if (state.player.x < state.player.radius || state.player.x > WIDTH - state.player.radius || state.player.y < state.player.radius || state.player.y > HEIGHT - state.player.radius ||
-      state.player.radius !== 11 + state.tier * 4 || state.player.invulnerable < 0 || state.player.invulnerable > 1.2 ||
+      state.player.radius !== 11 + state.tier * 4 || state.player.invulnerable < 0 || state.player.invulnerable > 1.2 || Math.hypot(state.player.vx, state.player.vy) > PLAYER_SPEED + 1e-6 ||
       ![-1, 1].includes(state.player.facing) || state.tier !== Math.min(3, 1 + Math.floor(state.score / STAGE_GOAL)) ||
       state.fish.filter(fish => fish.kind === 'predator').length > STAGES[state.stageIndex].predatorLimit ||
       state.fish.some(fish => fish.x < -fish.radius || fish.x > WIDTH + fish.radius || fish.y < fish.radius || fish.y > HEIGHT - fish.radius || fish.id >= state.nextId ||
@@ -109,12 +153,7 @@
       const nx = length > 1 ? ix / length : ix;
       const ny = length > 1 ? iy / length : iy;
       const player = state.player;
-      const speed = 178;
-      player.vx = nx * speed;
-      player.vy = ny * speed;
-      if (nx) player.facing = Math.sign(nx);
-      player.x = Math.max(player.radius, Math.min(WIDTH - player.radius, player.x + player.vx * dt));
-      player.y = Math.max(player.radius, Math.min(HEIGHT - player.radius, player.y + player.vy * dt));
+      movePlayer(player, nx, ny, dt);
       player.invulnerable = Math.max(0, player.invulnerable - dt);
       state.time = Math.min(DURATION, state.time + dt);
       state.event = '';
@@ -220,5 +259,5 @@
     if (!snapshot || typeof snapshot !== 'object') throw new TypeError('Invalid feeding-frenzy snapshot');
     return create({ seed: snapshot.seed, snapshot });
   }
-  return Object.freeze({ VERSION, WIDTH, HEIGHT, TARGET, STAGE_GOAL, DURATION, STAGES, stageForScore, create, restore });
+  return Object.freeze({ VERSION, WIDTH, HEIGHT, TARGET, STAGE_GOAL, DURATION, PLAYER_SPEED, PLAYER_ACCELERATION, PLAYER_TURN_RATE, PLAYER_BRAKE, STAGES, stageForScore, create, restore });
 });

@@ -9,7 +9,7 @@
   [[1,1,'mist'],[115,3,'mist'],[230,0,'mist'],[345,4,'mist'],[460,2,'gust']],
   [[1,1,'mist'],[90,4,'gust'],[180,2,'mist'],[270,0,'gust'],[360,3,'cloud'],[450,1,'mist']],
   [[1,2,'gust'],[80,4,'mist'],[160,3,'cloud'],[240,1,'mist'],[320,0,'gust'],[400,4,'cloud'],[480,2,'mist']],
-  [[1,0,'cloud'],[70,2,'gust'],[140,4,'mist'],[210,1,'cloud'],[280,3,'gust'],[350,0,'mist'],[420,2,'cloud'],[490,4,'gust'],[560,1,'mist']]
+  [[1,2,'gust'],[70,2,'gust'],[140,2,'gust'],[210,2,'gust'],[280,2,'gust'],[350,2,'gust'],[420,2,'gust'],[490,1,'cloud'],[560,4,'mist']]
  ];
  const clone=x=>JSON.parse(JSON.stringify(x)),finite=Number.isFinite,safe=n=>Number.isSafeInteger(n)&&n>=0,deviceKeys=Object.keys(DEVICES),enemyKeys=Object.keys(ENEMIES);
  function create({saved=null}={}){if(saved&&!validSave(saved))return null;let s=saved?clone(saved):{version:1,tick:0,remainder:0,waveIndex:0,waveTick:0,spawnIndex:0,energy:100,energyTick:0,lives:3,score:0,selectedType:'lamp',status:'playing',nextId:1,nextShotId:1,towers:[],enemies:[],shots:[]};let events=[];const emit=(kind,extra={})=>events.push({kind,...extra});

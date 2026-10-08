@@ -37,6 +37,39 @@ test('keyboard and held pointer input move the fish while remaining inside the t
   closeDirect(h);
 });
 
+test('keyboard release and pointer cancellation stop held input without freezing deceleration', () => {
+  const h = direct(), canvas = el(h, 'feedingCanvas');
+  h.frame();
+  canvas.dispatch('keydown', { key: 'ArrowRight' });
+  h.frame();
+  assert.ok(h.mount.getModel().view().player.vx > 0, 'keyboard input starts accelerating immediately');
+  h.window.dispatch('keyup', { key: 'ArrowRight' });
+  for (let i = 0; i < 18; i += 1) h.frame();
+  let player = h.mount.getModel().view().player;
+  assert.equal(player.vx, 0, 'keyup clears the held direction and lets the fish finish braking');
+  const stoppedX = player.x;
+  for (let i = 0; i < 8; i += 1) h.frame();
+  assert.equal(h.mount.getModel().view().player.x, stoppedX, 'a released key does not leave a hidden movement target');
+
+  canvas.dispatch('pointerdown', { button: 0, clientX: 600, clientY: 210 });
+  h.frame();
+  assert.ok(h.mount.getModel().view().player.vx > 0, 'held pointer steering starts moving');
+  h.window.dispatch('pointercancel');
+  for (let i = 0; i < 18; i += 1) h.frame();
+  player = h.mount.getModel().view().player;
+  assert.equal(player.vx, 0, 'window-level pointer cancellation clears the held target');
+  const pointerStoppedX = player.x;
+  for (let i = 0; i < 8; i += 1) h.frame();
+  assert.equal(h.mount.getModel().view().player.x, pointerStoppedX);
+
+  canvas.dispatch('pointerdown', { button: 0, clientX: 620, clientY: 210 });
+  h.frame();
+  canvas.dispatch('pointercancel');
+  for (let i = 0; i < 18; i += 1) h.frame();
+  assert.equal(h.mount.getModel().view().player.vx, 0, 'canvas-level touch cancellation also releases the target');
+  closeDirect(h);
+});
+
 test('pause, resume, restart, blur and closing release the owned frame', () => {
   const h = direct();
   const canvas = el(h, 'feedingCanvas');
@@ -66,6 +99,26 @@ test('an interrupted swim saves progress and resumes paused with the same stage 
   assert.equal(el(reopened, 'feedingZone').textContent, 'Chặng 1/3 · Vũng Nước');
   el(reopened, 'feedingAgain').click(); assert.equal(reopened.mount.isPaused(), false); assert.equal(reopened.frames.size, 1);
   closeDirect(reopened);
+});
+
+test('a v2 save with cruise momentum resumes paused and brakes without a stale input', () => {
+  const snapshot = M.create({ seed: 91 }).serialize();
+  snapshot.fish = []; snapshot.player.vx = M.PLAYER_SPEED;
+  const storage = new Map([['np_feeding_frenzy_save_v2', JSON.stringify(snapshot)]]);
+  const h = direct(storage);
+  assert.equal(h.mount.isPaused(), true);
+  assert.equal(h.mount.getModel().serialize().version, 2);
+  assert.equal(h.mount.getModel().view().player.vx, M.PLAYER_SPEED);
+  const startX = h.mount.getModel().view().player.x;
+  el(h, 'feedingAgain').click();
+  for (let i = 0; i < 20; i += 1) h.frame();
+  let player = h.mount.getModel().view().player;
+  assert.equal(player.vx, 0, 'saved momentum decays after resume because no key or pointer is held');
+  assert.ok(player.x > startX && player.x - startX < 12, 'recovery preserves only the short braking coast');
+  const stoppedX = player.x;
+  for (let i = 0; i < 8; i += 1) h.frame();
+  assert.equal(h.mount.getModel().view().player.x, stoppedX);
+  closeDirect(h);
 });
 
 test('corrupt progress is kept and storage denial does not block the game', () => {
