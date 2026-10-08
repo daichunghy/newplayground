@@ -829,15 +829,15 @@ window.__NP_GAMES_CACHE__ = [
   },
   {
     "id": "thap-ha-noi-tower",
-    "title": "Tháp Hà Nội Cổ Điển",
-    "tagline": "Chuyển ngăn đĩa từ cọc này sang cọc khác theo thứ tự.",
+    "title": "Tháp Ba Cọc",
+    "tagline": "Chuyển cả chồng đĩa từng nước một; không đặt đĩa lớn lên đĩa nhỏ.",
     "category": "Giải đố",
     "section": "all",
     "players": "1 người",
     "duration": "3-8 phút",
-    "mechanic": "Toán học chuyển ngăn xếp đĩa không để đĩa lớn đè nhỏ",
-    "badge": "Toán học",
-    "color": "#183D32"
+    "mechanic": "Di chuyển đĩa giữa ba cọc; chỉ đặt đĩa nhỏ lên đĩa lớn.",
+    "badge": "Tư duy",
+    "color": "#20483D"
   },
   {
     "id": "piano-tiles-phim-nhac",
@@ -1799,4 +1799,5 @@ window.__NP_GAMES_CACHE__ = [
     "badge": "Tuổi thơ",
     "color": "#F97316"
   }
-];
+]
+;

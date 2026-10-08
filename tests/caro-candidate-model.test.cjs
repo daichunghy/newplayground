@@ -64,7 +64,7 @@ test('a five still wins when both ends are occupied by the opponent', () => {
   assert.equal(g.view().status, 'won');
 });
 
-test('bridging two shorter runs into six leaves play going without a foul loss', () => {
+test('bridging two shorter runs into six wins without a foul rule', () => {
   const g = M.create();
   play(g, 7, 3); play(g, 0, 0);
   play(g, 7, 4); play(g, 0, 2);
@@ -76,13 +76,51 @@ test('bridging two shorter runs into six leaves play going without a foul loss',
   assert.equal(g.view().board[7][5], M.EMPTY);
   play(g, 7, 5);
   assert.deepEqual([3, 4, 5, 6, 7, 8].map(col => g.view().board[7][col]), Array(6).fill(M.X));
-  assert.equal(g.view().status, 'playing');
-  assert.equal(g.view().winner, null);
-  assert.equal(g.view().winningLine, null);
-  assert.equal(g.view().currentPlayer, M.O);
+  assert.equal(g.view().status, 'won');
+  assert.equal(g.view().winner, M.X);
+  assert.equal(g.view().winningLine.length, 6);
+  assert.equal(g.view().currentPlayer, M.X);
 });
 
-test('a full balanced board without an exact five ends in a draw', () => {
+test('CPU takes its immediate win and leaves the human turn after its legal move', () => {
+  const g = M.create();
+  const moves = [
+    [0, 0], [7, 5], [0, 2], [7, 6], [0, 4], [7, 7], [1, 0], [7, 8], [1, 2]
+  ];
+  for (const [row, col] of moves) play(g, row, col);
+  const before = g.view();
+  const choice = M.chooseCpuMove(before, M.O);
+  assert.ok(choice && choice.row === 7 && [4, 9].includes(choice.col));
+  assert.deepEqual(g.view(), before, 'choosing a move does not mutate the match');
+  play(g, choice.row, choice.col);
+  assert.equal(g.view().winner, M.O);
+});
+
+test('CPU blocks an immediate human win when it can', () => {
+  const g = M.create();
+  const moves = [
+    [7, 5], [7, 4], [7, 6], [0, 0], [7, 7], [0, 2], [7, 8], [1, 0], [2, 0]
+  ];
+  for (const [row, col] of moves) play(g, row, col);
+  const choice = M.chooseCpuMove(g.view(), M.O);
+  assert.deepEqual(choice, { row: 7, col: 9 });
+  play(g, choice.row, choice.col);
+  assert.equal(g.view().status, 'playing');
+  assert.deepEqual(M.winningMoves(g.view(), M.X), []);
+});
+
+test('CPU uses a deterministic legal nearby move after the opening mark', () => {
+  const g = M.create();
+  play(g, 7, 7);
+  const view = g.view();
+  const choice = M.chooseCpuMove(view, M.O);
+  assert.deepEqual(M.chooseCpuMove(view, M.O), choice);
+  assert.ok(choice && g.view().board[choice.row][choice.col] === M.EMPTY);
+  play(g, choice.row, choice.col);
+  assert.equal(g.view().board[choice.row][choice.col], M.O);
+});
+
+test('a full balanced board without five in a row ends in a draw', () => {
   const g = M.create();
   const positions = { [M.X]: [], [M.O]: [] };
   for (let row = 0; row < M.SIZE; row += 1) {

@@ -1,4 +1,4 @@
-/* Deterministic two-player candidate for a documented Ô Ăn Quan default. */
+/* Deterministic two-player candidate for a documented Ô Ăn Quan default, with a bounded CPU search. */
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -100,6 +100,10 @@
       return FIELDS[turn].filter(index => board[index].stones > 0);
     }
 
+    function legalMoves() {
+      return legalPits().flatMap(index => [-1, 1].map(direction => ({ pit: index, direction })));
+    }
+
     function play(index, direction) {
       if (status !== 'playing' || !Number.isInteger(index) || !owns(turn, index) || !Number.isInteger(direction) || (direction !== -1 && direction !== 1)) return false;
       if (board[index].stones <= 0) return false;
@@ -175,8 +179,78 @@
       prepareTurn();
     }
 
-    return Object.freeze({ view, play, reset, legalPits });
+    return Object.freeze({ view, play, reset, legalPits, legalMoves });
   }
 
-  return Object.freeze({ PIT_COUNT, QUAN, FIELDS, create, initialBoard, cloneBoard });
+  const SEARCH_DEPTH = 2;
+
+  function evaluate(view) {
+    if (view.status === 'won' || view.status === 'forfeit') {
+      const margin = view.scores.black - view.scores.red;
+      return (view.winner === 'black' ? 100000 : -100000) + margin;
+    }
+    if (view.status === 'draw') return 0;
+
+    const scoreMargin = view.scores.black - view.scores.red;
+    const fieldMargin = FIELDS.black.reduce((sum, index) => sum + view.board[index].stones, 0) -
+      FIELDS.red.reduce((sum, index) => sum + view.board[index].stones, 0);
+    const quanStoneMargin = (view.board[0].owner === 'black' ? view.board[0].stones : -view.board[0].stones) +
+      (view.board[6].owner === 'black' ? view.board[6].stones : -view.board[6].stones);
+    const activeQuanMargin = (view.board[0].quan && view.board[0].owner === 'black' ? 10 : 0) -
+      (view.board[0].quan && view.board[0].owner === 'red' ? 10 : 0) +
+      (view.board[6].quan && view.board[6].owner === 'black' ? 10 : 0) -
+      (view.board[6].quan && view.board[6].owner === 'red' ? 10 : 0);
+    const mobility = side => {
+      const active = FIELDS[side].filter(index => view.board[index].stones > 0).length;
+      return active ? active * 2 : view.scores[side] >= 5 ? 10 : 0;
+    };
+    return scoreMargin * 20 + fieldMargin * 0.22 + quanStoneMargin * 0.22 + activeQuanMargin * 0.12 +
+      (mobility('black') - mobility('red')) * 0.2;
+  }
+
+  function search(game, depth, alpha, beta) {
+    const state = game.view();
+    if (state.status !== 'playing' || depth === 0) return evaluate(state);
+    const moves = game.legalMoves();
+    if (!moves.length) return evaluate(state);
+    const maximizing = state.turn === 'black';
+    let best = maximizing ? -Infinity : Infinity;
+    for (const move of moves) {
+      const next = create({ board: state.board, scores: state.scores, turn: state.turn });
+      next.play(move.pit, move.direction);
+      const score = search(next, depth - 1, alpha, beta);
+      if (maximizing) {
+        best = Math.max(best, score);
+        alpha = Math.max(alpha, best);
+      } else {
+        best = Math.min(best, score);
+        beta = Math.min(beta, best);
+      }
+      if (beta <= alpha) break;
+    }
+    return best;
+  }
+
+  function chooseComputerMove(state) {
+    if (!state || state.status !== 'playing' || state.turn !== 'black' || !Array.isArray(state.board)) return null;
+    const root = create({ board: state.board, scores: state.scores, turn: state.turn });
+    const moves = root.legalMoves();
+    if (!moves.length) return null;
+    let bestMove = null;
+    let bestScore = -Infinity;
+    let alpha = -Infinity;
+    for (const move of moves) {
+      const next = create({ board: state.board, scores: state.scores, turn: state.turn });
+      next.play(move.pit, move.direction);
+      const score = search(next, SEARCH_DEPTH - 1, alpha, Infinity);
+      if (score > bestScore) {
+        bestScore = score;
+        bestMove = move;
+      }
+      alpha = Math.max(alpha, bestScore);
+    }
+    return bestMove ? { ...bestMove } : null;
+  }
+
+  return Object.freeze({ PIT_COUNT, QUAN, FIELDS, create, initialBoard, cloneBoard, chooseComputerMove, SEARCH_DEPTH });
 });

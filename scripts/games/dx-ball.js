@@ -20,7 +20,7 @@
         </div></header>
         <div class="db-hud" aria-label="Trạng thái ván">
           <div><span>Điểm</span><strong id="dbScore">0</strong></div>
-          <div><span>Màn</span><strong id="dbLevel">1</strong></div>
+          <div><span>Chặng</span><strong id="dbLevel">1 / ${M.CAMPAIGN.length}</strong><small id="dbStageName">${M.CAMPAIGN[0].name}</small></div>
           <div><span>Lượt</span><strong id="dbLives">3</strong></div>
         </div>
         <div class="db-stage">
@@ -30,7 +30,7 @@
           </div>
         </div>
         <p class="db-status" id="dbStatus" role="status" aria-live="polite" aria-atomic="true">Chạm, kéo hoặc nhấn Space để phóng bóng.</p>
-        <p class="db-help" id="dbHelp">Di chuyển: ← → hoặc A D · Chạm/kéo bàn chơi · Space phóng · P tạm dừng</p>
+        <p class="db-help" id="dbHelp">Di chuyển: ← → hoặc A D · Chạm/kéo bàn chơi · Space phóng · P tạm dừng · dọn 4 chặng</p>
       </section>`;
 
     const el = id => container.querySelector('#' + id);
@@ -71,6 +71,11 @@
         ctx.fillStyle = grad; roundRect(brick.x, brick.y, brick.width, brick.height, 5); ctx.fill();
         ctx.shadowBlur = 0; ctx.fillStyle = 'rgba(255,255,255,.22)';
         ctx.fillRect(brick.x + 6, brick.y + 3, Math.max(8, brick.width - 18), 2);
+        if (brick.maxHits > 1) {
+          ctx.fillStyle = '#101a31'; ctx.font = '700 11px Calibri, Inter, sans-serif';
+          ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+          ctx.fillText(String(brick.hits), brick.x + brick.width - 6, brick.y + brick.height / 2 + .5);
+        }
         ctx.restore();
       }
 
@@ -93,26 +98,28 @@
     function messageFor(v) {
       if (gameMessage) return gameMessage;
       if (v.status === 'paused') return 'Đang tạm dừng.';
-      if (v.status === 'ready' && v.level > 1) return `Màn ${v.level} · chạm hoặc nhấn Space để phóng.`;
+      if (v.status === 'won') return `Đã dọn xong ${v.stages} chặng · ${v.score} điểm.`;
+      if (v.status === 'ready' && v.level > 1) return `Chặng ${v.level} · ${v.stage} · chạm hoặc nhấn Space.`;
       if (v.status === 'ready') return 'Chạm, kéo hoặc nhấn Space để phóng bóng.';
       if (v.status === 'over') return `Hết lượt · ${v.score} điểm.`;
-      return `Màn ${v.level} · còn ${v.remaining} viên gạch.`;
+      return `Chặng ${v.level}/${v.stages} · ${v.stage} · còn ${v.remaining} viên gạch.`;
     }
     function update() {
       if (!alive) return;
       const v = model.view(), signature = [v.status, v.score, v.level, v.lives, paused, v.remaining, gameMessage].join('|');
       if (signature === lastHUD) return;
       lastHUD = signature;
-      el('dbScore').textContent = String(v.score); el('dbLevel').textContent = String(v.level);
+      el('dbScore').textContent = String(v.score); el('dbLevel').textContent = `${v.level} / ${v.stages}`;
+      el('dbStageName').textContent = v.stage;
       el('dbLives').textContent = `${v.lives} / ${M.MAX_LIVES}`;
-      const ready = v.status === 'ready', ended = v.status === 'over';
+      const ready = v.status === 'ready', won = v.status === 'won', ended = v.status === 'over' || won;
       el('dbOverlay').hidden = v.status === 'playing';
       el('dbPause').disabled = ended;
       el('dbPause').textContent = v.status === 'paused' ? '▶' : 'Ⅱ';
       el('dbPause').setAttribute('aria-label', v.status === 'paused' ? 'Tiếp tục' : 'Tạm dừng');
-      el('dbStart').textContent = ended ? 'Chơi lại' : v.status === 'paused' ? 'Tiếp tục' : ready && v.level > 1 ? 'Màn tiếp' : 'Bắt đầu';
-      el('dbTitle').textContent = ended ? 'Hết lượt' : v.status === 'paused' ? 'Đang tạm dừng' : ready && v.level > 1 ? `Màn ${v.level}` : 'Phá Gạch';
-      el('dbText').textContent = ended ? `Bạn đạt ${v.score} điểm qua ${v.level} màn.` : v.status === 'paused' ? 'Bóng đang nghỉ. Tiếp tục khi bạn sẵn sàng.' : 'Đỡ bóng bằng thanh trượt và phá hết gạch. Chạm, kéo hoặc nhấn Space để chơi.';
+      el('dbStart').textContent = ended ? 'Chơi lại' : v.status === 'paused' ? 'Tiếp tục' : ready && v.level > 1 ? 'Chặng tiếp' : 'Bắt đầu';
+      el('dbTitle').textContent = won ? 'Thắng rồi!' : v.status === 'over' ? 'Hết lượt' : v.status === 'paused' ? 'Đang tạm dừng' : ready && v.level > 1 ? `Chặng ${v.level}: ${v.stage}` : 'Phá Gạch';
+      el('dbText').textContent = won ? `Bạn đã dọn cả 4 chặng · ${v.score} điểm.` : v.status === 'over' ? `Bạn đạt ${v.score} điểm qua chặng ${v.level}.` : v.status === 'paused' ? 'Bóng đang nghỉ. Tiếp tục khi bạn sẵn sàng.' : 'Đỡ bóng và phá hết gạch của mỗi sân. Chạm, kéo hoặc nhấn Space để chơi.';
       el('dbStatus').textContent = messageFor(v);
     }
 
@@ -127,15 +134,17 @@
     }
     function consume(events) {
       for (const event of events || []) {
-        if (['brick', 'paddle', 'life', 'level', 'launch'].includes(event.kind)) sound(event.kind);
+        if (['brick', 'paddle', 'life', 'level', 'launch', 'win'].includes(event.kind)) sound(event.kind);
         if (event.kind === 'life') gameMessage = event.lives ? `Mất một lượt · còn ${event.lives}. Chạm hoặc nhấn Space để tiếp tục.` : `Hết lượt · ${event.score} điểm.`;
-        if (event.kind === 'level') gameMessage = `Đã phá hết gạch · màn ${event.level} bắt đầu.`;
-        if (event.kind === 'brick' || event.kind === 'paddle' || event.kind === 'launch') gameMessage = '';
+        if (event.kind === 'level') gameMessage = `Đã phá hết gạch · ${event.name} bắt đầu.`;
+        if (event.kind === 'brick' && !event.destroyed) gameMessage = 'Viên gạch bền nứt thêm.';
+        if (event.kind === 'win') gameMessage = `Đã dọn xong ${event.level} chặng.`;
+        if (event.kind === 'brick' && event.destroyed || event.kind === 'paddle' || event.kind === 'launch') gameMessage = '';
       }
     }
     function wantsFrame() {
       const v = model.view();
-      return alive && v.status !== 'paused' && v.status !== 'over' && (v.status === 'playing' || keyAxis() !== 0 || v.paddle.targetX !== null);
+      return alive && (v.status === 'playing' || v.status === 'ready' && (keyAxis() !== 0 || v.paddle.targetX !== null));
     }
     function schedule() { if (wantsFrame() && frame === null) frame = requestAnimationFrame(loop); }
     function loop(now) {
@@ -156,7 +165,7 @@
     function startOrContinue() {
       unlockAudio();
       const status = model.view().status;
-      if (status === 'over') { model = model.reset(); gameMessage = ''; paused = false; lastFrame = null; }
+      if (status === 'over' || status === 'won') { model = model.reset(); gameMessage = ''; paused = false; lastFrame = null; }
       else if (status === 'paused') { model.resume(); paused = false; lastFrame = null; }
       if (model.launch()) { consume(model.drain()); gameMessage = ''; canvas.focus({ preventScroll: true }); }
       else consume(model.drain());
@@ -179,7 +188,7 @@
       aimFromPointer(event);
       const status = model.view().status;
       if (status === 'paused') model.resume();
-      if (model.view().status === 'over') model = model.reset();
+      if (model.view().status === 'over' || model.view().status === 'won') model = model.reset();
       if (model.view().status === 'ready') model.launch();
       consume(model.drain()); gameMessage = ''; paused = false; lastFrame = null; draw(); lastHUD = ''; update(); schedule();
       canvas.focus({ preventScroll: true });

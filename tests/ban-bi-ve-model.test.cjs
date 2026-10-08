@@ -57,6 +57,48 @@ test('flick input rejects invalid pulls, caps force, and starts one deterministi
   assert.equal(game.shoot(0, 200), false, 'no second shooter while the first shot is moving');
 });
 
+test('solo CPU picks a repeatable legal shot within its simulation budget and leaves marbles in play', () => {
+  function cpuGame() {
+    const game = fixture([
+      target(1, 360, 120), target(2, 418, 220), target(3, 418, 300),
+      target(4, 302, 300), target(5, 302, 220), target(6, 360, 260)
+    ], [0, 0]);
+    game.state.turn = 1;
+    game.state.striker = { ...M.homeFor(2, 1), vx: 0, vy: 0 };
+    return game;
+  }
+  const game = cpuGame(), replay = cpuGame(), before = game.serialize();
+  const shot = game.chooseCpuShot();
+  assert.deepEqual(shot, replay.chooseCpuShot());
+  assert.ok(shot);
+  assert.ok(M.CPU_LIMITS.maxTrials >= shot.trials && shot.trials <= 18);
+  assert.equal(shot.predictedCaptures, 1, 'the edge marble is a clean tactical target');
+  assert.deepEqual(game.serialize(), before, 'shot search does not move marbles or spend a turn');
+  assert.equal(game.shoot(shot.angle, shot.speed), true, 'the returned angle and speed use the normal legal shot path');
+  settle(game);
+  assert.equal(game.state.score[1], 1);
+  assert.equal(game.state.targets.length, 5, 'the human still has five targets to play');
+  assert.equal(game.state.status, 'playing');
+  assert.equal(game.state.cpuScoredTurn, true);
+  const resumed = M.restore(game.serialize());
+  assert.ok(resumed);
+  const pass = resumed.chooseCpuShot();
+  assert.deepEqual(pass, { angle: Math.PI / 2, speed: 100, predictedCaptures: 0, trials: 0 });
+  assert.equal(resumed.shoot(pass.angle, pass.speed), true, 'the CPU still takes the extra shot granted by a capture');
+  settle(resumed);
+  assert.equal(resumed.state.turn, 0, 'the safe low-power shot yields the turn to the human');
+  assert.equal(resumed.state.targets.length, 5);
+});
+
+test('CPU cannot choose a shot outside its turn or while a shot is moving', () => {
+  const game = M.create({ players: 2, seed: 5 });
+  assert.equal(game.chooseCpuShot(), null);
+  game.state.turn = 1;
+  assert.ok(game.chooseCpuShot());
+  assert.equal(game.shoot(0, 240), true);
+  assert.equal(game.chooseCpuShot(), null);
+});
+
 test('a miss passes the turn after the striker settles', () => {
   const game = fixture([target(1, 360, 260)], [0, 5]);
   assert.equal(game.shoot(Math.PI, 400), true);
@@ -106,6 +148,8 @@ test('fixed-step replay and restore produce the same moving shot', () => {
 
 test('invalid, inconsistent and future saves are rejected without throwing', () => {
   const valid = M.create({ players: 3, seed: 7 }).serialize();
+  const legacy = JSON.parse(JSON.stringify(valid)); delete legacy.cpuScoredTurn;
+  assert.equal(M.restore(legacy).state.cpuScoredTurn, false, 'older saves default the new CPU turn flag safely');
   const edits = [
     state => { state.version = 2; },
     state => { state.rules = 'other'; },
@@ -117,6 +161,8 @@ test('invalid, inconsistent and future saves are rejected without throwing', () 
     state => { state.score[0] = 500; },
     state => { state.phase = 'moving'; state.striker.vy = 1000; },
     state => { state.status = 'won'; state.winners = [2]; },
+    state => { state.cpuScoredTurn = 'yes'; },
+    state => { state.cpuScoredTurn = true; },
     state => { state.accumulator = 10; }
   ];
   for (const edit of edits) {

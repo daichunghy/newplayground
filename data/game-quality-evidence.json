@@ -807,80 +807,72 @@
     },
     "co-caro": {
       "scope": "original-candidate-not-reference-parity",
-      "reference_version": "Original 15x15 local five-in-a-row candidate; RIF Gomoku rules serve as one formal reference only, not a verified historic Vietnamese Caro edition.",
-      "candidate_build": "caro-candidate-1",
+      "reference_version": "Original casual 15x15 Caro: five-or-more wins, including overlines; no Renju foul loss. Historic build unknown.",
+      "candidate_build": "caro-solo-1",
       "accepted_build": null,
       "owner": null,
       "accepted_at": null,
       "implementation_status": "implemented-awaiting-browser-device-qa",
       "automated_tests": {
         "command": "node --test --test-concurrency=1 tests/caro-candidate-model.test.cjs tests/caro-candidate-ui.test.cjs",
-        "passed": 11,
+        "passed": 15,
         "failed": 0,
-        "date": "2026-10-07",
-        "evidence": "docs/qa/caro-candidate-local-checks-20261007.txt",
-        "limitation": "Pure model and DOM doubles; no real-browser rendering, touch-device QA, accessibility audit, game balance review or human playtest."
+        "date": "2026-10-08",
+        "evidence": "docs/games/CARO_CANDIDATE_RESEARCH_AND_SCOPE.md",
+        "limitation": "Model and DOM-double tests only; no browser/device acceptance or human playtest."
       },
       "gates": {
         "reference_parity": {
           "status": "pending",
-          "evidence": "The catalog does not identify a specific Vietnamese Caro build. Product rules vary; Cờ Caro chooses a documented exact-five candidate and makes no historic or tournament-parity claim."
+          "evidence": "Candidate scope and automated checks are documented in docs/games/CARO_CANDIDATE_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
         },
         "content": {
           "status": "pending",
-          "evidence": "One 15x15 local hot-seat board with X first, exact five, full-board draw and no extra modes; playtest pending."
+          "evidence": "Candidate scope and automated checks are documented in docs/games/CARO_CANDIDATE_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
         },
         "controls": {
           "status": "pending",
-          "evidence": "DOM/event-double tests cover pointer placement, arrow-key roving focus, Enter placement, restart and teardown; device/screen-reader acceptance pending."
+          "evidence": "Candidate scope and automated checks are documented in docs/games/CARO_CANDIDATE_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
         },
         "visual_audio": {
           "status": "pending",
-          "evidence": "CSS grid and text X/O marks use no external image/audio assets; real visual review pending."
+          "evidence": "Candidate scope and automated checks are documented in docs/games/CARO_CANDIDATE_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
         },
         "device_qa": {
           "status": "pending",
-          "evidence": "Not run."
+          "evidence": "Candidate scope and automated checks are documented in docs/games/CARO_CANDIDATE_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
         },
         "save_recovery": {
           "status": "pending",
-          "evidence": "No persistence or undo by design; real browser close/reopen check pending."
+          "evidence": "Candidate scope and automated checks are documented in docs/games/CARO_CANDIDATE_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
         },
         "playtest": {
           "status": "pending",
-          "evidence": "No human playtest; 15x15 fit, move cadence and hot-seat handoff unmeasured."
+          "evidence": "Candidate scope and automated checks are documented in docs/games/CARO_CANDIDATE_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
         },
         "distribution_rights": {
           "status": "pending",
-          "evidence": "Candidate code/CSS are project-authored and use no third-party art/audio. The old `assets/caro_cover.png` is provenance-unverified and excluded from the prepared artifact."
+          "evidence": "Candidate scope and automated checks are documented in docs/games/CARO_CANDIDATE_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
         }
       },
-      "player_ui": "Immediate 15x15 hot-seat board, one-line exact-five hint, roving keyboard focus and one new-game action; real browser/device acceptance pending.",
+      "player_ui": "Immediate solo-first Caro against CPU O with a compact hot-seat toggle.",
       "research": {
+        "status": "candidate-depth-updated",
+        "evidence_date": "2026-10-08",
+        "reference_version": "Original casual 15x15 Caro: five-or-more wins, including overlines; no Renju foul loss. Historic build unknown.",
+        "current_mechanic": "Casual five-in-a-row; solo CPU O default and optional local hot-seat.",
+        "first_delivery": "Keep the instant 15x15 board and add a deterministic tactical CPU.",
+        "rules_task": "The candidate keeps its documented rules and marks differences from the selected reference; no unidentified historic-edition parity is claimed.",
+        "content_task": "Five-or-more connected wins, blocked ends do not matter, full board draws; no Renju foul rules.",
+        "controls_task": "Tap/click or arrows plus Enter; compact hot-seat toggle.",
+        "visual_assets_and_license_to_resolve": "Original CSS grid and X/O marks.",
+        "feel_speed_and_performance_to_measure": "Check counterplay, board fit and input latency with novice/device tests.",
+        "rights_status": "Project-authored candidate; title/route clearance pending.",
         "source_urls": [
-          "https://www.renju.net/gomokurules/",
           "https://www.renju.net/rifrules/",
-          "https://www.renju.net/documents/",
-          "https://cocarovn.com/co-caro-2-nguoi-15x15/",
-          "https://play.google.com/store/apps/details?hl=en_NZ&id=com.vndynapp.carochess",
-          "https://caro-landing-ivory.vercel.app/en/support"
+          "https://www.renju.net/gomokurules/"
         ],
-        "status": "official-RIF-Gomoku-Renju-rules-and-Vietnamese Caro-product descriptions reviewed; exact historical catalog variant unverified",
-        "evidence_date": "2026-10-07",
-        "backlog_status": "Original Cờ Caro candidate implemented; RIF formal rules and product-specific Vietnamese rule variants compared, no target edition established; browser/device/playtest pending.",
-        "reference_version": "RIF formal 15x15 Gomoku exact-five rules as one documented rules reference. The Vietnamese catalog’s historic Caro build/version remains unidentified.",
-        "first_delivery": "Replace the inherited Caro engine with a compact, original local two-player board and clearly state its chosen exact-five variant.",
-        "rules_task": "RIF Gomoku specifies a straight uninterrupted five and six-plus overline is not a winning five; Renju separately has asymmetric forbidden moves, which this candidate omits. Vietnamese Caro product descriptions differ on blocked ends and overline handling. Cờ Caro uses X first, maximal exact five wins, overline neither wins nor causes foul loss, blocked ends do not matter, full board without a five draws. No historic parity claim.",
-        "content_task": "One 15x15 board; two local players share one device; X starts; four win directions; exact-five; a gap-bridging six-mark run does not win or foul-lose; blocked ends do not alter a five; full board without five is draw. No bot, online mode, clock, score ladder, undo, opening rules, economy or unlocks.",
-        "controls_task": "Tap/click a vacant cell; arrow keys move the one roving target; Enter places a mark. One new-game button appears at the end. Browser/device and screen-reader behavior pending.",
-        "visual_feel_task": "Original CSS grid, high-contrast X/O text marks and a highlighted last/winning run; zero external art or sound. Board fit and touch accuracy need actual device review.",
-        "acceptance": "11 focused tests pass (7 model + 4 UI): exact five in four directions, blocked ends, a gap-bridging six without foul loss, deterministic full-board draw, input/restart/cleanup. Browser/device/accessibility and human playtest remain separate gates.",
-        "current_mechanic": "Two local players alternate X/O on a 15x15 grid; exactly five contiguous marks in a straight line wins; full board without a five draws.",
-        "progression_and_items_to_research": "Single shared-device round; no campaign, items, scoring ladder, bot, clock or undo.",
-        "visual_assets_and_license_to_resolve": "Project-authored HTML/CSS and text marks only; `assets/caro_cover.png` is unverified and excluded from the prepared artifact.",
-        "feel_speed_and_performance_to_measure": "Measure board fit/tap accuracy on narrow phones, keyboard focus visibility, symbol readability and local turn handoff; none measured yet.",
-        "rights_status": "No third-party code/art/audio copied. The generic Caro route/title is retained for catalog routing; rights review and exact historic variant remain pending.",
-        "quality_evidence_ref": "docs/games/CARO_CANDIDATE_RESEARCH_AND_SCOPE.md"
+        "backlog_status": "Original candidate updated; browser/device, human playtest and title/distribution review pending. See docs/games/CARO_CANDIDATE_RESEARCH_AND_SCOPE.md."
       }
     },
     "lat-the-tri-nho": {
@@ -1471,6 +1463,562 @@
         "acceptance": "Verify each authored weather schedule/goal, deterministic customer replay and bounded winning plan for baseline-lost seeds, recipe costs, win/loss, day unlock/replay, best-profit/seed save and recovery, repeated input, close/restart, responsive layout, browser/device behavior, human difficulty and rights."
       },
       "player_ui": "Immediate five-day recipe/price campaign; three visible ratio choices, price/cost, weather and daily profit bar; numbered day unlock/replay, deterministic retry, best-profit record and short result; no menu, stock, upgrade or billing flow."
+    },
+    "thap-ha-noi-tower": {
+      "scope": "limited-release",
+      "reference_version": "Classic three-peg Tower of Hanoi rules; original NewPlayground presentation and campaign",
+      "candidate_build": "tbc1",
+      "accepted_build": null,
+      "owner": null,
+      "accepted_at": null,
+      "implementation_status": "implemented-awaiting-browser-device-qa",
+      "automated_tests": {
+        "command": "node --test --test-concurrency=1 tests/thap-ba-coc-model.test.cjs tests/thap-ba-coc-ui.test.cjs tests/game-flow.test.cjs",
+        "passed": 31,
+        "failed": 0,
+        "date": "2026-10-08",
+        "detail": "Pure rules and shortest-hint solutions for 3–6 disks, DOM-double interactions, save recovery, exact route and session cleanup; not browser/device QA."
+      },
+      "gates": {
+        "reference_parity": {
+          "status": "pending",
+          "evidence": "Candidate implementation and focused automated tests are documented in docs/games/THAP_BA_COC_RESEARCH_AND_QA.md; browser/device, playtest, and release review remain open."
+        },
+        "content": {
+          "status": "pending",
+          "evidence": "Candidate implementation and focused automated tests are documented in docs/games/THAP_BA_COC_RESEARCH_AND_QA.md; browser/device, playtest, and release review remain open."
+        },
+        "controls": {
+          "status": "pending",
+          "evidence": "Candidate implementation and focused automated tests are documented in docs/games/THAP_BA_COC_RESEARCH_AND_QA.md; browser/device, playtest, and release review remain open."
+        },
+        "visual_audio": {
+          "status": "pending",
+          "evidence": "Candidate implementation and focused automated tests are documented in docs/games/THAP_BA_COC_RESEARCH_AND_QA.md; browser/device, playtest, and release review remain open."
+        },
+        "device_qa": {
+          "status": "pending",
+          "evidence": "Candidate implementation and focused automated tests are documented in docs/games/THAP_BA_COC_RESEARCH_AND_QA.md; browser/device, playtest, and release review remain open."
+        },
+        "save_recovery": {
+          "status": "pending",
+          "evidence": "Candidate implementation and focused automated tests are documented in docs/games/THAP_BA_COC_RESEARCH_AND_QA.md; browser/device, playtest, and release review remain open."
+        },
+        "playtest": {
+          "status": "pending",
+          "evidence": "Candidate implementation and focused automated tests are documented in docs/games/THAP_BA_COC_RESEARCH_AND_QA.md; browser/device, playtest, and release review remain open."
+        },
+        "distribution_rights": {
+          "status": "pending",
+          "evidence": "Candidate implementation and focused automated tests are documented in docs/games/THAP_BA_COC_RESEARCH_AND_QA.md; browser/device, playtest, and release review remain open."
+        }
+      },
+      "player_ui": "Original Vietnamese four-stage campaign; keyboard and touch-accessible peg controls, optional hint and undo, best-move feedback; browser acceptance pending.",
+      "research": {
+        "status": "desk-research-complete",
+        "evidence_date": "2026-10-08",
+        "reference_version": "Classic three-peg Tower of Hanoi rules",
+        "current_mechanic": "Move one top disk at a time between three pegs; never place a larger disk on a smaller disk; move the complete stack from A to C.",
+        "first_delivery": "Four-stage original campaign with 3, 4, 5 and 6 disks, exact move/par feedback, undo, shortest-path hint, save recovery and replay.",
+        "rules_task": "Classic three-peg rules cross-checked against Wolfram MathWorld; minimum moves cross-checked against NIST DADS. No commercial build playthrough or measured edition parity.",
+        "content_task": "NewPlayground stages: 3/4/5/6 disks, 7/15/31/63 optimal moves; no blockers, special tiles, items or additional mode.",
+        "controls_task": "Select source then destination by mouse/touch or Enter/Space; left/right/Home/End focus navigation; U undo, H hint, Escape deselect; browser/device touch and assistive-technology checks pending.",
+        "visual_assets_and_license_to_resolve": "Original CSS disk/peg art and assets/thap-ba-coc-original.svg cover; MIT project authorship recorded in asset manifest/register; verify rendering and distribution name/art review before release.",
+        "feel_speed_and_performance_to_measure": "No game loop or move-blocking animation; verify input feedback and responsive board on browser/device; no measured frame/input metrics yet.",
+        "rights_status": "No third-party code, images, font or sound included; project-created cover SVG is MIT. Review release title/branding rights before publication.",
+        "source_urls": [
+          "https://mathworld.wolfram.com/TowerofHanoi.html",
+          "https://xlinux.nist.gov/dads/HTML/towersOfHanoi.html",
+          "https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html"
+        ],
+        "backlog_status": "Prototype riêng; browser/device QA, playtest, title/distribution rights review pending",
+        "progression_and_items_to_research": "Four original disk-count stages; no in-game items or economy. Validate stage pacing and campaign comprehension in playtest."
+      }
+    },
+    "o-an-quan": {
+      "scope": "original-candidate-not-reference-parity",
+      "reference_version": "Documented subset compared with Hanoi education and Vietnam tourism entries; historic catalog version unknown.",
+      "candidate_build": "oaq-solo-1",
+      "accepted_build": null,
+      "owner": null,
+      "accepted_at": null,
+      "implementation_status": "implemented-awaiting-browser-device-qa",
+      "automated_tests": {
+        "command": "node --test --test-concurrency=1 tests/o-an-quan-model.test.cjs tests/o-an-quan-ui.test.cjs",
+        "passed": 18,
+        "failed": 0,
+        "date": "2026-10-08",
+        "evidence": "docs/games/O_AN_QUAN_RESEARCH_AND_SCOPE.md",
+        "limitation": "Model and DOM-double tests only; no browser/device acceptance or human playtest."
+      },
+      "gates": {
+        "reference_parity": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/O_AN_QUAN_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "content": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/O_AN_QUAN_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "controls": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/O_AN_QUAN_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "visual_audio": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/O_AN_QUAN_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "device_qa": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/O_AN_QUAN_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "save_recovery": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/O_AN_QUAN_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "playtest": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/O_AN_QUAN_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "distribution_rights": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/O_AN_QUAN_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        }
+      },
+      "research": {
+        "status": "candidate-depth-updated",
+        "evidence_date": "2026-10-08",
+        "reference_version": "Documented subset compared with Hanoi education and Vietnam tourism entries; historic catalog version unknown.",
+        "current_mechanic": "Relay sow/capture match; Red versus deterministic Black CPU default, optional local hot-seat.",
+        "first_delivery": "Add a bounded deterministic CPU using legal moves from the existing rules model.",
+        "rules_task": "The candidate keeps its documented rules and marks differences from the selected reference; no unidentified historic-edition parity is claimed.",
+        "content_task": "Preserve the candidate 12-pit sow, capture, refill, and finish rules.",
+        "controls_task": "Tap/click pit and direction; compact local-play toggle.",
+        "visual_assets_and_license_to_resolve": "Existing project-authored board and vector cover.",
+        "feel_speed_and_performance_to_measure": "Measure CPU latency, capture/refill decisions, and human counterplay.",
+        "rights_status": "Regional variation and historic route/title clearance pending.",
+        "source_urls": [
+          "https://vietnamtourism.vn/index.php/about/items/2295",
+          "https://oanquan.online/luat-choi-o-an-quan"
+        ],
+        "backlog_status": "Original candidate updated; browser/device, human playtest and title/distribution review pending. See docs/games/O_AN_QUAN_RESEARCH_AND_SCOPE.md."
+      },
+      "player_ui": "Ô Ăn Quan starts solo against a deterministic CPU; optional local hot-seat remains."
+    },
+    "co-tuong": {
+      "scope": "original-candidate-not-reference-parity",
+      "reference_version": "World Xiangqi Rules 2018 core movement/check rules; historic catalog edition unknown.",
+      "candidate_build": "xiangqi-solo-1",
+      "accepted_build": null,
+      "owner": null,
+      "accepted_at": null,
+      "implementation_status": "implemented-awaiting-browser-device-qa",
+      "automated_tests": {
+        "command": "node --test --test-concurrency=1 tests/xiangqi-model.test.cjs tests/xiangqi-ui.test.cjs",
+        "passed": 21,
+        "failed": 0,
+        "date": "2026-10-08",
+        "evidence": "docs/games/XIANGQI_RESEARCH_AND_QA.md",
+        "limitation": "Model and DOM-double tests only; no browser/device acceptance or human playtest."
+      },
+      "gates": {
+        "reference_parity": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/XIANGQI_RESEARCH_AND_QA.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "content": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/XIANGQI_RESEARCH_AND_QA.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "controls": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/XIANGQI_RESEARCH_AND_QA.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "visual_audio": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/XIANGQI_RESEARCH_AND_QA.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "device_qa": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/XIANGQI_RESEARCH_AND_QA.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "save_recovery": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/XIANGQI_RESEARCH_AND_QA.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "playtest": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/XIANGQI_RESEARCH_AND_QA.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "distribution_rights": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/XIANGQI_RESEARCH_AND_QA.md; real browser/device, human playtest, and distribution review remain pending."
+        }
+      },
+      "research": {
+        "status": "candidate-depth-updated",
+        "evidence_date": "2026-10-08",
+        "reference_version": "World Xiangqi Rules 2018 core movement/check rules; historic catalog edition unknown.",
+        "current_mechanic": "Legal 9x10 Xiangqi; Red versus deterministic legal-move Black default, optional hot-seat.",
+        "first_delivery": "Add a bounded one-reply opponent without altering movement or terminal rules.",
+        "rules_task": "The candidate keeps its documented rules and marks differences from the selected reference; no unidentified historic-edition parity is claimed.",
+        "content_task": "Keep standard 32-piece opening and existing casual repetition draw.",
+        "controls_task": "Select/move with touch, pointer, arrows and Enter; compact hot-seat toggle.",
+        "visual_assets_and_license_to_resolve": "Original geometric board and vector cover.",
+        "feel_speed_and_performance_to_measure": "Verify decision time, legal response, counterplay and actual glyph/touch readability.",
+        "rights_status": "Catalog route/title clearance pending.",
+        "source_urls": [
+          "https://www.wxf-xiangqi.org/images/wxf-rules/2018_World_XiangQi_Rules_English2018.pdf",
+          "https://www.asianxiangqi.org/English/AXFrulesEng.htm"
+        ],
+        "backlog_status": "Original candidate updated; browser/device, human playtest and title/distribution review pending. See docs/games/XIANGQI_RESEARCH_AND_QA.md."
+      },
+      "player_ui": "Cờ Tướng opens Red versus a deterministic legal-move CPU with optional local two-player."
+    },
+    "ban-bi-ve": {
+      "scope": "original-candidate-not-reference-parity",
+      "reference_version": "Documented regional bi lo circle-and-flick variant; historic catalog build unknown.",
+      "candidate_build": "marbles-solo-1",
+      "accepted_build": null,
+      "owner": null,
+      "accepted_at": null,
+      "implementation_status": "implemented-awaiting-browser-device-qa",
+      "automated_tests": {
+        "command": "node --test --test-concurrency=1 tests/ban-bi-ve-model.test.cjs tests/ban-bi-ve-ui.test.cjs",
+        "passed": 27,
+        "failed": 0,
+        "date": "2026-10-08",
+        "evidence": "docs/games/BAN_BI_VE_RESEARCH_AND_QA.md",
+        "limitation": "Model and DOM-double tests only; no browser/device acceptance or human playtest."
+      },
+      "gates": {
+        "reference_parity": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/BAN_BI_VE_RESEARCH_AND_QA.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "content": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/BAN_BI_VE_RESEARCH_AND_QA.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "controls": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/BAN_BI_VE_RESEARCH_AND_QA.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "visual_audio": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/BAN_BI_VE_RESEARCH_AND_QA.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "device_qa": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/BAN_BI_VE_RESEARCH_AND_QA.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "save_recovery": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/BAN_BI_VE_RESEARCH_AND_QA.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "playtest": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/BAN_BI_VE_RESEARCH_AND_QA.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "distribution_rights": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/BAN_BI_VE_RESEARCH_AND_QA.md; real browser/device, human playtest, and distribution review remain pending."
+        }
+      },
+      "research": {
+        "status": "candidate-depth-updated",
+        "evidence_date": "2026-10-08",
+        "reference_version": "Documented regional bi lo circle-and-flick variant; historic catalog build unknown.",
+        "current_mechanic": "Regional ring-flick candidate; Bạn versus Máy default and optional 2–4-player hot-seat.",
+        "first_delivery": "Add bounded candidate shot evaluation while preserving ring scoring and extra-turn rules.",
+        "rules_task": "The candidate keeps its documented rules and marks differences from the selected reference; no unidentified historic-edition parity is claimed.",
+        "content_task": "One local ring match; retain documented capture, extra turn on hit, handoff on miss.",
+        "controls_task": "Drag shooter marble or keyboard aim/force; compact hot-seat selector.",
+        "visual_assets_and_license_to_resolve": "Original procedural marble patterns; no external art.",
+        "feel_speed_and_performance_to_measure": "Check bounded shot time, deterministic counterplay, touch aim and fairness.",
+        "rights_status": "Regional rules and historical route/title clearance pending.",
+        "source_urls": [
+          "https://thethao.sggp.org.vn/tet-choi-danh-bi-post368405.html"
+        ],
+        "backlog_status": "Original candidate updated; browser/device, human playtest and title/distribution review pending. See docs/games/BAN_BI_VE_RESEARCH_AND_QA.md."
+      },
+      "player_ui": "Bắn Bi Ve starts Bạn versus Máy, with optional local 2–4 player play."
+    },
+    "pha-gach-dx-ball": {
+      "scope": "original-candidate-not-reference-parity",
+      "reference_version": "Generic paddle-and-ball loop; DX-Ball edition and rights unresolved.",
+      "candidate_build": "dxball-original-4field-campaign",
+      "accepted_build": null,
+      "owner": null,
+      "accepted_at": null,
+      "implementation_status": "implemented-awaiting-browser-device-qa",
+      "automated_tests": {
+        "command": "node --test --test-concurrency=1 tests/dx-ball-model.test.cjs tests/dx-ball-ui.test.cjs",
+        "passed": 18,
+        "failed": 0,
+        "date": "2026-10-08",
+        "evidence": "docs/games/PHA_GACH_DX_BALL_RESEARCH_AND_SCOPE.md",
+        "limitation": "Model and DOM-double tests only; no browser/device acceptance or human playtest."
+      },
+      "gates": {
+        "reference_parity": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/PHA_GACH_DX_BALL_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "content": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/PHA_GACH_DX_BALL_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "controls": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/PHA_GACH_DX_BALL_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "visual_audio": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/PHA_GACH_DX_BALL_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "device_qa": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/PHA_GACH_DX_BALL_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "save_recovery": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/PHA_GACH_DX_BALL_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "playtest": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/PHA_GACH_DX_BALL_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "distribution_rights": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/PHA_GACH_DX_BALL_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        }
+      },
+      "research": {
+        "status": "candidate-depth-updated",
+        "evidence_date": "2026-10-08",
+        "reference_version": "Generic paddle-and-ball loop; DX-Ball edition and rights unresolved.",
+        "current_mechanic": "Four authored brick fields; six two-hit core bricks create a final aim challenge.",
+        "first_delivery": "Replace repeating patterns with a named four-field campaign and a final core challenge.",
+        "rules_task": "The candidate keeps its documented rules and marks differences from the selected reference; no unidentified historic-edition parity is claimed.",
+        "content_task": "Vòm Sáng, Dải Gió, Đảo Gạch, Lõi Bền; 10 points per hit, three lives, clear fourth field to win.",
+        "controls_task": "Arrows/A-D, pointer/touch paddle and Space launch; pause/restart.",
+        "visual_assets_and_license_to_resolve": "Canvas has original shapes; project SVG cover.",
+        "feel_speed_and_performance_to_measure": "Measure campaign length, final core readability, aim feel and mobile fit with players.",
+        "rights_status": "No DX-Ball content reused; route/title review pending.",
+        "source_urls": [
+          "https://atari.com/pages/breakout"
+        ],
+        "backlog_status": "Original candidate updated; browser/device, human playtest and title/distribution review pending. See docs/games/PHA_GACH_DX_BALL_RESEARCH_AND_SCOPE.md."
+      },
+      "player_ui": "Phá Gạch has four named fields, visible two-hit bricks, a win result and fresh replay."
+    },
+    "feeding-frenzy": {
+      "scope": "original-candidate-not-reference-parity",
+      "reference_version": "Original three-zone grow-by-eating loop; historical catalog edition/title unknown.",
+      "candidate_build": "ff1-swimming-momentum",
+      "accepted_build": null,
+      "owner": null,
+      "accepted_at": null,
+      "implementation_status": "implemented-awaiting-browser-device-qa",
+      "automated_tests": {
+        "command": "node --test --test-concurrency=1 tests/feeding-frenzy-model.test.cjs tests/feeding-frenzy-ui.test.cjs",
+        "passed": 22,
+        "failed": 0,
+        "date": "2026-10-08",
+        "evidence": "docs/games/FEEDING_FRENZY_RESEARCH_AND_SCOPE.md",
+        "limitation": "Model and DOM-double tests only; no browser/device acceptance or human playtest."
+      },
+      "gates": {
+        "reference_parity": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/FEEDING_FRENZY_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "content": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/FEEDING_FRENZY_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "controls": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/FEEDING_FRENZY_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "visual_audio": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/FEEDING_FRENZY_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "device_qa": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/FEEDING_FRENZY_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "save_recovery": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/FEEDING_FRENZY_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "playtest": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/FEEDING_FRENZY_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "distribution_rights": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/FEEDING_FRENZY_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        }
+      },
+      "research": {
+        "status": "candidate-depth-updated",
+        "evidence_date": "2026-10-08",
+        "reference_version": "Original three-zone grow-by-eating loop; historical catalog edition/title unknown.",
+        "current_mechanic": "Three-zone round now accelerates into turns and coasts briefly after release.",
+        "first_delivery": "Improve swimming feel while keeping the speed cap, prey goals and v2 save.",
+        "rules_task": "The candidate keeps its documented rules and marks differences from the selected reference; no unidentified historic-edition parity is claimed.",
+        "content_task": "Keep existing prey target, predator hits and time limit; no shop or upgrades.",
+        "controls_task": "Arrow/WASD and held pointer/touch; keyup and pointercancel stop steering.",
+        "visual_assets_and_license_to_resolve": "Original canvas fish and SVG cover.",
+        "feel_speed_and_performance_to_measure": "Chromium input smoke added; device feel and human balance pending.",
+        "rights_status": "No third-party characters or game art; title/route rights pending.",
+        "source_urls": [
+          "https://www.ea.com/games/feeding-frenzy"
+        ],
+        "backlog_status": "Original candidate updated; browser/device, human playtest and title/distribution review pending. See docs/games/FEEDING_FRENZY_RESEARCH_AND_SCOPE.md."
+      },
+      "player_ui": "Cá Lớn Nuốt Cá Bé now has responsive momentum with the same growth goals."
+    },
+    "pong-1972": {
+      "scope": "original-candidate-not-reference-parity",
+      "reference_version": "Original solo-first table tennis candidate; exact cabinet variant unknown.",
+      "candidate_build": "pong-1972-bank-read",
+      "accepted_build": null,
+      "owner": null,
+      "accepted_at": null,
+      "implementation_status": "implemented-awaiting-browser-device-qa",
+      "automated_tests": {
+        "command": "node --test --test-concurrency=1 tests/pong-1972-model.test.cjs tests/pong-1972-ui.test.cjs",
+        "passed": 16,
+        "failed": 0,
+        "date": "2026-10-08",
+        "evidence": "docs/research/pong-1972-candidate.md",
+        "limitation": "Model and DOM-double tests only; no browser/device acceptance or human playtest."
+      },
+      "gates": {
+        "reference_parity": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/research/pong-1972-candidate.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "content": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/research/pong-1972-candidate.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "controls": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/research/pong-1972-candidate.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "visual_audio": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/research/pong-1972-candidate.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "device_qa": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/research/pong-1972-candidate.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "save_recovery": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/research/pong-1972-candidate.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "playtest": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/research/pong-1972-candidate.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "distribution_rights": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/research/pong-1972-candidate.md; real browser/device, human playtest, and distribution review remain pending."
+        }
+      },
+      "research": {
+        "status": "candidate-depth-updated",
+        "evidence_date": "2026-10-08",
+        "reference_version": "Original solo-first table tennis candidate; exact cabinet variant unknown.",
+        "current_mechanic": "Capped solo CPU predicts reflected ball intercepts late and leaves a counterplay window.",
+        "first_delivery": "Teach the CPU bank-shot geometry without giving it a speed advantage.",
+        "rules_task": "The candidate keeps its documented rules and marks differences from the selected reference; no unidentified historic-edition parity is claimed.",
+        "content_task": "First-to-seven, solo default and optional local two-player.",
+        "controls_task": "Keyboard and touch paddle controls; physical multi-touch pending.",
+        "visual_assets_and_license_to_resolve": "Original table and vector art.",
+        "feel_speed_and_performance_to_measure": "A deterministic aimed-return policy wins; human balance/device timing pending.",
+        "rights_status": "Historic cabinet and catalog route rights pending.",
+        "source_urls": [
+          "https://www.nps.gov/places/atari-pong.htm"
+        ],
+        "backlog_status": "Original candidate updated; browser/device, human playtest and title/distribution review pending. See docs/research/pong-1972-candidate.md."
+      },
+      "player_ui": "Bóng Bàn Cổ Điển stays solo-first with late bank-shot prediction."
+    },
+    "plants-vs-zombies-2d": {
+      "scope": "original-candidate-not-reference-parity",
+      "reference_version": "Original lane-defense candidate; exact historic PopCap build unknown.",
+      "candidate_build": "bs1-mixed-lane-rush",
+      "accepted_build": null,
+      "owner": null,
+      "accepted_at": null,
+      "implementation_status": "implemented-awaiting-browser-device-qa",
+      "automated_tests": {
+        "command": "node --test --test-concurrency=1 tests/beacon-shore-model.test.cjs tests/beacon-shore-ui.test.cjs",
+        "passed": 25,
+        "failed": 0,
+        "date": "2026-10-08",
+        "evidence": "docs/games/BEACON_SHORE_RESEARCH_AND_SCOPE.md",
+        "limitation": "Model and DOM-double tests only; no browser/device acceptance or human playtest."
+      },
+      "gates": {
+        "reference_parity": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/BEACON_SHORE_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "content": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/BEACON_SHORE_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "controls": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/BEACON_SHORE_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "visual_audio": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/BEACON_SHORE_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "device_qa": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/BEACON_SHORE_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "save_recovery": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/BEACON_SHORE_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "playtest": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/BEACON_SHORE_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        },
+        "distribution_rights": {
+          "status": "pending",
+          "evidence": "Candidate scope and automated checks are documented in docs/games/BEACON_SHORE_RESEARCH_AND_SCOPE.md; real browser/device, human playtest, and distribution review remain pending."
+        }
+      },
+      "research": {
+        "status": "candidate-depth-updated",
+        "evidence_date": "2026-10-08",
+        "reference_version": "Original lane-defense candidate; exact historic PopCap build unknown.",
+        "current_mechanic": "Four-wave defense with a concentrated final-lane rush and two viable placement strategies.",
+        "first_delivery": "Add a tactical lane rush without changing arrivals or forcing one upgrade.",
+        "rules_task": "The candidate keeps its documented rules and marks differences from the selected reference; no unidentified historic-edition parity is claimed.",
+        "content_task": "Preserve 27-enemy four-wave loop; mixed and lamp-only responses trade efficiency/speed.",
+        "controls_task": "Existing tap-to-place units and pause/replay.",
+        "visual_assets_and_license_to_resolve": "Original garden/defense art and synthesized cues.",
+        "feel_speed_and_performance_to_measure": "Policy comparison is model evidence, not human balance; browser/device play pending.",
+        "rights_status": "Historic game build and title/route rights pending.",
+        "source_urls": [
+          "https://www.ea.com/games/plants-vs-zombies"
+        ],
+        "backlog_status": "Original candidate updated; browser/device, human playtest and title/distribution review pending. See docs/games/BEACON_SHORE_RESEARCH_AND_SCOPE.md."
+      },
+      "player_ui": "Bờ Kè Sao offers both mixed AoE and faster lamp-only responses to a lane rush."
     }
   }
 }

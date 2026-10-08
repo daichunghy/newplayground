@@ -51,7 +51,8 @@
     'puzzle-bobble-khung-long': 'launchBiVom',
     'dr-mario-diet-khuan': 'launchOngNghiem',
     'peggle-pachinko': 'launchBatChot',
-    'lemonade-tycoon': 'launchLemonadeStand'
+    'lemonade-tycoon': 'launchLemonadeStand',
+    'thap-ha-noi-tower': 'launchThapBaCoc'
   });
   const engineFor = id => Object.prototype.hasOwnProperty.call(entries, id) ? entries[id] : null;
   const isPlayable = id => Boolean(engineFor(id) && window.NP_Engines &&

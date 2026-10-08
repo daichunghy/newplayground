@@ -65,11 +65,32 @@
 .np-caro-cell:disabled { cursor: default; }
 
 .np-caro-hint {
-  margin: .55rem 0 .35rem;
-  text-align: center;
+  margin: 0;
   color: #555d6c;
   font-size: .92rem;
 }
+
+.np-caro-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .6rem;
+  margin: .55rem 0 .35rem;
+}
+
+.np-caro-mode {
+  min-height: 44px;
+  padding: .35rem .8rem;
+  border: 1px solid #8b7855;
+  border-radius: 999px;
+  background: #fffaf0;
+  color: var(--caro-ink);
+  font: 700 .94rem Calibri, Inter, -apple-system, sans-serif;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.np-caro-mode:focus-visible { outline: 3px solid #315bb5; outline-offset: 2px; }
 
 .np-caro-new {
   display: block;
@@ -89,4 +110,9 @@
 @media (prefers-reduced-motion: no-preference) {
   .np-caro-cell.is-last { animation: caro-mark .18s ease-out; }
   @keyframes caro-mark { from { transform: scale(.74); } to { transform: scale(1); } }
+}
+
+@media (max-width: 390px) {
+  .np-caro-options { align-items: stretch; flex-direction: column; }
+  .np-caro-hint { text-align: center; }
 }

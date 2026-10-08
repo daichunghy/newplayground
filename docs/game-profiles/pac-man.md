@@ -1,12 +1,12 @@
 # Original NewPlayground Lối Sáng: finite three-stage maze chase, no licensed PAC-MAN parity claim
 
-ID: `pac-man` · Thứ tự pilot: 6 · Cập nhật: 2026-10-07
+ID: `pac-man` · Thứ tự pilot: 6 · Cập nhật: 2026-10-08
 
 **Trạng thái: hồ sơ nghiên cứu một phần; chưa nghiệm thu replica hoàn chỉnh.**
 
 ## Hiện trạng từ mã nguồn
 
-mc1 integrated: three connected original mazes, 120 Hz deterministic simulation, buffered turns/reversal, three sentry roles, power/bonus/death/finish and minimal UI. 45 focused tests pass. Dossier docs/games/MAZE_CHASE_RESEARCH_AND_QA.md.
+Depth update: three connected authored mazes now pair with staged pursuit plans. The interceptor reads 2, 3, then 5 cells ahead, while the patrol window shortens from 5 to 4.5 to 4 seconds; shortest-detour and junction-profile tests keep each route's decisions distinct. Existing best/run saving, finite win/retry, controls and minimal presentation remain in place. Focused model and UI suites pass; see `docs/games/MAZE_CHASE_RESEARCH_AND_QA.md`.
 
 Mã nguồn: `scripts/games/maze-chase-model.js + scripts/games/maze-chase.js`. Chưa có đo lường trên thiết bị hoặc playthrough đối thủ.
 

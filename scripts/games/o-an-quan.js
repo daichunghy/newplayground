@@ -1,4 +1,4 @@
-/* Compact local hot-seat view for the documented Ô Ăn Quan candidate. */
+/* Compact local solo/hot-seat view for the documented Ô Ăn Quan candidate. */
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -14,6 +14,7 @@
       throw new TypeError('Ô Ăn Quan needs a container and rules model');
     }
     let selected = null;
+    let mode = 'solo';
     let notice = '';
     let destroyed = false;
     container.innerHTML = `
@@ -22,6 +23,7 @@
         <div class="oaq-status" id="oaqStatus" role="status" aria-live="polite" aria-atomic="true"></div>
         <div class="oaq-board" id="oaqBoard" role="group" aria-label="Bàn ô ăn quan. Mỗi bên có năm ô dân, hai đầu là ô quan."></div>
         <div class="oaq-controls"><span class="oaq-help">Chọn ô dân rồi chọn chiều.</span><div class="oaq-directions"><button class="oaq-button" id="oaqReverse" type="button" disabled aria-label="Rải ngược chiều">↶</button><button class="oaq-button" id="oaqForward" type="button" disabled aria-label="Rải thuận chiều">↷</button></div></div>
+        <button class="oaq-mode" id="oaqMode" type="button" aria-pressed="false">Chơi hai người</button>
         <button class="oaq-new" id="oaqNew" type="button" hidden>Ván mới</button>
       </section>`;
 
@@ -32,6 +34,7 @@
     const blackScoreEl = container.querySelector('#oaqBlackScore');
     const reverse = container.querySelector('#oaqReverse');
     const forward = container.querySelector('#oaqForward');
+    const modeToggle = container.querySelector('#oaqMode');
     const newGame = container.querySelector('#oaqNew');
 
     function countLabel(item) {
@@ -39,11 +42,24 @@
     }
 
     function statusText(state) {
-      if (notice) return notice;
       if (state.status === 'draw') return 'Hòa ván.';
       if (state.status === 'won') return `Bên ${state.winner === 'red' ? 'Đỏ' : 'Đen'} thắng.`;
       if (state.status === 'forfeit') return `Bên ${state.winner === 'red' ? 'Đỏ' : 'Đen'} thắng.`;
+      if (notice) return notice;
       return state.notice || '';
+    }
+
+    function playComputerTurn() {
+      const before = model.view();
+      if (mode !== 'solo' || before.status !== 'playing' || before.turn !== 'black') return false;
+      const move = window.NP_OAnQuanModel.chooseComputerMove(before);
+      if (!move || !model.play(move.pit, move.direction)) return false;
+      const after = model.view();
+      const fieldNumber = BLACK_FIELDS.indexOf(move.pit) + 1;
+      const directionName = move.direction === 1 ? 'thuận' : 'ngược';
+      const capture = after.lastMove?.captured ? `, ăn ${after.lastMove.captured} điểm` : '';
+      notice = after.status === 'playing' ? `Máy Đen rải ô ${fieldNumber} chiều ${directionName}${capture}.` : '';
+      return true;
     }
 
     function focusPit(index) {
@@ -66,8 +82,10 @@
       const state = model.view();
       redScoreEl.textContent = String(state.scores.red);
       blackScoreEl.textContent = String(state.scores.black);
-      turnEl.textContent = state.status === 'playing' ? `Lượt ${state.turn === 'red' ? 'Đỏ' : 'Đen'}` : state.status === 'draw' ? 'Hòa' : `${state.winner === 'red' ? 'Đỏ' : 'Đen'} thắng`;
+      turnEl.textContent = state.status === 'playing' ? `Lượt ${state.turn === 'red' ? 'Đỏ' : 'Đen'}${mode === 'solo' && state.turn === 'black' ? ' · Máy' : ''}` : state.status === 'draw' ? 'Hòa' : `${state.winner === 'red' ? 'Đỏ' : 'Đen'} thắng`;
       statusEl.textContent = statusText(state);
+      modeToggle.textContent = mode === 'solo' ? 'Chơi hai người' : 'Chơi với máy';
+      modeToggle.setAttribute('aria-pressed', mode === 'hotseat' ? 'true' : 'false');
       reverse.disabled = state.status !== 'playing' || selected === null;
       forward.disabled = state.status !== 'playing' || selected === null;
       newGame.hidden = state.status === 'playing';
@@ -99,10 +117,15 @@
       if (selected === null) return;
       if (!model.play(selected, direction)) return;
       selected = null;
-      const state = model.view();
+      let state = model.view();
       if (state.status === 'playing') {
-        notice = state.lastMove?.captured ? `Ăn ${state.lastMove.captured} điểm. ${state.notice}` : state.notice;
+        const humanCapture = state.lastMove?.captured || 0;
+        notice = humanCapture ? `Ăn ${humanCapture} điểm. ${state.notice}` : state.notice;
+        const cpuMoved = playComputerTurn();
+        if (cpuMoved && humanCapture) notice = `Đỏ ăn ${humanCapture}; ${notice}`;
+        state = model.view();
       } else notice = '';
+      if (state.status !== 'playing') notice = '';
       render();
       if (state.status !== 'playing') newGame.focus?.({ preventScroll: true });
       else {
@@ -123,8 +146,19 @@
       if (Number.isInteger(firstPit)) focusPit(firstPit);
     }
 
+    function onModeToggle() {
+      mode = mode === 'solo' ? 'hotseat' : 'solo';
+      selected = null;
+      notice = '';
+      playComputerTurn();
+      render();
+      const firstPit = model.legalPits()[0];
+      if (Number.isInteger(firstPit)) focusPit(firstPit);
+    }
+
     reverse.addEventListener('click', onReverse);
     forward.addEventListener('click', onForward);
+    modeToggle.addEventListener('click', onModeToggle);
     newGame.addEventListener('click', onNewGame);
     render();
 
@@ -133,6 +167,7 @@
       destroyed = true;
       reverse.removeEventListener('click', onReverse);
       forward.removeEventListener('click', onForward);
+      modeToggle.removeEventListener('click', onModeToggle);
       newGame.removeEventListener('click', onNewGame);
       container.replaceChildren();
     };

@@ -17,6 +17,7 @@ function normalize(s) { return { ...s, accumulator: 0 }; }
 test('all three original maps are connected, bounded, distinct, with four powers and valid starts', () => {
   assert.equal(M.LEVELS.length, 3);
   const layouts = new Set();
+  const routeProfiles = [];
   for (const map of M.LEVELS) {
     assert.equal(map.width, 19); assert.equal(map.height, 17); assert.equal(map.walls.length, 323);
     assert.equal(map.powers.length, 4);
@@ -26,8 +27,15 @@ test('all three original maps are connected, bounded, distinct, with four powers
     assert.ok(map.items.filter(Boolean).length >= 150);
     for (let i = 0; i < 19; i++) { assert.equal(map.walls[i], 1); assert.equal(map.walls[16 * 19 + i], 1); }
     layouts.add(map.walls.join(''));
+    routeProfiles.push({ junctions: map.neighbors.filter(edges => edges.filter(n => n >= 0).length >= 3).length,
+      crystalRoutes: map.powers.map(i => field[i]), bonusRoute: field[map.bonus] });
   }
   assert.equal(layouts.size, 3);
+  assert.deepEqual(routeProfiles, [
+    { junctions: 39, crystalRoutes: [22, 25, 8, 8], bonusRoute: 12 },
+    { junctions: 35, crystalRoutes: [26, 26, 8, 8], bonusRoute: 20 },
+    { junctions: 37, crystalRoutes: [26, 30, 8, 8], bonusRoute: 16 }
+  ], 'stages expose different junction density and worthwhile detours');
 });
 
 test('each tunnel is bidirectional, distance maps respect walls, and all graph edges are reciprocal', () => {
@@ -127,16 +135,32 @@ test('returning sentry navigates home, waits, then becomes active; it cannot hur
   assert.ok(enemy.wait > 0); assert.equal(enemy.next, -1); assert.equal(enemy.progress, 0);
 });
 
-test('chaser, interceptor and warden select distinct purposeful targets', () => {
-  const s = active({ modeTicks: 6 * M.HZ, player: actor(cell(9, 11), 1) });
-  const targets = s.enemies.map(e => M.targetFor(s, e));
-  assert.equal(targets[0], cell(9, 11)); assert.equal(targets[1], cell(13, 11));
-  assert.ok(M.LEVELS[0].powers.includes(targets[2])); assert.equal(new Set(targets).size, 3);
-  s.bonusTicks = 100; assert.equal(M.targetFor(s, s.enemies[2]), M.LEVELS[0].bonus);
+test('authored chase leads change by stage while all three sentry roles keep distinct goals', () => {
+  assert.deepEqual(M.LEVELS.map(map => map.interceptCells), [2, 3, 5]);
+  for (let stage = 0; stage < M.LEVELS.length; stage++) {
+    const map = M.LEVELS[stage], player = actor(cell(5, 9), 1);
+    const s = { stage, modeTicks: 6 * M.HZ, player, items: map.items.slice(), bonusTicks: 0,
+      enemies: map.homes.map((home, id) => ({ ...actor(home), id, mode: 'active', wait: 0 })) };
+    const targets = s.enemies.map(e => M.targetFor(s, e));
+    assert.equal(targets[0], player.cell);
+    assert.equal(targets[1], cell(5 + map.interceptCells, 9));
+    assert.ok(map.powers.includes(targets[2]));
+    assert.equal(new Set(targets).size, 3);
+    s.bonusTicks = 100;
+    assert.equal(M.targetFor(s, s.enemies[2]), map.bonus);
+  }
 });
 
-test('patrol switches to chase on fixed schedule; power freezes schedule and expires', () => {
+test('patrol window shortens with each route; power freezes the selected stage schedule', () => {
+  assert.deepEqual(M.LEVELS.map(map => map.patrolTicks / M.HZ), [5, 4.5, 4]);
   const m = from(active({ modeTicks: 5 * M.HZ - 1 })); m.advance(M.STEP); assert.equal(m.view().mode, 'chase');
+  for (const [stage, patrolSeconds] of [[1, 4.5], [2, 4]]) {
+    const map = M.LEVELS[stage], s = active({ stage, items: map.items.slice(), modeTicks: patrolSeconds * M.HZ - 1,
+      enemies: map.homes.map((home, id) => ({ ...actor(home), id, mode: 'active', wait: 0 })) });
+    const runAt = from(s); runAt.advance(M.STEP); assert.equal(runAt.view().mode, 'chase');
+    const stillPatrolling = from({ ...s, modeTicks: Math.floor((patrolSeconds - 0.5) * M.HZ) });
+    assert.equal(stillPatrolling.view().mode, 'patrol');
+  }
   const s = active({ power: 2, modeTicks: 66 }); const n = from(s);
   n.advance(M.STEP); assert.equal(n.view().modeTicks, 66); assert.equal(n.view().power, 1);
   n.advance(M.STEP); assert.equal(n.view().power, 0); assert.equal(n.view().modeTicks, 66);

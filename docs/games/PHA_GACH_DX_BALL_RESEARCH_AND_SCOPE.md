@@ -19,11 +19,12 @@ DX-Ball 2 material is treated only as sequel evidence. Longbow's official page d
 ## Original candidate rules
 
 - Move one paddle with left/right arrows, A/D, mouse movement, or touch drag. A first touch/click or Space launches the ball; after a lost life, touch or Space serves again.
-- Bounce the ball off the paddle and side/top walls into a single-hit brick field. A brick is worth 10 points. Missing the paddle costs one of three lives.
-- Clear a field to advance. Four candidate-authored geometric patterns rotate as the levels continue; ball speed rises by level and caps at a fixed maximum.
+- Bounce the ball off the paddle and side/top walls into a brick field. Each brick hit is worth 10 points. Missing the paddle costs one of three lives.
+- Clear four candidate-authored fields in order: Vòm Sáng, Dải Gió, Đảo Gạch, then Lõi Bền. Their open arches, staggered channels, separated islands and dense core require different return angles. Ball speed rises at each stage and caps at a fixed maximum.
+- Six marked bricks in Lõi Bền take two hits. Their remaining hits are drawn on the brick and announced in the live status. Clearing the core ends the run with a win; score and lives carry through the campaign.
 - Pause with P or the pause control. Restart with the restart control. Window blur pauses active play.
-- There are no power-ups, multi-ball, catch/laser paddle, copied board sets, score-speed bonuses, persistent score, or lives-as-paddles claim. Those omissions keep the first build small and distinct.
-- The model uses a 120 Hz fixed simulation step, a bounded elapsed-time accumulator, deterministic level patterns, and no random or network state.
+- There are no power-ups, multi-ball, catch/laser paddle, copied board sets, score-speed bonuses, cross-session progress, or lives-as-paddles claim. A replay starts the four-field campaign from the beginning.
+- The model uses a 120 Hz fixed simulation step, a bounded elapsed-time accumulator, deterministic authored patterns, and no random or network state.
 
 These are implementation choices for this candidate. They do not claim parity with a specific DX-Ball edition.
 
@@ -43,4 +44,4 @@ Files include `scripts/games/dx-ball-model.js`, `scripts/games/dx-ball.js`, `scr
 
 The local catalog route loads the model before the view, includes the scoped CSS, and mounts through the existing session listener/RAF/cleanup contract. The visible game and card title are generic Phá Gạch; the historical ID and DX-Ball reference remain documented only as unresolved provenance.
 
-Fourteen focused model/UI tests cover deterministic stepping, wall/paddle/brick/life flow, level progression, keyboard/touch input, exact catalog routing, pause/restart, blur pause, and teardown. These doubles do not verify actual browser layout, Canvas rendering, touch hardware, or audio hardware. Browser/device playtesting and catalog/title clearance remain acceptance work.
+Twelve focused model + six UI tests cover deterministic stepping, all four stage patterns, the six two-hit core bricks, wall/paddle/brick/life flow, the terminal win and a fresh replay, keyboard/touch input, exact catalog routing, pause, blur pause, and teardown. A Chromium smoke now covers the real route's win screen and replay, pending this review head's workflow. Tests do not establish physical-device feel, touch hardware, audio hardware, or player balance. Browser/device playtesting and catalog/title clearance remain acceptance work.

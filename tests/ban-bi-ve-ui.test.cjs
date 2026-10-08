@@ -50,6 +50,9 @@ test('mounts a compact visual-first board with keyboard help and a 2–4 player 
   assert.equal(h.container.querySelectorAll('.bbv-player-option').length, 3);
   assert.equal(h.container.querySelectorAll('.bbv-score').length, 2);
   assert.equal(h.api.snapshot().targets.length, 6);
+  assert.equal(h.api.opponentMode(), 'solo');
+  assert.equal(el(h, 'bbvPlayerPick').hidden, true);
+  assert.equal(h.container.querySelectorAll('.bbv-mode-option').find(button => button.dataset.mode === 'solo').getAttribute('aria-pressed'), 'true');
   assert.match(h.container.innerHTML, /Kéo bi cái ngược hướng muốn bắn rồi thả/);
   assert.equal(el(h, 'bbvStatus').getAttribute('aria-live'), 'polite');
   h.close();
@@ -145,7 +148,7 @@ test('a restored completed result stays on the result screen and starts a fresh 
   const storage = new Map([[SAVE_KEY, JSON.stringify({ version: 1, round: finished.serialize() })]]);
   const h = setup({ storage });
   assert.equal(h.frames.size, 0);
-  assert.match(el(h, 'bbvCoverTitle').textContent, /Người 2 thắng/);
+  assert.match(el(h, 'bbvCoverTitle').textContent, /Máy thắng/);
   click(h, 'bbvResume');
   assert.equal(h.api.snapshot().status, 'playing');
   assert.equal(h.api.snapshot().shots, 0);
@@ -153,15 +156,66 @@ test('a restored completed result stays on the result screen and starts a fresh 
   h.close();
 });
 
+test('a solo win shows the human result and can replay into a fresh round', () => {
+  const finished = M.create({ players: 2, seed: 34 });
+  finished.state.targets = []; finished.state.score = [5, 1];
+  finished.state.status = 'won'; finished.state.winners = [0];
+  const storage = new Map([[SAVE_KEY, JSON.stringify({ version: 1, mode: 'solo', round: finished.serialize() })]]);
+  const h = setup({ storage });
+  assert.match(el(h, 'bbvCoverTitle').textContent, /Bạn thắng/);
+  click(h, 'bbvResume');
+  assert.equal(h.api.opponentMode(), 'solo');
+  assert.equal(h.api.snapshot().status, 'playing');
+  assert.equal(h.api.snapshot().turn, 0);
+  assert.deepEqual(plain(h.api.snapshot().score), [0, 0]);
+  h.close();
+});
+
 test('2, 3 and 4 player controls start a fresh local match and update score colors', () => {
   const h = setup();
   h.container.querySelectorAll('.bbv-player-option').find(button => button.dataset.players === '4').click();
+  assert.equal(h.api.opponentMode(), 'local');
+  assert.equal(el(h, 'bbvPlayerPick').hidden, false);
   assert.equal(h.api.snapshot().players, 4);
   assert.equal(h.api.snapshot().targets.length, 12);
   assert.equal(h.container.querySelectorAll('.bbv-score').length, 4);
   assert.equal(h.container.querySelectorAll('.bbv-player-option').find(button => button.dataset.players === '4').getAttribute('aria-pressed'), 'true');
   h.container.querySelectorAll('.bbv-player-option').find(button => button.dataset.players === '3').click();
   assert.equal(h.api.snapshot().players, 3);
+  h.container.querySelectorAll('.bbv-mode-option').find(button => button.dataset.mode === 'solo').click();
+  assert.equal(h.api.opponentMode(), 'solo');
+  assert.equal(h.api.snapshot().players, 2);
+  assert.equal(el(h, 'bbvPlayerPick').hidden, true);
+  h.close();
+});
+
+test('solo CPU replies after a human miss and leaves the next move available', () => {
+  const h = setup();
+  const game = h.api.model();
+  game.state.targets = [
+    [1, 360, 120], [2, 418, 220], [3, 418, 300], [4, 302, 300], [5, 302, 220], [6, 360, 260]
+  ].map(([id, x, y]) => ({ id, owner: (id - 1) % 2, color: (id - 1) % M.TARGET_COLORS.length, x, y, vx: 0, vy: 0 }));
+  game.state.turn = 0;
+  game.state.striker = { ...M.homeFor(2, 0), vx: 0, vy: 0 };
+  assert.equal(game.shoot(-Math.PI / 2, 380), true, 'a straight-away flick misses the ring');
+  for (let i = 0; i < 900 && !(game.state.turn === 0 && game.state.phase === 'ready' && game.state.shots > 1); i += 1) h.frame();
+  assert.equal(game.state.turn, 0, 'after its scoring try and a rule-granted safe extra shot, the CPU yields');
+  assert.equal(game.state.phase, 'ready');
+  assert.equal(game.state.status, 'playing');
+  assert.ok(game.state.targets.length >= 5, 'the player has counterplay remaining');
+  assert.equal(game.state.score.reduce((sum, value) => sum + value, 0) + game.state.targets.length, 6);
+  assert.match(el(h, 'bbvStatus').textContent, /Lượt Bạn/);
+  assert.equal(game.shoot(0, 240), true, 'the human can immediately take the next legal shot');
+  click(h, 'bbvPause');
+  assert.equal(h.frames.size, 0);
+  h.close();
+});
+
+test('a saved two-player hot-seat selection survives reopening', () => {
+  const live = M.create({ players: 2, seed: 23 });
+  const h = setup({ storage: new Map([[SAVE_KEY, JSON.stringify({ version: 1, mode: 'local', round: live.serialize() })]]) });
+  assert.equal(h.api.opponentMode(), 'local');
+  assert.equal(el(h, 'bbvPlayerPick').hidden, false);
   h.close();
 });
 
@@ -214,7 +268,7 @@ test('exact catalog route launches the owned module; CSS keeps touch targets and
   assert.equal(h.context.NP_GameRegistry.engineFor('ban-bi-ve'), 'launchBanBiVe');
   assert.match(read('app.js'), /'ban-bi': 'assets\/marble-ring-original\.svg'/);
   assert.match(read('scripts/release-preflight.mjs'), /'ban_bi_cover\.png', 'banbi_intro\.jpg'/);
-  assert.match(read('index.html'), /scripts\/games\/ban-bi-ve\.js\?v=20261007_bbv1/);
+  assert.match(read('index.html'), /scripts\/games\/ban-bi-ve\.js\?v=20261008_bbv2/);
   h.context.NP_GameSession.stop(); h.container.innerHTML = '';
   assert.equal(h.context.NP_GameRegistry.launch(h.container, { id: 'ban-bi-ve' }), true);
   assert.match(h.container.innerHTML, /Bắn Bi Ve/);

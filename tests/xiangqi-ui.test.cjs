@@ -16,6 +16,8 @@ test('catalog launch opens the original 9 by 10 hot-seat board without an intro 
   assert.equal(cells.filter(button => button.classList.contains('is-red')).length, 16);
   assert.equal(cells.filter(button => button.classList.contains('is-black')).length, 16);
   assert.equal(h.container.querySelector('.np-xiangqi-status').getAttribute('aria-live'), 'polite');
+  assert.equal(h.container.querySelectorAll('.np-xiangqi-mode').find(button => button.dataset.mode === 'solo').getAttribute('aria-pressed'), 'true');
+  assert.equal(h.container.querySelector('.np-xiangqi-turn').textContent, 'Lượt của bạn · Đỏ');
   assert.equal(h.frames.size, 0);
   assert.equal(h.container.querySelector('#xqStart'), null);
   h.context.closeGameModal();
@@ -26,6 +28,7 @@ test('pointer selection and placement alternates turns and rejects a blocked mov
   const h = harness({ loadEngines: false, loadApp: false });
   vm.runInContext(read('scripts/games/xiangqi.js'), h.context, { filename: 'xiangqi.js' });
   const game = h.context.NP_Xiangqi.mount(h.container);
+  h.container.querySelectorAll('.np-xiangqi-mode').find(button => button.dataset.mode === 'local').click();
   const model = game.model;
   cell(h.container, 6, 4).click();
   assert.ok(cell(h.container, 6, 4).classList.contains('is-selected'));
@@ -46,6 +49,7 @@ test('keyboard arrows move the roving point and Enter selects and moves', () => 
   const h = harness({ loadEngines: false, loadApp: false });
   vm.runInContext(read('scripts/games/xiangqi.js'), h.context, { filename: 'xiangqi.js' });
   const game = h.context.NP_Xiangqi.mount(h.container);
+  h.container.querySelectorAll('.np-xiangqi-mode').find(button => button.dataset.mode === 'local').click();
   cell(h.container, 9, 4).dispatch('keydown', { key: 'ArrowLeft' });
   let focused = h.container.querySelectorAll('button').find(button => button.classList.contains('np-xiangqi-cell') && button.attributes.tabindex === '0');
   assert.equal(Number(focused.dataset.row), 9);
@@ -73,9 +77,14 @@ test('a terminal move moves focus to the visible new-game action', () => {
     reset() { terminal = false; base.reset(); }
   };
   h.context.NP_Xiangqi.mount(h.container, { model });
+  h.container.querySelectorAll('.np-xiangqi-mode').find(button => button.dataset.mode === 'local').click();
   cell(h.container, 6, 4).click();
   cell(h.container, 5, 4).click();
   assert.equal(h.container.querySelector('.np-xiangqi-new').focused, true);
+  h.container.querySelector('.np-xiangqi-new').click();
+  assert.equal(model.view().status, 'playing', 'new game replays after the result');
+  assert.equal(model.view().turn, 'red');
+  assert.equal(model.view().moveCount, 0);
 });
 
 test('closing and reopening tears down the old board and starts a fresh game', () => {
@@ -93,9 +102,43 @@ test('closing and reopening tears down the old board and starts a fresh game', (
   assertStopped(h);
 });
 
+test('solo is the default and answers a red move with one legal black reply', () => {
+  const h = harness({ loadEngines: false, loadApp: false });
+  vm.runInContext(read('scripts/games/xiangqi-model.js'), h.context, { filename: 'xiangqi-model.js' });
+  vm.runInContext(read('scripts/games/xiangqi.js'), h.context, { filename: 'xiangqi.js' });
+  const game = h.context.NP_Xiangqi.mount(h.container);
+  const initial = game.model.view();
+  cell(h.container, 6, 4).click(); cell(h.container, 5, 4).click();
+  const after = game.model.view();
+  assert.equal(after.turn, 'red', 'the CPU moves immediately after Red');
+  assert.equal(after.moveCount, 2);
+  assert.equal(after.board.flat().filter(piece => piece?.side === 'black').length, 16);
+  assert.ok(after.board.some((row, r) => row.some((piece, c) => piece?.side === 'black' && initial.board[r][c]?.side !== 'black')));
+  assert.match(h.container.querySelector('.np-xiangqi-status').textContent, /Máy đi/);
+  assert.equal(h.container.querySelector('.np-xiangqi-turn').textContent, 'Lượt của bạn · Đỏ');
+  game.destroy();
+});
+
+test('two-player hot-seat remains available and does not take an automatic reply', () => {
+  const h = harness({ loadEngines: false, loadApp: false });
+  vm.runInContext(read('scripts/games/xiangqi-model.js'), h.context, { filename: 'xiangqi-model.js' });
+  vm.runInContext(read('scripts/games/xiangqi.js'), h.context, { filename: 'xiangqi.js' });
+  const game = h.context.NP_Xiangqi.mount(h.container);
+  h.container.querySelectorAll('.np-xiangqi-mode').find(button => button.dataset.mode === 'local').click();
+  cell(h.container, 6, 4).click(); cell(h.container, 5, 4).click();
+  assert.equal(game.model.view().turn, 'black');
+  assert.equal(game.model.view().moveCount, 1);
+  cell(h.container, 3, 0).click(); cell(h.container, 4, 0).click();
+  assert.equal(game.model.view().turn, 'red');
+  assert.equal(game.model.view().moveCount, 2);
+  game.destroy();
+});
+
 test('the game routes to the original asset and is not represented by the old puzzle artwork', () => {
   assert.match(read('app.js'), /'co-tuong': 'assets\/xiangqi-original\.svg'/);
   assert.match(read('scripts/release-preflight.mjs'), /'co_tuong_cover\.png', 'cotuong_intro\.jpg'/);
   assert.match(read('index.html'), /scripts\/engines-popcap\.js\?v=20261007_bbv1/);
-  assert.match(read('index.html'), /scripts\/games\/xiangqi\.js\?v=20261007_xq1/);
+  assert.match(read('index.html'), /scripts\/games\/xiangqi\.js\?v=20261008_xq2/);
+  assert.match(read('scripts/games/xiangqi.css'), /\.np-xiangqi-mode \{[^}]*min-height: 44px/s);
+  assert.match(read('scripts/games/xiangqi.css'), /\.np-xiangqi-board \{[^}]*min-width: 405px/s);
 });

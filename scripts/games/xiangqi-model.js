@@ -1,4 +1,4 @@
-/* Small, deterministic Xiangqi rules engine for the local hot-seat candidate. */
+/* Small, deterministic Xiangqi rules engine and bounded solo opponent. */
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -10,6 +10,8 @@
   const COLS = 9;
   const TYPES = Object.freeze(['general', 'advisor', 'elephant', 'horse', 'chariot', 'cannon', 'soldier']);
   const OTHER = Object.freeze({ red: 'black', black: 'red' });
+  const CPU_LIMITS = Object.freeze({ rootMoves: 10, repliesPerRoot: 8, maxEvaluations: 80 });
+  const PIECE_VALUE = Object.freeze({ general: 0, advisor: 190, elephant: 205, horse: 390, cannon: 430, chariot: 820, soldier: 95 });
   const GLYPHS = Object.freeze({
     red: Object.freeze({ general: '帥', advisor: '仕', elephant: '相', horse: '傌', chariot: '俥', cannon: '炮', soldier: '兵' }),
     black: Object.freeze({ general: '將', advisor: '士', elephant: '象', horse: '馬', chariot: '車', cannon: '砲', soldier: '卒' })
@@ -202,6 +204,82 @@
     return moves;
   }
 
+  function moveOrderScore(board, move, side) {
+    const captured = board[move.to.row][move.to.col];
+    let score = captured ? PIECE_VALUE[captured.type] * 12 : 0;
+    if (isInCheck(simulate(board, move.from, move.to), OTHER[side])) score += 72;
+    const item = board[move.from.row][move.from.col];
+    if (item.type === 'soldier') {
+      score += (side === 'red' ? 9 - move.to.row : move.to.row) * 4;
+      if (side === 'red' ? move.to.row <= 4 : move.to.row >= 5) score += 18;
+    }
+    return score;
+  }
+
+  function hasLegalMove(board, side) {
+    for (let row = 0; row < ROWS; row += 1) {
+      for (let col = 0; col < COLS; col += 1) {
+        const item = board[row][col];
+        if (item && item.side === side && legalMoves(board, side, row, col).length) return true;
+      }
+    }
+    return false;
+  }
+
+  function evaluate(board, side) {
+    let score = 0;
+    for (let row = 0; row < ROWS; row += 1) {
+      for (let col = 0; col < COLS; col += 1) {
+        const item = board[row][col];
+        if (!item) continue;
+        const sign = item.side === side ? 1 : -1;
+        score += sign * PIECE_VALUE[item.type];
+        if (item.type === 'soldier') {
+          const advance = item.side === 'red' ? 9 - row : row;
+          score += sign * (advance * 5 + (item.side === 'red' ? row <= 4 : row >= 5) * 18);
+          score += sign * (4 - Math.abs(4 - col)) * 2;
+        } else if (item.type === 'horse' || item.type === 'cannon') {
+          score += sign * (4 - Math.abs(4 - col)) * 3;
+        }
+      }
+    }
+    if (isInCheck(board, side)) score -= 58;
+    if (isInCheck(board, OTHER[side])) score += 42;
+    return score;
+  }
+
+  function chooseCpuMove(board, side) {
+    const roots = allLegalMoves(board, side)
+      .map((move, order) => ({ move, order, rank: moveOrderScore(board, move, side) }))
+      .sort((a, b) => b.rank - a.rank || a.order - b.order)
+      .slice(0, CPU_LIMITS.rootMoves);
+    if (!roots.length) return null;
+
+    let bestMove = roots[0].move;
+    let bestScore = -Infinity;
+    for (const candidate of roots) {
+      const afterCpu = simulate(board, candidate.move.from, candidate.move.to);
+      const replies = allLegalMoves(afterCpu, OTHER[side])
+        .map((move, order) => ({ move, order, rank: moveOrderScore(afterCpu, move, OTHER[side]) }))
+        .sort((a, b) => b.rank - a.rank || a.order - b.order)
+        .slice(0, CPU_LIMITS.repliesPerRoot);
+      let score;
+      if (!replies.length) {
+        // Xiangqi stalemate loses too, so trapping a king wins whether checked or not.
+        score = 100000 - candidate.order;
+      } else {
+        score = Infinity;
+        for (const reply of replies) {
+          const afterReply = simulate(afterCpu, reply.move.from, reply.move.to);
+          const lineScore = hasLegalMove(afterReply, side) ? evaluate(afterReply, side) : -100000;
+          score = Math.min(score, lineScore);
+        }
+      }
+      if (score > bestScore) { bestScore = score; bestMove = candidate.move; }
+    }
+    return { from: { ...bestMove.from }, to: { ...bestMove.to } };
+  }
+
   function positionKey(board, turn) {
     return `${turn}|${board.map(row => row.map(item => item ? `${item.side[0]}:${item.type}` : '.').join('|')).join('/')}`;
   }
@@ -276,10 +354,11 @@
       view,
       play,
       reset,
+      chooseCpuMove() { return status === 'playing' ? chooseCpuMove(board, turn) : null; },
       legalMoves(row, col) { return status === 'playing' ? legalMoves(board, turn, row, col) : []; },
       isInCheck(side) { return isInCheck(board, side); }
     });
   }
 
-  return Object.freeze({ ROWS, COLS, TYPES, GLYPHS, create, initialBoard, emptyBoard, piece, cloneBoard, legalMoves, isInCheck });
+  return Object.freeze({ ROWS, COLS, TYPES, GLYPHS, CPU_LIMITS, create, initialBoard, emptyBoard, piece, cloneBoard, legalMoves, isInCheck });
 });

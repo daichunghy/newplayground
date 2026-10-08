@@ -72,6 +72,11 @@
     const map = { width, height, walls, items, start: text.indexOf('P'), homes: ['A', 'B', 'C'].map(c => text.indexOf(c)),
       bonus: text.indexOf('-'), powers: items.flatMap((v, i) => v === 2 ? [i] : []),
       playerSpeed: 5.4 + stage * 0.25, enemySpeed: 3.65 + stage * 0.35, powerTicks: (7 - stage * 0.7) * HZ };
+    // The interceptor learns to cut farther ahead as the garden route deepens.
+    // Authored leads keep each stage deterministic while changing which junctions
+    // are safe to approach head-on.
+    map.interceptCells = [2, 3, 5][stage];
+    map.patrolTicks = [5, 4.5, 4][stage] * HZ;
     map.neighbors = walls.map((wall, i) => DIRS.map(d => {
       if (wall) return -1;
       const x = i % width, y = Math.floor(i / width), ny = y + d.y;
@@ -133,11 +138,11 @@
   function targetFor(s, e) {
     const map = LEVELS[s.stage], player = s.player;
     if (e.mode === 'returning') return map.homes[e.id];
-    const patrol = s.modeTicks % (22 * HZ) < 5 * HZ;
+    const patrol = s.modeTicks % (22 * HZ) < map.patrolTicks;
     if (patrol) return map.powers[(Math.floor(s.modeTicks / (22 * HZ)) + e.id) % map.powers.length];
     let target = player.next >= 0 && player.progress > 0.5 ? player.next : player.cell;
     if (e.id === 1 && player.dir >= 0) {
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < map.interceptCells; i++) {
         const next = map.neighbors[target][player.dir]; if (next < 0) break; target = next;
       }
     }
@@ -299,7 +304,7 @@
       view() {
         const map = LEVELS[s.stage];
         return { ...clone(s), map, remaining: s.items.filter(Boolean).length,
-          total: map.items.filter(Boolean).length, mode: s.power ? 'flee' : s.modeTicks % (22 * HZ) < 5 * HZ ? 'patrol' : 'chase',
+          total: map.items.filter(Boolean).length, mode: s.power ? 'flee' : s.modeTicks % (22 * HZ) < map.patrolTicks ? 'patrol' : 'chase',
           playerPosition: position(s.player, map), enemyPositions: s.enemies.map(e => position(e, map)) };
       },
       serialize() { return clone(s); }

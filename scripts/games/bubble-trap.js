@@ -201,12 +201,12 @@
       ctx.fillStyle = 'rgba(255,255,244,.9)'; ctx.beginPath(); ctx.ellipse(b.x - r * .3, b.y - r * .42, r * .2, r * .11, -.55, 0, Math.PI * 2); ctx.fill();
       if (b.kind === 'trap') {
         const e = v.enemies.find(item => item.id === b.targetId);
-        if (e) drawMoss(e.x, b.y - 1, e.color, .58, 0, true);
+        if (e) drawMoss(e.x, b.y - 1, e.color, .58, 0, true, e.behavior);
         for (let i = 0; i < 3; i++) { ctx.fillStyle = '#fff3b2'; ctx.fillRect(b.x + 11 + (i % 2) * 3, b.y - 12 - i * 5, 2, 2); }
       }
     }
 
-    function drawMoss(x, y, color, scale = 1, direction = 1, trapped = false) {
+    function drawMoss(x, y, color, scale = 1, direction = 1, trapped = false, behavior = 'pacer') {
       ctx.save(); ctx.translate(x, y); ctx.scale(scale * direction, scale);
       ctx.fillStyle = 'rgba(14,27,32,.24)'; ctx.beginPath(); ctx.ellipse(0, 15, 18, 5, 0, 0, Math.PI * 2); ctx.fill();
       // A new moss seedling creature with uneven tufts, not a reference character.
@@ -220,6 +220,11 @@
       ctx.strokeStyle = '#39474a'; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(-8, 12); ctx.lineTo(-10, 17); ctx.moveTo(8, 12); ctx.lineTo(10, 17); ctx.stroke();
       ctx.fillStyle = 'rgba(246,224,162,.5)'; ctx.beginPath(); ctx.arc(-9, -8, 2.2, 0, Math.PI * 2); ctx.fill();
+      if (!trapped && behavior === 'sprinter') {
+        ctx.strokeStyle = '#fff0ae'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-5, -17); ctx.lineTo(0, -21); ctx.lineTo(5, -17); ctx.stroke();
+      } else if (!trapped && behavior === 'stalker') {
+        ctx.fillStyle = '#f4d68f'; ctx.beginPath(); ctx.arc(0, -15, 2.1, 0, Math.PI * 2); ctx.fill();
+      }
       if (trapped) { ctx.strokeStyle = '#3b5962'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, -1, 15, Math.PI * 1.08, Math.PI * 1.9); ctx.stroke(); }
       ctx.restore();
     }
@@ -253,7 +258,7 @@
       drawGround();
       for (const bubble of v.bubbles) if (bubble.kind === 'trap') drawBubble(bubble, v);
       for (const bubble of v.bubbles) if (bubble.kind === 'shot') drawBubble(bubble, v);
-      for (const enemy of v.enemies) if (enemy.mode === 'alive') drawMoss(enemy.x, enemy.y + 13, enemy.color, 1, enemy.direction);
+      for (const enemy of v.enemies) if (enemy.mode === 'alive') drawMoss(enemy.x, enemy.y + 13, enemy.color, 1, enemy.direction, false, enemy.behavior);
       const blink = v.player && v.invulnerable > 0 && Math.floor(v.elapsed * 12) % 2 === 0;
       if (!blink) drawMầm(v.player.x, v.player.y, v.player.facing, v.player.vy, false, v.elapsed);
       if (v.roundClearTimer !== null) {

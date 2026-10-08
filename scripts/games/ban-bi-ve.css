@@ -15,6 +15,8 @@
 .bbv-canvas:focus-visible { box-shadow: inset 0 0 0 3px #147a65; }
 .bbv-help { display: flex; justify-content: space-between; gap: 8px; padding: 7px 2px 2px; color: #60756c; font-size: .85rem; }
 .bbv-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+.bbv-mode-pick { display: flex; gap: 5px; margin-right: 2px; }
+.bbv-mode-option[aria-pressed="true"] { background: #1f6655; color: #fff; }
 .bbv-player-pick { display: flex; align-items: center; gap: 5px; margin-right: auto; }
 .bbv-player-label { margin-right: 2px; color: #60756c; font-size: .82rem; }
 .bbv-button { min-height: 44px; min-width: 44px; padding: 8px 12px; border: 1px solid rgba(27, 75, 61, .2); border-radius: 12px; background: #fffdf7; color: #31554a; font: 700 .93rem 'Calibri', 'Inter', -apple-system, sans-serif; cursor: pointer; transition: transform .12s ease, background .12s ease, box-shadow .12s ease; }

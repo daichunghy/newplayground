@@ -1092,5 +1092,13 @@
     "license": "MIT (project-authored original artwork; see LICENSE)",
     "source": "Created for NewPlayground Quầy Nước Chanh; original lemonade stand illustration, no branded assets copied",
     "size_bytes": 2184
+  },
+  {
+    "category": "cover-art",
+    "file": "thap-ba-coc-original.svg",
+    "local_path": "assets/thap-ba-coc-original.svg",
+    "size_bytes": 1696,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Created in this repository for NewPlayground; no third-party artwork copied"
   }
 ]

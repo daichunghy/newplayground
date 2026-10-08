@@ -1,21 +1,21 @@
 # Nâng cấp sâu toàn bộ 150 game: các lô triển khai
 
-Ngày: 08/10/2026. Phạm vi hiện hành theo yêu cầu người dùng: hoàn thiện từng game trong danh mục 150, cho phép làm song song bằng các worktree riêng. Mục tiêu 500 là chiến lược sau; không thêm clone để tăng số. Chưa được duyệt push/merge/deploy cho lô cải thiện mới.
+Ngày: 08/10/2026. Phạm vi hiện hành theo yêu cầu người dùng: hoàn thiện từng game trong danh mục 150, cho phép làm song song bằng các worktree riêng. Mục tiêu 500 là chiến lược sau; không thêm clone để tăng số. Lô này sẽ được đẩy một lần lên PR review hiện có; main/live vẫn giữ nguyên.
 
 ## Chứng cứ và cổng chất lượng
 
 Minesweeper ms1 có checkpoint 78b598d: 101 kiểm tra tự động pass, browser/device còn pending, package được giữ riêng. Tiếp tục triển khai 2048/Line98/Hàng Rong song song theo chỉ đạo mới; không coi game trước chưa device-QA là lý do dừng mọi implementation. Mỗi game vẫn có cổng riêng: nguồn luật và bản tham chiếu, scope/content, model, input/render, asset rights, save/lifecycle, automation, browser/device/playtest, duyệt release. Không đánh dấu accepted chỉ vì qua unit test.
 
-- Integration: `codex/deep-upgrades-20261007`; 2048 do integrator phụ trách.
+- Review target: `codex/quality-depth-integration-20261008`; local integrator batch: `codex/nhip-may-depth-20261008`.
 - Line98: worktree/branch riêng; chỉ model/view/CSS/tests/dossier/assets của game.
 - Hàng Rong: worktree/branch riêng; chỉ modules/tests/dossier/assets của game.
 - Integrator sở hữu router wrappers, index, shared CSS, manifest, inventory/backlog và full-suite regression.
 - Một worker chỉ có một game implementation đang mở. Giải phóng slot sau khi bàn giao commit; game tiếp theo theo danh sách dưới. Không triển khai placeholder hoặc gọi engine khác làm một game mới.
-- Tiến độ cục bộ hiện tại: 150 catalog / 50 prototypes / 100 cần gameplay riêng / 0 accepted scope / 0 complete reference parity.
+- Tiến độ cục bộ hiện tại: 150 catalog / 51 prototypes / 99 cần gameplay riêng / 0 accepted scope / 0 complete reference parity.
 
 ## Thứ tự và lô
 
-P1A là 4 vòng chơi đầu, P1B là timing/collision, P1C là nội dung/progression. P2 xử lý 30 prototype còn lại; chia tối đa 3 game độc lập đang triển khai. P3 nghiên cứu và xây 100 engine còn thiếu theo work_order, ưu tiên luật/content rõ và quyền giải quyết được. Mọi game brand/campaign phức tạp phải khóa scope và quyền trước, không giả đạt parity bằng một màn đơn giản.
+P1A là 4 vòng chơi đầu, P1B là timing/collision, P1C là nội dung/progression. P2 xử lý 31 prototype; chia tối đa 3 nhóm game độc lập đang triển khai. P3 nghiên cứu và xây 99 engine còn thiếu theo work_order, ưu tiên luật/content rõ và quyền giải quyết được. Mọi game brand/campaign phức tạp phải khóa scope và quyền trước, không giả đạt parity bằng một màn đơn giản.
 
 ### P1A
 
@@ -27,7 +27,7 @@ P1A là 4 vòng chơi đầu, P1B là timing/collision, P1C là nội dung/progr
 ### P1B
 
 - 5. `xep-gach-tetris` — Xếp Khối: original fb1 integrated, 27 focused tests pass; device pending
-- 6. `pac-man` — Lối Sáng: original mc1 integrated, 45 focused tests pass; device pending
+- 6. `pac-man` — **Lối Sáng** varies sentry lead distance (2/3/5 cells) and patrol window (5/4.5/4 seconds) across its three authored mazes, preserving the same finish/retry and saved-run loop; 45 focused model/UI tests pass; browser/device balance and historic title/route rights pending, no PAC-MAN parity claim
 - 7. `zuma-ech-ban-ngoc` — Đường Ngọc: original Marble Trail mt1 integrated, 50 focused tests pass; device pending
 - 8. `dat-bom-bomberman` — Bom Vườn original candidate on `codex/deep-upgrades-20261007`; 14 model + 9 DOM/Canvas-double tests pass, browser/device/playtest pending; no commercial parity claim
 
@@ -47,15 +47,15 @@ P1A là 4 vòng chơi đầu, P1B là timing/collision, P1C là nội dung/progr
 - 17. `nong-trai-vui-ve` — Vườn Nắng original crop-growth candidate (`sg1`); 11 model + 6 DOM-double UI + 1 compact-route test pass; historical rules are only partially sourced, browser/device/balance/playtest pending, no parity claim
 - 18. `gunny-2d` — **Gió Ngang** original coordinate-artillery candidate (`wind-duel-1`); 13 model + 7 DOM-double UI tests pass; current official controls guide reviewed, historical build unverified; browser/device/balance/playtest and route/title rights pending; no parity claim
 - 19. `nuoi-ca-nemo` — **Bể Sao** original 60-second care/defense round now advances through three earned reef zones with 2/3/3 pearl quotas. Later reefs make visitors tougher and sooner while fish swim faster; feeding remains instant, pearls auto-collect, and defense is still tap-to-zap, with no store or currency. Nine model + six DOM-double UI tests pass, including a complete eight-pearl win by pointer-fed play, quota gates and all visitor profiles; Chromium campaign smoke is pending on the next review-branch run. EA/PopCap broad loop sources reviewed, historical catalog edition remains unknown; device balance, novice playtest and historic route/title rights pending; no parity claim
-- 20. `co-caro` — **Cờ Caro** original local hot-seat candidate (`caro-candidate-1`); 7 model + 4 DOM-double UI tests pass; official RIF rules and Vietnamese product variants compared, historic variant unresolved; browser/device/playtest and exact-route rights framing pending; no parity claim
-- 21. `co-tuong` — **Cờ Tướng** original hot-seat candidate integrated locally; 11 model + 5 DOM-double UI tests pass; browser/device/playtest and catalog-era rules/title parity pending
-- 22. `ban-bi-ve` — **Bắn Bi Ve** original regional ring-flick candidate integrated locally; 8 model + 14 DOM-double UI/lifecycle tests pass; real browser/device, accessibility and playtest remain pending
-- 23. `o-an-quan` — **Ô Ăn Quan** original local hot-seat candidate integrated locally; 11 model + 4 DOM-double UI/lifecycle tests pass; regional rules and catalog-era version vary; browser/device/accessibility/playtest pending
+- 20. `co-caro` — **Cờ Caro** now opens solo against a deterministic CPU that takes immediate wins, blocks immediate threats and scores nearby patterns; local hot-seat remains optional. Casual five-or-more wins, including overlines, without Renju foul loss. 10 model + 5 UI tests pass; exact catalog edition, browser/device balance and route-title rights remain pending
+- 21. `co-tuong` — **Cờ Tướng** now opens Red vs. a deterministic legal-move Black CPU with optional hot-seat; bounded 10×8 reply search preserves existing movement, check and repetition rules. 13 model + 8 UI tests pass; browser/device, human balance, glyph/accessibility and catalog-era parity pending
+- 22. `ban-bi-ve` — **Bắn Bi Ve** now opens against a bounded CPU that simulates up to 18 candidate shots; after a scored shot it takes one rules-granted weak miss to return the next turn. Optional 2–4 player hot-seat remains. 10 model + 17 UI tests pass; browser/device, regional balance and historic route rights pending
+- 23. `o-an-quan` — **Ô Ăn Quan** now opens Red vs. deterministic Black using depth-2 search through the documented sow/capture/refill/finish model; local hot-seat remains available. 12 model + 6 UI tests pass; regional variation, browser/device balance and catalog-era rights remain pending
 - 24. `ran-san-moi-snake` — **Rắn Săn Mồi** original grid Snake candidate integrated locally; 7 model + 5 DOM-double UI/lifecycle tests pass; 6110 reference researched, exact build/tuning unknown; browser/device/accessibility/playtest pending; legacy title/route rights unresolved
 - 25. `feeding-frenzy` — **Cá Lớn Nuốt Cá Bé** original three-zone grow-by-eating round now has responsive swimming: velocity ramps to the same 178 px/s cap, arcs through turns, and brakes briefly after release; keyup/pointer cancel stop steering without snapping the fish to an abrupt halt. Fourteen model + eight DOM-double UI/lifecycle tests pass, including save compatibility and trajectory equivalence across frame partitions. A Chromium smoke now measures acceleration and post-release coasting through actual keyboard input; current-head CI/device feel and human balance remain pending. EA broad-loop sources reviewed; catalog title/route rights remain pending; no parity claim
 - 26. `flappy-bird` — **Mạch Gió** original one-button flight candidate integrated locally; 11 focused model/UI tests pass; sources reviewed, exact physics unknown, three-life deviation documented; browser/device/playtest and legacy title/route rights pending; no parity claim
 - 27. `chem-hoa-qua` — **Vườn Bật Nảy** original swipe-slicing candidate now advances through three authored timed courses: slow fruit groups, crosswind/sway, then a faster denser course with more bombs; stage names are shown and announced, while the 60-second round, three-miss limit, swipe controls, and pause/retry loop remain. Six model + four DOM-double UI/lifecycle tests pass, including stage boundaries, course pressure, and HUD updates; a Chromium smoke covers the second-course transition and is pending on the next PR head. Official support mode overview reviewed, exact catalog edition/tuning unknown; physical device, novice playtest, accessibility and historical title/route rights pending; no parity claim
-- 28. `pha-gach-dx-ball` — **Phá Gạch** original paddle-and-ball candidate integrated locally; 14 focused model/UI tests pass; generic Breakout loop sourced, DX-Ball editions/rights are unresolved; browser/device/playtest pending; no DX-Ball parity claim
+- 28. `pha-gach-dx-ball` — **Phá Gạch** now has four authored fields with different arch/channel/island routes; six two-hit core bricks add a final aim challenge. Clearing Lõi Bền ends the run with a win; replay starts fresh. Twelve model + six DOM-double UI tests cover field layouts, durable-brick scoring, campaign end, replay and lifecycle. Chromium win/replay smoke is added and pending this head's CI; player balance/device feel and DX-Ball/title rights remain pending; no parity claim
 - 29. `day-thung-sokoban` — **Đẩy Thùng** expanded to six authored push-only rooms: the final set adds separated goals, a pinched route, and a three-crate delivery with a narrow passage. Every room has an executable BFS witness; sequential wins unlock rooms and save best moves, while versioned local snapshots preserve the current board and undo history. Eight model + twelve DOM-double UI/lifecycle tests pass, including corrupted/future saves and denied storage; a Chromium keyboard smoke clears all six rooms and is pending on the next review-branch run. Generic classic rules sourced; physical-device layout, novice difficulty, human playtest and title/route rights pending; no parity claim
 - 30. `pong-1972` — **Bóng Bàn Cổ Điển** original solo-first candidate with optional local 2P; the capped CPU tracks the current ball until it enters the final 37% of the court, then predicts a reflected crossing, preserving time for return-angle counterplay. Sixteen focused model/UI tests pass, including wall-bounce prediction and a deterministic player policy that wins by aiming returns; museum sources document broad loop/history, exact cabinet variant unknown; browser/device/physical multi-touch, human balance and rights pending; no exact parity claim
 - 31. `ban-ga-vu-tru` — **Tuyến Sáng** original three-wave solo shooter; waves require 3/5/7 targets, speed up enemy motion/fire/spawns, pause between clears and give a short shield; the final 15th target clears the campaign. Six model + six DOM-double UI/lifecycle tests pass; an actual Chromium wave-transition smoke is in the review update; catalog edition and title/route rights remain unresolved; no franchise parity claim.
@@ -66,7 +66,7 @@ P1A là 4 vòng chơi đầu, P1B là timing/collision, P1C là nội dung/progr
 - 36. `rockman-mega-man` — **Mầm Chớp** original three-stage garden campaign integrated locally: patrol/sentry basics, timed vent routes, then a telegraphed guardian with a locked final gate; sequential unlock/replay, three checkpoints per stage and versioned local saves; 15 model + 14 DOM-double UI/lifecycle tests pass, including all ground-gap jumps, six-tick jump buffering/coyote grace, guardian cycle/gate, save recovery, manual/automatic pause, shared-mute sound cues, reduced-motion preference and input cancellation; Capcom Town Mega Man 4 English page reviewed for broad movement/jump/attack/charge context, exact catalog edition unknown; browser/device, difficulty, screen-reader playtest and historical title/route rights pending; no parity claim
 - 37. `duck-hunt-ban-vit` — **Mục Tiêu Bay** original five-flight gallery with named path patterns, an amber warning before later direction changes, and the same pointer/keyboard/touch aiming controls; every fresh play/retry gets a new nonzero flight seed while explicitly seeded model runs remain deterministic. Six model + six DOM-double UI/lifecycle tests pass; a Chromium smoke for the fourth-flight warning is added; US 1985 NES booklet/Game A and Nintendo product summary reviewed, exact region/revision unknown; physical pointer/touch, accessibility and human playtest pending; no light-gun, dog, clay or franchise-content parity claim
 - 38. `street-fighter-2-doi-khang` — **Nảy Lửa** original solo-first fighter integrated locally; ordinary fresh matches now vary CPU choices while explicit model seeds remain repeatable; 7 model + 5 DOM-double UI/input/lifecycle tests pass, including hidden-tab/window-blur loop pause, cleared held input and terminal RAF cessation; exact-route, original-cover and concise-copy gates; official Capcom Town English home-console page reviewed for broad controls/history, exact catalog edition and tuning unverified; browser/device, balance, human playtest and historic title/route rights pending; no parity claim
-- 39. `bubble-bobble-khung-long-bong-bong` — **Mầm Gió** original three-round bubble-trap platform arcade integrated locally; 8 model + 5 DOM-double UI/input/lifecycle tests pass, including exact-route/cover; Taito retrospective and HAMSTER re-release page reviewed with edition caveats; browser/device, accessibility, balance, novice playtest and historic title/route rights pending; no parity claim
+- 39. `bubble-bobble-khung-long-bong-bong` — **Mầm Gió** now mixes deterministic pacer, stalker and sprinter roles with small visual tells; all authored terraces remain reachable under the current jump arc. Eleven model + five DOM-double UI/input/lifecycle tests pass; browser/device, accessibility, balance and title/route rights pending; no franchise parity claim
 - 40. `age-of-war-thoi-dai-chien-tranh` — **Ranh Giới Mây** original three-bridge garden campaign; second bridge sends shield → heavy → ranged waves, and the Bọ Sỏi → Nỏ Hạt → Mầm Khiên player cycle clears in under 60s while each single-unit baseline fails to clear within 90s; final bridge adds stronger repeated Bọ Sỏi pressure answered by Nỏ Hạt; unlock/replay and best clear times save locally; malformed saves are copied to a recovery key, future-schema saves remain untouched, and storage-write failure does not block a win; 14 model + 8 DOM-double tests pass, including rival roster fidelity, all three counter rules, clear/lose time bounds, mixed-vs-single policy, a shield-only final-stage failure, save/reload progression, keyboard, pause and cleanup; creator-authored Newgrounds page reviewed for broad 2007 RTS context, remastered mobile edition kept separate; exact historic build, browser/device, human balance, accessibility, novice playtest and historic title/route rights pending; no parity claim
 - 41. `bloxorz-khoi-da-lan` — **Khối Đá Lăn** original 10-stage rolling-block campaign with rising solver-verified shortest routes, sequential unlock/replay and locally saved best moves; 7 deterministic model + 6 DOM-double UI/input/lifecycle tests pass, including per-stage BFS reachability, footprint/reversal properties and progress recovery; Shockwave and Coolmath official-host pages reviewed for broad rules, exact catalog edition unverified; browser/device, accessibility, human difficulty playtest and title/route rights pending; no parity claim
 - 42. `raft-wars-ban-sung-phao` — **Đấu Phao Bãi Cạn** original one-screen solo artillery duel integrated locally; 10 model + 8 DOM-double UI/input/lifecycle tests pass, plus exact-route/copy/compact-UI gates; official developer site reviewed for the 2007 original and version splits, exact gameplay build/rules still unverified; browser/device, playtest and historic title/route rights pending; no parity claim
@@ -81,39 +81,39 @@ P1A là 4 vòng chơi đầu, P1B là timing/collision, P1C là nội dung/progr
 - 48. `dr-mario-diet-khuan` — **Ống Nghiệm** original four-bottle 8×16 capsule campaign; 8 model + 3 campaign + 6 DOM-double UI/lifecycle tests pass, with legal routes for horizontal/vertical clears, planned falling-half and automatic two-clear cascade, sequential unlock/replay and safe save recovery; Nintendo 1990 NES manual reviewed with edition limits; legal solutions do not establish human difficulty; browser/device/accessibility/playtest and historic title/route rights pending; no franchise parity claim.
 - 49. `peggle-pachinko` — **Bật Chốt** five original authored peg boards with 16/16/15/20/27 orange targets, shrinking 10/10/9/9/8 ball budgets and a faster moving return bucket; clearing a board unlocks the next, and replay records best score/fewest shots. A deterministic half-degree aim search witnesses all five clears within budget. Twelve model + seven DOM-double UI/lifecycle tests pass; real browser/device physics feel, human difficulty and historical title/route rights remain pending; no Peggle-character or layout parity claim.
 - 50. `lemonade-tycoon` — **Quầy Nước Chanh** original five-day recipe/price campaign with distinct weather orders and goals 100/110/115/120/125; clear unlocks the next shift, each day saves its best-profit run and deterministic seed for replay; a weather-matched policy wins 433–492/500 seeded runs per day, and a bounded five-second action search finds a winning plan for all 185 sampled baseline losses; 11 model + 8 DOM-double save/UI/lifecycle tests pass; browser/device, human balance, accessibility and historical title/route rights pending; no parity claim.
-- 51. `pizza-frenzy` — Pizza Frenzy Giao Bánh: queued; research trước implementation
-- 52. `heavy-weapon` — Heavy Weapon Xe Tăng: queued; research trước implementation
-- 53. `typer-shark` — Typer Shark Luyện Gõ: queued; research trước implementation
-- 54. `chuzzle` — Chuzzle Sinh Vật Lông: queued; research trước implementation
-- 55. `lua-va-nuoc` — Lửa & Nước (Fireboy & Watergirl): queued; research trước implementation
-- 56. `nguoi-tuyet-snow-bros` — Người Tuyết (Snow Bros): queued; research trước implementation
-- 57. `angry-birds-mini` — Bắn Chim Angry Birds: queued; research trước implementation
-- 58. `cut-the-rope` — Cắt Dây Cho Ếch Om Nom: queued; research trước implementation
-- 59. `ban-ruoi-galaga` — Bắn Ruồi (Galaga): queued; research trước implementation
-- 60. `noi-ong-nuoc-pipemania` — Nối Ống Nước Pipemania: queued; research trước implementation
-- 61. `pinball-3d-space-cadet` — Pinball 3D Space Cadet: queued; research trước implementation
-- 62. `dap-chuot-chui` — Đập Chuột Chũi Whac-A-Mole: queued; research trước implementation
-- 63. `xay-cau-bridge-builder` — Xây Cầu Vật Lý (Bridge Builder): queued; research trước implementation
-- 64. `truc-thang-heli-attack` — Trực Thăng Bắn Súng (Heli Attack): queued; research trước implementation
-- 65. `thu-thanh-bloons-td` — Thủ Thành Khỉ Ném Phi Tiêu: queued; research trước implementation
-- 66. `contra-2d` — Contra 2D Cổ Điển: queued; research trước implementation
-- 67. `bong-bong-nuoc-bubble-trouble` — Bắn Bong Bóng Nước (Bubble Trouble): queued; research trước implementation
-- 68. `crossy-road` — Băng Qua Đường (Crossy Road): queued; research trước implementation
-- 69. `sonic-chay-nhanh` — Nhím Sonic Chạy Nhanh: queued; research trước implementation
-- 70. `dua-xe-nam-mario-kart` — Đua Xe Nấm Mini: queued; research trước implementation
-- 71. `rambo-lun-metal-slug` — Rambo Lùn (Metal Slug Mini): queued; research trước implementation
-- 72. `excitebike-dua-xe-dia-hinh` — Đua Xe Đạp Địa Hình (Excitebike): queued; research trước implementation
-- 73. `circus-charlie-xiec` — Xiếc Khỉ Nhảy Lửa (Circus Charlie): queued; research trước implementation
-- 74. `kung-fu-master` — Kung Fu Thiếu Lâm Tự: queued; research trước implementation
-- 75. `nem-lon-truong-lang` — Ném Lon Trường Làng: queued; research trước implementation
-- 76. `tat-lon-via-he` — Tạt Lon Vỉa Hè: queued; research trước implementation
-- 77. `rong-den-mortal-kombat` — Rồng Đen 2D Mini: queued; research trước implementation
-- 78. `co-ca-ngua` — Cờ Cá Ngựa Việt Nam: queued; research trước implementation
-- 79. `co-ty-phu-monopoly` — Cờ Tỷ Phú Mini: queued; research trước implementation
-- 80. `ai-la-trieu-phu` — Ai Là Triệu Phú Mini: queued; research trước implementation
-- 81. `duo-hinh-bat-chu` — Đoán Hình Bắt Chữ: queued; research trước implementation
-- 82. `tim-diem-khac-biet` — Tìm Điểm Khác Biệt: queued; research trước implementation
-- 83. `thap-ha-noi-tower` — Tháp Hà Nội Cổ Điển: queued; research trước implementation
+- 51. `thap-ha-noi-tower` — **Tháp Ba Cọc** new original classic three-peg campaign with 3/4/5/6 disks, shortest-path hints, move/par feedback, undo, replay and per-stage save/recovery; 5 model + 7 DOM-double UI tests pass, plus route-flow coverage in the full suite. Browser/mobile/accessibility/playtest and title/distribution rights pending; no commercial-game parity claim
+- 52. `pizza-frenzy` — Pizza Frenzy Giao Bánh: queued; research trước implementation
+- 53. `heavy-weapon` — Heavy Weapon Xe Tăng: queued; research trước implementation
+- 54. `typer-shark` — Typer Shark Luyện Gõ: queued; research trước implementation
+- 55. `chuzzle` — Chuzzle Sinh Vật Lông: queued; research trước implementation
+- 56. `lua-va-nuoc` — Lửa & Nước (Fireboy & Watergirl): queued; research trước implementation
+- 57. `nguoi-tuyet-snow-bros` — Người Tuyết (Snow Bros): queued; research trước implementation
+- 58. `angry-birds-mini` — Bắn Chim Angry Birds: queued; research trước implementation
+- 59. `cut-the-rope` — Cắt Dây Cho Ếch Om Nom: queued; research trước implementation
+- 60. `ban-ruoi-galaga` — Bắn Ruồi (Galaga): queued; research trước implementation
+- 61. `noi-ong-nuoc-pipemania` — Nối Ống Nước Pipemania: queued; research trước implementation
+- 62. `pinball-3d-space-cadet` — Pinball 3D Space Cadet: queued; research trước implementation
+- 63. `dap-chuot-chui` — Đập Chuột Chũi Whac-A-Mole: queued; research trước implementation
+- 64. `xay-cau-bridge-builder` — Xây Cầu Vật Lý (Bridge Builder): queued; research trước implementation
+- 65. `truc-thang-heli-attack` — Trực Thăng Bắn Súng (Heli Attack): queued; research trước implementation
+- 66. `thu-thanh-bloons-td` — Thủ Thành Khỉ Ném Phi Tiêu: queued; research trước implementation
+- 67. `contra-2d` — Contra 2D Cổ Điển: queued; research trước implementation
+- 68. `bong-bong-nuoc-bubble-trouble` — Bắn Bong Bóng Nước (Bubble Trouble): queued; research trước implementation
+- 69. `crossy-road` — Băng Qua Đường (Crossy Road): queued; research trước implementation
+- 70. `sonic-chay-nhanh` — Nhím Sonic Chạy Nhanh: queued; research trước implementation
+- 71. `dua-xe-nam-mario-kart` — Đua Xe Nấm Mini: queued; research trước implementation
+- 72. `rambo-lun-metal-slug` — Rambo Lùn (Metal Slug Mini): queued; research trước implementation
+- 73. `excitebike-dua-xe-dia-hinh` — Đua Xe Đạp Địa Hình (Excitebike): queued; research trước implementation
+- 74. `circus-charlie-xiec` — Xiếc Khỉ Nhảy Lửa (Circus Charlie): queued; research trước implementation
+- 75. `kung-fu-master` — Kung Fu Thiếu Lâm Tự: queued; research trước implementation
+- 76. `nem-lon-truong-lang` — Ném Lon Trường Làng: queued; research trước implementation
+- 77. `tat-lon-via-he` — Tạt Lon Vỉa Hè: queued; research trước implementation
+- 78. `rong-den-mortal-kombat` — Rồng Đen 2D Mini: queued; research trước implementation
+- 79. `co-ca-ngua` — Cờ Cá Ngựa Việt Nam: queued; research trước implementation
+- 80. `co-ty-phu-monopoly` — Cờ Tỷ Phú Mini: queued; research trước implementation
+- 81. `ai-la-trieu-phu` — Ai Là Triệu Phú Mini: queued; research trước implementation
+- 82. `duo-hinh-bat-chu` — Đoán Hình Bắt Chữ: queued; research trước implementation
+- 83. `tim-diem-khac-biet` — Tìm Điểm Khác Biệt: queued; research trước implementation
 - 84. `piano-tiles-phim-nhac` — Phím Nhạc Rơi (Piano Tiles): queued; research trước implementation
 - 85. `among-us-impostor` — Ai Là Kẻ Giả Mạo? (Among Us): queued; research trước implementation
 - 86. `skribbl-ve-doan-chu` — Vẽ Hình Đoán Chữ (Skribbl): queued; research trước implementation

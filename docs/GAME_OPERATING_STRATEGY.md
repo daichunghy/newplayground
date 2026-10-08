@@ -7,16 +7,16 @@ Cập nhật 08/10/2026. Mục tiêu: danh mục 500 game có gameplay riêng, �
 | Hạng mục | Hiện trạng có chứng cứ | Quyết định |
 |---|---|---|
 | Danh mục | 150 ID, catalog JSON và bản nhúng đồng nhất qua preflight tĩnh | Giữ làm danh mục nghiên cứu |
-| Gameplay | 50 launcher riêng; 100 ID chưa có launcher riêng | 50 bản thử nghiệm, 100 mục đang phát triển |
-| Hoàn chỉnh | Chưa có game được chứng nhận đủ luật/nội dung/thiết bị so với bản tham chiếu | Không coi 50 prototype là 50 replica hoàn chỉnh |
+| Gameplay | 51 launcher riêng; 99 ID chưa có launcher riêng | 51 bản thử nghiệm, 99 mục đang phát triển |
+| Hoàn chỉnh | Chưa có game được chứng nhận đủ luật/nội dung/thiết bị so với bản tham chiếu | Không coi 51 prototype là 51 replica hoàn chỉnh |
 | Router | Đã bỏ launcher arcade ghi đè và ánh xạ theo substring | Mỗi ID chỉ mở launcher đã đăng ký chính xác |
 | Vòng đời | Engine dùng API quản lý RAF/timer; listener window/document được theo dõi; cleanup chung khi đổi/đóng game | Cần nghiệm thu tương tác và tài nguyên trong trình duyệt trước phát hành |
 | Tăng tiến | Đã sửa Hàng Rong dùng sai ngưỡng mở giai đoạn; bản lưu cũ được đồng bộ lại giai đoạn | Cần đối chiếu cả kinh tế, công thức và khả năng hoàn thành ca |
 | Dữ liệu kinh doanh | Chưa có funnel/retention/doanh thu nội bộ | Chưa xếp hạng bằng doanh thu hay volume giả |
-| Hồ sơ tài sản | 179 file trong register; 133 có manifest record và 46 chưa khai báo | Asset register theo file; bổ sung nguồn/quyền, ưu tiên tài sản pilot |
+| Hồ sơ tài sản | 180 file trong register; 134 có manifest record và 46 chưa khai báo | Asset register theo file; bổ sung nguồn/quyền, ưu tiên tài sản pilot |
 | Phân phối | Có cấu hình GitHub Pages; preflight loại tài sản bị thay thế hoặc chưa rõ quyền khỏi artifact | Giữ riêng checkpoint bảy game; nhánh tích hợp cục bộ có các candidate game nguyên bản; chưa có public PR, merge hoặc triển khai live |
 
-Mở rộng từ 150 lên 500 cần thêm **350 mục danh mục**. Để có 500 game hoàn chỉnh, còn phải nghiệm thu 50 prototype, xây gameplay cho 100 mục cũ và xây thêm 350 game. Tổng 450 mục hiện chưa có launcher riêng; độ khó mỗi mục rất khác nhau.
+Mở rộng từ 150 lên 500 cần thêm **350 mục danh mục**. Để có 500 game hoàn chỉnh, còn phải nghiệm thu 51 prototype, xây gameplay cho 99 mục cũ và xây thêm 350 game. Tổng 449 mục hiện chưa có launcher riêng; độ khó mỗi mục rất khác nhau.
 
 **Chọn cách làm:** dùng 12 game để hoàn thiện quy trình và các thành phần dùng chung; sau đó xử lý danh mục theo lô. Duy trì HTML/CSS/JavaScript hiện tại. Chỉ đưa engine/framework khác vào khi một loại game thực sự cần nó và đã đo lợi ích.
 
@@ -49,7 +49,7 @@ Newzoo H5, khảo sát Poki và số liệu mobile Việt Nam có mẫu/phạm v
 
 Mỗi dữ liệu có bốn trường: **nguồn + phiên bản + ngày + mức chứng cứ**. Tách `source-reviewed`, `observed-in-game`, `measured-on-device`, `implemented-and-accepted`. Hiện 12 hồ sơ ở mức đọc nguồn/mã một phần; chưa có video/playthrough/FPS/input latency đo từ thiết bị.
 
-`docs/ASSET_OPERATIONS_REGISTER.csv` liệt kê 179 tài sản hiện có theo file/kích thước/nguồn/license khai báo và việc cần làm. 133 record trong manifest đều trỏ tới file hiện có; 46 file chưa có record. Việc có record chỉ xác nhận hồ sơ khai báo, chưa xác nhận lại quyền từng nguồn hay độ phù hợp với hình ảnh bản tham chiếu.
+`docs/ASSET_OPERATIONS_REGISTER.csv` liệt kê 180 tài sản hiện có theo file/kích thước/nguồn/license khai báo và việc cần làm. 134 record trong manifest đều trỏ tới file hiện có; 46 file chưa có record. Việc có record chỉ xác nhận hồ sơ khai báo, chưa xác nhận lại quyền từng nguồn hay độ phù hợp với hình ảnh bản tham chiếu.
 
 ## 4. Định nghĩa replica hoàn chỉnh
 
@@ -67,8 +67,8 @@ Gameplay parity và quyền phát hành phải cùng được giải quyết. N�
 | P1A | Dò Mìn, 2048, Line 98, Hàng Rong | Bốn vòng chơi khép kín; bộ save/input/progression mẫu; hồ sơ theo template | Chọn phiên bản, xác nhận luật, ghi nhận playtest và thiết bị |
 | P1B | Tetris, Pac-Man, Zuma, Bomberman | Chuẩn timing, AI, collision, input buffering, path/wave dữ liệu hóa | Dùng runtime/save đã ổn; đối chiếu đặc điểm từng game |
 | P1C | Mario, Diner Dash, PvZ, UNO | Prototype có chiều sâu; bản đồ nội dung, economy/AI/turn state đầy đủ theo scope | Cần nhiều nghiên cứu hơn; không ép đạt parity bằng lịch của nhóm puzzle |
-| P2 | 30 prototype còn lại | Hoàn thiện hồ sơ và gameplay từng game, theo thứ tự trong backlog | Ưu tiên lỗi nặng và thành phần dùng chung; vẫn cần phiên bản riêng |
-| P3 | 100 mục chưa có engine | Discovery trước, engine phù hợp sau; các game bài và puzzle được đề xuất khảo sát trước | Hồ sơ, estimate, quyền nội dung và gameplay riêng trước khi gắn trạng thái playable |
+| P2 | 31 prototype còn lại | Hoàn thiện hồ sơ và gameplay từng game, theo thứ tự trong backlog | Ưu tiên lỗi nặng và thành phần dùng chung; vẫn cần phiên bản riêng |
+| P3 | 99 mục chưa có engine | Discovery trước, engine phù hợp sau; các game bài và puzzle được đề xuất khảo sát trước | Hồ sơ, estimate, quyền nội dung và gameplay riêng trước khi gắn trạng thái playable |
 | P4 | Thêm 350 mục | Danh sách nổi tiếng có chứng cứ nhu cầu và nguồn; production theo lô | Khả năng hoàn thành đo từ lô trước; giới hạn công việc đang làm |
 
 P1 là thứ tự học kỹ thuật và phạm vi cơ chế, chưa phải bảng xếp hạng nhu cầu. Solitaire được đưa vào discovery P3 vì hiện chưa có launcher. Các hồ sơ pilot và tiêu chí cụ thể nằm trong `docs/game-profiles/`; backlog 150 game có thứ tự và việc đầu tiên ở CSV/JSON.

@@ -13,6 +13,7 @@
   const RING_RADIUS = 142, MARBLE_RADIUS = 13, SHOOTER_RADIUS = 16;
   const STEP = 1 / 120, FRICTION = 1.35, RESTITUTION = 0.84;
   const MAX_PULL = 116, MAX_SPEED = 560, INITIAL_PER_PLAYER = 3;
+  const CPU_LIMITS = Object.freeze({ targetCount: 3, angleOffsets: Object.freeze([0, -0.12, 0.12]), speeds: Object.freeze([320, 500]), maxTrials: 18, simulationSteps: 420 });
   const PLAYER_COLORS = Object.freeze(['#70d4ff', '#ff8b72', '#b59aff', '#f4cf61']);
   const TARGET_COLORS = Object.freeze(['#f7f0ce', '#ffd2e7', '#c9f1da', '#f6d3a8']);
   const SLOTS = Object.freeze(Array.from({ length: 12 }, (_, i) => {
@@ -62,7 +63,7 @@
         score: Array(players).fill(0), targets,
         striker: { x: home.x, y: home.y, vx: 0, vy: 0 },
         phase: 'ready', status: 'playing', shots: 0, capturesThisShot: 0,
-        settleTicks: 0, ticks: 0, accumulator: 0, winners: []
+        settleTicks: 0, ticks: 0, accumulator: 0, winners: [], cpuScoredTurn: false
       };
     }
 
@@ -90,11 +91,49 @@
       return this.shoot(Math.atan2(dy, dx), Math.min(MAX_SPEED, Math.max(100, distance * 4.8)));
     }
 
+    chooseCpuShot() {
+      const s = this.state;
+      if (s.status !== 'playing' || s.phase !== 'ready' || s.players < 2 || s.turn !== 1 || !s.targets.length) return null;
+      const home = this.home();
+      if (s.cpuScoredTurn) {
+        // A low-power shot away from the ring takes the rule-preserving extra shot, then yields.
+        return { angle: Math.atan2(home.y - CENTER.y, home.x - CENTER.x), speed: 100, predictedCaptures: 0, trials: 0 };
+      }
+      const targets = [...s.targets]
+        .sort((a, b) => Math.hypot(a.x - home.x, a.y - home.y) - Math.hypot(b.x - home.x, b.y - home.y) || a.id - b.id)
+        .slice(0, CPU_LIMITS.targetCount);
+      let best = null;
+      let trials = 0;
+      for (const target of targets) {
+        const baseAngle = Math.atan2(target.y - home.y, target.x - home.x);
+        for (const offset of CPU_LIMITS.angleOffsets) {
+          for (const speed of CPU_LIMITS.speeds) {
+            if (trials >= CPU_LIMITS.maxTrials) break;
+            trials += 1;
+            const trial = restore(this.serialize());
+            if (!trial || !trial.shoot(baseAngle + offset, speed)) continue;
+            for (let tick = 0; tick < CPU_LIMITS.simulationSteps && trial.state.phase === 'moving'; tick += 1) trial.step();
+            const captured = trial.state.score[s.turn] - s.score[s.turn];
+            const beforeById = new Map(s.targets.map(ball => [ball.id, ball]));
+            let outwardDrift = 0;
+            for (const ball of trial.state.targets) {
+              const before = beforeById.get(ball.id);
+              if (before) outwardDrift += Math.max(0, Math.hypot(ball.x - CENTER.x, ball.y - CENTER.y) - Math.hypot(before.x - CENTER.x, before.y - CENTER.y));
+            }
+            const score = captured * 1000 - outwardDrift;
+            if (!best || score > best.score) best = { angle: baseAngle + offset, speed, predictedCaptures: captured, score };
+          }
+        }
+      }
+      return best ? { angle: best.angle, speed: best.speed, predictedCaptures: best.predictedCaptures, trials } : null;
+    }
+
     captureTargets() {
       const s = this.state, kept = [];
       for (const ball of s.targets) {
         if (Math.hypot(ball.x - CENTER.x, ball.y - CENTER.y) > RING_RADIUS) {
           s.score[s.turn]++; s.capturesThisShot++;
+          if (s.turn === 1) s.cpuScoredTurn = true;
           this.emit('capture', { id: ball.id, owner: ball.owner, player: s.turn, color: ball.color, score: s.score[s.turn] });
         } else kept.push(ball);
       }
@@ -143,6 +182,7 @@
         return;
       }
       if (s.capturesThisShot === 0) s.turn = (s.turn + 1) % s.players;
+      if (s.turn !== 1) s.cpuScoredTurn = false;
       s.capturesThisShot = 0; s.phase = 'ready'; s.settleTicks = 0;
       const home = this.home();
       s.striker = { x: home.x, y: home.y, vx: 0, vy: 0 };
@@ -191,6 +231,8 @@
   function restore(raw) {
     try {
       if (!raw || raw.version !== VERSION || raw.rules !== RULES) return null;
+      if (raw.cpuScoredTurn !== undefined && typeof raw.cpuScoredTurn !== 'boolean') return null;
+      if (raw.cpuScoredTurn === true && raw.turn !== 1) return null;
       if (!integer(raw.seed, 1, 0xffffffff) || !integer(raw.players, 2, 4) || !integer(raw.turn, 0, raw.players - 1)) return null;
       if (!['playing', 'won'].includes(raw.status) || !['ready', 'moving'].includes(raw.phase)) return null;
       if (!integer(raw.shots, 0, 1e7) || !integer(raw.capturesThisShot, 0, raw.players * INITIAL_PER_PLAYER)) return null;
@@ -218,14 +260,16 @@
         if (raw.winners.length !== actualWinners.length || raw.winners.some((player, index) => player !== actualWinners[index])) return null;
       }
       const game = new Game({ players: raw.players, seed: raw.seed });
-      game.state = copy(raw); game.events = [];
+      game.state = copy(raw);
+      if (game.state.cpuScoredTurn === undefined) game.state.cpuScoredTurn = false;
+      game.events = [];
       return game;
     } catch (_) { return null; }
   }
 
   return {
     VERSION, RULES, WIDTH, HEIGHT, CENTER, RING_RADIUS, MARBLE_RADIUS, SHOOTER_RADIUS,
-    STEP, MAX_PULL, MAX_SPEED, INITIAL_PER_PLAYER, PLAYER_COLORS, TARGET_COLORS,
+    STEP, MAX_PULL, MAX_SPEED, INITIAL_PER_PLAYER, PLAYER_COLORS, TARGET_COLORS, CPU_LIMITS,
     Game, create: options => new Game(options), restore, homeFor
   };
 });

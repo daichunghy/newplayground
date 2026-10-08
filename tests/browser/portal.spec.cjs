@@ -34,13 +34,13 @@ async function closeGame(page) {
 
 async function loadPortal(page) {
   await page.goto('/');
-  await expect(page.locator('#catalogAvailability')).toContainText('50');
+  await expect(page.locator('#catalogAvailability')).toContainText('51');
 }
 
 test('the default grid is playable-only; explicit catalog browsing keeps planned entries informational', async ({ page }) => {
   await loadPortal(page);
-  await expect(page.locator('#allSectionTitle')).toHaveText('Bản thử nghiệm có thể chơi (50)');
-  await expect(page.locator('#gridAll .game-card')).toHaveCount(50);
+  await expect(page.locator('#allSectionTitle')).toHaveText('Bản thử nghiệm có thể chơi (51)');
+  await expect(page.locator('#gridAll .game-card')).toHaveCount(51);
   await expect(page.locator('.filter-pill[data-category="playable"]')).toHaveClass(/active/);
 
   await page.locator('.filter-pill[data-category="all"]').click();
@@ -52,7 +52,7 @@ test('the default grid is playable-only; explicit catalog browsing keeps planned
   await expect(page.locator('#gameModal')).toHaveCSS('display', 'none');
 });
 
-test('all 50 registered games open, render, close and release their session', async ({ page }) => {
+test('all 51 registered games open, render, close and release their session', async ({ page }) => {
   test.setTimeout(120_000);
   const errors = watchErrors(page);
   await loadPortal(page);
@@ -62,7 +62,7 @@ test('all 50 registered games open, render, close and release their session', as
       id, engine, title: byId.get(id)?.title || id
     }));
   });
-  expect(routes).toHaveLength(50);
+  expect(routes).toHaveLength(51);
 
   for (const route of routes) {
     await openGame(page, route.id);
@@ -71,6 +71,48 @@ test('all 50 registered games open, render, close and release their session', as
     expect(await page.evaluate(() => window.NP_GameSession.getCurrent() !== null), route.id).toBe(true);
     await closeGame(page);
   }
+  expect(errors).toEqual([]);
+});
+
+test('Tháp Ba Cọc solves a real stage through its peg controls and resumes the unlocked campaign on mobile', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 780 });
+  const errors = watchErrors(page);
+  await loadPortal(page);
+  await openGame(page, 'thap-ha-noi-tower');
+  await expect(page.locator('#modalGameTitle')).toHaveText('Tháp Ba Cọc');
+  await expect(page.locator('#tbStageName')).toHaveText('1 / 4 · Bước đầu');
+  await expect(page.locator('#tbStage1')).toBeDisabled();
+  const firstPeg = await page.locator('#tbPeg0').boundingBox();
+  expect(firstPeg.width).toBeGreaterThanOrEqual(44);
+  expect(firstPeg.height).toBeGreaterThanOrEqual(44);
+
+  await page.locator('#tbPeg0').click();
+  await page.locator('#tbPeg2').click();
+  await expect(page.locator('#tbMoveCount')).toHaveText('1 / 7');
+  await page.locator('#tbUndo').click();
+  await expect(page.locator('#tbMoveCount')).toHaveText('0 / 7');
+  await page.locator('#tbHint').click();
+  await expect(page.locator('#tbHintText')).toContainText('Gợi ý');
+
+  for (let move = 0; move < 7; move += 1) {
+    const hint = await page.evaluate(() => {
+      const progress = JSON.parse(localStorage.getItem('np_thap_ba_coc_campaign_v1'));
+      const model = window.NP_ThapBaCocModel.create(progress.activeStage, progress.stages[progress.activeStage]);
+      return model.hint();
+    });
+    await page.locator(`#tbPeg${hint.from}`).click();
+    await page.locator(`#tbPeg${hint.to}`).click();
+  }
+  await expect(page.locator('#tbStatus')).toContainText('Chặng hoàn thành');
+  await expect(page.locator('#tbStage1')).toBeEnabled();
+  await page.locator('#tbNext').click();
+  await expect(page.locator('#tbStageName')).toHaveText('2 / 4 · Vững vàng');
+  await closeGame(page);
+
+  await openGame(page, 'thap-ha-noi-tower');
+  await expect(page.locator('#tbStageName')).toHaveText('2 / 4 · Vững vàng');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
+  await closeGame(page);
   expect(errors).toEqual([]);
 });
 
@@ -206,7 +248,7 @@ test('2048 completes a deterministic 2048 win, continue, and reload resume', asy
   await expect(page.locator('#g2048Overlay')).toBeHidden();
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('np_2048_state_v1')).keepPlaying)).toBe(true);
   await page.reload();
-  await expect(page.locator('#catalogAvailability')).toContainText('50');
+  await expect(page.locator('#catalogAvailability')).toContainText('51');
   await openGame(page, 'tro-choi-2048');
   await expect(page.locator('#g2048Overlay')).toBeHidden();
   await expect(page.locator('#g2048Score')).toHaveText('2048');
@@ -424,6 +466,34 @@ test('Cá Lớn Nuốt Cá Bé accelerates into a swim and coasts after keyboard
   expect(moving.vx, 'the fish builds real swimming speed').toBeGreaterThan(100);
   expect(coasting.x, 'momentum carries the fish after key release').toBeGreaterThan(moving.x);
   expect(Math.abs(coasting.vx), 'released steering brakes without a snap').toBeLessThan(moving.vx);
+  await closeGame(page);
+  expect(errors).toEqual([]);
+});
+
+test('Phá Gạch presents the fourth-field win and restarts at the first authored field', async ({ page }) => {
+  const errors = watchErrors(page);
+  await loadPortal(page);
+  await page.evaluate(() => {
+    const base = window.NP_DxBallModel;
+    window.NP_DxBallModel = {
+      ...base,
+      create() {
+        const state = base.initialState();
+        state.level = base.CAMPAIGN.length; state.status = 'won';
+        state.score = 480; state.lives = 2; state.bricks = [];
+        return base.makeModel(state);
+      }
+    };
+  });
+  await openGame(page, 'pha-gach-dx-ball');
+  await expect(page.locator('#dbLevel')).toHaveText('4 / 4');
+  await expect(page.locator('#dbStageName')).toHaveText('Lõi Bền');
+  await expect(page.locator('#dbTitle')).toHaveText('Thắng rồi!');
+  await expect(page.locator('#dbText')).toContainText('480 điểm');
+  await page.locator('#dbStart').click();
+  await expect(page.locator('#dbOverlay')).toBeHidden();
+  await expect(page.locator('#dbLevel')).toHaveText('1 / 4');
+  await expect(page.locator('#dbStageName')).toHaveText('Vòm Sáng');
   await closeGame(page);
   expect(errors).toEqual([]);
 });

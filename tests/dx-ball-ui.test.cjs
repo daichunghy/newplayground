@@ -6,11 +6,11 @@ const { harness, assertStopped, read } = require('./support/browser-harness.cjs'
 const M = require('../scripts/games/dx-ball-model.js');
 const get = (h, id) => h.container.querySelector('#' + id);
 
-function launch() {
+function launch(model = M) {
   const h = harness({ loadEngines: false, loadApp: false });
   h.context.NEWPLAYGROUND_MUTED = false;
   if (h.context.NP_Audio) h.context.NP_Audio.isMuted = false;
-  h.context.NP_DxBallModel = M;
+  h.context.NP_DxBallModel = model;
   vm.runInContext(read('scripts/games/dx-ball.js'), h.context, { filename: 'scripts/games/dx-ball.js' });
   const sounds = [], audioInits = [];
   h.mountResult = h.context.NP_DxBall.mount(h.container, h.context.NP_GameSession.start(), {
@@ -30,8 +30,10 @@ function close(h) {
 
 test('play surface has original title, score, level, lives, pause and restart controls', () => {
   const h = launch();
-  for (const id of ['dbCanvas', 'dbScore', 'dbLevel', 'dbLives', 'dbPause', 'dbRestart', 'dbOverlay', 'dbStart']) assert.ok(get(h, id), id);
+  for (const id of ['dbCanvas', 'dbScore', 'dbLevel', 'dbStageName', 'dbLives', 'dbPause', 'dbRestart', 'dbOverlay', 'dbStart']) assert.ok(get(h, id), id);
   assert.equal(h.mountResult.getModel().view().status, 'ready');
+  assert.equal(get(h, 'dbLevel').textContent, '1 / 4');
+  assert.equal(get(h, 'dbStageName').textContent, 'Vòm Sáng');
   assert.equal(get(h, 'dbCanvas').focused, undefined);
   assert.match(read('scripts/games/dx-ball.js'), /Space phóng/);
   const css = read('scripts/games/dx-ball.css');
@@ -78,6 +80,28 @@ test('Space launches once, P pauses, continue resumes, and restart returns to a 
   const fresh = h.mountResult.getModel();
   assert.equal(fresh.view().status, 'ready');
   assert.equal(fresh.view().score, 0); assert.equal(fresh.view().lives, M.MAX_LIVES); assert.equal(h.frames.size, 0);
+  close(h);
+});
+
+test('the fourth-field win has a clear result and the replay button starts a fresh campaign', () => {
+  const finalModel = {
+    ...M,
+    create() {
+      const state = M.initialState(); state.level = M.CAMPAIGN.length; state.status = 'won';
+      state.score = 480; state.lives = 2; state.bricks = [];
+      return M.makeModel(state);
+    }
+  };
+  const h = launch(finalModel);
+  assert.equal(get(h, 'dbLevel').textContent, '4 / 4');
+  assert.equal(get(h, 'dbStageName').textContent, 'Lõi Bền');
+  assert.equal(get(h, 'dbTitle').textContent, 'Thắng rồi!');
+  assert.match(get(h, 'dbText').textContent, /dọn cả 4 chặng.*480 điểm/);
+  assert.equal(get(h, 'dbStart').textContent, 'Chơi lại');
+  get(h, 'dbStart').click();
+  assert.equal(h.mountResult.getModel().view().level, 1);
+  assert.equal(h.mountResult.getModel().view().status, 'playing');
+  assert.equal(h.frames.size, 1);
   close(h);
 });
 

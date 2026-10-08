@@ -11,29 +11,37 @@
   const PADDLE_WIDTH = 104, PADDLE_HEIGHT = 13, PADDLE_Y = 431, PADDLE_SPEED = 470;
   const BRICK_ROWS = 6, BRICK_COLS = 10, BRICK_WIDTH = 58, BRICK_HEIGHT = 18, BRICK_GAP_X = 7, BRICK_GAP_Y = 8, BRICK_TOP = 70;
   const PALETTE = ['#fb7185', '#fb923c', '#facc15', '#4ade80', '#38bdf8', '#a78bfa'];
+  const CAMPAIGN = Object.freeze([
+    Object.freeze({ name: 'Vòm Sáng', rows: Object.freeze(['...####...', '..######..', '.########.', '##########', '##########']) }),
+    Object.freeze({ name: 'Dải Gió', rows: Object.freeze(['##.##.##.#', '.##.##.##.', '##.##.##.#', '.##.##.##.', '##########']) }),
+    Object.freeze({ name: 'Đảo Gạch', rows: Object.freeze(['##..##..##', '##..##..##', '..######..', '..######..', '##..##..##', '##..##..##']) }),
+    Object.freeze({ name: 'Lõi Bền', rows: Object.freeze(['..##22##..', '.########.', '##..##..##', '#.2####2.#', '##########', '..##22##..']) })
+  ]);
+  if (CAMPAIGN.some(stage => stage.rows.some(row => row.length !== BRICK_COLS || /[^.#2]/.test(row)))) {
+    throw new Error('Invalid Phá Gạch campaign field');
+  }
   const finite = Number.isFinite;
   const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
   const clone = value => JSON.parse(JSON.stringify(value));
   const brickLeft = (WIDTH - (BRICK_COLS * BRICK_WIDTH + (BRICK_COLS - 1) * BRICK_GAP_X)) / 2;
 
   function levelBricks(level) {
-    const motif = (level - 1) % 4;
+    const stage = CAMPAIGN[level - 1];
+    if (!stage) return [];
     const bricks = [];
-    for (let row = 0; row < BRICK_ROWS; row++) {
+    for (let row = 0; row < stage.rows.length; row++) {
       for (let col = 0; col < BRICK_COLS; col++) {
-        let keep = true;
-        if (motif === 0) keep = Math.abs(col - (BRICK_COLS - 1) / 2) <= 2.5 + row * 0.68;
-        if (motif === 1) keep = (col + row * 2) % 7 !== 0;
-        if (motif === 2) keep = (col + row) % 2 === 0 || row === 0 || row === BRICK_ROWS - 1;
-        if (motif === 3) keep = (col + row) % 5 !== 2;
-        if (!keep) continue;
+        const mark = stage.rows[row][col];
+        if (mark === '.') continue;
         bricks.push({
           id: row * BRICK_COLS + col,
           row, col,
           x: brickLeft + col * (BRICK_WIDTH + BRICK_GAP_X),
           y: BRICK_TOP + row * (BRICK_HEIGHT + BRICK_GAP_Y),
           width: BRICK_WIDTH, height: BRICK_HEIGHT,
-          color: (row + col + level - 1) % PALETTE.length
+          color: (row + col + level - 1) % PALETTE.length,
+          maxHits: mark === '2' ? 2 : 1,
+          hits: mark === '2' ? 2 : 1
         });
       }
     }
@@ -134,16 +142,18 @@
           if (overlapX < overlapY) ball.vx *= -1;
           else ball.vy *= -1;
         }
-        state.bricks.splice(index, 1);
+        const destroyed = brick.hits <= 1;
+        if (destroyed) state.bricks.splice(index, 1);
+        else brick.hits -= 1;
         state.score += 10;
-        emit('brick', { id: brick.id, score: state.score });
+        emit('brick', { id: brick.id, score: state.score, hits: destroyed ? 0 : brick.hits, destroyed });
         return true;
       }
       return false;
     }
 
     function tick() {
-      if (state.status === 'paused' || state.status === 'over') return;
+      if (state.status === 'paused' || state.status === 'over' || state.status === 'won') return;
       state.ticks++;
       const dt = STEP / 1000;
       movePaddle(dt);
@@ -170,19 +180,24 @@
       }
 
       if (state.bricks.length === 0) {
-        state.level++;
-        state.bricks = levelBricks(state.level);
-        serve();
-        emit('level', { level: state.level, score: state.score });
+        if (state.level >= CAMPAIGN.length) {
+          state.status = 'won'; state.ball.vx = 0; state.ball.vy = 0;
+          emit('win', { level: state.level, score: state.score });
+        } else {
+          state.level++;
+          state.bricks = levelBricks(state.level);
+          serve();
+          emit('level', { level: state.level, name: CAMPAIGN[state.level - 1].name, score: state.score });
+        }
         return;
       }
       if (ball.y - ball.radius > HEIGHT) loseBall();
     }
 
     function advance(ms) {
-      if (!finite(ms) || ms < 0 || ms > 1000 || state.status === 'paused' || state.status === 'over') return [];
+      if (!finite(ms) || ms < 0 || ms > 1000 || state.status === 'paused' || state.status === 'over' || state.status === 'won') return [];
       state.remainder += ms;
-      while (state.remainder + 1e-7 >= STEP && state.status !== 'paused' && state.status !== 'over') {
+      while (state.remainder + 1e-7 >= STEP && state.status !== 'paused' && state.status !== 'over' && state.status !== 'won') {
         state.remainder = Math.max(0, state.remainder - STEP);
         tick();
       }
@@ -193,7 +208,8 @@
     function view() {
       return {
         version: 1, status: state.status, ticks: state.ticks, score: state.score,
-        level: state.level, lives: state.lives, paddle: clone(state.paddle), ball: clone(state.ball),
+        level: state.level, stage: CAMPAIGN[state.level - 1]?.name || '', stages: CAMPAIGN.length,
+        lives: state.lives, paddle: clone(state.paddle), ball: clone(state.ball),
         bricks: clone(state.bricks), remaining: state.bricks.length
       };
     }
@@ -201,7 +217,7 @@
   }
 
   return {
-    WIDTH, HEIGHT, STEP, MAX_LIVES, BALL_RADIUS, START_SPEED, SPEED_PER_LEVEL, MAX_SPEED,
+    WIDTH, HEIGHT, STEP, MAX_LIVES, BALL_RADIUS, START_SPEED, SPEED_PER_LEVEL, MAX_SPEED, CAMPAIGN: clone(CAMPAIGN),
     PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_Y, PADDLE_SPEED,
     BRICK_ROWS, BRICK_COLS, BRICK_WIDTH, BRICK_HEIGHT, BRICK_GAP_X, BRICK_GAP_Y, BRICK_TOP,
     PALETTE: clone(PALETTE), levelBricks: levelBricks, create, makeModel, initialState

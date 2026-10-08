@@ -24,9 +24,9 @@
         { id: 'reed-right', x: 522, y: 310, width: 174, trim: '#b6ddbd' }
       ],
       enemies: [
-        { id: 'moss-1', x: 600, platform: 'ground', pace: 43, color: '#9b6ca5' },
-        { id: 'moss-2', x: 143, platform: 'reed-left', pace: 38, color: '#d98175' },
-        { id: 'moss-3', x: 612, platform: 'reed-right', pace: 40, color: '#7e9b71' }
+        { id: 'moss-1', x: 600, platform: 'ground', pace: 43, behavior: 'stalker', color: '#9b6ca5' },
+        { id: 'moss-2', x: 143, platform: 'reed-left', pace: 38, behavior: 'pacer', color: '#d98175' },
+        { id: 'moss-3', x: 612, platform: 'reed-right', pace: 40, behavior: 'pacer', color: '#7e9b71' }
       ]
     },
     {
@@ -38,10 +38,10 @@
         { id: 'orchard-bridge', x: 278, y: 346, width: 198, trim: '#d99a91' }
       ],
       enemies: [
-        { id: 'moss-4', x: 690, platform: 'ground', pace: 50, color: '#b46c8a' },
-        { id: 'moss-5', x: 110, platform: 'orchard-low', pace: 44, color: '#d99061' },
-        { id: 'moss-6', x: 382, platform: 'orchard-mid', pace: 47, color: '#829b70' },
-        { id: 'moss-7', x: 612, platform: 'orchard-high', pace: 48, color: '#a0719c' }
+        { id: 'moss-4', x: 690, platform: 'ground', pace: 50, behavior: 'stalker', color: '#b46c8a' },
+        { id: 'moss-5', x: 110, platform: 'orchard-low', pace: 44, behavior: 'pacer', color: '#d99061' },
+        { id: 'moss-6', x: 382, platform: 'orchard-mid', pace: 47, behavior: 'sprinter', color: '#829b70' },
+        { id: 'moss-7', x: 612, platform: 'orchard-high', pace: 48, behavior: 'pacer', color: '#a0719c' }
       ]
     },
     {
@@ -53,17 +53,25 @@
         { id: 'roof-cap', x: 625, y: 246, width: 104, trim: '#d6a6d1' }
       ],
       enemies: [
-        { id: 'moss-8', x: 675, platform: 'ground', pace: 55, color: '#b46c8a' },
-        { id: 'moss-9', x: 126, platform: 'roof-left', pace: 50, color: '#d99061' },
-        { id: 'moss-10', x: 358, platform: 'roof-mid', pace: 52, color: '#829b70' },
-        { id: 'moss-11', x: 568, platform: 'roof-high', pace: 54, color: '#a0719c' },
-        { id: 'moss-12', x: 683, platform: 'roof-cap', pace: 56, color: '#d98175' }
+        { id: 'moss-8', x: 675, platform: 'ground', pace: 55, behavior: 'sprinter', color: '#b46c8a' },
+        { id: 'moss-9', x: 126, platform: 'roof-left', pace: 50, behavior: 'pacer', color: '#d99061' },
+        { id: 'moss-10', x: 358, platform: 'roof-mid', pace: 52, behavior: 'stalker', color: '#829b70' },
+        { id: 'moss-11', x: 568, platform: 'roof-high', pace: 54, behavior: 'pacer', color: '#a0719c' },
+        { id: 'moss-12', x: 683, platform: 'roof-cap', pace: 56, behavior: 'sprinter', color: '#d98175' }
       ]
     }
   ];
 
   const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
   const copy = value => JSON.parse(JSON.stringify(value));
+
+  function enemyIntent(enemy, player) {
+    const distance = player.x - enemy.x;
+    if (enemy.behavior === 'pacer' || player.platformId !== enemy.platform) return { direction: enemy.direction, multiplier: 1 };
+    const range = enemy.behavior === 'sprinter' ? 320 : 265;
+    if (Math.abs(distance) >= range) return { direction: enemy.direction, multiplier: enemy.behavior === 'sprinter' ? 0.86 : 1 };
+    return { direction: distance < 0 ? -1 : 1, multiplier: enemy.behavior === 'sprinter' ? 1.32 : 1 };
+  }
 
   function create() {
     let accumulator = 0;
@@ -195,10 +203,9 @@
       const bounds = enemy.platform === 'ground'
         ? { left: 26, right: WIDTH - 26 }
         : (() => { const p = stagePlatforms().find(item => item.id === enemy.platform); return { left: p.x + 15, right: p.x + p.width - 15 }; })();
-      if (player.platformId === enemy.platform && Math.abs(player.x - enemy.x) < 265) {
-        enemy.direction = player.x < enemy.x ? -1 : 1;
-      }
-      enemy.x += enemy.direction * enemy.pace * (1 + state.roundIndex * 0.08) * dt;
+      const intent = enemyIntent(enemy, player);
+      enemy.direction = intent.direction;
+      enemy.x += intent.direction * enemy.pace * intent.multiplier * (1 + state.roundIndex * 0.08) * dt;
       if (enemy.x <= bounds.left) { enemy.x = bounds.left; enemy.direction = 1; }
       if (enemy.x >= bounds.right) { enemy.x = bounds.right; enemy.direction = -1; }
     }
@@ -334,5 +341,5 @@
     return { advance, act, drain, view, replay };
   }
 
-  return Object.freeze({ VERSION, WIDTH, HEIGHT, GROUND_Y, STEP, MAX_LIVES, STAGES: copy(STAGES), create });
+  return Object.freeze({ VERSION, WIDTH, HEIGHT, GROUND_Y, STEP, MAX_LIVES, STAGES: copy(STAGES), enemyIntent, create });
 });

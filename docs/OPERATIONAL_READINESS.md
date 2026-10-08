@@ -2,19 +2,19 @@
 
 ## Latest local checkpoint — 08/10/2026
 
-- Current catalog: 150 IDs; exact registry has 50 original/local prototypes and 100 entries without dedicated engines. Bài Nhện, Vệ Tinh Giữ Quỹ Đạo, Bi Vòm, Ống Nghiệm, Bật Chốt and Quầy Nước Chanh are still prototypes, not accepted replicas.
-- Full Node suite `node --test --test-concurrency=1` passed 989/989. Static release preflight passed: 150 catalog / 50 prototypes / 100 planned / 133 declared assets / 1,395,812 source JavaScript bytes / 19,868,424 source asset bytes. `git diff --check` passed.
-- The local branch now includes original candidates for work items 38–50. Real-browser/device, visual acceptance, human playtests, and historical title/route rights remain pending. No public push, PR or deployment was performed; live site remains unchanged.
+- The local aggregate batch is on `codex/nhip-may-depth-20261008` at code HEAD `4491dc3` plus the current review metadata/browser spec. It has 150 catalog IDs, 51 original/local prototypes and 99 entries without dedicated engines. Static preflight passes: 134 declared assets, 1,660,068 referenced JavaScript bytes and 19,870,436 source asset bytes.
+- Full serial Node suite `node --test --test-concurrency=1 tests/*.test.cjs` passed 1,146/1,146; static preflight and `git diff --check` pass. The browser workflow for this new aggregate head has not run yet.
+- The batch covers a four-stage Tháp Ba Cọc campaign and gameplay improvements across Phá Gạch, Lối Sáng, Mầm Gió, Cờ Caro, Ô Ăn Quan, Cờ Tướng and Bắn Bi Ve, alongside the earlier swimming/CPU/wave strategy updates. Browser/device, visual acceptance, human playtests, and historical title/route rights remain pending. No main merge or live deployment occurred.
 
 ## Đã thực hiện
 
 - Nghiên cứu bổ sung tài liệu Poki/CrazyGames về chất lượng, playtest, phát hành và quảng cáo; đưa vào chiến lược sản xuất 500 game.
-- Registry exact-ID: hiện có 50 launcher riêng trong 150 mục. Bỏ generic shooter ghi đè và các ánh xạ khác cơ chế theo substring.
+- Registry exact-ID: hiện có 51 launcher riêng trong 150 mục. Bỏ generic shooter ghi đè và các ánh xạ khác cơ chế theo substring.
 - Runtime quản lý scheduling, global listener, cleanup hook và cleanup bổ sung; error-launch dọn session. UI phân biệt prototype/planned, random chỉ chọn launcher sẵn có.
 - Sửa ngưỡng tăng tiến Hàng Rong; đồng bộ giai đoạn trong save cũ và kiểm tra một phần dữ liệu save.
 - Safe storage khi localStorage bị chặn; cleanup hiệu ứng rung có thể bị ngắt lúc đóng.
 - Inventory/backlog 150 game; 12 hồ sơ pilot; template luật/content/items/input/art/performance; evidence ledger giữ qua sync.
-- Asset register 179 file: 133 có manifest, 46 chưa có record. 133 đường dẫn khai báo đều tồn tại; chưa xác minh lại quyền của mọi source.
+- Asset register 180 file: 134 có manifest, 46 chưa có record. 134 đường dẫn khai báo đều tồn tại; chưa xác minh lại quyền của mọi source.
 - Runbook, event contract và kiến trúc phản ánh mã. Bảo lưu proposal kiến trúc cũ riêng.
 - CI preflight cho PR; main/manual deploy artifact chỉ chứa site. Giữ riêng checkpoint bảy game; nhánh tích hợp cục bộ có các candidate game nguyên bản; chưa có public PR, merge hoặc triển khai live.
 
@@ -34,7 +34,7 @@ Kích thước đo trên source ở checkpoint tích hợp cục bộ mới nh�
 
 1. Chơi thực tế launcher/close/switch/reopen/restart, listener/RAF/timer và các tương tác của 49 prototype trên trình duyệt.
 2. Hoàn thiện P1A: Dò Mìn, 2048, Line 98, Hàng Rong; đối chiếu luật, progression/items, save và thiết bị theo từng hồ sơ.
-3. Rà reference version và inventory nội dung cho các game tiếp theo; 100 mục còn cần gameplay riêng.
+3. Rà reference version và inventory nội dung cho các game tiếp theo; 99 mục còn cần gameplay riêng.
 4. Bổ sung/đối chiếu asset source/license, art direction và chất lượng hình ảnh của lô.
 5. Phân công owner/capacity, triển khai telemetry state transitions rồi thu playtest/funnel; không dùng modal-open làm gameplay-start.
 6. Monetization thử sau khi có vòng chơi ổn; SDK/collector/dashboard quảng cáo chưa được triển khai trong đợt này.

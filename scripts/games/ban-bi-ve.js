@@ -30,6 +30,8 @@
     if (preserveRaw) game = M.create({ seed: (Date.now() >>> 0) || 1 });
     else game ||= M.create({ seed: (Date.now() >>> 0) || 1 });
 
+    let opponentMode = restored && (saved?.mode === 'local' || game.state.players > 2) ? 'local' : 'solo';
+    let cpuPassingTurn = false;
     let alive = true, mode = restored ? (game.state.status === 'won' ? 'result' : 'paused') : 'playing';
     let frame = null, lastTime = null, saveAt = game.state.ticks;
     let pointer = null, pull = null, aimAngle = Math.atan2(M.CENTER.y - game.home().y, M.CENTER.x - game.home().x);
@@ -48,7 +50,11 @@
         </div>
         <div class="bbv-help"><span>Kéo bi cái ngược hướng muốn bắn rồi thả.</span><span id="bbvTargetCount">Bi trong vòng: 6</span></div>
         <div class="bbv-actions">
-          <div class="bbv-player-pick" role="group" aria-label="Số người chơi"><span class="bbv-player-label">Người chơi</span>
+          <div class="bbv-mode-pick" role="group" aria-label="Chế độ chơi">
+            <button class="bbv-button bbv-mode-option" type="button" data-mode="solo" aria-pressed="true">Một người</button>
+            <button class="bbv-button bbv-mode-option" type="button" data-mode="local" aria-pressed="false">Chơi chung</button>
+          </div>
+          <div class="bbv-player-pick" id="bbvPlayerPick" role="group" aria-label="Số người chơi"><span class="bbv-player-label">Người chơi</span>
             <button class="bbv-button bbv-player-option" type="button" data-players="2" aria-pressed="true">2</button>
             <button class="bbv-button bbv-player-option" type="button" data-players="3" aria-pressed="false">3</button>
             <button class="bbv-button bbv-player-option" type="button" data-players="4" aria-pressed="false">4</button>
@@ -75,7 +81,7 @@
     function save() {
       if (preserveRaw || readFailed) return;
       try {
-        localStorage.setItem(SAVE_KEY, JSON.stringify({ version: 1, round: game.serialize() }));
+        localStorage.setItem(SAVE_KEY, JSON.stringify({ version: 1, mode: opponentMode, round: game.serialize() }));
         writeFailed = false;
       } catch (_) {
         writeFailed = true; storageMessage('Chưa lưu được ván này. Bạn vẫn chơi tiếp được.');
@@ -150,13 +156,20 @@
       }
     }
 
+    function playerLabel(player) { return opponentMode === 'solo' ? (player === 0 ? 'Bạn' : 'Máy') : `Người ${player + 1}`; }
+
     function renderHud() {
       const state = game.state;
       turnEl.textContent = state.status === 'won'
-        ? (state.winners.length > 1 ? 'Hòa ván' : `Người ${state.winners[0] + 1} thắng`)
-        : `Lượt Người ${state.turn + 1}`;
+        ? (state.winners.length > 1 ? 'Hòa ván' : `${playerLabel(state.winners[0])} thắng`)
+        : `Lượt ${playerLabel(state.turn)}`;
       el('bbvTargetCount').textContent = `Bi trong vòng: ${state.targets.length}`;
-      scoresEl.innerHTML = state.score.map((score, player) => `<span class="bbv-score" aria-current="${state.status === 'playing' && state.turn === player ? 'true' : 'false'}"><i class="bbv-score-dot" style="background:${COLORS[player]}" aria-hidden="true"></i>Người ${player + 1}: ${score}</span>`).join('');
+      scoresEl.setAttribute('aria-label', opponentMode === 'solo' ? 'Điểm của bạn và máy' : 'Điểm người chơi');
+      scoresEl.innerHTML = state.score.map((score, player) => `<span class="bbv-score" aria-current="${state.status === 'playing' && state.turn === player ? 'true' : 'false'}"><i class="bbv-score-dot" style="background:${COLORS[player]}" aria-hidden="true"></i>${playerLabel(player)}: ${score}</span>`).join('');
+      for (const button of container.querySelectorAll('.bbv-mode-option')) {
+        button.setAttribute('aria-pressed', button.dataset.mode === opponentMode ? 'true' : 'false');
+      }
+      el('bbvPlayerPick').hidden = opponentMode === 'solo';
       for (const button of container.querySelectorAll('.bbv-player-option')) {
         button.setAttribute('aria-pressed', Number(button.dataset.players) === state.players ? 'true' : 'false');
       }
@@ -183,12 +196,21 @@
 
     function consumeEvents() {
       for (const event of game.drainEvents()) {
-        if (event.type === 'shot') announce(`Người ${event.player + 1} đã búng bi.`);
-        else if (event.type === 'capture') announce(`Người ${event.player + 1} lấy được một viên bi.`);
-        else if (event.type === 'turn') announce(`Lượt Người ${event.player + 1}.`);
+        if (event.type === 'shot') {
+          announce(opponentMode === 'solo' && event.player === 1 && cpuPassingTurn ? 'Máy nhường lượt sau cú ăn bi.' : `${playerLabel(event.player)} đã búng bi.`);
+          cpuPassingTurn = false;
+        }
+        else if (event.type === 'capture') {
+          announce(`${playerLabel(event.player)} lấy được một viên bi.`);
+        }
+        else if (event.type === 'turn') {
+          setAimForTurn();
+          announce(`Lượt ${playerLabel(event.player)}.`);
+          maybeCpuTurn(event.player);
+        }
         else if (event.type === 'won' || event.type === 'draw') {
           mode = 'result'; frame !== null && cancelAnimationFrame(frame); frame = null;
-          const title = event.type === 'draw' ? 'Hòa ván!' : `Người ${event.winners[0] + 1} thắng!`;
+          const title = event.type === 'draw' ? 'Hòa ván!' : `${playerLabel(event.winners[0])} thắng!`;
           showCover(title, `Đã thu được ${Math.max(...event.score)} viên bi.`, 'Ván mới');
           announce(title); save(); resume.focus?.();
         }
@@ -220,7 +242,10 @@
       if (mode === 'result') {
         game = game.retry({ seed: ((game.state.seed + 1) >>> 0) || 1 });
         mode = 'playing'; setAimForTurn(); saveAt = 0; save(); announce('Ván mới bắt đầu.');
-      } else if (mode === 'paused') { mode = 'playing'; announce('Tiếp tục ván bi.'); }
+      } else if (mode === 'paused') {
+        mode = 'playing'; announce('Tiếp tục ván bi.');
+        if (game.state.phase === 'ready') maybeCpuTurn(game.state.turn);
+      }
       hideCover(); draw(); canvas.focus?.(); startLoop();
     }
     function fire(angle = aimAngle, speed = aimSpeed) {
@@ -231,8 +256,36 @@
     }
     function newMatch(players = game.state.players) {
       if (!Number.isInteger(players) || players < 2 || players > 4) return;
+      if (opponentMode === 'solo') players = 2;
       game = game.retry({ players, seed: ((game.state.seed + 1) >>> 0) || 1 });
-      mode = 'playing'; setAimForTurn(); saveAt = 0; save(); hideCover(); announce(`Ván mới với ${players} người chơi.`); draw(); startLoop();
+      cpuPassingTurn = false;
+      mode = 'playing'; setAimForTurn(); saveAt = 0; save(); hideCover(); announce(opponentMode === 'solo' ? 'Ván mới: bạn đấu máy.' : `Ván mới với ${players} người chơi.`); draw(); startLoop();
+    }
+
+    function maybeCpuTurn(player) {
+      if (!alive || mode !== 'playing' || opponentMode !== 'solo' || player !== 1 || game.state.phase !== 'ready' || game.state.status !== 'playing') return false;
+      const passAfterCapture = game.state.cpuScoredTurn;
+      const shot = game.chooseCpuShot();
+      if (!shot || !game.shoot(shot.angle, shot.speed)) {
+        announce('Máy chưa ngắm được cú búng.');
+        return false;
+      }
+      cpuPassingTurn = passAfterCapture;
+      save();
+      announce(passAfterCapture ? 'Máy nhường lượt sau cú ăn bi.' : shot.predictedCaptures ? `Máy búng bi, dự kiến lấy ${shot.predictedCaptures} viên.` : 'Máy búng bi.');
+      return true;
+    }
+
+    function onModeChange(event) {
+      const nextMode = (event.currentTarget || event.target).dataset.mode;
+      if (!['solo', 'local'].includes(nextMode) || nextMode === opponentMode) return;
+      opponentMode = nextMode;
+      newMatch(2);
+    }
+
+    function onPlayerCount(event) {
+      opponentMode = 'local';
+      newMatch(Number((event.currentTarget || event.target).dataset.players));
     }
     function canvasPoint(event) {
       const rect = canvas.getBoundingClientRect();
@@ -306,7 +359,8 @@
     listen(el('bbvFire'), 'click', () => fire());
     listen(el('bbvPause'), 'click', () => pause());
     listen(el('bbvNew'), 'click', () => newMatch());
-    for (const button of container.querySelectorAll('.bbv-player-option')) listen(button, 'click', () => newMatch(Number(button.dataset.players)));
+    for (const button of container.querySelectorAll('.bbv-mode-option')) listen(button, 'click', onModeChange);
+    for (const button of container.querySelectorAll('.bbv-player-option')) listen(button, 'click', onPlayerCount);
 
     onCleanup(() => {
       if (!alive) return;
@@ -320,11 +374,11 @@
     }
     if (mode === 'result') {
       const winners = game.state.winners;
-      showCover(winners.length > 1 ? 'Hòa ván!' : `Người ${winners[0] + 1} thắng!`, `Đã thu được ${Math.max(...game.state.score)} viên bi.`, 'Ván mới');
+      showCover(winners.length > 1 ? 'Hòa ván!' : `${playerLabel(winners[0])} thắng!`, `Đã thu được ${Math.max(...game.state.score)} viên bi.`, 'Ván mới');
     } else if (mode === 'paused') showCover('Tiếp tục ván bi?', 'Bản lưu trên thiết bị đã được khôi phục.', 'Chơi tiếp');
     renderHud(); draw();
     if (mode === 'playing') { save(); startLoop(); }
-    return { pause, snapshot: () => game.serialize(), model: () => game, resume: resumeGame };
+    return { pause, snapshot: () => game.serialize(), model: () => game, resume: resumeGame, opponentMode: () => opponentMode };
   }
 
   return { mount };

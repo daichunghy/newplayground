@@ -17,6 +17,19 @@ function captureFirstGroundEnemy(model) {
   return model.view();
 }
 
+function jumpEdges(stage) {
+  const surfaces = [{ id: 'ground', x: 0, y: M.GROUND_Y, width: M.WIDTH }, ...stage.platforms];
+  const jump = 428, gravity = 920, speed = 218;
+  return surfaces.map(source => surfaces.filter(target => {
+    if (source.id === target.id) return false;
+    const rise = source.y - target.y;
+    if (rise > jump * jump / (2 * gravity)) return false;
+    const flight = (jump + Math.sqrt(jump * jump - 2 * gravity * rise)) / gravity;
+    const gap = Math.max(0, target.x - (source.x + source.width), source.x - (target.x + target.width));
+    return gap <= speed * flight + 28;
+  }).map(target => target.id));
+}
+
 test('the three authored rounds use their own platform layouts and original names', () => {
   const v = M.create().view();
   assert.equal(v.stage.name, 'Sân Sương Non');
@@ -26,6 +39,50 @@ test('the three authored rounds use their own platform layouts and original name
   assert.deepEqual(M.STAGES.map(x => x.name), ['Sân Sương Non', 'Vườn Đèn Hạt', 'Mái Ngói Mưa']);
   assert.ok(M.STAGES[0].platforms.length >= 3);
   assert.ok(M.STAGES[1].platforms[0].id !== M.STAGES[2].platforms[0].id);
+  const waveRoles = M.STAGES.map(stage => stage.enemies.map(enemy => enemy.behavior));
+  assert.deepEqual(waveRoles, [
+    ['stalker', 'pacer', 'pacer'],
+    ['stalker', 'pacer', 'sprinter', 'pacer'],
+    ['sprinter', 'pacer', 'stalker', 'pacer', 'sprinter']
+  ]);
+  assert.notDeepEqual(waveRoles[0], waveRoles[1]);
+  assert.notDeepEqual(waveRoles[1], waveRoles[2]);
+});
+
+test('every authored terrace is reachable from the ground with the current jump arc', () => {
+  for (const stage of M.STAGES) {
+    const edges = jumpEdges(stage), ids = edges.map(row => row.length);
+    const reached = new Set(['ground']);
+    let changed = true;
+    while (changed) {
+      changed = false;
+      edges.forEach((next, index) => {
+        if (reached.has(['ground', ...stage.platforms.map(p => p.id)][index])) for (const id of next) {
+          if (!reached.has(id)) { reached.add(id); changed = true; }
+        }
+      });
+    }
+    assert.ok(stage.platforms.every(platform => reached.has(platform.id)), `${stage.name} reachable jump graph: ${JSON.stringify(ids)}`);
+  }
+});
+
+test('pacer, stalker and sprinter waves make different deterministic pursuit choices', () => {
+  const enemy = behavior => ({ behavior, platform: 'ground', direction: 1, x: 260 });
+  const player = { platformId: 'ground', x: 200 };
+  assert.deepEqual(M.enemyIntent(enemy('pacer'), player), { direction: 1, multiplier: 1 });
+  assert.deepEqual(M.enemyIntent(enemy('stalker'), player), { direction: -1, multiplier: 1 });
+  assert.deepEqual(M.enemyIntent(enemy('sprinter'), player), { direction: -1, multiplier: 1.32 });
+  assert.deepEqual(M.enemyIntent(enemy('sprinter'), { ...player, platformId: 'reed-left' }), { direction: 1, multiplier: 1 });
+  assert.deepEqual(M.enemyIntent(enemy('sprinter'), { ...player, x: -100 }), { direction: 1, multiplier: 0.86 });
+});
+
+test('identical wave inputs produce identical captures, score, and round state', () => {
+  const simulate = () => {
+    const g = M.create();
+    run(g, 1.6, 1); g.act('bubble'); run(g, 0.9); run(g, 0.9, 1);
+    return { view: g.view(), events: g.drain() };
+  };
+  assert.deepEqual(simulate(), simulate());
 });
 
 test('fixed-step model gives the same movement result at 30, 60, and 120 render rates', () => {

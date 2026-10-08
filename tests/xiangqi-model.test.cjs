@@ -24,6 +24,29 @@ test('starts with the standard 32-piece setup, red to move', () => {
   assert.equal(hasMove(model, { row: 6, col: 4 }, { row: 6, col: 3 }), false);
 });
 
+test('CPU move is legal, repeatable, fixed-width, and does not mutate the current position', () => {
+  const first = M.create(), second = M.create();
+  const before = first.view();
+  const move = first.chooseCpuMove();
+  assert.deepEqual(move, second.chooseCpuMove());
+  assert.ok(move);
+  assert.ok(first.legalMoves(move.from.row, move.from.col).some(point => point.row === move.to.row && point.col === move.to.col));
+  assert.deepEqual(first.view(), before, 'search leaves the board, turn, and repetition path untouched');
+  assert.deepEqual(M.CPU_LIMITS, { rootMoves: 10, repliesPerRoot: 8, maxEvaluations: 80 });
+});
+
+test('CPU takes a hanging chariot instead of making a quiet move', () => {
+  const model = position([
+    [9, 3, 'general', 'red'], [0, 4, 'general', 'black'],
+    [6, 0, 'chariot', 'red'], [8, 0, 'chariot', 'black']
+  ], 'black');
+  const move = model.chooseCpuMove();
+  assert.deepEqual(move, { from: { row: 8, col: 0 }, to: { row: 6, col: 0 } });
+  assert.equal(model.play(move.from, move.to), true);
+  assert.equal(model.view().board[6][0].side, 'black');
+  assert.equal(model.view().board.flat().filter(item => item?.type === 'chariot').length, 1);
+});
+
 test('chariots stop at a blocking piece and cannot capture a friendly piece', () => {
   const model = position([[9, 4, 'general', 'red'], [0, 3, 'general', 'black'], [8, 0, 'chariot', 'red'], [6, 0, 'soldier', 'red'], [3, 0, 'soldier', 'black']]);
   assert.equal(hasMove(model, { row: 8, col: 0 }, { row: 7, col: 0 }), true);

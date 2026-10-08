@@ -28,6 +28,21 @@ test('starts with ten five-stone citizen pits and two 10-point Quan pieces', () 
   assert.deepEqual(model.legalPits(), [7, 8, 9, 10, 11]);
 });
 
+test('Black CPU picks the same deterministic move from the exact legal move list', () => {
+  const model = M.create({ turn: 'black' });
+  const state = model.view();
+  const choice = M.chooseComputerMove(state);
+  assert.equal(M.SEARCH_DEPTH, 2);
+  assert.ok(choice);
+  assert.ok(model.legalMoves().some(move => move.pit === choice.pit && move.direction === choice.direction));
+  assert.deepEqual(M.chooseComputerMove(state), choice);
+
+  const simulated = M.create({ board: state.board, scores: state.scores, turn: state.turn });
+  assert.equal(simulated.play(choice.pit, choice.direction), true);
+  assert.equal(simulated.view().totalValue, state.totalValue);
+  assert.equal(simulated.view().moveCount, 1);
+});
+
 test('sowing clockwise and counter-clockwise distributes one stone per next pit', () => {
   const clockwise = custom({ red: { 7: 2 } });
   const clockwiseValue = clockwise.view().totalValue;

@@ -6,13 +6,13 @@
 
 ## Cập nhật sau chuẩn bị vận hành
 
-Router/fallback đã được sửa trong mã; registry exact-ID hiện ghi nhận 50 prototype và 100 mục chưa có launcher riêng. Các mục 38–50 có candidate nguyên bản cục bộ, nhưng browser/device/playtest và quyền tên/route vẫn pending; 0 mục được chứng nhận parity hoàn chỉnh. Thứ tự triển khai hiện hành xem [GAME_OPERATING_STRATEGY.md](./GAME_OPERATING_STRATEGY.md) và [GAME_OPERATIONS_RUNBOOK.md](./GAME_OPERATIONS_RUNBOOK.md). Các phát hiện router ở phần dưới mô tả baseline trước sửa.
+Router/fallback đã được sửa trong mã; registry exact-ID hiện ghi nhận 51 prototype và 99 mục chưa có launcher riêng. Các mục 38–51 có candidate nguyên bản cục bộ, nhưng browser/device/playtest và quyền tên/route vẫn pending; 0 mục được chứng nhận parity hoàn chỉnh. Thứ tự triển khai hiện hành xem [GAME_OPERATING_STRATEGY.md](./GAME_OPERATING_STRATEGY.md) và [GAME_OPERATIONS_RUNBOOK.md](./GAME_OPERATIONS_RUNBOOK.md). Các phát hiện router ở phần dưới mô tả baseline trước sửa.
 
 ## Tóm tắt điều hành
 
 NewPlayground có 150 mục trong danh mục, nhưng danh sách game chưa phải là bằng chứng rằng 150 game đã có trải nghiệm riêng hoàn chỉnh. Cơ sở dữ liệu hiện lưu tên, tagline, thể loại, số người chơi, thời lượng và mô tả cơ chế. Những thứ người chơi cảm nhận được — vòng lặp đầy đủ, cấp độ, độ khó, vật phẩm, sơ đồ nút, độ nhạy, tốc độ, art, hiệu ứng, độ mượt và điều kiện kết thúc — chưa được quản lý trong một bộ hồ sơ thống nhất cho từng game.
 
-**Phát hiện baseline đã xử lý trong mã:** luồng cũ gọi `launchGameSandbox` sau launcher riêng, rồi `launchRetroArcade` thay toàn bộ vùng game. Đợt chuẩn bị vận hành đã bỏ đường này, thay bằng registry exact-ID và cleanup chung. Source inventory hiện có 50 launcher riêng; chưa nghiệm thu runtime trên thiết bị. Các lỗi cơ chế/nội dung riêng của từng game vẫn nằm trong backlog.
+**Phát hiện baseline đã xử lý trong mã:** luồng cũ gọi `launchGameSandbox` sau launcher riêng, rồi `launchRetroArcade` thay toàn bộ vùng game. Đợt chuẩn bị vận hành đã bỏ đường này, thay bằng registry exact-ID và cleanup chung. Source inventory hiện có 51 launcher riêng; chưa nghiệm thu runtime trên thiết bị. Các lỗi cơ chế/nội dung riêng của từng game vẫn nằm trong backlog.
 
 **Cơ hội thị trường:** nghiên cứu Google x Newzoo năm 2026 ghi nhận 46% người tiêu dùng online 13–55 tuổi trong mẫu khảo sát chơi game H5 hằng tháng; 83% người chơi H5 trong mẫu chơi trên smartphone; 45% thường bắt đầu tìm game bằng web search. Mẫu gồm hơn 7.000 người chơi ở bảy thị trường, không có Việt Nam, nên đây là tín hiệu toàn cầu để định hướng, không phải ước lượng quy mô thị trường Việt Nam. Cùng nguồn cho biết doanh thu H5 khó đo chính xác do phân mảnh kênh phân phối. [Google x Newzoo: H5 gamers](https://newzoo.com/reports/a-playbook-for-winning-with-h5-gamers)
 
