@@ -593,7 +593,7 @@ test('Bể Sao advances its reef pressure without a store, timer pause, or new s
   await expect(page.locator('#seaPearls')).toHaveText('0 / 8');
   await expect(page.locator('.sea-game details')).toHaveCount(1);
   await expect(page.locator('#seaZone')).toHaveText('3/3 · Vịnh Ngọc', { timeout: 8_000 });
-  await expect(page.locator('#seaGoal')).toHaveText('Ngọc vùng: 0 / 3');
+  await expect(page.locator('#seaGoal')).toHaveText('Ngọc vùng: 3 / 3');
   await expect(page.locator('#seaPearls')).toHaveText('8 / 8');
   await closeGame(page);
   expect(errors).toEqual([]);
