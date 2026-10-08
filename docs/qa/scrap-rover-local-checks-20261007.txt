@@ -1,0 +1,33 @@
+Xe Săn Bụi local candidate checks — 2026-10-07
+Branch: codex/deep-upgrades-20261007
+
+Reference research
+- Official Nintendo Famicom Battle City manual: https://www.nintendo.co.jp/data/software/manual/man_FCTJ_00.pdf
+- Official Nintendo 1985 overview: https://www.nintendo.co.jp/wii/vc/vc_bc/vc_bc_01.html
+- Stage rules: https://www.nintendo.co.jp/wii/vc/vc_bc/vc_bc_02.html
+- Terrain/enemy/special-target notes: https://www.nintendo.co.jp/wii/vc/vc_bc/vc_bc_06.html
+- The verified reference is Battle City Famicom (1985); the exact “Tank 1990” cartridge/ROM remains unidentified. Xe Săn Bụi keeps the intuitive protect-a-core/destroy-the-patrol challenge but uses an original three-layer signal core, original grids and drones, and makes no parity claim.
+
+Focused model tests
+Command: node --test tests/scrap-rover-model.test.cjs
+Result: 10 passed, 0 failed.
+
+Focused UI/lifecycle tests
+Command: node --test tests/scrap-rover-ui.test.cjs
+Result: 6 passed, 0 failed. DOM/Canvas/event doubles only; not browser/device acceptance.
+
+Related catalog-copy regression
+Command: node --test tests/minimal-play-ui.test.cjs
+Result: 16 passed, 0 failed (includes Xe Săn Bụi instant-play/live-status check).
+
+Full repository test suite
+Command: node --test tests/*.test.cjs
+Result: 504 passed, 0 failed, 0 skipped.
+
+Static release preparation
+Command: node scripts/release-preflight.mjs --prepare
+Result: 150 catalog IDs; 42 prototypes; 108 planned; 100 manifest assets; source JavaScript 1,072,271 bytes; source assets 19,770,116 bytes.
+Artifact verification: includes assets/scrap-rover-original.svg; omits assets/xe_tang_1990_cover.png; old Battle City-specific engine and unused Battle City tune removed. Preflight is static only.
+Sync/whitespace checks: python3 scripts/sync_game_operations.py; git diff --check.
+
+Not established: real-browser/mobile rendering and controls, screen-reader/contrast acceptance, input timing, map balance, human playtest, exact Tank 1990 variant, historic route/title rights, or live release.

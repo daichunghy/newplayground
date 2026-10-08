@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#e2eff8">
+  <title>Ống Nghiệm · Ghép viên nang</title>
+  <link rel="stylesheet" href="../../scripts/games/test-tube.css">
+  <style>html{min-height:100%;background:#edf1f2}body{min-height:100vh;margin:0;background:linear-gradient(150deg,#f7f8f2,#e8eff4)}main{padding:clamp(8px,2vw,24px)}</style>
+</head>
+<body>
+  <main><div id="test-tube-game"></div></main>
+  <script src="../../scripts/games/test-tube-model.js"></script>
+  <script src="../../scripts/games/test-tube.js"></script>
+  <script>
+    const cleanups = [];
+    const frames = new Set();
+    const session = {
+      listen(target, type, handler, options) { target.addEventListener(type, handler, options); cleanups.push(() => target.removeEventListener(type, handler, options)); },
+      onCleanup(handler) { cleanups.push(handler); },
+      requestAnimationFrame(callback) { let id; id = window.requestAnimationFrame(time => { frames.delete(id); callback(time); }); frames.add(id); return id; },
+      cancelAnimationFrame(id) { frames.delete(id); window.cancelAnimationFrame(id); }
+    };
+    window.addEventListener('pagehide', () => cleanups.splice(0).forEach(cleanup => cleanup()), { once: true });
+    window.NP_TestTube.mount(document.querySelector('#test-tube-game'), session, { seed: 'ong-nghiem-viet-20261008' });
+  </script>
+</body>
+</html>

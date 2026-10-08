@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-labelledby="title desc">
+<title id="title">Rắn Săn Mồi — Vườn Uốn Lượn</title><desc id="desc">Rắn xanh uốn qua vườn ô vuông và hướng tới một hạt vàng, hình vẽ nguyên bản.</desc>
+<defs><linearGradient id="grass" x2="0" y2="1"><stop stop-color="#bddf87"/><stop offset="1" stop-color="#67995d"/></linearGradient></defs>
+<rect width="640" height="400" rx="28" fill="url(#grass)"/><rect x="58" y="42" width="524" height="284" rx="20" fill="#edf2ca" opacity=".92"/>
+<g stroke="#cad8a9" stroke-width="2" opacity=".9"><path d="M110 44v280M162 44v280M214 44v280M266 44v280M318 44v280M370 44v280M422 44v280M474 44v280M526 44v280M60 96h520M60 148h520M60 200h520M60 252h520M60 304h520"/></g>
+<path d="M162 252h104q52 0 52-52t52-52h52" fill="none" stroke="#366d49" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/><path d="M162 252h104q52 0 52-52t52-52h52" fill="none" stroke="#69bd68" stroke-width="19" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="422" cy="148" r="17" fill="#79cd67" stroke="#366d49" stroke-width="6"/><circle cx="428" cy="143" r="2.8" fill="#153f32"/><path d="M435 138q7-9 15-6" fill="none" stroke="#39844b" stroke-width="4" stroke-linecap="round"/>
+<circle cx="506" cy="252" r="14" fill="#f2c54c" stroke="#bd8735" stroke-width="4"/><path d="M508 237q-2-10 6-13" fill="none" stroke="#4f9050" stroke-width="4" stroke-linecap="round"/><path d="M472 248q16-16 29 0" fill="none" stroke="#fff3b3" stroke-width="3" stroke-linecap="round"/>
+<text x="320" y="366" text-anchor="middle" font-family="Calibri,Arial,sans-serif" font-size="26" font-weight="700" fill="#173d35">Rắn Săn Mồi</text>
+</svg>

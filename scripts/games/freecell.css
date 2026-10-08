@@ -1,0 +1,83 @@
+/* Bốn Ô — original, project-authored FreeCell table and card faces. */
+.fc-host {
+  --fc-ink: #172a25;
+  --fc-muted: #526a60;
+  --fc-felt-a: #235a48;
+  --fc-felt-b: #154638;
+  --fc-line: rgba(240, 245, 222, .46);
+  --fc-card: #fffaf0;
+  --fc-red: #b54342;
+  color: var(--fc-ink);
+  font-family: Calibri, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  width: 100%;
+}
+
+.fc-host * { box-sizing: border-box; }
+.fc-game { max-width: 1160px; margin: 0 auto; padding: clamp(12px, 2.5vw, 26px); }
+.fc-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 12px; }
+.fc-brand h2 { margin: 0; font-size: clamp(25px, 4vw, 36px); line-height: 1; letter-spacing: -.035em; }
+.fc-kicker { color: var(--fc-muted); font-size: 11px; font-weight: 800; letter-spacing: .14em; margin: 0 0 7px; }
+.fc-actions { display: flex; align-items: center; gap: 8px; }
+.fc-action { min-width: 44px; min-height: 44px; border: 1px solid #ccd8cc; border-radius: 13px; padding: 0 13px; color: var(--fc-ink); background: #fffdf6; font: 700 15px/1 Calibri, Inter, sans-serif; cursor: pointer; box-shadow: 0 2px 4px rgba(29, 48, 38, .08); }
+.fc-action:first-child, .fc-action:nth-child(2) { font-size: 25px; padding: 0; }
+.fc-action:hover:not(:disabled) { background: #edf5e9; border-color: #86a88e; }
+.fc-action:disabled { opacity: .45; cursor: default; }
+.fc-action.fc-new { background: #203b31; border-color: #203b31; color: white; padding: 0 16px; }
+.fc-action.fc-new:hover { background: #315744; }
+.fc-action:focus-visible, .fc-card:focus-visible, .fc-empty-slot:focus-visible, .fc-foundation-slot:focus-visible, .fc-empty-pile:focus-visible, .fc-board-scroll:focus-visible { outline: 3px solid #e0a43b; outline-offset: 2px; }
+
+.fc-statusline { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 42px; margin: 0 0 10px; padding: 0 2px; color: var(--fc-muted); font-size: 14px; }
+.fc-statusline p { margin: 0; }
+.fc-statusline .fc-result { color: #1b4a38; font-weight: 800; }
+#fcProgress { flex: 0 0 auto; font-size: 12px; font-weight: 700; white-space: nowrap; }
+
+.fc-board-scroll { overflow-x: auto; overscroll-behavior-x: contain; border-radius: 20px; scrollbar-color: #89aa97 #e8eee1; }
+.fc-board { min-width: 750px; padding: clamp(13px, 2vw, 22px); color: #fff; border: 1px solid rgba(8, 45, 34, .5); border-radius: 20px; background-color: var(--fc-felt-b); background-image: radial-gradient(ellipse at 50% -15%, rgba(255,255,255,.15), transparent 62%), repeating-linear-gradient(132deg, rgba(255,255,255,.025) 0 1px, transparent 1px 5px), linear-gradient(150deg, var(--fc-felt-a), var(--fc-felt-b)); box-shadow: 0 14px 34px rgba(23, 52, 40, .2), inset 0 1px rgba(255,255,255,.12); }
+.fc-topbar { display: flex; justify-content: space-between; gap: 24px; margin-bottom: 18px; }
+.fc-group { display: grid; grid-template-columns: repeat(4, minmax(58px, 76px)); gap: clamp(7px, 1.2vw, 13px); }
+.fc-zone { min-width: 0; }
+.fc-zone-label { display: block; margin: 0 0 6px; color: rgba(247, 250, 230, .88); text-align: center; font-size: 11px; font-weight: 700; letter-spacing: .02em; }
+.fc-cell, .fc-foundation-slot, .fc-empty-slot, .fc-empty-pile { width: 100%; height: 92px; border: 1px dashed var(--fc-line); border-radius: 9px; background: rgba(7, 39, 31, .15); }
+.fc-foundation-slot { display: grid; place-items: center; border-style: solid; border-color: rgba(240, 245, 222, .32); padding: 0; cursor: pointer; }
+.fc-foundation-slot:hover, .fc-empty-slot:hover, .fc-empty-pile:hover { background-color: rgba(240, 245, 222, .12); }
+.fc-empty-slot { position: relative; display: block; border: 0; cursor: pointer; }
+.fc-empty-slot::before, .fc-empty-pile::before { content: ""; position: absolute; inset: 0; margin: auto; width: 22px; height: 22px; border: 1px solid rgba(240, 245, 222, .35); border-radius: 50%; }
+.fc-empty-slot::after { content: "+"; position: absolute; inset: 0; display: grid; place-items: center; color: rgba(240, 245, 222, .75); font: 18px/1 Calibri, sans-serif; }
+.fc-foundation-empty { color: rgba(245, 247, 222, .62); font: 700 25px/1 Georgia, serif; }
+.fc-foundation-card { display: grid; place-items: center; width: 100%; height: 100%; color: #f7f4e9; font: 700 19px/1 Georgia, serif; }
+.fc-foundation-card b { font-size: 19px; }
+.fc-foundation-card i { font-size: 23px; font-style: normal; }
+.fc-red { color: #ffd4c6 !important; }
+
+.fc-tableau { display: grid; grid-template-columns: repeat(8, minmax(67px, 1fr)); gap: clamp(6px, 1vw, 10px); align-items: start; }
+.fc-pile { position: relative; min-width: 0; min-height: 126px; border: 1px solid rgba(240, 245, 222, .22); border-radius: 10px; background: rgba(6, 42, 32, .17); }
+.fc-card-position { position: absolute; inset-inline: 0; height: 88px; }
+.fc-card { position: relative; display: block; width: 100%; height: 88px; overflow: hidden; border: 1px solid rgba(68, 61, 48, .23); border-radius: 8px; padding: 5px; color: #202b25; background: linear-gradient(145deg, #fffdf6, var(--fc-card)); text-align: left; cursor: pointer; box-shadow: 0 2px 5px rgba(5, 30, 23, .2); transition: transform 100ms ease, box-shadow 100ms ease; }
+.fc-card:hover { z-index: 2; transform: translateY(-2px); box-shadow: 0 5px 12px rgba(5, 30, 23, .28); }
+.fc-card.fc-red { color: var(--fc-red) !important; }
+.fc-card.fc-selected { z-index: 3; transform: translateY(-4px); outline: 3px solid #f2bf58; outline-offset: 1px; }
+.fc-corner { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 0; font: 700 11px/.95 Georgia, serif; }
+.fc-corner i { font-size: 10px; font-style: normal; }
+.fc-corner-top { top: 5px; left: 5px; }
+.fc-corner-bottom { right: 5px; bottom: 5px; transform: rotate(180deg); }
+.fc-card-center { position: absolute; inset: 0; display: grid; place-items: center; font: 27px/1 Georgia, serif; opacity: .82; }
+.fc-empty-pile { position: absolute; inset: 0; height: 92px; border-radius: 8px; cursor: pointer; }
+.fc-footer { display: flex; justify-content: space-between; gap: 16px; color: #526a60; font-size: 12px; line-height: 1.4; margin: 10px 2px 0; }
+.fc-footer p { margin: 0; }
+.fc-shortcuts { flex: 0 0 auto; text-align: right; white-space: nowrap; }
+
+@media (max-width: 620px) {
+  .fc-game { padding: 12px 10px; }
+  .fc-header { align-items: flex-start; }
+  .fc-actions { gap: 5px; }
+  .fc-action { min-width: 44px; padding-inline: 10px; }
+  .fc-action.fc-new { padding-inline: 11px; }
+  .fc-statusline { align-items: flex-start; font-size: 13px; }
+  .fc-board { min-width: 748px; }
+  .fc-footer { display: block; }
+  .fc-shortcuts { margin-top: 5px !important; text-align: left; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-card { transition: none; }
+}

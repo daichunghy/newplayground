@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-labelledby="title desc">
+  <title id="title">Đua Gió</title>
+  <desc id="desc">Bốn xe máy nguyên bản chạy trên một cung đường đồi lúc hoàng hôn.</desc>
+  <defs><linearGradient id="dusk" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#e8aa7d"/><stop offset=".55" stop-color="#798c7d"/><stop offset="1" stop-color="#3d594e"/></linearGradient></defs>
+  <rect width="640" height="400" fill="url(#dusk)"/>
+  <circle cx="500" cy="83" r="40" fill="#f6d293" opacity=".95"/>
+  <path d="M0 198 114 137l88 53 94-83 91 71 118-59 135 73v97H0z" fill="#60786c"/>
+  <path d="M0 244q120-70 229 2t211-7 200 4v157H0z" fill="#3c5c4e"/>
+  <path d="M0 400c123-111 157-128 282-114 146 15 192-69 358-74v188z" fill="#282e35"/>
+  <path d="M0 400c123-111 157-128 282-114 146 15 192-69 358-74" fill="none" stroke="#ebe0bd" stroke-width="7" opacity=".75"/>
+  <path d="M54 365c102-89 133-104 230-92 123 15 168-49 281-65" fill="none" stroke="#f1cc78" stroke-width="4" stroke-dasharray="17 18" opacity=".9"/>
+  <g stroke="#22333a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(236 258) rotate(-13)"><circle cx="-23" cy="17" r="12" fill="#1e2830"/><circle cx="25" cy="17" r="12" fill="#1e2830"/><path d="m-22 16 16-22 23 1 8 21M-7-6l-5-18 15-6 11 21" fill="none" stroke="#f08e62" stroke-width="8"/><circle cx="-2" cy="-34" r="7" fill="#e6be83"/><path d="m-4-26 14 9 12-3" fill="none" stroke="#263841" stroke-width="7"/></g>
+    <g transform="translate(352 213) scale(.78) rotate(12)"><circle cx="-23" cy="17" r="12" fill="#1e2830"/><circle cx="25" cy="17" r="12" fill="#1e2830"/><path d="m-22 16 16-22 23 1 8 21M-7-6l-5-18 15-6 11 21" fill="none" stroke="#74c5bd" stroke-width="8"/><circle cx="-2" cy="-34" r="7" fill="#e6be83"/><path d="m-4-26 14 9 12-3" fill="none" stroke="#263841" stroke-width="7"/></g>
+    <g transform="translate(444 190) scale(.62) rotate(-8)"><circle cx="-23" cy="17" r="12" fill="#1e2830"/><circle cx="25" cy="17" r="12" fill="#1e2830"/><path d="m-22 16 16-22 23 1 8 21M-7-6l-5-18 15-6 11 21" fill="none" stroke="#d9c76c" stroke-width="8"/><circle cx="-2" cy="-34" r="7" fill="#e6be83"/><path d="m-4-26 14 9 12-3" fill="none" stroke="#263841" stroke-width="7"/></g>
+  </g>
+  <text x="28" y="43" fill="#fff2d5" font-family="Calibri,Inter,sans-serif" font-size="32" font-weight="700">Đua Gió</text>
+  <text x="610" y="374" fill="#d9e4d1" font-family="Calibri,Inter,sans-serif" font-size="12" font-weight="700" text-anchor="end" letter-spacing="2">ĐƯỜNG ĐỒI</text>
+</svg>

@@ -1,0 +1,99 @@
+/* Original NewPlayground Minesweeper artwork: CSS geometry and inline SVG only. */
+.dm-host { padding: 16px; background: #f8f7ef; }
+.dm-game { --dm-ink: #183d32; --dm-muted: #52685f; --dm-paper: #f8f7ef; --dm-tile: #d4e4b6; --dm-line: #658176; font-family: 'Calibri', 'Inter', -apple-system, sans-serif; max-width: 790px; margin: auto; color: var(--dm-ink); }
+.dm-game *, .dm-game *::before, .dm-game *::after { box-sizing: border-box; }
+.dm-game [hidden] { display: none !important; }
+.dm-intro { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+.dm-eyebrow { display: block; font-size: .68rem; font-weight: 800; letter-spacing: .13em; color: var(--dm-muted); }
+.dm-intro h3 { font-size: 1.8rem; line-height: 1.15; margin: 3px 0 0; }
+.dm-safe-badge { font-size: .78rem; font-weight: 700; padding: 8px 10px; border-radius: 99px; background: #e2edcb; color: #294831; text-align: center; }
+.dm-controls { display: flex; gap: 10px; align-items: end; margin-bottom: 12px; }
+.dm-difficulty { flex: 1; min-width: 0; font-size: .78rem; font-weight: 700; color: var(--dm-muted); }
+.dm-difficulty select { display: block; width: 100%; min-height: 44px; margin-top: 5px; padding: 8px; border: 1px solid var(--dm-line); border-radius: 8px; color: var(--dm-ink); background: var(--dm-paper); font: 700 .95rem 'Calibri', 'Inter', -apple-system, sans-serif; }
+.dm-button { min-height: 44px; min-width: 44px; padding: 9px 13px; border: 1px solid var(--dm-line); border-radius: 8px; background: var(--dm-paper); color: var(--dm-ink); font: 700 .95rem 'Calibri', 'Inter', -apple-system, sans-serif; cursor: pointer; touch-action: manipulation; }
+.dm-button:hover { background: #e4edda; }
+.dm-button:active { transform: translateY(1px); }
+.dm-button:disabled { opacity: .55; cursor: default; transform: none; }
+.dm-button:focus-visible, .dm-difficulty select:focus-visible, .dm-help summary:focus-visible { outline: 3px solid #1257a0; outline-offset: 3px; }
+.dm-primary { background: #183d32; color: #fffdf4; border-color: #183d32; }
+.dm-primary:hover { background: #285947; }
+.dm-hud { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid #b0c1b5; border-radius: 10px; background: #edf2e7; margin-bottom: 12px; overflow: hidden; }
+.dm-hud > div { padding: 10px 8px; text-align: center; }
+.dm-hud > div + div { border-left: 1px solid #c2d0c5; }
+.dm-hud-label { display: block; font-size: .75rem; color: var(--dm-muted); }
+.dm-hud strong { font-size: 1.35rem; line-height: 1.4; font-variant-numeric: tabular-nums; }
+.dm-toolrow { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: center; margin-bottom: 8px; }
+.dm-modes { display: flex; gap: 4px; padding: 3px; border-radius: 10px; background: #dae4d5; }
+.dm-mode { border-color: transparent; background: transparent; display: flex; align-items: center; gap: 6px; }
+.dm-mode[aria-pressed="true"] { background: #183d32; color: #fff; box-shadow: 0 2px 3px #183d3220; }
+.dm-mode svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
+.dm-scroll-hint { font-size: .78rem; line-height: 1.4; color: var(--dm-muted); margin: 0 0 8px; }
+.dm-board-wrap { position: relative; width: fit-content; max-width: 100%; margin: 0 auto; border: 2px solid #658176; border-radius: 9px; overflow: hidden; background: #e7eddf; }
+.dm-scroll { max-width: 100%; max-height: min(62vh, 620px); overflow: auto; overscroll-behavior: contain; scrollbar-color: #76937a #e7eddf; touch-action: pan-x pan-y pinch-zoom; }
+.dm-grid { width: max-content; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.dm-row { display: grid; grid-template-columns: repeat(var(--dm-cols), 44px); }
+.dm-cell { appearance: none; -webkit-appearance: none; position: relative; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; min-width: 44px; min-height: 44px; padding: 0; border: 1px solid #88a17b; border-radius: 4px; background: var(--dm-tile); box-shadow: inset 0 2px #edf4df, inset 0 -3px #b3c995; font: 900 1.35rem 'Calibri', 'Inter', -apple-system, sans-serif; color: #193d32; cursor: pointer; touch-action: pan-x pan-y pinch-zoom; }
+.dm-cell:hover:not(.dm-open):not(.dm-mine) { background: #e1edc6; }
+.dm-cell:active:not(.dm-open) { box-shadow: inset 0 2px #9eb489; background: #c1d69f; }
+.dm-cell:focus-visible { outline: 3px solid #1257a0; outline-offset: -4px; z-index: 1; }
+.dm-cell.dm-open { border-color: #ccd6c6; border-radius: 0; box-shadow: none; background: #f8f7ef; }
+.dm-cell.dm-open[data-number="1"] { color: #174fa4; }
+.dm-cell.dm-open[data-number="2"] { color: #266131; }
+.dm-cell.dm-open[data-number="3"] { color: #b52a2b; }
+.dm-cell.dm-open[data-number="4"] { color: #63368f; }
+.dm-cell.dm-open[data-number="5"] { color: #833325; }
+.dm-cell.dm-open[data-number="6"] { color: #086572; }
+.dm-cell.dm-open[data-number="7"] { color: #283d4c; }
+.dm-cell.dm-open[data-number="8"] { color: #57564d; }
+.dm-cell svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.dm-flagged { color: #8c291f; }
+.dm-mine { background: #e7d7cc; box-shadow: none; }
+.dm-exploded { background: #bd3c30; color: white; box-shadow: inset 0 0 0 3px #832d25; }
+.dm-wrong { color: #a42126; background: #fae2d8; font-size: 2rem; }
+.dm-cell.dm-holding { outline: 4px solid #9b6700; outline-offset: -5px; background: #f4dda1; }
+.dm-just-opened { animation: dm-reveal 150ms ease-out; }
+@keyframes dm-reveal { from { opacity: .45; } to { opacity: 1; } }
+.dm-is-paused .dm-grid { visibility: hidden; }
+.dm-pause-cover { position: absolute; inset: 0; background: #e7eddf; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; padding: 24px; text-align: center; }
+.dm-pause-cover strong { font-size: 1.3rem; }
+.dm-pause-cover span { font-size: .86rem; color: var(--dm-muted); }
+.dm-result { margin-top: 14px; padding: 18px; border: 1px solid #a8c48e; border-radius: 10px; background: #e5efcf; }
+.dm-result h4 { font-size: 1.35rem; margin: 0 0 4px; }
+.dm-result p { line-height: 1.5; margin: 0 0 12px; }
+.dm-status { min-height: 2.8em; font-size: .88rem; line-height: 1.4; margin: 12px 0 8px; }
+.dm-records { border-top: 1px solid #c1ceb9; padding-top: 10px; font-size: .82rem; color: var(--dm-muted); font-variant-numeric: tabular-nums; }
+.dm-help { margin-top: 14px; border-top: 1px solid #c1ceb9; font-size: .88rem; line-height: 1.55; }
+.dm-help summary { padding: 12px 0; min-height: 44px; font-weight: 700; cursor: pointer; }
+.dm-help p { margin: 0 0 10px; }
+.dm-confirm { padding: 12px; border: 1px solid #b58c34; background: #fbefd5; border-radius: 8px; margin: 0 0 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+.dm-confirm span { flex-basis: 100%; font-size: .9rem; }
+.dm-storage-note { color: #833325; font-size: .85rem; line-height: 1.4; }
+@media (max-width: 520px) {
+  .dm-host { padding: 8px; }
+  .dm-intro { margin-bottom: 12px; gap: 4px; }
+  .dm-intro h3 { font-size: 1.5rem; }
+  .dm-eyebrow { font-size: .6rem; letter-spacing: .08em; }
+  .dm-safe-badge { font-size: .68rem; padding: 6px 8px; }
+  .dm-controls { gap: 6px; }
+  .dm-button { padding: 8px 10px; font-size: .88rem; }
+  .dm-difficulty select { font-size: .88rem; padding: 8px 4px; }
+  .dm-hud strong { font-size: 1.2rem; }
+  .dm-toolrow { gap: 4px; }
+  .dm-mode { padding: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dm-game *, .dm-game *::before, .dm-game *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .dm-button:active { transform: none; }
+}
+@media (forced-colors: active) {
+  .dm-cell { border: 1px solid ButtonText; }
+  .dm-open { border-style: dotted; }
+  .dm-cell:focus-visible, .dm-cell.dm-holding { outline-color: Highlight; }
+  .dm-mode[aria-pressed="true"] { border: 3px solid Highlight; }
+}
+
+/* Minimal play surface, requested October 2026. */
+.dm-hud { grid-template-columns: repeat(2, 1fr); }
+.dm-controls { margin-bottom: 8px; }
+.dm-difficulty select { margin-top: 0; }
+.dm-game .dm-help { border: 0; }

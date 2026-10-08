@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 288">
+  <title>Hàng Rong original vector food and customer atlas</title>
+  <desc>Original geometric illustrations made for NewPlayground, 2026. MIT under repository LICENSE. Referenced as SVG symbols; no copied game sprites or photographs.</desc>
+  <defs>
+    <symbol id="food-banhmi_trung" viewBox="0 0 96 72">
+      <ellipse cx="48" cy="59" rx="39" ry="6" fill="#d4c2a5"/>
+      <path d="M10 43 68 20q15-5 19 5t-7 17L23 63Q8 67 7 56Z" fill="#b87336" stroke="#63442f" stroke-width="2"/>
+      <path d="m13 44 65-23 8 12-63 26-13-4Z" fill="#43794f"/>
+      <path d="m20 44 54-21 5 6-53 21Z" fill="#a03d2e"/><path d="m23 44 49-19 5 10-49 20Z" fill="#fff0bd"/>
+      <path d="M8 39q1-10 15-16L63 9q16-6 22 5 3 7-8 12L22 48Q6 52 8 39Z" fill="#efb465" stroke="#745139" stroke-width="2"/>
+      <path d="m28 23 6 12m10-19 6 12m10-18 6 12" stroke="#fff0bf" stroke-width="4" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="food-tra_da" viewBox="0 0 96 72">
+      <ellipse cx="48" cy="65" rx="26" ry="4" fill="#c8ccc0"/><path d="m27 12 5 48q17 9 32 0l5-48Z" fill="#e6efdb" stroke="#4a695a" stroke-width="2"/>
+      <path d="m31 29 4 29q13 5 26 0l4-29Z" fill="#a7ba65"/><ellipse cx="48" cy="12" rx="21" ry="5" fill="#f8f8e9" stroke="#4a695a" stroke-width="2"/>
+      <path d="m34 28 10-3 2 10-10 3Zm17 7 9-1 1 9-9 1Z" fill="#f4f8e1" stroke="#92a68b"/><path d="m58 4-8 45" stroke="#41685c" stroke-width="3"/>
+      <path d="m36 15 3 40" stroke="#fffdf2" stroke-width="2" opacity=".8"/>
+    </symbol>
+    <symbol id="food-keo_lac" viewBox="0 0 96 72">
+      <ellipse cx="48" cy="56" rx="39" ry="9" fill="#e7e8d8" stroke="#829988" stroke-width="2"/>
+      <path d="m14 32 48-9 20 17-45 12-23-9Z" fill="#b57238" stroke="#795032" stroke-width="2"/>
+      <path d="m14 32 48-9 20 13-46 12Z" fill="#dfa15e"/>
+      <g fill="#f7dba1" stroke="#ac773e"><ellipse cx="28" cy="34" rx="6" ry="3"/><ellipse cx="44" cy="30" rx="6" ry="3"/><ellipse cx="61" cy="28" rx="6" ry="3"/><ellipse cx="65" cy="37" rx="6" ry="3"/><ellipse cx="48" cy="39" rx="6" ry="3"/><ellipse cx="33" cy="41" rx="6" ry="3"/></g>
+      <path d="m37 29 20 13m-6-16 20 13" stroke="#955d31" stroke-width="2"/>
+    </symbol>
+    <symbol id="food-cavien_chien" viewBox="0 0 96 72">
+      <ellipse cx="48" cy="51" rx="40" ry="13" fill="#e6ebe1" stroke="#789583" stroke-width="2"/>
+      <g stroke="#926641" stroke-width="3" stroke-linecap="round"><path d="m18 58 56-42m-41 46 52-42"/></g>
+      <g fill="#e9ae61" stroke="#995b33" stroke-width="2"><circle cx="36" cy="42" r="10"/><circle cx="53" cy="29" r="10"/><circle cx="66" cy="47" r="10"/><circle cx="78" cy="32" r="10"/></g>
+      <g fill="#fae0a3"><circle cx="33" cy="39" r="3"/><circle cx="50" cy="26" r="3"/><circle cx="63" cy="44" r="3"/><circle cx="75" cy="29" r="3"/></g>
+      <path d="m22 45 9-5m9-22 7-5" stroke="#b84430" stroke-width="4" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="food-nuoc_mia" viewBox="0 0 96 72">
+      <path d="m16 60 7-53m-1 46 6-43" stroke="#7b963e" stroke-width="7"/><path d="m17 46 8 1m-6-16 8 1m-5-14 9 1" stroke="#d9d69b" stroke-width="2"/>
+      <ellipse cx="58" cy="65" rx="24" ry="4" fill="#c5cbb3"/><path d="m36 15 5 44q17 9 31 0l5-44Z" fill="#e0e8c3" stroke="#5d7554" stroke-width="2"/>
+      <path d="m39 27 4 31q14 6 27 0l4-31Z" fill="#bac76b"/><ellipse cx="56" cy="15" rx="20" ry="5" fill="#e5e7bc" stroke="#5d7554" stroke-width="2"/>
+      <path d="m65 3-9 40" stroke="#536b50" stroke-width="3"/><circle cx="74" cy="25" r="10" fill="#e4eaa1" stroke="#74913d" stroke-width="3"/>
+      <path d="m73 18 1 14m-7-7 13-1" stroke="#9cb656" stroke-width="2"/>
+    </symbol>
+    <symbol id="food-banhtrang_nuong" viewBox="0 0 96 72">
+      <ellipse cx="48" cy="43" rx="40" ry="25" fill="#d6e0d0" stroke="#64816c" stroke-width="2"/><ellipse cx="48" cy="37" rx="35" ry="24" fill="#e1b06c" stroke="#935e38" stroke-width="2"/>
+      <ellipse cx="48" cy="37" rx="29" ry="19" fill="#f6d686"/><path d="m21 41 48-17m-44 27 48-17m-35 22 32-12" stroke="#b9543b" stroke-width="3"/>
+      <g fill="#63904f"><rect x="28" y="25" width="7" height="4" rx="1"/><rect x="42" y="45" width="7" height="4" rx="1"/><rect x="56" y="22" width="7" height="4" rx="1"/><rect x="66" y="39" width="7" height="4" rx="1"/><rect x="39" y="30" width="7" height="4" rx="1"/></g>
+      <path d="m48 14-1 44" stroke="#ac7947" stroke-width="1.5"/>
+    </symbol>
+    <symbol id="food-nemchua_ran" viewBox="0 0 96 72">
+      <ellipse cx="48" cy="51" rx="40" ry="13" fill="#e4e9d8" stroke="#719080" stroke-width="2"/>
+      <g fill="#ba6f3b" stroke="#79482d" stroke-width="2"><rect x="14" y="31" width="46" height="13" rx="6" transform="rotate(-20 37 37)"/><rect x="29" y="42" width="44" height="13" rx="6" transform="rotate(-16 51 48)"/><rect x="35" y="23" width="46" height="13" rx="6" transform="rotate(-22 58 29)"/></g>
+      <path d="m25 31 19-7m2 6 19-8m-23 26 18-6" stroke="#e7b677" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="77" cy="56" r="8" fill="#b94531" stroke="#fff1d9" stroke-width="3"/>
+    </symbol>
+    <symbol id="food-tra_chanh" viewBox="0 0 96 72">
+      <ellipse cx="45" cy="64" rx="25" ry="4" fill="#bdc9b6"/><path d="m24 12 5 48q17 7 32 0l5-48Z" fill="#e2e9c8" stroke="#547554" stroke-width="2"/>
+      <path d="m28 28 4 29q13 5 26 0l4-29Z" fill="#b7c473"/><ellipse cx="45" cy="12" rx="21" ry="5" fill="#ecedcf" stroke="#547554" stroke-width="2"/>
+      <path d="m51 3-9 43" stroke="#557558" stroke-width="3"/><circle cx="67" cy="25" r="13" fill="#eff0ab" stroke="#7b9a4d" stroke-width="3"/>
+      <path d="m67 14 0 22m-11-11h22m-19-8 16 16m0-16-16 16" stroke="#bfd074" stroke-width="2"/>
+      <path d="m32 32 8-2 2 9-8 2Z" fill="#f5f6da"/>
+    </symbol>
+    <symbol id="food-trasua_topping" viewBox="0 0 96 72">
+      <ellipse cx="48" cy="65" rx="25" ry="4" fill="#c8bfae"/><path d="m25 13 5 47q18 9 36 0l5-47Z" fill="#d8ad82" stroke="#72563e" stroke-width="2"/>
+      <path d="m29 25 4 33q15 7 30 0l3-33Z" fill="#e6c6a1"/>
+      <g fill="#594239"><circle cx="38" cy="54" r="4"/><circle cx="49" cy="59" r="4"/><circle cx="59" cy="54" r="4"/><circle cx="48" cy="49" r="4"/></g>
+      <ellipse cx="48" cy="13" rx="24" ry="6" fill="#f6e5c9" stroke="#72563e" stroke-width="2"/><path d="m62 2-11 45" stroke="#765247" stroke-width="5"/>
+      <path d="m35 28 8-2 2 8-8 2Zm17 1 7 2-2 7-7-2Z" fill="#f8e6ce"/>
+    </symbol>
+    <symbol id="food-lau_ly" viewBox="0 0 96 72">
+      <ellipse cx="48" cy="65" rx="26" ry="5" fill="#c1c3ad"/><path d="m21 22 8 35q19 13 38 0l8-35Z" fill="#477b6b" stroke="#2f5046" stroke-width="2"/>
+      <ellipse cx="48" cy="22" rx="27" ry="12" fill="#c78343" stroke="#2f5046" stroke-width="2"/>
+      <circle cx="37" cy="21" r="7" fill="#e2af6a"/><circle cx="54" cy="26" r="6" fill="#efc882"/><path d="m54 15 10 3m-39 7 7 3" stroke="#a44430" stroke-width="6" stroke-linecap="round"/>
+      <path d="m48 12 7 7m-14 7 7 5" stroke="#7c9b4c" stroke-width="4"/><path d="m71 2-14 34m20-31L63 36" stroke="#604b32" stroke-width="3"/>
+      <path d="M34 7q-4-4 0-7m13 8q-4-4 0-7" stroke="#bdc0b0" stroke-width="2" fill="none"/><path d="M35 40h26" stroke="#b9ccae" stroke-width="3"/>
+    </symbol>
+    <symbol id="person-0" viewBox="0 0 96 72">
+      <path d="M19 72q2-26 29-26t29 26Z" fill="#31567b"/><path d="m39 46 9 11 9-11" fill="#f2e9cf"/>
+      <path d="M29 24q0-20 20-20t20 20v14H29Z" fill="#3b3835"/><ellipse cx="48" cy="31" rx="17" ry="21" fill="#dca67e"/>
+      <path d="M30 21q0-21 19-17 19 2 19 20-14-1-23-12-5 9-15 9Z" fill="#3b3835"/>
+      <path d="M39 31h3m12 0h3m-14 11q5 4 10-1" stroke="#5f4639" stroke-width="2" fill="none" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="person-1" viewBox="0 0 96 72">
+      <path d="M18 72q1-26 30-26t30 26Z" fill="#b36948"/><path d="M25 47V23Q26 4 47 5t23 20v26Z" fill="#473f38"/>
+      <ellipse cx="48" cy="31" rx="16" ry="20" fill="#e1b18b"/><path d="M30 21q4-18 22-13l14 12-14-5-4-4q-4 9-18 10Z" fill="#473f38"/>
+      <path d="M39 31h3m12 0h3m-15 11q6 4 12-1" stroke="#674f3e" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="m38 50 10 10 10-10" stroke="#f0d9b3" stroke-width="3" fill="none"/>
+    </symbol>
+    <symbol id="person-2" viewBox="0 0 96 72">
+      <path d="M17 72q4-26 31-26t31 26Z" fill="#547764"/><ellipse cx="48" cy="30" rx="18" ry="22" fill="#bf8b65"/>
+      <path d="M29 25Q26 5 48 4t21 23l-8-10-25 3Z" fill="#2d3939"/><path d="M28 16h37l10 7H29Z" fill="#c89f64"/>
+      <path d="M39 31h3m12 0h3m-15 11q6 4 12-1" stroke="#574536" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="m29 57 7 15m33-15-7 15" stroke="#e4d7b4" stroke-width="3"/>
+    </symbol>
+    <symbol id="person-3" viewBox="0 0 96 72">
+      <path d="M18 72q3-25 30-25t30 25Z" fill="#987c50"/><path d="M28 27Q24 5 47 4t22 23Z" fill="#a9a596"/>
+      <ellipse cx="48" cy="31" rx="17" ry="21" fill="#d2a77e"/><path d="M28 23Q33 7 48 7q19 0 22 18L54 14 39 20Z" fill="#b8b4a3"/>
+      <g fill="none" stroke="#485951" stroke-width="2"><rect x="34" y="28" width="12" height="9" rx="3"/><rect x="50" y="28" width="12" height="9" rx="3"/><path d="M46 31h4m-8 12q6 4 12-1"/></g>
+      <path d="m37 51 11 8 11-8" stroke="#e9debf" stroke-width="3" fill="none"/>
+    </symbol>
+  </defs>
+  <!-- Atlas preview only; game references the symbols above. -->
+  <use href="#food-banhmi_trung" x="0" y="0" width="96" height="72"/><use href="#food-tra_da" x="96" y="0" width="96" height="72"/><use href="#food-keo_lac" x="192" y="0" width="96" height="72"/><use href="#food-cavien_chien" x="288" y="0" width="96" height="72"/>
+  <use href="#food-nuoc_mia" x="0" y="72" width="96" height="72"/><use href="#food-banhtrang_nuong" x="96" y="72" width="96" height="72"/><use href="#food-nemchua_ran" x="192" y="72" width="96" height="72"/><use href="#food-tra_chanh" x="288" y="72" width="96" height="72"/>
+  <use href="#food-trasua_topping" x="0" y="144" width="96" height="72"/><use href="#food-lau_ly" x="96" y="144" width="96" height="72"/>
+  <use href="#person-0" x="0" y="216" width="96" height="72"/><use href="#person-1" x="96" y="216" width="96" height="72"/><use href="#person-2" x="192" y="216" width="96" height="72"/><use href="#person-3" x="288" y="216" width="96" height="72"/>
+</svg>

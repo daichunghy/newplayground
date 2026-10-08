@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-labelledby="title desc">
+  <title id="title">Khối Đá Lăn</title>
+  <desc id="desc">Một khối đá vuông nguyên bản lăn trên lối đá giữa những bục vườn nổi để tới hố đích hình thoi.</desc>
+  <defs><linearGradient id="mist" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#bdded5"/><stop offset="1" stop-color="#f4d9a5"/></linearGradient><linearGradient id="block" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#eee3c5"/><stop offset="1" stop-color="#9d9e90"/></linearGradient></defs>
+  <rect width="640" height="400" fill="url(#mist)"/>
+  <circle cx="525" cy="77" r="32" fill="#ffe6a4"/>
+  <path d="M0 263q83-43 165 0t165 0 165 0 145 0v137H0z" fill="#789588" opacity=".52"/>
+  <g stroke="#465b5e" stroke-width="5" stroke-linejoin="round">
+    <path d="M72 257h127v50H72z" fill="#a6b29b"/><path d="M225 221h97v50h-97z" fill="#9cae9f"/><path d="M348 177h113v50H348z" fill="#a8b5a1"/>
+    <path d="M471 134h78v50h-78z" fill="#92a99d"/>
+    <path d="M581 232h26l23 23-23 23h-26l-23-23z" fill="#283b45" stroke="#f5e4b4" stroke-width="4"/>
+  </g>
+  <path d="M0 310q82-34 164 0t164 0 164 0 148 0v90H0z" fill="#57766b"/>
+  <g transform="translate(270 205) rotate(-23)" stroke="#425355" stroke-width="5" stroke-linejoin="round"><path d="M-42-42h84v84h-84z" fill="url(#block)"/><path d="m-26-19 52 0m-52 17 41 0m-41 17 30 0" fill="none" stroke="#737e74" stroke-width="5"/></g>
+  <g fill="#6e9a80"><path d="M25 292q12-42 25-3 14-45 24 2 13-34 23-1v13H25z"/><path d="M510 286q12-43 25-3 14-45 24 2 13-34 23-1v13h-72z"/></g>
+  <path d="M300 245q29-13 54-32m14-11 7-26 24 12" fill="none" stroke="#e8d49f" stroke-width="4" stroke-dasharray="6 8"/>
+  <text x="27" y="45" fill="#314c50" font-family="Calibri,Inter,sans-serif" font-size="34" font-weight="700">Khối Đá Lăn</text>
+  <text x="612" y="374" fill="#f5e5c1" font-family="Calibri,Inter,sans-serif" font-size="13" font-weight="700" text-anchor="end" letter-spacing="2">BỤC VƯỜN NỔI</text>
+</svg>

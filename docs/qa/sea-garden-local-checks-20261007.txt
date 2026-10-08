@@ -1,0 +1,16 @@
+Bể Sao local checks — 2026-10-07
+
+Focused command:
+node --test --test-concurrency=1 tests/sea-garden-model.test.cjs tests/sea-garden-ui.test.cjs
+
+Result: 13 passed, 0 failed (8 model, 5 DOM/event-double UI).
+
+Coverage includes food bounds and cap, fish seeking/eating, two-feed pearl creation, automatic collection, scheduled alien arrival, three-click repel, bite/loss, round win/timeout, deterministic frame partitioning, exact route, pointer input, keyboard Space, pause/restart/blur/close cleanup and optional help.
+
+Limitations: the DOM harness mocks canvas and audio. No real browser, touch device, visual/audio acceptance, accessibility audit or human playtest has run.
+
+
+Aggregate integration check after the candidate was wired locally:
+- `node --test --test-concurrency=1 tests/*.test.cjs` — 557 passed, 0 failed.
+- `node scripts/release-preflight.mjs --prepare` — pass: 150 catalog IDs, 42 prototypes, 108 planned, 103 declared asset files, 1,031,919 JavaScript bytes, 19,777,153 source asset bytes.
+- Artifact includes the original Bể Sao SVG/module and excludes `assets/nuoi_ca_cover.png`. This is static package verification, not browser acceptance.

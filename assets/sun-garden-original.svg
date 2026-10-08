@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 460" role="img" aria-labelledby="title desc">
+  <title id="title">Vườn Nắng</title>
+  <desc id="desc">A warm sun above a small original garden with three planted rows.</desc>
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#d8edc5"/><stop offset="1" stop-color="#fbf0cb"/></linearGradient>
+    <linearGradient id="soil" x2="0" y2="1"><stop stop-color="#a67849"/><stop offset="1" stop-color="#73503b"/></linearGradient>
+  </defs>
+  <rect width="720" height="460" rx="34" fill="url(#sky)"/>
+  <circle cx="576" cy="94" r="48" fill="#f5c964"/>
+  <path d="M0 228Q118 152 248 223t250-4q116-56 222 7v234H0Z" fill="#91b878"/>
+  <path d="M0 276q130-68 264-11t230-8q113-34 226 19v184H0Z" fill="#6f995d"/>
+  <path d="M76 287q270-62 566 9l-16 133q-255-51-534 4Z" fill="#d4c18d" stroke="#6e8553" stroke-width="8"/>
+  <g fill="url(#soil)" stroke="#69503c" stroke-width="5">
+    <path d="M105 305q71-15 141-7l-8 41q-70-8-139 8Z"/><path d="M292 300q70 0 140 9l-3 42q-70-9-141-8Z"/><path d="M478 316q72 11 143 30l-7 41q-70-18-141-29Z"/>
+    <path d="M98 365q70-16 140-14l-6 41q-70-2-138 15Z"/><path d="M285 354q70 1 141 10l-4 42q-70-9-140-9Z"/><path d="M471 373q71 10 140 29l-8 41q-69-18-140-28Z"/>
+  </g>
+  <g fill="#f6e6a2" stroke="#4e7b48" stroke-width="7" stroke-linecap="round">
+    <path d="M164 302v-37m0 18q-24-22-34-4m34-1q17-28 36-11"/><path d="M350 295v-44m0 24q-24-25-38-7m38-1q19-31 40-13"/>
+    <path d="M540 321v-40m0 22q-21-25-38-9m38-1q18-29 37-13"/><path d="M163 361v-35m0 18q-22-21-36-5m36-1q18-28 35-12"/>
+    <path d="M352 353v-42m0 23q-23-24-39-7m39-2q18-30 39-12"/><path d="M543 370v-37m0 20q-20-24-37-8m37-2q18-29 36-11"/>
+  </g>
+  <g fill="#fff7df" opacity=".8"><ellipse cx="110" cy="106" rx="47" ry="17"/><ellipse cx="146" cy="104" rx="31" ry="21"/><ellipse cx="184" cy="109" rx="37" ry="15"/><ellipse cx="310" cy="150" rx="39" ry="14"/><ellipse cx="340" cy="148" rx="29" ry="19"/><ellipse cx="371" cy="154" rx="34" ry="14"/></g>
+</svg>

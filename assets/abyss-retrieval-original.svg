@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
+ <title id="title">Vực Ngọc</title>
+ <desc id="desc">An original ocean probe reels glowing pearls and sea glass from a blue trench.</desc>
+ <defs>
+  <linearGradient id="water" x2="0" y2="1"><stop stop-color="#b8dce0"/><stop offset=".48" stop-color="#3d8790"/><stop offset="1" stop-color="#123d55"/></linearGradient>
+  <linearGradient id="probe" x2="0" y2="1"><stop stop-color="#f1e5c2"/><stop offset="1" stop-color="#aabf9d"/></linearGradient>
+  <radialGradient id="glow"><stop stop-color="#eaffd1"/><stop offset=".48" stop-color="#b0efcc"/><stop offset="1" stop-color="#6ed2c6" stop-opacity=".05"/></radialGradient>
+  <filter id="blur"><feGaussianBlur stdDeviation="9"/></filter>
+ </defs>
+ <rect width="960" height="600" fill="url(#water)"/>
+ <path d="M0 104c100-22 180 10 270-5s194-20 290 5 224 27 400-8v65c-120 38-238 3-367 0s-216 24-328 5S103 162 0 188z" fill="#dff2e6" opacity=".3"/>
+ <circle cx="154" cy="240" r="88" fill="#a9eee0" opacity=".08" filter="url(#blur)"/>
+ <path d="M0 458q155-72 310-8 120-72 238 2 202-102 412 6v142H0z" fill="#12384b"/>
+ <path d="M0 522q135-48 263-2t254-2 246-4 197 13v73H0z" fill="#194d5c"/>
+ <path d="M151 600l31-79 25 13 25-57 33 49 40-78 30 72 27-17 20 97m272 0 30-70 20 21 25-52 34 44 28-61 36 78 23-27 38 67" fill="#2d696a"/>
+ <g fill="#c5f2d6" opacity=".75"><circle cx="146" cy="365" r="5"/><circle cx="121" cy="332" r="3"/><circle cx="747" cy="290" r="4"/><circle cx="790" cy="336" r="3"/><circle cx="865" cy="241" r="5"/><circle cx="604" cy="214" r="3"/><circle cx="298" cy="263" r="4"/></g>
+ <g transform="translate(350 64)">
+  <path d="M130 58c-45-23-93-15-126 12l24 30c27-21 56-24 86-9 29 15 62 11 86-13l-24-28c-14 11-30 14-46 8z" fill="url(#probe)" stroke="#365d63" stroke-width="8"/>
+  <circle cx="128" cy="62" r="17" fill="#6ab1ad" stroke="#365d63" stroke-width="6"/>
+  <path d="M130 80l130 105" stroke="#d1d6b6" stroke-width="5" stroke-linecap="round"/>
+  <path d="M257 185q16-4 22 7l13 22-10 6-13-16-10 21-10-4 5-23z" fill="#d1d6b6" stroke="#405f61" stroke-width="4" stroke-linejoin="round"/>
+ </g>
+ <circle cx="649" cy="256" r="45" fill="url(#glow)"/>
+ <path d="M648 230c20 0 27 24 0 51-27-27-20-51 0-51z" fill="#bcf1d9" stroke="#397b81" stroke-width="5"/>
+ <circle cx="755" cy="414" r="38" fill="url(#glow)"/><path d="M755 390c20 0 25 20 0 42-25-22-20-42 0-42z" fill="#c6f4db" stroke="#397b81" stroke-width="5"/>
+ <path d="M155 428l25-24 25 24-25 24z" fill="#a4e7db" stroke="#437a7d" stroke-width="5"/>
+ <text x="58" y="92" fill="#163e4a" font-family="Calibri,Arial,sans-serif" font-size="45" font-weight="700" letter-spacing="2">VỰC NGỌC</text>
+ <text x="61" y="126" fill="#265a62" font-family="Calibri,Arial,sans-serif" font-size="16" letter-spacing="2">THẢ DÂY • KÉO VẬT SÁNG • CHẠM MỤC TIÊU</text>
+</svg>

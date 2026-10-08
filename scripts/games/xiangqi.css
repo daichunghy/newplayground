@@ -1,0 +1,121 @@
+.np-xiangqi {
+  --xq-ink: #382a1c;
+  --xq-board: #e9c88f;
+  --xq-grid: #986b3d;
+  box-sizing: border-box;
+  width: min(100%, 570px);
+  margin: 0 auto;
+  color: var(--xq-ink);
+  font-family: Calibri, Inter, -apple-system, sans-serif;
+}
+
+.np-xiangqi-status {
+  min-height: 1.5rem;
+  margin: 0 0 .35rem;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.np-xiangqi-turn {
+  margin: 0 0 .5rem;
+  text-align: center;
+  font-weight: 700;
+}
+
+.np-xiangqi-board {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  grid-template-rows: repeat(10, minmax(0, 1fr));
+  width: 100%;
+  aspect-ratio: 9 / 10;
+  overflow: hidden;
+  border: 2px solid #785332;
+  border-radius: 8px;
+  background-color: var(--xq-board);
+  background-image:
+    linear-gradient(to right, transparent calc(100% - 1px), var(--xq-grid) calc(100% - 1px)),
+    linear-gradient(to bottom, transparent calc(100% - 1px), var(--xq-grid) calc(100% - 1px));
+  background-size: 11.111111% 10%;
+  box-shadow: 0 8px 22px rgb(56 42 28 / 14%);
+  touch-action: manipulation;
+}
+
+.np-xiangqi-board::before {
+  position: absolute;
+  z-index: 1;
+  top: 40%;
+  right: 0;
+  left: 0;
+  height: 20%;
+  background: rgb(233 200 143 / 90%);
+  content: "";
+  pointer-events: none;
+}
+
+.np-xiangqi-board::after {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  right: 0;
+  left: 0;
+  color: #7c5735;
+  content: "楚 河     漢 界";
+  text-align: center;
+  font-size: clamp(.65rem, 2.7vw, .9rem);
+  font-weight: 700;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.np-xiangqi-cell {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #24201c;
+  font: 700 clamp(1rem, 5vw, 1.7rem)/1 Calibri, "Noto Serif CJK SC", serif;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.np-xiangqi-cell.is-red { color: #a82926; }
+.np-xiangqi-cell.is-black { color: #28251f; }
+.np-xiangqi-cell.is-selected { background: rgb(252 224 111 / 78%); box-shadow: inset 0 0 0 2px #8b6b18; }
+.np-xiangqi-cell.is-legal::after { width: 22%; height: 22%; border-radius: 50%; background: #406946; content: ""; }
+.np-xiangqi-cell.is-capture { box-shadow: inset 0 0 0 2px #315b39; }
+.np-xiangqi-cell:focus-visible { outline: 2px solid #1d4e89; outline-offset: -3px; background-color: rgb(255 255 255 / 40%); }
+.np-xiangqi-cell:disabled { cursor: default; }
+
+.np-xiangqi-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  margin-top: .55rem;
+}
+
+.np-xiangqi-help { color: #625747; font-size: .92rem; }
+.np-xiangqi-new {
+  min-width: 44px;
+  min-height: 44px;
+  padding: .4rem .9rem;
+  border: 0;
+  border-radius: 999px;
+  background: #382a1c;
+  color: white;
+  font: 700 1rem Calibri, Inter, -apple-system, sans-serif;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .np-xiangqi-cell.is-selected { animation: xq-select .12s ease-out; }
+  @keyframes xq-select { from { transform: scale(.82); } to { transform: scale(1); } }
+}

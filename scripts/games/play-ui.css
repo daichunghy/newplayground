@@ -1,0 +1,12 @@
+/* Quiet player UI. Detailed rules, research and diagnostics belong outside the play surface. */
+.np-game-sr { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0,0,0,0) !important; white-space: nowrap !important; border: 0 !important; }
+.np-help { margin-top: 8px; border: 0; font: .85rem/1.45 'Calibri', 'Inter', -apple-system, sans-serif; }
+.np-help summary { display: inline-flex; min-width: 44px; min-height: 44px; align-items: center; justify-content: center; padding: 6px !important; cursor: pointer; border: 1px solid currentColor; border-radius: 50%; list-style: none; }
+.np-help summary::-webkit-details-marker { display: none; }
+.np-help p { margin: 8px 0 !important; }
+.np-help a { color: inherit; }
+
+/* Existing canvas prototypes: keep instruction text for assistive reading, not on the board. */
+#modalGameContainer .canvas-controls-bar small,
+#modalGameContainer .intro-desc,
+#modalGameContainer .intro-controls-box { position:absolute !important; width:1px !important; height:1px !important; padding:0 !important; margin:-1px !important; overflow:hidden !important; clip:rect(0,0,0,0) !important; white-space:nowrap !important; border:0 !important; }

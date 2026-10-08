@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-labelledby="title desc">
+  <title id="title">Mục Tiêu Bay</title>
+  <desc id="desc">Một chú chim đầm lầy nguyên bản bay qua đồng cỏ dưới vạch ngắm hình học.</desc>
+  <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#8fc6d9"/><stop offset=".7" stop-color="#dbe1b1"/><stop offset="1" stop-color="#b6a46d"/></linearGradient></defs>
+  <rect width="640" height="400" fill="url(#sky)"/>
+  <circle cx="530" cy="77" r="38" fill="#e8c773" opacity=".9"/>
+  <path d="M0 203c93-57 161 12 250-14s171-65 245-17 97 9 145-7v115H0z" fill="#92aa98"/>
+  <path d="M0 267c110-42 181 22 292-7s208-42 348-3v143H0z" fill="#6e987c"/>
+  <path d="M0 322c111-18 209 24 321 1s213-39 319-8v85H0z" fill="#50785e"/>
+  <g stroke="#dec77e" stroke-width="3" opacity=".85"><path d="M52 380q-5-20 3-34m21 36q7-25 0-39m34 43q-8-21 1-36m451 28q6-22-2-37m29 38q-4-26 7-41"/></g>
+  <g transform="translate(316 190) rotate(-8)" stroke="#24464a" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+    <ellipse cx="0" cy="0" rx="47" ry="31" fill="#bf7147"/>
+    <ellipse cx="29" cy="-23" rx="22" ry="18" fill="#287678"/>
+    <path d="M46-24 76-17 49-10Z" fill="#d3a24c"/>
+    <path d="M-28-5q-28-44-58-9 22 7 23 24m8-20q17 5 34 15" fill="#e5b978"/>
+    <path d="M-39 10-69 18l21-22Z" fill="#d5a24b"/>
+    <circle cx="34" cy="-28" r="3.8" fill="#f4eed2" stroke="none"/>
+    <circle cx="35" cy="-28" r="1.8" fill="#20373e" stroke="none"/>
+    <path d="M-9 25-14 38m22-12 5 12" fill="none" stroke="#b77b38" stroke-width="4"/>
+  </g>
+  <g fill="none" stroke="#f8f4e6" stroke-width="3" opacity=".86">
+    <circle cx="316" cy="181" r="34"/><circle cx="316" cy="181" r="55" stroke-dasharray="4 12"/>
+    <path d="M316 112v35m0 69v35m-70-70h35m69 0h35"/>
+  </g>
+  <text x="30" y="42" fill="#213f43" font-family="Calibri,Inter,sans-serif" font-size="28" font-weight="700">Mục Tiêu Bay</text>
+  <text x="608" y="376" fill="#edf1d5" font-family="Calibri,Inter,sans-serif" font-size="13" font-weight="700" text-anchor="end" letter-spacing="2">ĐỒNG CỎ</text>
+</svg>

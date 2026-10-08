@@ -734,6 +734,9 @@ body.dark-theme .filter-pill.active {
 .game-card:hover .game-thumb-art {
   transform: scale(1.06);
 }
+.game-card-planned { cursor: default; }
+.game-card-planned:hover { transform: none; border-color: var(--border-light); box-shadow: none; }
+.game-card-planned:hover .game-thumb-art { transform: none; }
 
 .game-card-heart-btn {
   position: absolute;
@@ -2387,3 +2390,28 @@ body.dark-theme .filter-pill.active {
 }
 
 
+
+/* Catalog availability and the game development notice. */
+#catalogAvailability { font-weight: 600; margin: 0 0 1rem; }
+.game-availability-notice { padding: 3rem 1.5rem; text-align: center; max-width: 36rem; margin: auto; }
+.game-availability-notice p { line-height: 1.6; margin: 1rem 0 1.5rem; }
+.game-availability-notice button { min-height: 44px; }
+
+/* Game dialog controls remain reachable on narrow phones and at text zoom. */
+#gameModal .modal-header { flex-wrap: wrap; gap: 10px; }
+#gameModal .modal-title-group { min-width: 0; flex: 1 1 220px; }
+#gameModal .modal-game-title { overflow-wrap: anywhere; }
+#gameModal .modal-header-actions { flex: 0 0 auto; margin-left: auto; }
+#gameModal .modal-btn-icon { width: 44px; height: 44px; min-width: 44px; min-height: 44px; }
+#gameModal .modal-window:focus { outline: none; }
+#gameModal .modal-btn-icon:focus-visible { outline: 3px solid #2563eb; outline-offset: 2px; }
+@media (max-width: 520px) {
+  #gameModal .modal-header { padding: 10px 12px; }
+  #gameModal .modal-title-group { flex-basis: 100%; }
+  #gameModal .modal-header-actions { gap: 6px; }
+}
+
+.game-card-play { min-height: 44px; width: 100%; margin-top: 10px; border: 1px solid var(--border-medium); border-radius: 8px; font: 700 .9rem var(--font-family-base); color: var(--text-main); background: var(--bg-surface-soft); }
+.game-card-play:hover { border-color: var(--border-dark); }
+.game-card-play:focus-visible { outline: 3px solid #2563eb; outline-offset: 2px; }
+.game-card-status { display: block; min-height: 44px; margin-top: 10px; padding: 12px 8px 0; color: var(--text-muted); font-size: .82rem; text-align: center; }

@@ -1,0 +1,194 @@
+.kd-host {
+  --kd-ink: #e9f5f3;
+  --kd-muted: #a7bfbd;
+  --kd-surface: #102728;
+  --kd-edge: #345657;
+  --kd-glow: #87f0d0;
+  color: var(--kd-ink);
+  font-family: Calibri, Inter, -apple-system, sans-serif;
+}
+.kd-game {
+  width: min(100%, 940px);
+  margin: 0 auto;
+  padding: clamp(12px, 3vw, 28px);
+  border: 1px solid #2a5150;
+  border-radius: 24px;
+  background: radial-gradient(ellipse at 50% 0%, #214447 0, #122c2e 48%, #0c2022 100%);
+  box-shadow: 0 24px 72px #061719a8, inset 0 1px #ffffff12;
+}
+.kd-header, .kd-head-actions, .kd-hud, .kd-levels, .kd-play-row, .kd-key {
+  display: flex;
+  align-items: center;
+}
+.kd-header { justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.kd-kicker { margin: 0 0 2px; color: #9bc6bf; font-size: .72rem; font-weight: 800; letter-spacing: .2em; }
+.kd-header h2 { margin: 0; color: #eafff7; font-size: clamp(1.45rem, 3.4vw, 2rem); line-height: 1; }
+.kd-head-actions { gap: 8px; }
+.kd-btn {
+  color: #e9fffa;
+  border: 1px solid #487271;
+  border-radius: 13px;
+  background: linear-gradient(180deg, #315756, #1b393a);
+  box-shadow: 0 3px 0 #102729, inset 0 1px #ffffff14;
+  font: 700 1rem Calibri, Inter, sans-serif;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 100ms ease, border-color 100ms ease, background 100ms ease;
+}
+.kd-btn:hover { border-color: #91d7c6; background: linear-gradient(180deg, #3b6865, #204342); }
+.kd-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #102729; }
+.kd-btn:focus-visible { outline: 3px solid #b3ffe8; outline-offset: 3px; }
+.kd-btn:disabled { opacity: .43; cursor: not-allowed; }
+.kd-icon-btn { width: 48px; height: 48px; font-size: 1.7rem; line-height: 1; }
+.kd-hud {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding: 9px;
+  border: 1px solid #355756;
+  border-radius: 16px;
+  background: #0b2022b8;
+}
+.kd-hud > div { display: grid; gap: 2px; padding: 5px 9px; }
+.kd-hud span { color: var(--kd-muted); font-size: .76rem; }
+.kd-hud strong { color: #e9fff7; font-size: 1.08rem; }
+.kd-status { grid-column: 1 / -1; margin: 0; padding: 5px 10px; color: #c5e8dd; font-size: .95rem; }
+.kd-levels { justify-content: center; flex-wrap: wrap; gap: 8px; margin: 13px 0; }
+.kd-level { min-width: 48px; min-height: 44px; padding: 6px 11px; }
+.kd-level span { margin-left: 7px; font-size: .82rem; font-weight: 600; }
+.kd-level[aria-pressed="true"] { border-color: #b3ffe8; background: linear-gradient(180deg, #488477, #27635c); color: #fff; }
+.kd-level:disabled { border-style: dashed; opacity: .38; }
+.kd-board {
+  display: grid;
+  grid-template-columns: repeat(var(--kd-cols), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--kd-rows), minmax(0, 1fr));
+  gap: clamp(3px, .85vw, 8px);
+  width: min(100%, 760px);
+  margin: 0 auto;
+  padding: clamp(8px, 1.8vw, 15px);
+  border: 1px solid #416b6a;
+  border-radius: 20px;
+  background:
+    linear-gradient(135deg, #143335, #0e2729 55%, #183b3c),
+    #102729;
+  box-shadow: inset 0 2px 10px #071719aa, 0 9px 24px #06171988;
+  overflow: hidden;
+}
+.kd-cell, .kd-block { position: relative; min-width: 0; min-height: 28px; aspect-ratio: 1; }
+.kd-cell { z-index: 1; border-radius: 9px; box-sizing: border-box; }
+.kd-stone {
+  border: 1px solid #7ca49a;
+  background:
+    radial-gradient(circle at 25% 27%, #ffffff35 0 2px, transparent 3px),
+    linear-gradient(145deg, #82a99b, #4c746e 60%, #315957);
+  box-shadow: 0 4px 0 #213f40, inset 0 1px 2px #effff038;
+}
+.kd-stone::after, .kd-bridge::after {
+  content: "";
+  position: absolute;
+  inset: 24% 18%;
+  border: 1px solid #c9ebd326;
+  border-radius: 30% 14% 28% 18%;
+  transform: rotate(-12deg);
+}
+.kd-bridge {
+  border: 1px solid #9bc99e;
+  border-radius: 8px;
+  background:
+    repeating-linear-gradient(0deg, #416b55 0 5px, #91b985 6px 9px, #426750 10px 13px),
+    linear-gradient(145deg, #8fb48e, #486b58);
+  box-shadow: 0 4px 0 #203f3d, inset 0 1px 2px #effff044;
+}
+.kd-bridge i { position: absolute; inset: 0; display: grid; place-items: center; color: #e3f3b8; font-size: clamp(14px, 2.5vw, 22px); font-style: normal; text-shadow: 0 1px 3px #284d3c; }
+.kd-start::before {
+  content: "✦";
+  position: absolute;
+  top: 3px;
+  right: 5px;
+  color: #d8f9a9;
+  font-size: clamp(9px, 1.4vw, 14px);
+  text-shadow: 0 1px 4px #173a2d;
+}
+.kd-goal {
+  display: grid;
+  place-items: center;
+  border: 1px solid #b8f1dc;
+  background: radial-gradient(circle, #091c1d 0 26%, #74c6ad 28% 36%, #234c49 38% 55%, #91d8bd 57% 62%, #426c64 64%);
+  box-shadow: 0 4px 0 #1b3d3e, 0 0 14px #93f1d44d, inset 0 1px #effff04a;
+}
+.kd-goal i { color: #dcfff1; font-size: clamp(15px, 3vw, 25px); font-style: normal; line-height: 1; text-shadow: 0 1px 5px #122c2b; }
+.kd-gap {
+  border: 1px dashed #45605e;
+  background:
+    radial-gradient(ellipse at 50% 44%, #07191b 5%, #0b1e20 50%, #1a3434 72%, transparent 74%);
+}
+.kd-gap::after {
+  content: "";
+  position: absolute;
+  inset: 34%;
+  border: 1px solid #7c9b9545;
+  border-radius: 50%;
+  transform: scaleY(.58);
+}
+.kd-block {
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  align-self: stretch;
+  justify-self: stretch;
+  aspect-ratio: auto;
+  border: 2px solid #e1d5a4;
+  border-radius: 10px;
+  color: #4b3523;
+  background:
+    linear-gradient(145deg, #fff1b8 0%, #e9bb70 46%, #b97847 100%);
+  box-shadow: 0 5px 0 #744b34, 0 8px 13px #06171899, inset 0 2px 3px #fff7d9a8;
+  transform: translateY(-2px);
+  transition: grid-column 90ms ease, grid-row 90ms ease;
+}
+.kd-block::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border: 1px solid #7b573a70;
+  border-radius: 6px;
+  background: repeating-linear-gradient(135deg, transparent 0 9px, #6e4a3430 10px 11px, transparent 12px 18px);
+}
+.kd-block-mark { position: relative; width: 11px; height: 11px; border: 2px solid #79563c; border-radius: 3px; transform: rotate(45deg); }
+.kd-block b { position: relative; font-size: clamp(8px, 1.35vw, 12px); letter-spacing: .08em; }
+.kd-wide { border-radius: 9px; }
+.kd-tall { flex-direction: column; border-radius: 9px; }
+.kd-tall b { writing-mode: vertical-rl; }
+.kd-play-row { justify-content: space-between; gap: 12px; max-width: 760px; margin: 14px auto 0; }
+.kd-pad { display: grid; grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(2, 46px); gap: 5px; }
+.kd-dir { min-width: 44px; min-height: 44px; font-size: 1.35rem; }
+.kd-dir-up { grid-column: 2; grid-row: 1; }
+.kd-dir-left { grid-column: 1; grid-row: 2; }
+.kd-dir-down { grid-column: 2; grid-row: 2; }
+.kd-dir-right { grid-column: 3; grid-row: 2; }
+.kd-next { min-height: 46px; padding: 0 17px; border-color: #a5ead1; background: linear-gradient(180deg, #418270, #235b52); }
+.kd-next[hidden] { display: none; }
+.kd-instructions { max-width: 760px; margin: 12px auto 0; color: #b8d0ca; font-size: .9rem; line-height: 1.4; }
+.kd-key { justify-content: center; flex-wrap: wrap; gap: 10px 18px; max-width: 760px; margin: 12px auto 0; color: #bdd4cd; font-size: .8rem; }
+.kd-key span { display: inline-flex; align-items: center; gap: 6px; }
+.kd-key i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; }
+.kd-key-stone { border: 1px solid #7ca49a; background: linear-gradient(145deg, #82a99b, #315957); }
+.kd-key-bridge { border: 1px solid #9bc99e; background: repeating-linear-gradient(0deg, #416b55 0 3px, #91b985 4px 6px); }
+.kd-key-hole { border: 2px solid #b8f1dc; background: radial-gradient(circle, #07191b 0 45%, #74c6ad 50% 75%, #234c49 80%); }
+.kd-key-gap { border: 1px dashed #77908b; background: #0b1e20; }
+@media (max-width: 580px) {
+  .kd-game { padding: 12px; border-radius: 18px; }
+  .kd-hud { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kd-status { grid-column: 1 / -1; padding-top: 0; }
+  .kd-board { gap: 3px; padding: 7px; border-radius: 13px; }
+  .kd-cell { min-height: 23px; border-radius: 6px; }
+  .kd-block { min-height: 23px; border-radius: 7px; }
+  .kd-pad { grid-template-columns: repeat(3, 46px); grid-template-rows: repeat(2, 44px); gap: 4px; }
+  .kd-dir { min-height: 44px; }
+  .kd-instructions { font-size: .84rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kd-btn, .kd-block { transition: none; }
+}

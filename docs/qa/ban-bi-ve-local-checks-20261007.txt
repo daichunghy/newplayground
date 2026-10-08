@@ -1,0 +1,34 @@
+✔ seeded circle setup is deterministic and scales from two to four players (2.766059ms)
+✔ flick input rejects invalid pulls, caps force, and starts one deterministic shot (0.388676ms)
+✔ a miss passes the turn after the striker settles (3.045142ms)
+✔ a captured marble scores for the shooter and grants another shot before turn rotation (3.306669ms)
+✔ clearing the ring ends the match once and records a winner or a tie (1.358844ms)
+✔ fixed-step replay and restore produce the same moving shot (5.691533ms)
+✔ invalid, inconsistent and future saves are rejected without throwing (0.787667ms)
+✔ seeded action batch keeps marbles bounded, finite, and replayable (101.853566ms)
+✔ mounts a compact visual-first board with keyboard help and a 2–4 player score row (31.84172ms)
+✔ dragging from the shooter fires once, scales to CSS canvas size, and ignores synthetic click (13.938793ms)
+✔ cancelled, outside, secondary and multitouch gestures never flick (44.278047ms)
+✔ arrow keys adjust aim and force, Enter fires, and a repeated key cannot double fire (10.441942ms)
+✔ pause blocks input and simulation, then resumes the same shot cleanly (11.926ms)
+✔ blur, hidden document and pagehide pause without auto-resuming (27.355573ms)
+✔ a long animation interruption pauses and a restored moving shot waits for Resume (13.28902ms)
+✔ a restored completed result stays on the result screen and starts a fresh match on request (10.822045ms)
+✔ 2, 3 and 4 player controls start a fresh local match and update score colors (17.950478ms)
+✔ closed module can reopen and the session clears all RAF and global listeners (21.699732ms)
+✔ corrupt saves are backed up before replacement, and backup failure preserves them (12.842659ms)
+✔ unavailable storage does not block a round and quota failures do not break input (14.77995ms)
+✔ exact catalog route launches the owned module; CSS keeps touch targets and Calibri (9.770096ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 336.504255
+
+
+Integration follow-up on codex/deep-upgrades-20261007:
+- The exact catalog route opens the owned canvas module and closing releases the frame and input listeners.
+- The combined focused model/UI run is 22/22 (8 model + 14 UI/lifecycle). This DOM-double check is not real-browser or device acceptance.

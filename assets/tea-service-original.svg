@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">Tiệm Lá Trà</title>
+  <desc id="desc">An original small tea shop with a leaf-shaped awning, clean tables and warm tea cups.</desc>
+  <defs>
+    <linearGradient id="wall" x2="0" y2="1"><stop stop-color="#f0e8cf"/><stop offset="1" stop-color="#d9e7d1"/></linearGradient>
+    <linearGradient id="tea" x2="0" y2="1"><stop stop-color="#e0b36c"/><stop offset="1" stop-color="#a96f43"/></linearGradient>
+  </defs>
+  <rect width="640" height="360" rx="28" fill="url(#wall)"/>
+  <circle cx="524" cy="78" r="37" fill="#fff4d4" opacity=".9"/>
+  <path d="M0 262h640v98H0Z" fill="#78917b"/>
+  <path d="M0 269h640" stroke="#e7ddbd" stroke-width="3"/>
+  <path d="M72 247V129q0-34 34-34h427q34 0 34 34v118" fill="#fbf7e9" stroke="#667f70" stroke-width="5"/>
+  <path d="M84 142q26-40 54 0 28-40 55 0 27-40 55 0 27-40 55 0 28-40 55 0 28-40 55 0 27-40 55 0 27-40 55 0" fill="#7fa284" stroke="#567560" stroke-width="4"/>
+  <path d="M92 148h458v12H92Z" fill="#55755d"/>
+  <path d="M137 162v86m337-86v86" stroke="#8b9e85" stroke-width="4"/>
+  <g transform="translate(220 212)">
+    <ellipse cy="47" rx="60" ry="9" fill="#314b3c" opacity=".18"/>
+    <path d="M-52 5h104l-10 32h-84Z" fill="#b98a58" stroke="#654c37" stroke-width="4"/>
+    <path d="M-38 38v18m76-18v18" stroke="#634c38" stroke-width="6" stroke-linecap="round"/>
+    <path d="M-17-13h35l-4 25q-13 11-27 0Z" fill="#fff3d8" stroke="#6c8c79" stroke-width="3"/>
+    <path d="M18-7q20-2 9 13h-11" fill="none" stroke="#6c8c79" stroke-width="3"/>
+    <path d="M-4-10q-6-11 3-16m7 15q-2-10 6-14" fill="none" stroke="#c3a46c" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(390 212)">
+    <ellipse cy="47" rx="60" ry="9" fill="#314b3c" opacity=".18"/>
+    <path d="M-52 5h104l-10 32h-84Z" fill="#b98a58" stroke="#654c37" stroke-width="4"/>
+    <path d="M-38 38v18m76-18v18" stroke="#634c38" stroke-width="6" stroke-linecap="round"/>
+    <path d="M-17-13h35l-4 25q-13 11-27 0Z" fill="#f4e2cb" stroke="#6c8c79" stroke-width="3"/>
+    <path d="M18-7q20-2 9 13h-11" fill="none" stroke="#6c8c79" stroke-width="3"/>
+    <path d="M0-9q8-12 17-5-2 10-17 5Z" fill="#75a27e"/>
+  </g>
+  <g fill="#669173"><path d="M103 227q10-32 23-2 12-29 22 2m390 0q10-32 23-2 12-29 22 2"/></g>
+  <g fill="#d5b26b"><circle cx="122" cy="226" r="5"/><circle cx="553" cy="225" r="5"/></g>
+  <text x="30" y="42" fill="#496652" font-family="Calibri,Inter,sans-serif" font-size="14" font-weight="800" letter-spacing="2.2">NEWPLAYGROUND · ORIGINAL GAME</text>
+  <text x="30" y="78" fill="#304b3b" font-family="Calibri,Inter,sans-serif" font-size="34" font-weight="900">Tiệm Lá Trà</text>
+</svg>

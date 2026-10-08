@@ -1,0 +1,19 @@
+Gió Ngang local checks — 2026-10-07
+
+Focused command:
+node --test tests/wind-duel-model.test.cjs tests/wind-duel-ui.test.cjs
+
+Result: 20 passed, 0 failed.
+
+A first run exposed a bad UI-test loop condition: it stopped as soon as the player's turn was still active rather than waiting for the projectile and CPU return shot. The condition now waits until the projectile is gone and the turn returns to the player. The corrected focused suite passes. A final case also confirms direct keyboard/assistive activation fires once at the default power. Input was then aligned with the official basic-control guide: the angle stays on one native slider, Bắn/Space charges while held and fires on release, and a default-power click remains available for keyboard/assistive activation.
+
+Coverage includes seeded deterministic physics, CPU/player turn exchange, move/aim input, held charge timing, pointer and keyboard release, default-power activation, cancellation, hit/loss, ground deformation, pause/resume/restart, blur and close cleanup, optional help, and original cover routing.
+
+Limitations: canvas/audio are mocked in the DOM test harness. No real browser, physical touch device, visual/audio acceptance, accessibility audit or human playtest has run.
+
+
+Aggregate verification after the final input changes:
+- `node --test tests/*.test.cjs` — 543 passed, 0 failed.
+- `node scripts/release-preflight.mjs --prepare` — pass: 150 catalog IDs, 42 prototypes, 108 planned, 102 declared asset files, 1,046,200 JavaScript bytes, 19,774,714 source asset bytes.
+- `node --check` for both Gió Ngang JavaScript files, JSON parse checks, and `git diff --check` — pass.
+- Prepared artifact includes the original SVG/module and excludes `assets/gunny_cover.png`. This is static package verification, not browser acceptance.

@@ -1,0 +1,44 @@
+/* Original Vòm Mây player surface; no inherited Nintendo art or audio. */
+.cc-host { padding:12px; background:#f0f3eb; }
+.cc-game { --cc-ink:#29434b; --cc-muted:#657d80; --cc-line:#8da6a0; max-width:690px; margin:auto; color:var(--cc-ink); font-family:'Calibri','Inter',-apple-system,sans-serif; }
+.cc-game *, .cc-game *::before, .cc-game *::after { box-sizing:border-box; }
+.cc-game [hidden] { display:none !important; }
+.cc-header { position:relative; display:flex; justify-content:space-between; align-items:center; min-height:54px; margin-bottom:8px; padding-right:100px; }
+.cc-kicker { display:block; color:var(--cc-muted); font-size:.62rem; font-weight:800; letter-spacing:.13em; }
+.cc-header h3 { margin:0; font-size:1.45rem; line-height:1.2; }
+.cc-toolbar { position:absolute; right:0; top:4px; display:flex; gap:6px; }
+.cc-button { appearance:none; min-width:44px; min-height:44px; padding:8px 12px; border:1px solid var(--cc-line); border-radius:10px; background:#fcfbf4; color:var(--cc-ink); font:700 .95rem 'Calibri','Inter',-apple-system,sans-serif; cursor:pointer; touch-action:manipulation; }
+.cc-button:hover { background:#e5f0e9; }
+.cc-button:active:not(:disabled) { transform:translateY(1px); }
+.cc-button:disabled { opacity:.48; cursor:default; }
+.cc-button:focus-visible, #ccCanvas:focus-visible, .cc-help summary:focus-visible { outline:3px solid #175c93; outline-offset:3px; }
+.cc-primary { background:#365d68; color:#fff; border-color:#365d68; }
+.cc-primary:hover { background:#294c56; }
+.cc-hud { display:grid; grid-template-columns:repeat(4,1fr); margin-bottom:8px; overflow:hidden; border:1px solid #c4d4ca; border-radius:10px; background:#e7efe9; }
+.cc-hud > div { min-width:0; padding:6px 4px 8px; text-align:center; }
+.cc-hud > div + div { border-left:1px solid #cad8ce; }
+.cc-hud span { display:block; color:var(--cc-muted); font-size:.7rem; }
+.cc-hud strong { display:block; font-size:1.08rem; font-variant-numeric:tabular-nums; }
+.cc-board-wrap { position:relative; width:640px; max-width:100%; margin:0 auto; overflow:hidden; border:3px solid #688886; border-radius:13px; background:#d8eff2; box-shadow:0 2px 8px #26474c22; }
+#ccCanvas { display:block; width:100%; height:auto; touch-action:pan-y pinch-zoom; }
+.cc-overlay { position:absolute; inset:0; display:grid; place-items:center; padding:16px; background:rgba(235,242,234,.9); text-align:center; }
+.cc-card { min-width:min(220px,100%); padding:18px 16px; border:1px solid #a5bdb3; border-radius:14px; background:#fcfbf4; box-shadow:0 8px 24px #243d4720; }
+.cc-card > strong { display:block; font-size:1.32rem; }
+.cc-card p { margin:7px 0 12px; color:#597078; font-size:.88rem; }
+.cc-card button { min-width:112px; }
+.cc-controls { display:flex; justify-content:center; align-items:center; gap:16px; margin:10px auto 0; }
+.cc-move { display:flex; gap:8px; }
+.cc-dir { min-width:54px; min-height:54px; font-size:1.2rem; user-select:none; -webkit-user-select:none; }
+.cc-jump { min-width:92px; min-height:58px; border-radius:16px; background:#d9e7e8; border-color:#6f9195; font-size:1rem; }
+.cc-jump:hover { background:#c5dedf; }
+.cc-sr { position:absolute !important; width:1px !important; height:1px !important; padding:0 !important; margin:-1px !important; overflow:hidden !important; clip:rect(0,0,0,0) !important; white-space:nowrap !important; border:0 !important; }
+.cc-storage { margin:8px 0 0; color:#84422e; font-size:.8rem; line-height:1.4; }
+.cc-help { margin-top:5px; border:0; font-size:.82rem; }
+.cc-help summary { display:grid; width:44px; height:44px; place-items:center; border:1px solid var(--cc-line); border-radius:50%; cursor:pointer; list-style:none; font-weight:800; }
+.cc-help summary::-webkit-details-marker { display:none; }
+.cc-help p { margin:6px 0 0; color:var(--cc-muted); }
+.cc-confirm { display:flex; flex-wrap:wrap; gap:7px; margin-top:9px; padding:9px; border:1px solid #b4a56b; border-radius:9px; background:#f7f0d6; }
+.cc-confirm span { flex-basis:100%; font-weight:700; }
+@media(max-width:520px) { .cc-host { padding:8px; } .cc-hud strong { font-size:.94rem; } .cc-controls { gap:9px; } .cc-dir { min-width:48px; min-height:48px; } .cc-jump { min-width:76px; min-height:54px; } }
+@media(prefers-reduced-motion:reduce) { .cc-game *, .cc-game *::before, .cc-game *::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; } .cc-button:active { transform:none; } }
+@media(forced-colors:active) { .cc-button,.cc-board-wrap,.cc-card,.cc-confirm { border:1px solid ButtonText; } .cc-button:focus-visible { outline-color:Highlight; } }

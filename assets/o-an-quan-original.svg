@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-labelledby="t d">
+  <title id="t">Ô Ăn Quan</title>
+  <desc id="d">Bàn sỏi dài với mười ô dân, hai ô quan và những viên sỏi nhiều màu do NewPlayground vẽ.</desc>
+  <defs>
+    <linearGradient id="paper" x2="0" y2="1"><stop stop-color="#f4e5c0"/><stop offset="1" stop-color="#d5ba84"/></linearGradient>
+    <linearGradient id="wood" x2="0" y2="1"><stop stop-color="#996340"/><stop offset="1" stop-color="#533725"/></linearGradient>
+    <radialGradient id="bowl"><stop stop-color="#432d22"/><stop offset="1" stop-color="#241b18"/></radialGradient>
+    <filter id="shade" x="-.3" y="-.3" width="1.6" height="1.6"><feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#2b1d16" flood-opacity=".35"/></filter>
+  </defs>
+  <rect width="640" height="400" rx="28" fill="#e7ddc6"/>
+  <rect x="18" y="18" width="604" height="364" rx="22" fill="url(#wood)"/>
+  <rect x="42" y="48" width="556" height="304" rx="23" fill="url(#paper)" stroke="#4d3424" stroke-width="6"/>
+  <g fill="none" stroke="#a78355" stroke-width="2" opacity=".6"><path d="M68 95h504M68 305h504"/><path d="M68 90q-17 110 0 220M572 90q17 110 0 220"/></g>
+  <g fill="url(#bowl)" stroke="#6a4930" stroke-width="4" filter="url(#shade)">
+    <rect x="82" y="127" width="68" height="67" rx="19"/><rect x="168" y="127" width="68" height="67" rx="19"/><rect x="254" y="127" width="68" height="67" rx="19"/><rect x="340" y="127" width="68" height="67" rx="19"/><rect x="426" y="127" width="68" height="67" rx="19"/>
+    <rect x="82" y="208" width="68" height="67" rx="19"/><rect x="168" y="208" width="68" height="67" rx="19"/><rect x="254" y="208" width="68" height="67" rx="19"/><rect x="340" y="208" width="68" height="67" rx="19"/><rect x="426" y="208" width="68" height="67" rx="19"/>
+    <ellipse cx="67" cy="201" rx="25" ry="62" fill="#bd8041" stroke="#6f482d" stroke-width="5"/><ellipse cx="573" cy="201" rx="25" ry="62" fill="#bd8041" stroke="#6f482d" stroke-width="5"/>
+  </g>
+  <g stroke="#fff3d1" stroke-opacity=".65" stroke-width="2">
+    <g fill="#73b9a2"><circle cx="102" cy="150" r="8"/><circle cx="127" cy="169" r="8"/><circle cx="187" cy="169" r="8"/><circle cx="212" cy="150" r="8"/><circle cx="273" cy="150" r="8"/><circle cx="298" cy="169" r="8"/><circle cx="359" cy="169" r="8"/><circle cx="384" cy="150" r="8"/><circle cx="445" cy="150" r="8"/><circle cx="470" cy="169" r="8"/></g>
+    <g fill="#e7b855"><circle cx="102" cy="232" r="8"/><circle cx="127" cy="251" r="8"/><circle cx="187" cy="251" r="8"/><circle cx="212" cy="232" r="8"/><circle cx="273" cy="232" r="8"/><circle cx="298" cy="251" r="8"/><circle cx="359" cy="251" r="8"/><circle cx="384" cy="232" r="8"/><circle cx="445" cy="232" r="8"/><circle cx="470" cy="251" r="8"/></g>
+    <g fill="#f4dfae"><circle cx="67" cy="177" r="10"/><circle cx="67" cy="204" r="10"/><circle cx="573" cy="177" r="10"/><circle cx="573" cy="204" r="10"/></g>
+  </g>
+</svg>

@@ -1,0 +1,19 @@
+Mạch Gió / flappy-bird local checks — 2026-10-07
+Worktree: newplayground_flappybird
+Base: d85e52faccdb0f3142461ff87c6f9f3197afcaba
+Branch: codex/flappy-bird-candidate-20261007
+
+Focused deterministic model + DOM-double UI/lifecycle suite
+Command: node --test --test-concurrency=1 tests/flappy-bird-model.test.cjs tests/flappy-bird-ui.test.cjs
+Result: 11 passed, 0 failed, 0 skipped. UI checks use DOM and Canvas doubles, not a real browser.
+
+Syntax and whitespace
+Commands: node --check scripts/games/flappy-bird-model.js; node --check scripts/games/flappy-bird.js; git diff --cached --check
+Result: all passed; no output/errors.
+
+Repository static preflight
+Command: node scripts/release-preflight.mjs
+Result: pass. 150 catalog IDs; 42 registered prototypes; 108 planned; 1,040,134 source JavaScript bytes; 19,788,085 asset bytes; 106 declared assets. This verifies the unchanged shared catalog, wiring, loaded scripts and manifest only; candidate integration is intentionally outside this branch.
+Package generation was not run. No frozen QA package, preview, upload or publication was touched.
+
+Not established: real browser/device/touch/keyboard acceptance, game feel, collision balance, screen-reader acceptance, original-build parity, or title/route distribution rights. Integration must register the new module and cover before a release package can include them.

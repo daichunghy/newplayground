@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-labelledby="title desc">
+ <title id="title">Mạch Gió — original flight game cover</title>
+ <desc id="desc">A small amber geometric glider crosses faceted teal wind gates against a dusky blue sky.</desc>
+ <defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#293753"/><stop offset=".68" stop-color="#43515e"/><stop offset="1" stop-color="#725b54"/></linearGradient></defs>
+ <rect width="640" height="400" fill="url(#sky)"/><circle cx="530" cy="76" r="34" fill="#e7c98d" opacity=".9"/>
+ <g fill="none" stroke="#c3d0c9" stroke-linecap="round" opacity=".22"><path d="M-20 100c140-54 260 57 680-26M-10 166c158-36 260 45 660-18M-20 232c152-48 305 46 690-22" stroke-width="3"/></g>
+ <g fill="#244d52" stroke="#d6bb85" stroke-width="3"><path d="M80 0h62v122l-9 10 9 10v42H80V142l10-10-10-10z"/><path d="M498 194l10 10-10 11v185h64V214l-10-10 10-10v-16h-64z"/></g>
+ <g fill="#b88a58" opacity=".9"><path d="M103 9h4v108h-4zM539 222h4v163h-4z"/></g>
+ <g transform="translate(302 188) rotate(-12)"><path d="M0-32 38 0 0 32-30 0Z" fill="#f0c56e"/><path d="M-15 0 0-12 15 0 0 12Z" fill="#3c6873"/><path d="M-7-9 10 0-7 9" fill="none" stroke="#fff0c4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>
+ <path d="M0 382h640v18H0z" fill="#bd8661"/><text x="38" y="338" fill="#f7f1e4" font-family="Calibri,Inter,sans-serif" font-size="34" font-weight="700" letter-spacing="2">MẠCH GIÓ</text><text x="40" y="365" fill="#dfd6c3" font-family="Calibri,Inter,sans-serif" font-size="13" letter-spacing="3">ONE TAP · FIND THE OPEN AIR</text>
+</svg>

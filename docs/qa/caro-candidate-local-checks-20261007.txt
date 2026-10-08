@@ -1,0 +1,16 @@
+Cờ Caro local checks — 2026-10-07
+
+Focused command:
+node --test --test-concurrency=1 tests/caro-candidate-model.test.cjs tests/caro-candidate-ui.test.cjs
+
+Result: 11 passed, 0 failed (7 model, 4 DOM/event-double UI).
+
+Coverage includes exact five in all four directions, both-end blocking, a gap-bridging move that makes six without a prior five and leaves play active with no foul loss, a deterministic full-board draw, turn alternation, occupied/out-of-range cells, roving keyboard focus, pointer placement, restart and cleanup.
+
+The integrated exact catalog route is also checked by `tests/minimal-play-ui.test.cjs`. Its DOM doubles do not establish real browser rendering, touch hardware, screen-reader behavior, balance or human playtest acceptance.
+
+
+Integrated check after adding the route and wrapper:
+- `node --test --test-concurrency=1 tests/*.test.cjs` — 569 passed, 0 failed.
+- Release preflight passes (150 catalog IDs, 42 prototypes, 108 planned, 103 declared asset files). The candidate contains no asset payload; legacy `caro_cover.png` is excluded from the prepared site.
+- This verifies the source/model and the DOM-double route only. Browser layout, touch hardware, screen-reader behavior and human playtest remain pending.

@@ -1,0 +1,36 @@
+name: Pull request browser QA
+
+'on':
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: browser-qa-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  chromium-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out pull request
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prepare the static site
+        run: node scripts/release-preflight.mjs --prepare
+      - name: Install pinned Playwright test runner
+        run: |
+          npm install --prefix "$RUNNER_TEMP/playwright" --no-save --package-lock=false --no-audit --no-fund @playwright/test@1.63.0
+          echo "NODE_PATH=$RUNNER_TEMP/playwright/node_modules" >> "$GITHUB_ENV"
+      - name: Install Chromium headless shell
+        run: '"$RUNNER_TEMP/playwright/node_modules/.bin/playwright" install --with-deps chromium --only-shell'
+      - name: Run browser smoke and viewport checks
+        run: '"$RUNNER_TEMP/playwright/node_modules/.bin/playwright" test'
+        env:
+          CI: 'true'

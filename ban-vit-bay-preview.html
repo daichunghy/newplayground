@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Mục Tiêu Bay</title>
+  <link rel="stylesheet" href="scripts/games/ban-vit-bay.css">
+  <style>
+    body{margin:0;background:#e3e5d7;font-family:Calibri,Inter,-apple-system,sans-serif}
+    main{max-width:930px;margin:0 auto;padding:12px}
+    h1{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  </style>
+</head>
+<body>
+  <main><h1>Mục Tiêu Bay</h1><div id="game"></div></main>
+  <script src="scripts/game-session.js"></script>
+  <script src="scripts/games/ban-vit-bay-model.js"></script>
+  <script src="scripts/games/ban-vit-bay.js"></script>
+  <script>window.NP_BanVitBay.mount(document.getElementById('game'), window.NP_GameSession.start());</script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-labelledby="title desc">
+  <title id="title">Nhịp Mây</title>
+  <desc id="desc">Bốn làn nhịp điệu với các nốt hình học và một vạch sáng trên nền trời chiều.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#17384a"/><stop offset=".58" stop-color="#426878"/><stop offset="1" stop-color="#d49b72"/></linearGradient>
+    <linearGradient id="cloud" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f4d9a6"/><stop offset="1" stop-color="#a6d4c9"/></linearGradient>
+  </defs>
+  <rect width="640" height="400" fill="url(#sky)"/>
+  <path d="M0 122c86-39 137 24 216-4s126-52 202-14 145 20 222-6v66H0z" fill="#d7d8c5" opacity=".15"/>
+  <path d="M0 174c91-25 142 13 228-6s134-31 211-8 137 12 201-8v58H0z" fill="#f0c59b" opacity=".14"/>
+  <g fill="#122d3b" opacity=".62"><path d="M18 282h66v-67h61v67h41v-98h77v98h48v-59h60v59h43v-116h81v116h36v-75h71v118H18z"/><path d="M0 319h640v81H0z" fill="#102935"/></g>
+  <g opacity=".25" stroke="#dce6d1"><path d="M160 0v334M320 0v334M480 0v334"/></g>
+  <path d="M44 276h552" stroke="#f6d18e" stroke-width="5" stroke-linecap="round"/>
+  <g fill="url(#cloud)" stroke="#f5e4bd" stroke-width="3">
+    <rect x="72" y="112" width="64" height="54" rx="19" transform="rotate(-9 104 139)"/>
+    <rect x="228" y="74" width="64" height="54" rx="19" transform="rotate(7 260 101)"/>
+    <rect x="382" y="149" width="64" height="54" rx="19" transform="rotate(-6 414 176)"/>
+    <rect x="520" y="96" width="64" height="54" rx="19" transform="rotate(9 552 123)"/>
+  </g>
+  <g fill="#315f68" font-family="Calibri,Inter,sans-serif" font-size="34" font-weight="700" text-anchor="middle">
+    <text x="104" y="149">←</text><text x="260" y="111">↓</text><text x="414" y="186">↑</text><text x="552" y="133">→</text>
+  </g>
+  <g fill="#ffe9bd" opacity=".82"><circle cx="120" cy="55" r="3"/><circle cx="332" cy="43" r="2.5"/><circle cx="454" cy="78" r="3"/><circle cx="198" cy="196" r="2.5"/><circle cx="590" cy="211" r="3"/></g>
+  <text x="42" y="363" fill="#fff0cf" font-family="Calibri,Inter,sans-serif" font-size="32" font-weight="700">Nhịp Mây</text>
+  <text x="598" y="362" fill="#d6e3d2" font-family="Calibri,Inter,sans-serif" font-size="14" font-weight="700" text-anchor="end" letter-spacing="2">ORIGINAL RHYTHM</text>
+</svg>

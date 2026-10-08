@@ -1,0 +1,46 @@
+Hàng Rong hr3-simple scoped checks, 2026-10-07. UI checks use DOM doubles; no browser/device QA.
+
+Progression simulation: level 26 in 18 perfect-action shifts; this is not human playtime.
+✔ five exact stage thresholds, including corrupted legacy stageIndex (10.425222ms)
+✔ all ten recipes have real positive-cost ingredients and positive unit margins (2.391395ms)
+✔ menu rejects locked/invalid/repeated entries and maintains one to three dishes (1.324673ms)
+✔ stock forecast exactly covers the finite menu; restock is atomic and idempotent (882.493802ms)
+✔ zero coins, empty inventory and failed shifts never permanently block a new shift (102.134931ms)
+✔ tutorial freezes only shift/patience; cooking works and first service releases clock (1.915779ms)
+✔ wrong service, premature collection, double collection and repeated serving are safe (0.734608ms)
+✔ two stations and four tray slots cannot overfill, stock is consumed once per cook (0.725144ms)
+✔ shelf life counts ready station and tray time continuously, cooler doubles it (1.581494ms)
+✔ delta chunking is deterministic; pause discards hidden time; snapshots are detached (1.021664ms)
+✔ customer types, seat caps and published rain/umbrella effect are deterministic (1.716264ms)
+✔ all five upgrades affect their documented mechanics and cannot be bought twice (0.504117ms)
+✔ perfect shift settles cost/profit, rewards, XP and result exactly once (118.945558ms)
+✔ one/two/three-star service thresholds and failed result are explicit (681.199708ms)
+✔ early finish accounts for all future orders and all leftover cooked/in-progress cost (0.439982ms)
+✔ active save round-trips paused, resumes exactly, and rejects damaged snapshots (2.578482ms)
+✔ v2 migration preserves legitimate balances, inventory and upgrades without source mutation (0.26265ms)
+✔ all stages are reachable under bounded XP growth in an automated full progression (2924.22089ms)
+✔ malformed nested customer/dish/stock structures fail closed without throwing (1.847218ms)
+✔ all one-to-three recipe menus at every unlock have affordable positive-margin supply plans (105.097188ms)
+✔ automatic single-dish supply recovers exhausted active stock and preserves snapshot accounting (1.024609ms)
+✔ opens directly into two-dish gameplay without setup, market, equipment or long tutorial panels (26.129658ms)
+✔ only cook then customer tap is required; collection and dish matching are automatic (26.642659ms)
+✔ prevents unnecessary dishes and repeated cooks; premature customer taps are harmless (11.719451ms)
+✔ keyboard is just 1–3 to cook, Q/W/E/R to serve and P to pause; repeats/editable inputs ignored (27.427423ms)
+✔ optional short help pauses; closing it does not silently resume; resume closes help (13.09595ms)
+✔ blur, hidden tab and pagehide preserve paused progress; reopening requires explicit resume (29.631479ms)
+✔ winning and next shift take one button, no receipt/setup; no duplicate rewards on repeated taps (170.445781ms)
+✔ loss exposes only retry and starts a playable new shift automatically (186.118345ms)
+✔ v2 migration preserves level, balances and upgrades; v2 data is never written (13.579657ms)
+✔ active v3 save retains its exact menu, stock, jobs, balance and elapsed time on reopen (13.697592ms)
+✔ legacy exhausted-tutorial snapshot can cook without stock decisions or an end-shift button (26.34623ms)
+✔ corrupt/future saves remain untouched; backup recovery and denied storage still allow immediate play (65.915098ms)
+✔ repeated mount/close and queued audio/RAF clean up all owned resources (215.430435ms)
+✔ icons have accessible text fallback, controls are 44px minimum and compact/reduced-motion CSS exists (10.375889ms)
+ℹ tests 35
+ℹ suites 0
+ℹ pass 35
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4991.072608

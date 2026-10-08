@@ -1,0 +1,31 @@
+Mảnh Sao local candidate checks — 2026-10-07
+Branch: codex/deep-upgrades-20261007
+
+Reference research
+- Official EA product page reviewed: https://www.ea.com/games/dynomite/dynomite
+- Page states the broad match-3 colored dino-egg/slingshot loop and Mama Brontosaurus threat, lists EA app/PC, and does not provide a full rulebook, level inventory, timing/scoring details, or exact historic build identification.
+- No EA game art, characters, names, music, sound, or layouts were copied. Mảnh Sao uses original star fragments, icon shapes, fields, title, and tide rule; no parity claim.
+
+Focused model tests
+Command: node --test tests/starlight-match-model.test.cjs
+Result: 13 passed, 0 failed.
+
+Focused UI/lifecycle tests
+Command: node --test tests/starlight-match-ui.test.cjs
+Result: 6 passed, 0 failed. DOM/Canvas/event doubles only; not browser/device acceptance.
+
+Related catalog-copy regression
+Command: node --test tests/minimal-play-ui.test.cjs
+Result: 14 passed, 0 failed (includes Mảnh Sao instant-play/live-status check).
+
+Full repository test suite
+Command: node --test tests/*.test.cjs
+Result: 470 passed, 0 failed, 0 skipped.
+
+Static release preparation
+Command: node scripts/release-preflight.mjs --prepare
+Result: 150 catalog IDs; 42 prototypes; 108 planned; 98 manifest assets; source JavaScript 1,073,960 bytes; source assets 19,765,869 bytes.
+Artifact verification: includes assets/starlight-match-original.svg; omits assets/ban_trung_cover.png and assets/bantrung_intro.jpg; engines.js no longer contains the old dinosaur-specific minigame. Static preflight is not gameplay or rights approval.
+Sync/whitespace checks: python3 -m py_compile scripts/sync_game_operations.py; python3 scripts/sync_game_operations.py; git diff --check.
+
+Not established: real browser rendering, mobile/device input/latency, screen-reader/accessibility acceptance, frame pacing, human playtest, full reference parity, historical route/title rights, or live release. No public preview, PR update, merge, or deploy.

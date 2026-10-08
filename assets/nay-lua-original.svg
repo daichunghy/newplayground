@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-labelledby="title desc">
+  <title id="title">Nảy Lửa</title>
+  <desc id="desc">Hai võ sĩ nguyên bản đối đầu trên mái ngói cạnh dòng sông lúc hoàng hôn.</desc>
+  <defs><linearGradient id="dusk" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#273b5a"/><stop offset=".58" stop-color="#a36570"/><stop offset="1" stop-color="#ecac72"/></linearGradient></defs>
+  <rect width="640" height="400" fill="url(#dusk)"/>
+  <circle cx="505" cy="90" r="39" fill="#ffd89b" opacity=".9"/>
+  <path d="M0 252q70-44 150 0t150 0 150 0 190 0v62H0z" fill="#537c8a" opacity=".7"/><path d="M0 280q90-35 180 0t180 0 280 0v56H0z" fill="#446777" opacity=".8"/>
+  <g fill="#344154"><path d="M12 157h58v103H12zm80-38h61v141H92zm90 52h70v89h-70zm110-47h58v136h-58zm83 30h66v106h-66zm91-54h67v160h-67zm93 39h52v121h-52z"/></g>
+  <g fill="#f4c98d" opacity=".58"><path d="M28 172h8v12h-8zm22 0h8v12h-8zm52-32h9v13h-9zm27 0h9v13h-9zm86 48h8v11h-8zm25 0h8v11h-8zm118-46h8v12h-8zm23 0h8v12h-8zm92-26h8v12h-8zm27 0h8v12h-8z"/></g>
+  <path d="M0 305h640v95H0z" fill="#332d39"/><path d="m0 284 160 36 160-36 160 36 160-36v33H0z" fill="#b57c5c"/>
+  <g stroke="#e7bd88" stroke-width="3" opacity=".48"><path d="M28 295v34m38-26v34m38-26v34m38-26v34m38-26v34m38-26v34m38-26v34m38-26v34m38-26v34m38-26v34m38-26v34m38-26v34m38-26v34m38-26v34m38-26v34m38-26v34"/></g>
+  <g stroke="#1d2934" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(220 289)"><path d="M-4-55 7-20 0 0" fill="none" stroke="#e99156" stroke-width="18"/><path d="m0-34-28-10m28 8 30-22M0-1l-23 28m23-28 26 24" fill="none" stroke="#e99156" stroke-width="12"/><circle cx="0" cy="-72" r="15" fill="#d9a783"/><path d="M-16-77q17-24 33 0" fill="#344c62"/></g>
+    <g transform="translate(430 289)"><path d="M3-55-8-20 0 0" fill="none" stroke="#79c5ba" stroke-width="18"/><path d="M0-34 29-48M0-26-29-12M0-1 23 27M0-1-26 24" fill="none" stroke="#79c5ba" stroke-width="12"/><circle cx="0" cy="-72" r="15" fill="#d9b48e"/><path d="M-17-77q17-24 34 0" fill="#37425d"/></g>
+  </g>
+  <path d="M267 224q62-34 104 0" fill="none" stroke="#ffe49b" stroke-width="4" stroke-dasharray="7 9"/>
+  <text x="26" y="46" fill="#fff0cf" font-family="Calibri,Inter,sans-serif" font-size="35" font-weight="800" letter-spacing="1">NẢY LỬA</text>
+  <text x="612" y="377" fill="#f5d4a0" font-family="Calibri,Inter,sans-serif" font-size="13" font-weight="700" text-anchor="end" letter-spacing="2">MÁI NGÓI · HOÀNG HÔN</text>
+</svg>

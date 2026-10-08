@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#172d36">
+  <title>Mầm Chớp — Vườn hoang</title>
+  <link rel="stylesheet" href="../../scripts/games/mam-chop.css">
+</head>
+<body style="margin:0;min-height:100vh;padding:clamp(10px,3vw,32px);background:#0e2029;font-family:Calibri,Inter,-apple-system,sans-serif;display:grid;place-items:center">
+  <main id="game"></main>
+  <script src="../../scripts/games/mam-chop-model.js"></script>
+  <script src="../../scripts/game-session.js"></script>
+  <script src="../../scripts/games/mam-chop.js"></script>
+  <script>
+    window.NP_MamChop.mount(document.getElementById('game'), window.NP_GameSession.start());
+  </script>
+</body>
+</html>

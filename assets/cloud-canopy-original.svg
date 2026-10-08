@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">Vòm Mây</title>
+  <desc id="desc">An original kite-shaped wind spirit floats between cloud shelves and small hanging bells.</desc>
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#d8eff4"/><stop offset="1" stop-color="#eff0e3"/></linearGradient>
+    <linearGradient id="island" x2="0" y2="1"><stop stop-color="#d9eee7"/><stop offset="1" stop-color="#8eb8a6"/></linearGradient>
+    <radialGradient id="sun"><stop stop-color="#fff9dc"/><stop offset="1" stop-color="#fff9dc" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="640" height="360" rx="28" fill="url(#sky)"/>
+  <circle cx="535" cy="82" r="68" fill="url(#sun)"/><circle cx="535" cy="82" r="25" fill="#fff4ce"/>
+  <g fill="#fff" opacity=".78"><ellipse cx="110" cy="118" rx="60" ry="18"/><ellipse cx="82" cy="121" rx="29" ry="15"/><ellipse cx="145" cy="121" rx="32" ry="14"/><ellipse cx="430" cy="145" rx="50" ry="15"/><ellipse cx="405" cy="148" rx="25" ry="12"/><ellipse cx="456" cy="148" rx="28" ry="12"/></g>
+  <path d="M-30 270q100-70 200 0 100-65 200 0 115-82 230 0v120H-30Z" fill="#c4ddd1" opacity=".75"/>
+  <g fill="url(#island)" stroke="#58877e" stroke-width="3">
+    <path d="M12 242q10-34 45-30 20-37 55-13 28-32 58-5 32-12 47 19 30 5 34 29v25H12Z"/>
+    <path d="M267 212q9-31 40-27 20-35 52-14 24-28 49-7 30-10 43 19 28 4 31 27v29H267Z"/>
+    <path d="M487 251q10-34 44-28 18-32 49-14 25-29 53-5 29-9 42 20 25 6 28 28v20H487Z"/>
+  </g>
+  <g fill="none" stroke="#79a9ad" stroke-width="3" opacity=".72" stroke-linecap="round">
+    <path d="M184 119c30-19 49 18 76-2s48-15 68 4"/><path d="M224 144c23-13 34 14 53 4"/><path d="M314 94c21-13 36-10 50 3"/>
+  </g>
+  <g transform="translate(319 195)">
+    <ellipse cy="39" rx="34" ry="8" fill="#35565a" opacity=".17"/>
+    <path d="M0-33 24-7 0 20-24-7Z" fill="#315d66" stroke="#22474f" stroke-width="3"/>
+    <path d="M0-23 13-7 0 8-13-7Z" fill="#f3f0db"/>
+    <circle cx="-5" cy="-5" r="2.3" fill="#23444a"/><circle cx="5" cy="-5" r="2.3" fill="#23444a"/>
+    <path d="M-17 8q-20 11-13 27t-9 18" fill="none" stroke="#cf826f" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="-39" cy="55" r="4" fill="#cf826f"/>
+  </g>
+  <g fill="none" stroke="#778e87" stroke-width="3" stroke-linecap="round">
+    <path d="M151 219v-22q11-12 22 0v22M151 202h22M162 203v15"/><path d="M531 229v-20q10-11 20 0v20M531 213h20M541 214v12"/>
+  </g>
+  <g fill="#edc56a"><circle cx="162" cy="220" r="3"/><circle cx="541" cy="228" r="3"/></g>
+  <text x="28" y="42" fill="#385d64" font-family="Calibri,Inter,sans-serif" font-size="14" font-weight="800" letter-spacing="2.5">NEWPLAYGROUND · ORIGINAL GAME</text>
+  <text x="28" y="82" fill="#274c56" font-family="Calibri,Inter,sans-serif" font-size="37" font-weight="900">Vòm Mây</text>
+</svg>

@@ -654,5 +654,443 @@
     "size_bytes": 6669,
     "license": "CC0 1.0 Universal (Public Domain)",
     "source": "https://raw.githubusercontent.com/KenneyNL/Starter-Kit-Match-3/main/sounds/tile-swap.ogg"
+  },
+  {
+    "category": "original-cover",
+    "file": "minesweeper-original.svg",
+    "local_path": "assets/minesweeper-original.svg",
+    "size_bytes": 2276,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Created in this repository for NewPlayground; no third-party artwork copied",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-07"
+  },
+  {
+    "category": "original-cover",
+    "file": "game2048-original.svg",
+    "local_path": "assets/game2048-original.svg",
+    "size_bytes": 1656,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Created in this repository for NewPlayground; no third-party artwork copied",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-07"
+  },
+  {
+    "category": "original-cover",
+    "file": "line98-original.svg",
+    "local_path": "assets/line98-original.svg",
+    "size_bytes": 2040,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Created in this repository for NewPlayground; no third-party artwork copied",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-07"
+  },
+  {
+    "category": "original-cover",
+    "file": "hangrong-original.svg",
+    "local_path": "assets/hangrong-original.svg",
+    "size_bytes": 2635,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Created in this repository for NewPlayground; no third-party artwork copied",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-07"
+  },
+  {
+    "category": "original-game-atlas",
+    "file": "atlas.svg",
+    "local_path": "assets/sprites/hangrong/atlas.svg",
+    "size_bytes": 10288,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Created in this repository for NewPlayground; no third-party artwork copied",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-07"
+  },
+  {
+    "category": "original-cover",
+    "file": "marble-trail-original.svg",
+    "local_path": "assets/marble-trail-original.svg",
+    "size_bytes": 1172,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Created in this repository for NewPlayground; no third-party artwork copied",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-07"
+  },
+  {
+    "category": "original-cover",
+    "file": "falling-blocks-original.svg",
+    "local_path": "assets/falling-blocks-original.svg",
+    "size_bytes": 1130,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Created in this repository for NewPlayground; no third-party artwork copied",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-07"
+  },
+  {
+    "category": "code-license-notice",
+    "file": "tetr-js-MIT.txt",
+    "local_path": "assets/licenses/tetr-js-MIT.txt",
+    "size_bytes": 1084,
+    "license": "MIT",
+    "source": "https://github.com/simonlc/tetr.js/blob/57e5d07b18920389024ffa2ed07ce309d3644706/LICENSE",
+    "author": "Simon M. Laroche",
+    "created_at": "2026-10-07"
+  },
+  {
+    "category": "original-cover",
+    "file": "maze-chase-original.svg",
+    "local_path": "assets/maze-chase-original.svg",
+    "size_bytes": 1110,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Created in this repository for NewPlayground; no third-party artwork copied",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-07"
+  },
+  {
+    "category": "original-cover",
+    "file": "garden-bombs-original.svg",
+    "local_path": "assets/garden-bombs-original.svg",
+    "size_bytes": 3491,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Created in this repository for NewPlayground; no third-party artwork copied",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-07"
+  },
+  {
+    "category": "original-cover",
+    "file": "cloud-canopy-original.svg",
+    "local_path": "assets/cloud-canopy-original.svg",
+    "size_bytes": 2920,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Created in this repository for NewPlayground; no third-party artwork copied",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-07"
+  },
+  {
+    "category": "original-cover",
+    "file": "tea-service-original.svg",
+    "local_path": "assets/tea-service-original.svg",
+    "size_bytes": 2778,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Created in this repository for NewPlayground; no third-party artwork copied",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-07"
+  },
+  {
+    "category": "original-cover",
+    "file": "beacon-shore-original.svg",
+    "local_path": "assets/beacon-shore-original.svg",
+    "size_bytes": 2776,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Created in this repository for NewPlayground; no third-party artwork copied",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-07"
+  },
+  {
+    "category": "original-cover",
+    "file": "season-shed-original.svg",
+    "local_path": "assets/season-shed-original.svg",
+    "size_bytes": 4317,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Created in this repository for NewPlayground; no third-party artwork copied",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-07"
+  },
+  {
+    "category": "original-cover",
+    "file": "abyss-retrieval-original.svg",
+    "local_path": "assets/abyss-retrieval-original.svg",
+    "size_bytes": 2916,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Created in this repository for NewPlayground; no third-party artwork copied",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-07"
+  },
+  {
+    "category": "game-cover",
+    "file": "starlight-match-original.svg",
+    "local_path": "assets/starlight-match-original.svg",
+    "size_bytes": 1761,
+    "license": "MIT (project-authored original artwork; see repository LICENSE)",
+    "source": "Created for NewPlayground Mảnh Sao; no external image source"
+  },
+  {
+    "category": "game-cover",
+    "file": "mosaic-window-original.svg",
+    "local_path": "assets/mosaic-window-original.svg",
+    "size_bytes": 1639,
+    "license": "MIT (project-authored original artwork; see repository LICENSE)",
+    "source": "Created for NewPlayground Kính Khảm; no external image source"
+  },
+  {
+    "category": "game-cover",
+    "file": "scrap-rover-original.svg",
+    "local_path": "assets/scrap-rover-original.svg",
+    "size_bytes": 1965,
+    "license": "MIT (project-authored original artwork; see repository LICENSE)",
+    "source": "Created for NewPlayground Xe Săn Bụi; no external image source"
+  },
+  {
+    "category": "game-cover",
+    "file": "sun-garden-original.svg",
+    "local_path": "assets/sun-garden-original.svg",
+    "size_bytes": 2030,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Vườn Nắng; no external image source"
+  },
+  {
+    "category": "game-cover",
+    "file": "wind-duel-original.svg",
+    "local_path": "assets/wind-duel-original.svg",
+    "size_bytes": 1958,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Gió Ngang; no external image source"
+  },
+  {
+    "category": "game-cover",
+    "file": "sea-garden-original.svg",
+    "local_path": "assets/sea-garden-original.svg",
+    "size_bytes": 2137,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Bể Sao; no external image source"
+  },
+  {
+    "category": "game-cover",
+    "file": "xiangqi-original.svg",
+    "local_path": "assets/xiangqi-original.svg",
+    "size_bytes": 2620,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Cờ Tướng; original vector composition, no copied board or piece artwork"
+  },
+  {
+    "category": "game-cover",
+    "file": "marble-ring-original.svg",
+    "local_path": "assets/marble-ring-original.svg",
+    "size_bytes": 2684,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Bắn Bi Ve; original geometric vector art, no copied imagery"
+  },
+  {
+    "category": "game-cover",
+    "file": "o-an-quan-original.svg",
+    "local_path": "assets/o-an-quan-original.svg",
+    "size_bytes": 2991,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Ô Ăn Quan; original geometric vector art, no copied imagery"
+  },
+  {
+    "category": "game-cover",
+    "file": "feeding-frenzy-original.svg",
+    "local_path": "assets/feeding-frenzy-original.svg",
+    "size_bytes": 1981,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Cá Lớn Nuốt Cá Bé; original vector composition, no copied imagery"
+  },
+  {
+    "category": "game-cover",
+    "file": "ran-san-moi-original.svg",
+    "local_path": "assets/ran-san-moi-original.svg",
+    "size_bytes": 1753,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Rắn Săn Mồi; original vector composition, no copied imagery"
+  },
+  {
+    "category": "game-cover",
+    "file": "flappy-bird-original.svg",
+    "local_path": "assets/flappy-bird-original.svg",
+    "size_bytes": 1641,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Mạch Gió; original geometric vector composition, no copied imagery"
+  },
+  {
+    "category": "game-cover",
+    "file": "vuon-bat-nay.svg",
+    "local_path": "assets/covers/vuon-bat-nay.svg",
+    "size_bytes": 1840,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Vườn Bật Nảy; original vector fruit and garden composition, no copied imagery"
+  },
+  {
+    "category": "game-cover",
+    "file": "pha-gach-original.svg",
+    "local_path": "assets/pha-gach-original.svg",
+    "size_bytes": 3528,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Phá Gạch; original geometric paddle-and-ball vector composition, no copied imagery"
+  },
+  {
+    "category": "game-cover",
+    "file": "day-thung-sokoban-original.svg",
+    "local_path": "assets/day-thung-sokoban-original.svg",
+    "size_bytes": 3834,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Đẩy Thùng; original vector crate, player and goal shapes, no copied imagery"
+  },
+  {
+    "category": "game-cover",
+    "file": "pong-1972-original.svg",
+    "local_path": "assets/pong-1972-original.svg",
+    "size_bytes": 3536,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Bóng Bàn Cổ Điển; original abstract two-paddle court composition, no copied imagery"
+  },
+  {
+    "category": "game-cover",
+    "file": "ban_ga_vu_tru_original.svg",
+    "local_path": "assets/ban_ga_vu_tru_original.svg",
+    "size_bytes": 2747,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Tuyến Sáng; original abstract starship composition, no copied imagery"
+  },
+  {
+    "category": "game-cover",
+    "file": "noi-hinh-original.svg",
+    "local_path": "assets/noi-hinh-original.svg",
+    "size_bytes": 3510,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Nối Hình; original vector symbols and composition, no copied imagery"
+  },
+  {
+    "category": "game-cover",
+    "file": "nhip-may-original.svg",
+    "local_path": "assets/nhip-may-original.svg",
+    "size_bytes": 2401,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Nhịp Mây; original four-lane rhythm illustration, no copied imagery"
+  },
+  {
+    "category": "game-cover",
+    "file": "dau-truong-bot-nuoc-original.svg",
+    "local_path": "assets/dau-truong-bot-nuoc-original.svg",
+    "size_bytes": 2458,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Đấu Trường Bọt Nước; original water-bubble maze illustration, no copied imagery"
+  },
+  {
+    "category": "game-cover",
+    "file": "muc-tieu-bay-original.svg",
+    "local_path": "assets/muc-tieu-bay-original.svg",
+    "size_bytes": 2166,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Mục Tiêu Bay; original marsh-bird illustration, no copied imagery"
+  },
+  {
+    "category": "game-cover",
+    "file": "mam-chop-original.svg",
+    "local_path": "assets/mam-chop-original.svg",
+    "size_bytes": 2343,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Mầm Chớp; original seedling and greenhouse illustration, no copied imagery"
+  },
+  {
+    "category": "game-cover",
+    "file": "dua-gio-original.svg",
+    "local_path": "assets/dua-gio-original.svg",
+    "size_bytes": 2618,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Đua Gió; original unbranded motorcycles and road composition, no copied imagery"
+  },
+  {
+    "category": "game-cover",
+    "file": "dau-phao-original.svg",
+    "local_path": "assets/dau-phao-original.svg",
+    "size_bytes": 2483,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Đấu Phao; no third-party artwork copied"
+  },
+  {
+    "category": "game-cover",
+    "file": "nay-lua-original.svg",
+    "local_path": "assets/nay-lua-original.svg",
+    "size_bytes": 2578,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Nảy Lửa; original rooftop fighter illustration, no borrowed imagery"
+  },
+  {
+    "category": "game-cover",
+    "file": "mam-gio-original.svg",
+    "local_path": "assets/mam-gio-original.svg",
+    "size_bytes": 4908,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Mầm Gió; original plant hero and moss-creature illustration, no borrowed imagery"
+  },
+  {
+    "category": "game-cover",
+    "file": "ranh-gioi-may-original.svg",
+    "local_path": "assets/ranh-gioi-may-original.svg",
+    "size_bytes": 3052,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Ranh Giới Mây; original vector garden bridge and units, no copied imagery"
+  },
+  {
+    "category": "game-cover",
+    "file": "khoi-da-lan-original.svg",
+    "local_path": "assets/khoi-da-lan-original.svg",
+    "size_bytes": 2062,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Khối Đá Lăn; original rolling block and floating garden tiles, no borrowed game imagery"
+  },
+  {
+    "category": "game-cover",
+    "file": "bay-cot-original.svg",
+    "local_path": "assets/bay-cot-original.svg",
+    "size_bytes": 2147,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Bảy Cột; original card table/face illustration, no branded assets copied"
+  },
+  {
+    "category": "game-cover",
+    "file": "bon-o-original.svg",
+    "local_path": "assets/bon-o-original.svg",
+    "size_bytes": 2622,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Bốn Ô; original card table and standard suit illustration, no branded assets copied"
+  },
+  {
+    "category": "game-cover",
+    "file": "bai-nhen-original.svg",
+    "local_path": "assets/bai-nhen-original.svg",
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Bài Nhện; original abstract card-table and web motif, no branded assets copied",
+    "size_bytes": 2206
+  },
+  {
+    "category": "game-cover",
+    "file": "ve-tinh-giu-quy-dao-original.svg",
+    "local_path": "assets/ve-tinh-giu-quy-dao-original.svg",
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Vệ Tinh Giữ Quỹ Đạo; original paddle-and-orbit illustration, no branded assets copied",
+    "size_bytes": 3828
+  },
+  {
+    "category": "game-cover",
+    "file": "bi-vom-original.svg",
+    "local_path": "assets/bi-vom-original.svg",
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Bi Vòm; original geometric bubble illustration, no branded assets copied",
+    "size_bytes": 1809
+  },
+  {
+    "category": "game-cover",
+    "file": "ong-nghiem-original.svg",
+    "local_path": "assets/ong-nghiem-original.svg",
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Ống Nghiệm; original test tube, capsule and germ shapes, no branded assets copied",
+    "size_bytes": 2156
+  },
+  {
+    "category": "game-cover",
+    "file": "bat-chot-original.svg",
+    "local_path": "assets/bat-chot-original.svg",
+    "size_bytes": 2119,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Bật Chốt; original peg board, ball and bucket illustration, no branded assets copied"
+  },
+  {
+    "category": "game-cover",
+    "file": "quay-nuoc-chanh-original.svg",
+    "local_path": "assets/quay-nuoc-chanh-original.svg",
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Quầy Nước Chanh; original lemonade stand illustration, no branded assets copied",
+    "size_bytes": 2184
   }
 ]

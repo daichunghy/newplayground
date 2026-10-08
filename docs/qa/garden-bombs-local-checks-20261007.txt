@@ -1,0 +1,23 @@
+Bom Vườn local candidate checks — 2026-10-07
+Branch: codex/garden-bombs-ui-20261007
+
+Focused rules/save suite
+Command: node --test tests/garden-bombs-model.test.cjs
+Result: 14 passed, 0 failed.
+
+Focused DOM/Canvas-double input/lifecycle suite
+Command: node --test tests/garden-bombs-ui.test.cjs
+Result: 9 passed, 0 failed.
+Scope: fake DOM, canvas and event targets. This is not browser rendering or device acceptance.
+
+Full regression suite
+Command: node --test tests/*.test.cjs
+Result: 348 passed, 0 failed, 0 skipped.
+
+Static release preparation
+Command: node scripts/release-preflight.mjs --prepare
+Result: catalog 150; prototypes 42; planned 108; 92 manifest assets; source JavaScript 1,046,024 bytes; source assets 19,746,039 bytes.
+Packaged artifact check: includes assets/garden-bombs-original.svg and scripts/games/garden-bombs.js; omits the provenance-unknown assets/dat_bom_cover.png and assets/datbom_intro.jpg.
+Whitespace check: git diff --check passed.
+
+Not established: real-browser visuals, mobile touch behavior, browser restart/close behavior, playtest/game feel, exact commercial parity, or live release rights for the historical trademarked name. Keep browser/device and release acceptance gates pending.

@@ -1,0 +1,26 @@
+/* Original Mạch Gió flight course; scoped so it can be wired by a later integration. */
+.fg-host{padding:10px;background:#f1eee8;color:#20293d}
+.fg-game{max-width:700px;margin:0 auto;font-family:'Calibri','Inter',-apple-system,sans-serif}
+.fg-game *,.fg-game *::before,.fg-game *::after{box-sizing:border-box}
+.fg-game [hidden]{display:none!important}
+.fg-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;min-height:44px}
+.fg-head h3{margin:0;color:#243247;font-size:1.2rem;letter-spacing:.02em}
+.fg-tag{display:block;color:#687384;font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.fg-tools{display:flex;gap:6px}
+.fg-button{appearance:none;min-width:44px;min-height:44px;padding:8px 12px;border:1px solid #73808e;border-radius:9px;background:#fbfaf6;color:#27354b;font:700 .9rem 'Calibri','Inter',-apple-system,sans-serif;cursor:pointer;touch-action:manipulation}
+.fg-button:hover{background:#e8eced}.fg-button:disabled{opacity:.48;cursor:default}.fg-button:focus-visible{outline:3px solid #af743c;outline-offset:2px}
+.fg-button.fg-primary{border-color:#284a56;background:#284a56;color:#fff}
+.fg-hud{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:8px}
+.fg-hud>div{display:flex;align-items:center;justify-content:space-between;gap:4px;min-height:36px;padding:5px 10px;border:1px solid #d1d2ca;border-radius:9px;background:#fbfaf6}
+.fg-hud span{color:#626d78;font-size:.75rem}.fg-hud strong{font-size:.96rem;font-variant-numeric:tabular-nums}
+.fg-board-wrap{position:relative;overflow:hidden;border:1px solid #283247;border-radius:13px;background:#1b2941;box-shadow:0 7px 20px #1b294123}
+.fg-canvas{display:block;width:100%;height:auto;aspect-ratio:5/3;touch-action:none;cursor:pointer;outline:none}
+.fg-canvas:focus-visible{box-shadow:inset 0 0 0 3px #e7be69}
+.fg-overlay{position:absolute;inset:0;display:grid;place-items:center;padding:14px;background:#101a2cbb;pointer-events:none}
+.fg-card{width:min(290px,100%);padding:16px;border:1px solid #f2dfb4;border-radius:12px;background:#f8f3e9;color:#273247;text-align:center;box-shadow:0 10px 32px #080d17aa;pointer-events:auto}
+.fg-card strong{display:block;font-size:1.16rem}.fg-card p{margin:6px 0 12px;color:#566273;font-size:.86rem;line-height:1.35}.fg-card .fg-button{min-width:116px}
+.fg-help{min-height:44px;margin:5px 0 0;color:#525d6d;font-size:.78rem}.fg-help summary{display:inline-grid;width:44px;height:44px;place-items:center;border:1px solid #b6b9b4;border-radius:50%;cursor:pointer;font-weight:800;list-style:none}.fg-help summary::-webkit-details-marker{display:none}.fg-help p{margin:4px 0;line-height:1.35}
+.fg-status{min-height:1.2em;margin:4px 0 0;color:#465768;font-size:.76rem}
+@media(max-width:420px){.fg-host{padding:6px}.fg-head{margin-bottom:5px}.fg-hud{gap:4px;margin-bottom:5px}.fg-hud>div{padding:4px 6px}.fg-canvas{border-radius:9px}}
+@media(prefers-reduced-motion:reduce){.fg-game *,.fg-game *::before,.fg-game *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+@media(forced-colors:active){.fg-button,.fg-hud>div,.fg-card{border:1px solid ButtonText}.fg-button:focus-visible,.fg-canvas:focus-visible{outline-color:Highlight}}

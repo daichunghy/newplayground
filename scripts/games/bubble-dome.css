@@ -1,0 +1,47 @@
+/* Original, compact presentation for Bi Vòm. */
+.bv-host { width: 100%; color: #1e2d42; font-family: Calibri, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+.bv-host * { box-sizing: border-box; }
+.bv-game { width: min(100%, 590px); margin: 0 auto; padding: clamp(10px, 2vw, 20px); outline: none; }
+.bv-game:focus-visible { outline: 3px solid #e0a43b; outline-offset: 3px; border-radius: 18px; }
+.bv-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 7px; }
+.bv-kicker { margin: 0 0 4px; color: #526681; font-size: 11px; font-weight: 800; letter-spacing: .13em; }
+.bv-header h2 { margin: 0; font-size: clamp(26px, 4vw, 34px); line-height: 1; letter-spacing: -.03em; }
+.bv-actions { display: flex; gap: 7px; }
+.bv-button { min-height: 44px; min-width: 72px; border: 1px solid #ced8de; border-radius: 13px; padding: 0 14px; background: #fff; color: #263a56; box-shadow: 0 2px 5px #293d5112; font: 700 15px/1 Calibri, Inter, sans-serif; cursor: pointer; }
+.bv-button:hover:not(:disabled) { background: #eef5fb; border-color: #92abc7; }
+.bv-button:disabled { cursor: default; opacity: .48; }
+.bv-button:focus-visible { outline: 3px solid #d38b22; outline-offset: 2px; }
+.bv-button.bv-primary { color: #fff; border-color: #354c78; background: #354c78; }
+.bv-button.bv-primary:hover:not(:disabled) { background: #263c65; }
+.bv-hud { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; color: #526681; font-size: 14px; }
+.bv-hud p { margin: 0; }
+#bvCount { flex: 0 0 auto; font-size: 12px; font-weight: 700; }
+.bv-campaign { margin: 4px 0 9px; }
+.bv-stage-info { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 34px; }
+#bvStageTitle { color: #293d60; font-size: 14px; }
+#bvStageHint { margin: 2px 0 0; color: #62748a; font-size: 12px; }
+#bvBest { flex: 0 0 auto; color: #53677f; font-size: 11px; text-align: right; }
+.bv-stages { display: flex; gap: 6px; margin-top: 7px; }
+.bv-stage { min-width: 44px; min-height: 44px; border: 1px solid #d1dbe2; border-radius: 10px; background: #fff; color: #425875; font: 700 13px/1 Calibri, Inter, sans-serif; cursor: pointer; }
+.bv-stage:hover:not(:disabled) { background: #eef5fb; border-color: #92abc7; }
+.bv-stage.is-current { border-color: #354c78; background: #354c78; color: #fff; }
+.bv-stage.is-complete:not(.is-current) { border-color: #9fc8b8; color: #26725c; }
+.bv-stage:disabled { cursor: default; opacity: .4; }
+.bv-stage:focus-visible { outline: 3px solid #d38b22; outline-offset: 2px; }
+.bv-save-note { margin: 5px 0 0; color: #766231; font-size: 11px; }
+.bv-board { display: block; width: 100%; aspect-ratio: 6 / 7; border-radius: 22px; touch-action: manipulation; user-select: none; box-shadow: 0 12px 30px #2638501f; }
+.bv-board:focus-visible { outline: 3px solid #d38b22; outline-offset: 3px; }
+.bv-small-label { fill: #53677f; font: 700 11px Calibri, sans-serif; }
+.bv-footer { display: flex; justify-content: space-between; gap: 12px; margin: 8px 2px 0; color: #53677f; font-size: 12px; }
+.bv-footer span:last-child { font-weight: 700; white-space: nowrap; }
+@media (max-width: 420px) {
+  .bv-game { padding: 9px 7px; }
+  .bv-button { min-width: 58px; padding-inline: 10px; }
+  .bv-hud { font-size: 13px; }
+  #bvStageHint { max-width: 220px; }
+  #bvBest { max-width: 110px; }
+  .bv-footer { font-size: 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bv-host *, .bv-host *::before, .bv-host *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}

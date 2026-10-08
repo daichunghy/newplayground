@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">Mầm Gió, artwork gốc</title>
+  <desc id="desc">Hạt gió nhỏ nhảy giữa những bậc lá và bẫy sinh vật mực rêu trong các bong bóng sáng.</desc>
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#8ccfc2"/><stop offset="1" stop-color="#f0d39b"/></linearGradient>
+    <linearGradient id="ground" x2="0" y2="1"><stop stop-color="#536e5c"/><stop offset="1" stop-color="#243d45"/></linearGradient>
+    <radialGradient id="bubble" cx="34%" cy="27%"><stop stop-color="#fffdf0" stop-opacity=".98"/><stop offset=".38" stop-color="#d5f5db" stop-opacity=".75"/><stop offset=".78" stop-color="#79c8ca" stop-opacity=".27"/><stop offset="1" stop-color="#fff2cf" stop-opacity=".08"/></radialGradient>
+    <linearGradient id="leaf" x2="0" y2="1"><stop stop-color="#b9dca0"/><stop offset="1" stop-color="#6c9b7c"/></linearGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="18"/></filter>
+  </defs>
+  <rect width="1200" height="700" fill="url(#sky)"/>
+  <circle cx="948" cy="120" r="90" fill="#fff0bd" opacity=".42" filter="url(#soft)"/>
+  <circle cx="948" cy="120" r="37" fill="#fff3c7"/>
+  <path d="M0 350 Q170 275 310 355 T620 342 T950 328 T1200 351 V700 H0Z" fill="#92b69a"/>
+  <path d="M0 418 Q170 350 335 414 T650 405 T970 390 T1200 420 V700 H0Z" fill="#618d78"/>
+  <g opacity=".48" fill="none" stroke="#fff8db" stroke-width="4">
+    <path d="M55 210 C235 160 330 248 495 198 S755 157 895 208"/>
+    <path d="M135 268 C282 225 382 283 552 248 S800 222 1015 273"/>
+  </g>
+  <g fill="#f3bb7c" stroke="#405853" stroke-width="5">
+    <path d="M117 429 Q316 407 496 429 L483 455 Q309 472 126 455Z"/>
+    <path d="M580 330 Q735 309 891 330 L878 357 Q722 375 589 357Z"/>
+    <path d="M863 444 Q1009 425 1144 443 L1130 469 Q1002 484 875 468Z"/>
+  </g>
+  <g fill="#f7dea6" opacity=".7">
+    <circle cx="162" cy="438" r="5"/><circle cx="203" cy="440" r="5"/><circle cx="244" cy="438" r="5"/>
+    <circle cx="675" cy="339" r="5"/><circle cx="715" cy="337" r="5"/><circle cx="755" cy="338" r="5"/>
+  </g>
+  <!-- Original Mầm Gió seed sprite -->
+  <g transform="translate(493 414) rotate(-8)">
+    <ellipse cy="38" rx="37" ry="10" fill="#253b40" opacity=".22"/>
+    <path d="M-24 5 Q-46 18 -60 6 Q-43 1 -35 -12" fill="none" stroke="#e59a76" stroke-width="12" stroke-linecap="round"/>
+    <path d="M-25 7 Q-22 -27 3 -29 Q31 -26 30 5 L23 28 Q2 42 -20 27Z" fill="#5d9b84" stroke="#315454" stroke-width="5"/>
+    <path d="M-4 -20 Q-39 -45 -23 -67 Q3 -59 4 -24Z" fill="#f2cf7f" stroke="#405c4f" stroke-width="4"/>
+    <path d="M5 -22 Q14 -61 39 -55 Q42 -31 8 -17Z" fill="#dfb86e" stroke="#405c4f" stroke-width="4"/>
+    <path d="M-12 -28 Q-19 -48 -24 -58 M11 -28 Q23 -45 34 -49" fill="none" stroke="#66865e" stroke-width="3"/>
+    <ellipse cx="5" cy="5" rx="3.5" ry="5" fill="#263e49"/><ellipse cx="21" cy="5" rx="3.5" ry="5" fill="#263e49"/>
+    <path d="M8 18 Q15 25 21 17" fill="none" stroke="#29474a" stroke-width="3" stroke-linecap="round"/>
+    <path d="M-12 25 L-15 38 M20 26 L23 38" stroke="#315454" stroke-width="5" stroke-linecap="round"/>
+  </g>
+  <!-- Mực Rêu, an original tufted seed creature inside an air-glass bubble -->
+  <g transform="translate(760 270)">
+    <circle r="78" fill="url(#bubble)" stroke="#fff6cf" stroke-width="5"/>
+    <path d="M-43 17 Q-53 -11 -34 -35 Q-20 -56 -4 -39 Q10 -59 24 -34 Q52 -31 43 0 Q47 32 20 34 L-24 34Q-51 34 -43 17Z" fill="#9b6ca5" stroke="#31474d" stroke-width="5"/>
+    <ellipse cx="-12" cy="-8" rx="4" ry="7" fill="#31434a"/><ellipse cx="13" cy="-8" rx="4" ry="7" fill="#31434a"/>
+    <path d="M-3 9 Q4 17 11 8" fill="none" stroke="#31434a" stroke-width="3" stroke-linecap="round"/>
+    <path d="M-22 33 L-27 43 M22 33 L27 43" stroke="#39474a" stroke-width="4" stroke-linecap="round"/>
+    <ellipse cx="-32" cy="-45" rx="12" ry="5" transform="rotate(-31 -32 -45)" fill="#fffdf0" opacity=".8"/>
+    <path d="M44 -35 l8 -11 M56 -13 l12 -2 M47 34 l10 8" stroke="#fff4c1" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  <g fill="url(#bubble)" stroke="#fff8dc" stroke-width="4">
+    <circle cx="646" cy="430" r="28"/><circle cx="700" cy="386" r="13"/><circle cx="590" cy="376" r="10"/>
+  </g>
+  <path d="M72 590 Q600 553 1128 590" fill="none" stroke="#d4c98d" stroke-width="5" opacity=".72"/>
+  <text x="66" y="110" fill="#263f48" font-family="Calibri, Inter, sans-serif" font-size="62" font-weight="700" letter-spacing="1">MẦM GIÓ</text>
+  <text x="70" y="157" fill="#355c5d" font-family="Calibri, Inter, sans-serif" font-size="24" letter-spacing="3">VƯỜN BỌT · TRÒ CHƠI NHẢY VÀ BẪY BÓNG</text>
+  <text x="68" y="630" fill="#fff3d7" font-family="Calibri, Inter, sans-serif" font-size="21" letter-spacing="1">THỔI BỌT · NHẢY BẬC LÁ · GIỮ SẠCH KHU VƯỜN</text>
+</svg>

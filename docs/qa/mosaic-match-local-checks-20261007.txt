@@ -1,0 +1,32 @@
+Kính Khảm local candidate checks — 2026-10-07
+Branch: codex/deep-upgrades-20261007
+
+Reference research
+- EA official Bejeweled 3 PC page: https://www.ea.com/games/bejeweled/bejeweled-3 (identifies the PC release as 7 Dec 2010; the page does not specify detailed PC board/turn/cascade rules).
+- EA publisher overview: https://www.ea.com/it-it/news/origin-offre-la-ditta-bejeweled-3-gratis (high-level match-three description and eight modes; not a rules manual).
+- PopCap-hosted Bejeweled 3 Nintendo DS guide: https://static-www.ec.popcap.com/support.popcap.com/sites/support.popcap.com/files/BEJ3_11_00983_DS_Manual.pdf (search-index excerpt describes adjacent swaps and 3+ matches; request for the PDF returned 403, and its platform differs from the PC target).
+- No exact-PC-manual or playable-build verification. Kính Khảm is original scope, no parity claim; no EA/PopCap art, sound, layouts, or branded pieces copied.
+
+Focused model tests
+Command: node --test tests/mosaic-match-model.test.cjs
+Result: 10 passed, 0 failed.
+
+Focused UI/lifecycle tests
+Command: node --test tests/mosaic-match-ui.test.cjs
+Result: 6 passed, 0 failed. DOM/event doubles only; not browser/device acceptance.
+
+Related catalog-copy regression
+Command: node --test tests/minimal-play-ui.test.cjs
+Result: 15 passed, 0 failed (includes Kính Khảm instant-play/live-status check).
+
+Full repository test suite
+Command: node --test tests/*.test.cjs
+Result: 487 passed, 0 failed, 0 skipped.
+
+Static release preparation
+Command: node scripts/release-preflight.mjs --prepare
+Result: 150 catalog IDs; 42 prototypes; 108 planned; 99 manifest assets; source JavaScript 1,080,172 bytes; source assets 19,767,831 bytes.
+Artifact verification: includes assets/mosaic-window-original.svg; omits assets/kim_cuong_cover.png. Preflight checks static source/catalog consistency, not gameplay or rights acceptance.
+Whitespace/sync checks: python3 scripts/sync_game_operations.py; git diff --check.
+
+Not established: real-browser layout, touch/keyboard behavior, latency, screen-reader/contrast acceptance, human playtest, detailed Bejeweled 3 PC rules, historical route/title rights, or live release.

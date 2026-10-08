@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">Bom Vườn</title>
+  <desc id="desc">A small gardening robot, crates, a safe green garden path and a bright, original firework burst.</desc>
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#d8efe0"/><stop offset="1" stop-color="#f5edcf"/></linearGradient>
+    <linearGradient id="grass" x2="0" y2="1"><stop stop-color="#89bb78"/><stop offset="1" stop-color="#507b57"/></linearGradient>
+    <radialGradient id="spark"><stop stop-color="#fff8c7"/><stop offset=".48" stop-color="#f8bd55"/><stop offset="1" stop-color="#e87548" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="640" height="360" rx="30" fill="url(#sky)"/>
+  <circle cx="540" cy="68" r="31" fill="#fff6d5"/>
+  <path d="M0 185 96 105l75 64 87-87 97 103 80-73 91 77 72-50 42 37v184H0Z" fill="#abcba1"/>
+  <path d="M0 220 88 167l74 38 93-71 105 86 92-61 98 65 68-47 22 19v164H0Z" fill="#739d73"/>
+  <path d="M0 255h640v105H0Z" fill="url(#grass)"/>
+  <g opacity=".32" stroke="#f2edce" stroke-width="2">
+    <path d="M32 255h576M32 291h576M32 327h576M64 255v105M128 255v105M192 255v105M256 255v105M320 255v105M384 255v105M448 255v105M512 255v105M576 255v105"/>
+  </g>
+  <path d="M0 280h640" stroke="#d5c99e" stroke-width="24" opacity=".8"/>
+  <path d="M0 278h640" stroke="#eee5c6" stroke-width="2" stroke-dasharray="9 13"/>
+  <g transform="translate(218 250)">
+    <ellipse cy="48" rx="42" ry="11" fill="#233e32" opacity=".2"/>
+    <rect x="-29" y="4" width="58" height="40" rx="13" fill="#e9f2d7" stroke="#476e50" stroke-width="4"/>
+    <rect x="-24" y="26" width="48" height="16" rx="7" fill="#568966"/>
+    <circle cx="-9" cy="19" r="4" fill="#253d35"/><circle cx="9" cy="19" r="4" fill="#253d35"/>
+    <path d="M0 5Q-8-16 0-22" fill="none" stroke="#4c805c" stroke-width="4" stroke-linecap="round"/>
+    <ellipse cx="9" cy="-23" rx="12" ry="7" transform="rotate(-27 9 -23)" fill="#8dc66d"/>
+    <path d="M-18 43v12m36-12v12" stroke="#3f6246" stroke-width="7" stroke-linecap="round"/>
+  </g>
+  <g fill="#a96d43" stroke="#63462f" stroke-width="4">
+    <rect x="78" y="228" width="44" height="44" rx="5"/><path d="m81 232 38 36m0-36-38 36" fill="none" stroke-width="3"/>
+    <rect x="510" y="222" width="48" height="48" rx="5"/><path d="m513 226 42 40m0-40-42 40" fill="none" stroke-width="3"/>
+  </g>
+  <g transform="translate(394 197)">
+    <circle r="43" fill="url(#spark)"/>
+    <path d="M0-43v-17m29 31 14-14M43 0h18M29 29l14 14M0 43v18M-29 29l-14 14M-43 0h-18M-29-29l-14-14" stroke="#ef8b49" stroke-width="7" stroke-linecap="round"/>
+    <circle r="16" fill="#f7c761" stroke="#9d5c38" stroke-width="4"/>
+    <path d="M-6 0h12M0-6v12" stroke="#fff7d8" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(442 250)">
+    <circle r="17" fill="#263b35"/><path d="M-2-15q13-15 18-7" fill="none" stroke="#d9bf8d" stroke-width="4" stroke-linecap="round"/><circle cx="16" cy="-22" r="4" fill="#ffd358"/>
+  </g>
+  <g fill="#4d7854"><path d="M34 236q10-30 21 0m-13 0q10-24 20 0"/><path d="M572 230q10-26 21 0m-13 0q10-22 20 0"/></g>
+  <text x="32" y="47" fill="#304f3a" font-family="Calibri,Inter,sans-serif" font-size="16" font-weight="800" letter-spacing="3">NEWPLAYGROUND · ORIGINAL GAME</text>
+  <text x="32" y="92" fill="#244635" font-family="Calibri,Inter,sans-serif" font-size="42" font-weight="900">Bom Vườn</text>
+</svg>

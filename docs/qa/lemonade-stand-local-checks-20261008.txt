@@ -1,0 +1,24 @@
+Quầy Nước Chanh candidate local checks — 2026-10-08 UTC
+
+Candidate: branch codex/lemonade-stand-original-20261008; based on fa2048c.
+
+Focused model and DOM-double UI checks:
+- `node --test --test-concurrency=1 tests/lemonade-stand-model.test.cjs tests/lemonade-stand-ui.test.cjs`
+- PASS: 12 tests, 0 failures.
+- The model balance check simulated all six weather orders across 500 seeds each. A fixed policy matching recipe and price to the current weather won 88.4–91.4% of 500 shifts for each order. This is a deterministic simulation, not player evidence.
+
+Candidate-wide suite:
+- `node --test --test-concurrency=1 tests/*.test.cjs`
+- PASS: 988 tests, 0 failures, 0 skipped.
+
+Static checks:
+- Node syntax checks: lemonade-stand model, UI and standalone entry — PASS.
+- `git diff --check` — PASS.
+- `node scripts/release-preflight.mjs` — PASS: 150 catalog IDs, 49 registered prototypes, 101 planned, 133 declared assets. The candidate is intentionally not yet connected to the shared registry or shell, so this base-tree count does not include it.
+
+Loopback probe:
+- A static Python server bound to 127.0.0.1 served the candidate page, model, UI and CSS with HTTP 200 when the server and fetch ran inside the same shell process.
+- A server kept in a long-lived exec session was refused when fetched from a separate exec call. This is consistent with per-exec network isolation but does not establish whether the managed cloud browser can reach it.
+- The browser was not opened; no shared browser slot was available. No browser/device/rendering/latency/playtest claim is made.
+
+Standalone page path: `/candidates/lemonade-stand/` from the candidate repository root. Suggested local command: `python3 -m http.server 4173 --bind 127.0.0.1`.

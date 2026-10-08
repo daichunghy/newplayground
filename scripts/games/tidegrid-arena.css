@@ -1,0 +1,61 @@
+/* Tidegrid Arena original presentation. Keyboard and pointer targets remain usable on narrow screens. */
+.tg-host { width: 100%; color: #e3f2ed; font-family: Calibri, Inter, -apple-system, sans-serif; }
+.tg-game { --tg-ink: #0d2029; --tg-panel: #122d39; --tg-line: rgba(155, 216, 208, .16); --tg-mint: #75e4d4; --tg-gold: #efc982; margin: 0 auto; max-width: 700px; padding: 16px; border: 1px solid rgba(147, 222, 211, .2); border-radius: 18px; background: radial-gradient(circle at 80% -20%, rgba(63, 161, 157, .22), transparent 40%), #0b1d27; box-shadow: 0 18px 60px rgba(0, 8, 14, .34); }
+.tg-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.tg-brand { min-width: 0; }
+.tg-kicker { display: block; color: #83b9b2; font-size: 10px; font-weight: 800; letter-spacing: .16em; }
+.tg-head h3 { margin: 4px 0 1px; color: #f2fbf7; font-size: clamp(21px, 4vw, 27px); line-height: 1.05; letter-spacing: -.03em; }
+.tg-head p { margin: 4px 0 0; color: #a9c4c2; font-size: 13px; }
+.tg-toolbar { display: flex; gap: 8px; }
+.tg-icon, .tg-button { box-sizing: border-box; min-width: 48px; min-height: 48px; border: 1px solid var(--tg-line); border-radius: 12px; color: #daf4ef; background: linear-gradient(180deg, #1a3c48, #13303b); font: inherit; font-weight: 700; cursor: pointer; touch-action: manipulation; transition: transform .12s ease, border-color .12s ease, background-color .12s ease; }
+.tg-icon { width: 48px; font-size: 20px; color: #a9d9d0; }
+.tg-button:hover:not(:disabled), .tg-icon:hover { border-color: rgba(117, 228, 212, .55); background-color: #1d4952; }
+.tg-button:active:not(:disabled), .tg-icon:active { transform: translateY(1px) scale(.985); }
+.tg-button:focus-visible, .tg-icon:focus-visible { outline: 3px solid #f1cf89; outline-offset: 2px; }
+.tg-button:disabled { opacity: .46; cursor: not-allowed; }
+.tg-hud { display: grid; grid-template-columns: .85fr 1fr 1.65fr; gap: 8px; margin: 0 0 10px; }
+.tg-hud > div { min-width: 0; padding: 8px 10px; border: 1px solid var(--tg-line); border-radius: 11px; background: rgba(19, 46, 57, .86); }
+.tg-hud span { display: block; color: #92b4b2; font-size: 11px; }
+.tg-hud strong { display: block; overflow: hidden; margin-top: 2px; color: #effbf6; font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
+.tg-hud .tg-tip strong { color: #b4d2ce; font-size: 12px; }
+.tg-callout { width: min(100%, 546px); margin: 0 auto 8px; padding: 7px 10px; border: 1px solid rgba(117, 228, 212, .23); border-radius: 9px; color: #c4e7df; background: rgba(25, 68, 76, .66); font-size: 12px; }
+.tg-callout[hidden] { display: none; }
+.tg-board-wrap { position: relative; width: min(100%, 546px); margin: 0 auto; overflow: hidden; border: 1px solid rgba(142, 225, 214, .34); border-radius: 13px; background: #0d2531; box-shadow: 0 10px 26px rgba(0, 0, 0, .3), inset 0 0 0 2px rgba(10, 25, 33, .75); }
+.tg-board-wrap canvas { display: block; width: 100%; height: auto; outline: none; image-rendering: pixelated; touch-action: none; }
+.tg-board-wrap canvas:focus-visible { box-shadow: inset 0 0 0 3px #f0cf8a; }
+.tg-overlay { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; background: rgba(5, 18, 25, .72); backdrop-filter: blur(3px); }
+.tg-overlay[hidden] { display: none; }
+.tg-card { width: min(100%, 330px); padding: 20px; border: 1px solid rgba(161, 235, 223, .24); border-radius: 16px; background: linear-gradient(160deg, #173846, #102a35); box-shadow: 0 18px 44px rgba(0, 0, 0, .38); text-align: center; }
+.tg-card strong { display: block; margin: 6px 0 4px; color: #f1fbf7; font-size: 23px; }
+.tg-card p { margin: 0 0 14px; color: #acc9c6; font-size: 14px; }
+.tg-overlay-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; }
+.tg-primary { border-color: rgba(117, 228, 212, .62); color: #062c32; background: linear-gradient(180deg, #94f0dc, #62cbbb); }
+.tg-primary:hover:not(:disabled) { color: #062c32; background: #a8f7e4; }
+.tg-controls { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: min(100%, 546px); margin: 12px auto 0; }
+.tg-pad { display: grid; grid-template: 48px 48px / repeat(3, 48px); gap: 5px; }
+.tg-dir { color: #c3e4df; font-size: 21px; }
+.tg-up { grid-area: 1 / 2; }
+.tg-left { grid-area: 2 / 1; }
+.tg-down { grid-area: 2 / 2; }
+.tg-right { grid-area: 2 / 3; }
+.tg-actions { display: flex; gap: 8px; }
+.tg-actions .tg-button { display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 112px; padding: 4px 11px; font-size: 20px; }
+.tg-actions .tg-button span { font-size: 12px; line-height: 1.05; text-align: left; }
+.tg-bomb { border-color: rgba(117, 228, 212, .45); color: #102f37; background: linear-gradient(180deg, #9ceddf, #67d0c5); }
+.tg-rescue { border-color: rgba(239, 201, 130, .34); color: #f3d49a; }
+.tg-sr { position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; }
+@media (max-width: 540px) {
+  .tg-game { padding: 11px; border-radius: 14px; }
+  .tg-head p { max-width: 235px; font-size: 12px; }
+  .tg-hud { grid-template-columns: .8fr 1fr; }
+  .tg-hud .tg-tip { grid-column: 1 / -1; }
+  .tg-controls { align-items: flex-start; gap: 8px; }
+  .tg-pad { grid-template: 46px 46px / repeat(3, 46px); gap: 4px; }
+  .tg-pad .tg-button { min-width: 46px; min-height: 46px; }
+  .tg-actions { flex-direction: column; gap: 6px; }
+  .tg-actions .tg-button { justify-content: flex-start; min-width: 132px; min-height: 46px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tg-button, .tg-icon { transition: none; }
+  .tg-overlay { backdrop-filter: none; }
+}

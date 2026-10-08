@@ -1,0 +1,30 @@
+/* Original Vietnamese falling-capsule puzzle presentation. */
+.tt-host { width: 100%; color: #253349; font-family: Calibri, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+.tt-host * { box-sizing: border-box; }
+.tt-game { width: min(100%, 520px); margin: 0 auto; padding: clamp(10px, 2vw, 20px); outline: none; }
+.tt-game:focus-visible { outline: 3px solid #dda341; outline-offset: 3px; border-radius: 18px; }
+.tt-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.tt-header h2 { margin: 0; font-size: clamp(26px, 4vw, 34px); line-height: 1; letter-spacing: -.03em; }
+.tt-kicker { margin: 0 0 4px; color: #5d6c82; font-size: 11px; font-weight: 800; letter-spacing: .13em; }
+.tt-actions,.tt-pad { display: flex; align-items: center; gap: 7px; }
+.tt-button { min-width: 44px; min-height: 44px; border: 1px solid #ccd5df; border-radius: 12px; padding: 0 13px; color: #293a53; background: #fff; box-shadow: 0 2px 5px #23324b12; font: 700 15px/1 Calibri, Inter, sans-serif; cursor: pointer; touch-action: manipulation; }
+.tt-button:hover:not(:disabled) { background: #eef4fa; border-color: #92a8c2; }
+.tt-button:focus-visible { outline: 3px solid #d89029; outline-offset: 2px; }
+.tt-button:disabled { opacity: .5; cursor: default; }
+.tt-button.tt-primary { color: #fff; border-color: #384d73; background: #384d73; }
+.tt-panel { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; min-height: 38px; margin-bottom: 8px; color: #56667b; font-size: 14px; }
+.tt-panel p { margin: 0; }
+.tt-panel strong { font-size: 13px; white-space: nowrap; }
+.tt-bottles { display: flex; gap: 7px; margin: 0 0 5px; }
+.tt-bottles[hidden], .tt-beat[hidden], .tt-save-note[hidden] { display: none; }
+.tt-bottle { width: 44px; min-width: 44px; padding: 0; }
+.tt-bottle.is-current { color: #fff; border-color: #384d73; background: #384d73; }
+.tt-beat, .tt-save-note { margin: 0 0 8px; color: #58677a; font-size: 13px; line-height: 1.35; }
+.tt-save-note { color: #8a5921; }
+.tt-board { display: block; width: min(100%, 380px); margin: 0 auto; border: 1px solid #cdd7e1; border-radius: 18px; background: linear-gradient(160deg,#f8faf7,#e8eef2); box-shadow: 0 12px 28px #20344c1c; touch-action: manipulation; }
+.tt-board:focus-visible { outline: 3px solid #d89029; outline-offset: 3px; }
+.tt-controls { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 10px auto 0; max-width: 380px; }
+.tt-pad .tt-button { min-width: 48px; padding: 0; font-size: 20px; }
+.tt-footer { margin: 7px 1px 0; color: #58677a; font-size: 12px; }
+@media (max-width: 420px) { .tt-game { padding: 9px 7px; } .tt-button { padding-inline: 10px; } .tt-panel { font-size: 13px; } }
+@media (prefers-reduced-motion: reduce) { .tt-host *, .tt-host *::before, .tt-host *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }
