@@ -130,7 +130,9 @@ function harness({ loadEngines = true, loadApp = true, storage = new Map(), comp
   run('scripts/games/paperboy-model.js'); run('scripts/games/paperboy.js');
   if (loadEngines) {
     for (const file of ['scripts/games/dog-crossing-model.js', 'scripts/games/dog-crossing.js',
-      'scripts/games/line-rider-model.js', 'scripts/games/line-rider.js', 'scripts/engines-new-games.js',
+      'scripts/games/line-rider-model.js', 'scripts/games/line-rider.js',
+      'scripts/games/cupcake-studio-model.js', 'scripts/games/cupcake-studio.js', 'scripts/engines-cupcake-studio.js',
+      'scripts/engines-new-games.js',
       'scripts/engines-p3-games.js']) run(file);
   }
   if (loadEngines) run('scripts/engines-batch4-games.js');

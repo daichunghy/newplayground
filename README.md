@@ -78,7 +78,7 @@ Chỉ cần mở repository trên GitHub và nhấn **Codespaces -> Create codes
 
 ## 5. Chiến lược và chuẩn bị vận hành
 
-Hiện có **150 mục catalog, 56 launcher riêng và 94 mục chưa có launcher riêng**. Các launcher là bản thử nghiệm; chưa có chứng nhận replica hoàn chỉnh hoặc số đo FPS/input latency. Mục tiêu dài hạn là 500 game hoàn chỉnh theo phiên bản tham chiếu đã chốt.
+Hiện có **150 mục catalog, 70 launcher riêng và 80 mục chưa có launcher riêng**. Các launcher là bản thử nghiệm; chưa có chứng nhận replica hoàn chỉnh hoặc số đo FPS/input latency. Mục tiêu dài hạn là 500 game hoàn chỉnh theo phiên bản tham chiếu đã chốt.
 
 - [Chiến lược sản xuất/vận hành](./docs/GAME_OPERATING_STRATEGY.md): thứ tự P1A → P1B → P1C → danh mục còn lại → 500.
 - [Runbook](./docs/GAME_OPERATIONS_RUNBOOK.md): nguồn dữ liệu, chuẩn bị release, sự cố và rollback.

@@ -8,7 +8,7 @@ The official [Taito Bubble Bobble 4 Friends retrospective](https://taito.co.jp/e
 
 ## Candidate scope
 
-**Mầm Gió** is an original, solo-first platform arcade with three short garden rounds. Walk and jump across leaf platforms. Breathe a nearby Mực Rêu into a bubble, then touch the trapped bubble again to pop it for points. A trapped bubble can briefly lift the player like a platform; popping one while riding it adds a small spring upward. Three lives, score chains, pause and replay are included. Each authored wave now mixes three deterministic movement patterns: pacers hold their patrol, stalkers turn toward Mầm on the same terrace, and sprinters pursue from farther away with a short speed edge. Later gardens introduce more sprinters and more enemies; small head marks distinguish the active pursuer roles.
+**Mầm Gió** is an original, solo-first platform arcade with three short garden rounds. Walk and jump across leaf platforms. Breathe a nearby Mực Rêu into a bubble, then touch the trapped bubble again to pop it for points. A trapped bubble can briefly lift the player like a platform; popping one while riding it launches Mầm upward and toward the current facing, carrying the player across a gap unless they steer against it. Three lives, score chains, pause and replay are included. Each authored wave now mixes three deterministic movement patterns: pacers hold their patrol, stalkers turn toward Mầm on the same terrace, and sprinters pursue from farther away with a short speed edge. Later gardens introduce more sprinters and more enemies; small head marks distinguish the active pursuer roles.
 
 Controls are arrows/A-D or touch buttons to move, Up/W/Space to jump, and X/Z or Thổi bọt to trap/pop. The game starts immediately and has no shop, unlock tree, multiplayer setup or long visible instructions. Its original protagonist, moss creatures, garden layouts, Canvas art, synthesized tones and cover are not copies of Taito characters, stages, sprites or sounds.
 
@@ -18,8 +18,8 @@ The playable build contains no Bubble Bobble character or marks, copied story, r
 
 ## Automated checks
 
-- `node --test tests/bubble-trap-model.test.cjs tests/bubble-trap-ui.test.cjs` — 16 focused checks passed after this depth update.
-- Model checks cover fixed-step consistency, bubble travel/trapping/popping, score chains, temporary bubble platforms/lifts, deterministic round outcomes, distinct wave decisions, reachability of each terrace with the authored jump arc, round transition and terminal states.
+- `node --test tests/bubble-trap-model.test.cjs tests/bubble-trap-ui.test.cjs` — focused model and lifecycle regressions pass, including the directional ride-pop launch.
+- Model checks cover fixed-step consistency, bubble travel/trapping/popping, score chains, temporary bubble platforms/lifts, the facing-directed spring carry, deterministic round outcomes, distinct wave decisions, reachability of each terrace with the authored jump arc, round transition and terminal states.
 - DOM-double checks cover immediate play, touch/keyboard input, pause/visibility/replay, cleanup and the exact catalog route/cover.
 - DOM doubles mock Canvas and audio; they do not establish real browser layout, touch behavior, accessibility, balance or playability.
 

@@ -35,6 +35,23 @@ test('bells are unique, score once, and the gate stays locked until all bells ar
  const open=fixture(s=>{s.collected.fill(true);s.player.x=1510;s.player.y=284;s.player.vx=0;s.player.vy=0;s.player.grounded=true;});open.advance(M.STEP);assert.equal(open.view().status,'cleared');assert.ok(open.next());
 });
 
+test('each chime banks one midair gust, usable once before the next landing',()=>{
+ const chime=fixture(s=>{s.player.x=178;s.player.y=211;s.player.vx=0;s.player.vy=0;});
+ const bellEvents=chime.advance(M.STEP);assert.equal(bellEvents.filter(e=>e.kind==='bell').length,1);assert.equal(chime.view().gustCharges,1);
+ const grounded=fixture(s=>{s.collected[0]=true;s.player.grounded=true;s.player.y=284;});grounded.advance(M.STEP,{gust:true});assert.equal(grounded.view().gustCharges,1);assert.equal(grounded.view().player.gustUsed,false);
+ const airborne=fixture(s=>{s.collected[0]=true;s.player.x=300;s.player.y=190;s.player.vx=0;s.player.vy=0;s.player.grounded=false;});const launchX=airborne.view().player.x;
+ const gustEvents=airborne.advance(M.STEP,{gust:true});assert.equal(gustEvents.filter(e=>e.kind==='gust').length,1);assert.equal(airborne.view().gustCharges,0);assert.equal(airborne.view().player.gustUsed,true);assert.ok(airborne.view().player.vy< -9);assert.ok(airborne.view().player.vx>0);
+ for(let i=0;i<3;i++){airborne.advance(M.STEP,{gust:true});}assert.equal(airborne.view().gustCharges,0,'a held gust cannot spend repeatedly');
+ const restored=M.restore(airborne.serialize());assert.ok(restored);assert.equal(restored.view().player.gustUsed,true);assert.equal(restored.view().gustCharges,0);assert.equal(restored.view().player.gustFrames,8);
+ step(airborne,8);assert.ok(airborne.view().player.x>launchX+20,'the gust carries the kite forward for a brief, steerable burst');
+});
+
+test('a landing resets the per-flight gust lock; legacy version-one saves remain valid',()=>{
+ const falling=fixture(s=>{s.player.x=80;s.player.y=278;s.player.vy=4;s.player.grounded=false;s.player.gustUsed=true;});step(falling,6);assert.equal(falling.view().player.grounded,true);assert.equal(falling.view().player.gustUsed,false);
+ const legacy=M.create().serialize();delete legacy.gustsUsed;delete legacy.wasGust;delete legacy.player.gustUsed;const restored=M.restore(legacy);assert.ok(restored);assert.equal(restored.view().gustCharges,0);
+ const impossible=M.create().serialize();impossible.collected[0]=true;impossible.gustsUsed=2;assert.equal(M.restore(impossible),null);
+});
+
 test('checkpoint unlocks once and a hazard respawn returns to checkpoint with invulnerability',()=>{
  const g=fixture(s=>{s.player.x=900;s.player.y=284;s.player.vx=0;s.player.vy=0;s.player.grounded=true;});const events=g.advance(M.STEP);assert.equal(events.filter(e=>e.kind==='checkpoint').length,1);assert.equal(g.view().checkpoint,true);
  const snap=g.serialize();snap.player.x=snap.enemies[0].x;snap.player.y=snap.enemies[0].y-M.PLAYER_H;snap.player.vy=1;snap.player.grounded=false;snap.player.invulnerable=0;

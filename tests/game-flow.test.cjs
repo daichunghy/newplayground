@@ -33,7 +33,7 @@ test('catalog routing uses one exact launcher for prototypes and none for planne
     assert.equal(calls.length, h.context.NP_GameRegistry.isPlayable(game.id) ? 1 : 0,
       game.id + ' must use its exact launcher or remain visibly planned');
   }
-  for (const [id, expected] of [['hang-rong', 'launchHangRong'], ['zuma-ech-ban-ngoc', 'launchZuma'], ['line-98', 'launchLine98'], ['ran-san-moi-snake', 'launchSnake'], ['boom-online-bnb', 'launchDauTruongNuoc'], ['audition-nhip-dieu', 'launchNhipMay'], ['duck-hunt-ban-vit', 'launchMucTieuBay'], ['rockman-mega-man', 'launchMamChop'], ['street-fighter-2-doi-khang', 'launchStreetFighter'], ['road-rash-dua-xe-moto', 'launchDuaGio'], ['raft-wars-ban-sung-phao', 'launchDauPhao'], ['bubble-bobble-khung-long-bong-bong', 'launchMamGio'], ['age-of-war-thoi-dai-chien-tranh', 'launchRanhGioiMay'], ['bloxorz-khoi-da-lan', 'launchKhoiDaLan'], ['xep-bai-solitaire', 'launchBaiBayCot'], ['xep-bai-freecell', 'launchBonO'], ['xep-bai-nhen-spider', 'launchBaiNhen'], ['arkanoid-dap-gach', 'launchOrbitArkanoid'], ['puzzle-bobble-khung-long', 'launchBiVom'], ['dr-mario-diet-khuan', 'launchOngNghiem'], ['peggle-pachinko', 'launchBatChot'], ['lemonade-tycoon', 'launchLemonadeStand'], ['thap-ha-noi-tower', 'launchThapBaCoc'], ['bookworm-sau-noi-chu', 'launchBookworm'], ['gap-chu-cho-qua-duong', 'launchDogCrossing'], ['line-rider-truot-tuyet-vat-ly', 'launchLineRider'], ['thoi-bong-xa-phong', 'launchSoapBubbleGarden']]) {
+  for (const [id, expected] of [['hang-rong', 'launchHangRong'], ['zuma-ech-ban-ngoc', 'launchZuma'], ['line-98', 'launchLine98'], ['ran-san-moi-snake', 'launchSnake'], ['boom-online-bnb', 'launchDauTruongNuoc'], ['audition-nhip-dieu', 'launchNhipMay'], ['duck-hunt-ban-vit', 'launchMucTieuBay'], ['rockman-mega-man', 'launchMamChop'], ['street-fighter-2-doi-khang', 'launchStreetFighter'], ['road-rash-dua-xe-moto', 'launchDuaGio'], ['raft-wars-ban-sung-phao', 'launchDauPhao'], ['bubble-bobble-khung-long-bong-bong', 'launchMamGio'], ['age-of-war-thoi-dai-chien-tranh', 'launchRanhGioiMay'], ['bloxorz-khoi-da-lan', 'launchKhoiDaLan'], ['xep-bai-solitaire', 'launchBaiBayCot'], ['xep-bai-freecell', 'launchBonO'], ['xep-bai-nhen-spider', 'launchBaiNhen'], ['arkanoid-dap-gach', 'launchOrbitArkanoid'], ['puzzle-bobble-khung-long', 'launchBiVom'], ['dr-mario-diet-khuan', 'launchOngNghiem'], ['peggle-pachinko', 'launchBatChot'], ['lemonade-tycoon', 'launchLemonadeStand'], ['thap-ha-noi-tower', 'launchThapBaCoc'], ['bookworm-sau-noi-chu', 'launchBookworm'], ['gap-chu-cho-qua-duong', 'launchDogCrossing'], ['line-rider-truot-tuyet-vat-ly', 'launchLineRider'], ['thoi-bong-xa-phong', 'launchSoapBubbleGarden'], ['tiem-banh-ngot-ba-baker', 'launchCupcakeStudio']]) {
     calls.length = 0; h.context.openGameById(id); assert.deepEqual(calls, [expected]);
   }
   assert.equal(h.context.openGameById('not-in-catalog'), false);
@@ -79,9 +79,9 @@ test('the default catalog favors playable prototypes and planned entries have no
   const playable = h.document.body.querySelectorAll('.filter-pill').find(pill => pill.getAttribute('data-category') === 'playable');
   const all = h.document.body.querySelectorAll('.filter-pill').find(pill => pill.getAttribute('data-category') === 'all');
   assert.equal(playable.classList.contains('active'), true);
-  assert.equal(grid.children.length, 69);
-  assert.equal(h.document.getElementById('allSectionTitle').textContent, 'Bản thử nghiệm có thể chơi (69)');
-  assert.equal(h.document.getElementById('catalogAvailability').textContent, '69 chơi thử · 150 trong danh mục');
+  assert.equal(grid.children.length, 70);
+  assert.equal(h.document.getElementById('allSectionTitle').textContent, 'Bản thử nghiệm có thể chơi (70)');
+  assert.equal(h.document.getElementById('catalogAvailability').textContent, '70 chơi thử · 150 trong danh mục');
 
   all.click();
   assert.equal(grid.children.length, 150, 'the full catalog remains available by explicit selection');
@@ -95,7 +95,7 @@ test('the default catalog favors playable prototypes and planned entries have no
   assert.equal(h.container.children.length, 0, 'a planned card cannot open a misleading or empty game dialog');
 
   playable.click();
-  assert.equal(grid.children.length, 69);
+  assert.equal(grid.children.length, 70);
 });
 
 test('Thổi Bong Bóng Xà Phòng opens through its exact route and releases its session', () => {
@@ -105,6 +105,17 @@ test('Thổi Bong Bóng Xà Phòng opens through its exact route and releases it
   assert.equal(h.container.querySelector('#sbgStatus').getAttribute('role'), 'status');
   assert.match(read('app.js'), /'thoi-bong-xa-phong': 'assets\/covers\/thoi-bong-xa-phong\.svg'/);
   assert.ok(JSON.parse(read('assets/ASSET_MANIFEST.json')).some(asset => asset.local_path === 'assets/covers/thoi-bong-xa-phong.svg'));
+  h.context.closeGameModal();
+  assertStopped(h);
+});
+
+test('Tiệm Bánh Ngọt opens its exact recipe game and releases the session', () => {
+  const h = harness();
+  assert.equal(h.context.NP_GameRegistry.engineFor('tiem-banh-ngot-ba-baker'), 'launchCupcakeStudio');
+  assert.equal(h.context.openGameById('tiem-banh-ngot-ba-baker'), true);
+  assert.equal(h.container.querySelectorAll('.cupcake-slot').length, 9);
+  assert.ok(h.container.querySelector('#cupcakeRecipeGrid'));
+  assert.ok(h.container.querySelector('#cupcakeSubmit'));
   h.context.closeGameModal();
   assertStopped(h);
 });

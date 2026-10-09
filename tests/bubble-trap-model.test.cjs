@@ -146,7 +146,12 @@ test('a trapped bubble is a liftable platform and popping it while riding spring
   assert.equal(g.act('bubble'), true);
   assert.equal(g.view().player.ridingBubble, null);
   assert.equal(g.view().player.vy, -354);
+  assert.equal(g.view().player.springVx, 260);
+  assert.ok(g.view().player.springTime > 0);
   assert.equal(g.view().score, 300);
+  const launchX = g.view().player.x;
+  run(g, 0.2);
+  assert.ok(g.view().player.x > launchX + 40, 'popping the ride bubble carries the player toward their facing');
 });
 
 test('an unpopped bubble fades and releases its enemy back into the approach loop', () => {

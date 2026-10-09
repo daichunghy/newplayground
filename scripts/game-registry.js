@@ -65,6 +65,7 @@
     'gap-chu-cho-qua-duong': 'launchDogCrossing',
     'line-rider-truot-tuyet-vat-ly': 'launchLineRider',
     'thoi-bong-xa-phong': 'launchSoapBubbleGarden',
+    'tiem-banh-ngot-ba-baker': 'launchCupcakeStudio',
     'xay-cau-bridge-builder': 'launchBridgeBuilder',
     'xe-dap-giao-bao': 'launchPaperboy',
     'cut-the-rope': 'launchCutRope',

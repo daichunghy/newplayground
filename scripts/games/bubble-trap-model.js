@@ -92,7 +92,8 @@
     function loadRound() {
       state.player = {
         x: 56, y: GROUND_Y - 36, vx: 0, vy: 0, width: 28, height: 36,
-        facing: 1, grounded: true, platformId: 'ground', ridingBubble: null
+        facing: 1, grounded: true, platformId: 'ground', ridingBubble: null,
+        springVx: 0, springTime: 0
       };
       state.enemies = stage().enemies.map((enemy, index) => ({
         ...enemy, direction: index % 2 ? -1 : 1, mode: 'alive', bubbleId: null, size: 28
@@ -125,6 +126,10 @@
         state.player.grounded = false;
         state.player.platformId = null;
         state.player.vy = bounced ? -354 : -330;
+        if (bounced) {
+          state.player.springVx = state.player.facing * 260;
+          state.player.springTime = 0.42;
+        }
       }
       emit('pop', { id: enemy.id, points, chain: state.chain, bounced });
       return true;
@@ -188,7 +193,7 @@
       state.chain = 0;
       state.invulnerable = 1.5;
       state.player.x = 56; state.player.y = GROUND_Y - state.player.height;
-      state.player.vx = 0; state.player.vy = 0; state.player.grounded = true;
+      state.player.vx = 0; state.player.vy = 0; state.player.springVx = 0; state.player.springTime = 0; state.player.grounded = true;
       state.player.platformId = 'ground'; state.player.ridingBubble = null;
       emit('ouch', { lives: state.lives });
       if (state.lives <= 0) {
@@ -269,8 +274,15 @@
       }
 
       const move = clamp(Number(input.move) || 0, -1, 1);
-      player.vx = move * PLAYER_SPEED;
-      if (move) player.facing = move > 0 ? 1 : -1;
+      if (move) {
+        player.vx = move * PLAYER_SPEED;
+        player.facing = move > 0 ? 1 : -1;
+        player.springVx = 0; player.springTime = 0;
+      } else if (player.springTime > 0) {
+        player.vx = player.springVx;
+        player.springTime = Math.max(0, player.springTime - dt);
+        if (player.springTime === 0) player.springVx = 0;
+      } else player.vx = 0;
       player.x = clamp(player.x + player.vx * dt, 18, WIDTH - 18);
       if (player.grounded && !player.ridingBubble && player.platformId !== 'ground') {
         const support = stagePlatforms().find(p => p.id === player.platformId);

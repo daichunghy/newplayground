@@ -29,6 +29,15 @@ test('held jump gives a higher arc; one press does not auto-repeat after release
  const h=launch();for(let i=0;i<3;i++)h.frame();key(h,' ');for(let i=0;i<6;i++)h.frame();const high=view(h).player.y;keyup(h,' ');for(let i=0;i<35;i++)h.frame();assert.ok(view(h).player.grounded||view(h).player.y>high);assert.equal(el(h,'ccJump').disabled,false);close(h);
 });
 
+test('chime charges power a touch-first midair gust and a confirmed new game clears them',()=>{
+ const s=fixture(x=>{x.collected[0]=true;x.player.x=300;x.player.y=190;x.player.vx=0;x.player.vy=0;x.player.grounded=false;});
+ const h=launch(saved(s));assert.ok(el(h,'ccGust'));assert.equal(el(h,'ccGust').disabled,true);assert.match(el(h,'ccGust').getAttribute('aria-label'),/luồng gió/);click(h,'ccContinue');assert.equal(el(h,'ccGust').disabled,false);
+ el(h,'ccGust').dispatch('pointerdown',{pointerId:19,button:0});h.frame();h.frame();h.window.dispatch('pointerup',{pointerId:19});
+ assert.equal(view(h).gustCharges,0);assert.equal(view(h).player.gustUsed,true);assert.ok(view(h).player.vy< -9);assert.equal(el(h,'ccGust').disabled,true);
+ click(h,'ccPause');click(h,'ccNew');assert.equal(el(h,'ccConfirm').hidden,false);click(h,'ccConfirmYes');assert.equal(view(h).gustCharges,0);assert.equal(view(h).player.gustUsed,false);assert.equal(h.frames.size,1);
+ const css=read('scripts/games/cloud-canopy.css');assert.match(css,/\.cc-gust[^\n]*min-width:70px/);assert.match(css,/\.cc-button\s*\{[^}]*min-height:44px/);close(h);
+});
+
 test('checkpoint, locked gate and stage continuation expose the current objective',()=>{
  const s=fixture(x=>{x.collected=[true,true,false];x.player.x=1500;x.player.y=284;x.player.vx=0;x.player.vy=0;x.player.grounded=true;});
  const h=launch(saved(s));click(h,'ccContinue');for(let i=0;i<3;i++)h.frame();assert.equal(view(h).status,'playing');assert.match(el(h,'ccStatus').textContent,/Còn 1 chuông/);close(h);

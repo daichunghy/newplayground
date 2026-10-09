@@ -16,15 +16,16 @@
  ];
  const finite=n=>Number.isFinite(n);
  const makeEnemy=(row,id)=>({id,x:row[0],y:row[1],min:row[2],max:row[3],dir:row[4],speed:1.12,alive:true});
- function levelState(stage,score,lives){const L=LEVELS[stage];return{version:1,stage,ticks:0,remainder:0,score,bankScore:score,lives,status:'playing',player:{x:L.spawn.x,y:L.spawn.y,vx:0,vy:0,grounded:false,facing:1,jumpHold:0,jumpBuffer:0,invulnerable:0},checkpoint:false,collected:Array(L.bells.length).fill(false),enemies:L.enemies.map(makeEnemy),wasJump:false,gateHint:0};}
+ function levelState(stage,score,lives){const L=LEVELS[stage];return{version:1,stage,ticks:0,remainder:0,score,bankScore:score,lives,status:'playing',player:{x:L.spawn.x,y:L.spawn.y,vx:0,vy:0,grounded:false,facing:1,jumpHold:0,jumpBuffer:0,invulnerable:0,gustUsed:false,gustFrames:0,gustDirection:1},checkpoint:false,collected:Array(L.bells.length).fill(false),gustsUsed:0,enemies:L.enemies.map(makeEnemy),wasJump:false,wasGust:false,gateHint:0};}
  function validSave(s){
   if(!s||s.version!==1||!Number.isInteger(s.stage)||s.stage<0||s.stage>=LEVELS.length||!['playing','cleared','won','lost'].includes(s.status))return false;
   for(const k of ['ticks','score','bankScore','lives'])if(!Number.isSafeInteger(s[k])||s[k]<0)return false;
-  if(s.score<s.bankScore||s.score>1e9||s.bankScore>1e9||s.lives>3||!finite(s.remainder)||s.remainder<0||s.remainder>=STEP||typeof s.checkpoint!=='boolean'||typeof s.wasJump!=='boolean'||!Number.isInteger(s.gateHint)||s.gateHint<0||s.gateHint>90)return false;
+  if(s.score<s.bankScore||s.score>1e9||s.bankScore>1e9||s.lives>3||!finite(s.remainder)||s.remainder<0||s.remainder>=STEP||typeof s.checkpoint!=='boolean'||typeof s.wasJump!=='boolean'||(s.wasGust!==undefined&&typeof s.wasGust!=='boolean')||!Number.isInteger(s.gateHint)||s.gateHint<0||s.gateHint>90)return false;
   if(s.status==='lost'?s.lives!==0:s.lives===0)return false;
   const L=LEVELS[s.stage],p=s.player;
-  if(!p||!['x','y','vx','vy'].every(k=>finite(p[k]))||p.x<0||p.x>L.width||p.y< -180||p.y>520||Math.abs(p.vx)>MAX_SPEED||p.vy< -11||p.vy>10||typeof p.grounded!=='boolean'||![1,-1].includes(p.facing)||!Number.isInteger(p.jumpHold)||p.jumpHold<0||p.jumpHold>10||!Number.isInteger(p.jumpBuffer)||p.jumpBuffer<0||p.jumpBuffer>8||!Number.isInteger(p.invulnerable)||p.invulnerable<0||p.invulnerable>60)return false;
+  if(!p||!['x','y','vx','vy'].every(k=>finite(p[k]))||p.x<0||p.x>L.width||p.y< -180||p.y>520||Math.abs(p.vx)>MAX_SPEED||p.vy< -11||p.vy>10||typeof p.grounded!=='boolean'||![1,-1].includes(p.facing)||!Number.isInteger(p.jumpHold)||p.jumpHold<0||p.jumpHold>10||!Number.isInteger(p.jumpBuffer)||p.jumpBuffer<0||p.jumpBuffer>8||!Number.isInteger(p.invulnerable)||p.invulnerable<0||p.invulnerable>60||(p.gustUsed!==undefined&&typeof p.gustUsed!=='boolean')||(p.gustFrames!==undefined&&(!Number.isInteger(p.gustFrames)||p.gustFrames<0||p.gustFrames>12))||(p.gustDirection!==undefined&&![1,-1].includes(p.gustDirection)))return false;
   if(!Array.isArray(s.collected)||s.collected.length!==L.bells.length||s.collected.some(x=>typeof x!=='boolean'))return false;
+  if((s.gustsUsed!==undefined&&(!Number.isInteger(s.gustsUsed)||s.gustsUsed<0||s.gustsUsed>s.collected.filter(Boolean).length)))return false;
   if(!Array.isArray(s.enemies)||s.enemies.length!==L.enemies.length||s.enemies.some((e,i)=>!e||e.id!==i||!finite(e.x)||e.x<L.enemies[i][2]||e.x>L.enemies[i][3]||e.y!==L.enemies[i][1]||![-1,1].includes(e.dir)||typeof e.alive!=='boolean'))return false;
   if(s.status==='lost'&&s.lives!==0)return false;
   if((s.status==='cleared'||s.status==='won')&&(s.collected.some(x=>!x)||s.player.x+PLAYER_W<L.gate.x||(s.status==='won')!==(s.stage===LEVELS.length-1)))return false;
@@ -34,20 +35,27 @@
   if(saved&&!validSave(saved))return null;
   if(!saved&&(!Number.isInteger(stage)||stage<0||stage>=LEVELS.length||!Number.isSafeInteger(score)||score<0||score>1e9||!Number.isInteger(lives)||lives<1||lives>3))throw new RangeError('Invalid initial campaign');
   let state=saved?clone(saved):levelState(stage,score,lives),events=[];
+  // Version-one saves created before gusts existed remain playable.
+  state.gustsUsed??=0;state.wasGust??=false;state.player.gustUsed??=false;state.player.gustFrames??=0;state.player.gustDirection??=state.player.facing;
   const emit=(kind,extra={})=>events.push({kind,...extra});
   const level=()=>LEVELS[state.stage],player=()=>state.player;
   const intersects=(a,b)=>a.x<b.x+b.w&&a.x+(a.w||PLAYER_W)>b.x&&a.y<b.y+b.h&&a.y+(a.h||PLAYER_H)>b.y;
-  function respawn(){const L=level(),p=player(),spot=state.checkpoint?L.checkpoint:L.spawn;p.x=spot.x;p.y=spot.y;p.vx=0;p.vy=0;p.grounded=false;p.jumpHold=0;p.jumpBuffer=0;p.invulnerable=60;state.wasJump=false;}
+  function respawn(){const L=level(),p=player(),spot=state.checkpoint?L.checkpoint:L.spawn;p.x=spot.x;p.y=spot.y;p.vx=0;p.vy=0;p.grounded=false;p.jumpHold=0;p.jumpBuffer=0;p.invulnerable=60;p.gustUsed=false;p.gustFrames=0;state.wasJump=false;state.wasGust=false;}
   function hurt(reason){if(player().invulnerable>0||state.status!=='playing')return;state.lives=Math.max(0,state.lives-1);emit('hurt',{reason,lives:state.lives});if(state.lives===0){state.status='lost';state.remainder=0;emit('lost');}else respawn();}
   function tick(input){
-   state.ticks++;const L=level(),p=player(),left=!!input.left,right=!!input.right,jump=!!input.jump;
+   state.ticks++;const L=level(),p=player(),left=!!input.left,right=!!input.right,jump=!!input.jump,gust=!!input.gust;
    if(jump&&!state.wasJump)p.jumpBuffer=8;
    if(!jump&&state.wasJump){p.jumpHold=0;if(p.vy< -2)p.vy*=.58;}
    state.wasJump=jump;
+   if(gust&&!state.wasGust&&!p.grounded&&!p.gustUsed&&state.gustsUsed<state.collected.filter(Boolean).length){
+    state.gustsUsed++;p.gustUsed=true;p.jumpHold=0;p.vy=-9.7;p.gustFrames=12;p.gustDirection=p.facing;p.vx=Math.max(-MAX_SPEED,Math.min(MAX_SPEED,p.vx+p.facing*2.7));emit('gust',{charges:state.collected.filter(Boolean).length-state.gustsUsed});
+   }
+   state.wasGust=gust;
    if(p.jumpBuffer>0&&p.grounded){p.vy=-8.25;p.grounded=false;p.jumpHold=10;p.jumpBuffer=0;emit('jump');}
    else if(p.jumpBuffer>0)p.jumpBuffer--;
    if(left!==right){p.vx=Math.max(-MAX_SPEED,Math.min(MAX_SPEED,p.vx+(left?-.46:.46)));p.facing=left?-1:1;}
    else {p.vx*=.76;if(Math.abs(p.vx)<.1)p.vx=0;}
+   if(p.gustFrames>0){const push=left!==right?(left?-1:1):p.gustDirection;p.vx=Math.max(-MAX_SPEED,Math.min(MAX_SPEED,p.vx+push*.42));p.gustFrames--;}
    p.x=Math.max(0,Math.min(L.width-PLAYER_W,p.x+p.vx));
    if((p.x===0&&p.vx<0)||(p.x===L.width-PLAYER_W&&p.vx>0))p.vx=0;
    for(const [x,y,w,h]of L.platforms){const box={x,y,w,h};if(intersects({...p,y:p.y,w:PLAYER_W,h:PLAYER_H},box)){if(p.vx>0)p.x=x-PLAYER_W;else if(p.vx<0)p.x=x+w;p.vx=0;}}
@@ -60,7 +68,7 @@
    p.y+=p.vy;p.grounded=false;
    for(const [x,y,w,h]of L.platforms){
     const horizontal=p.x<x+w&&p.x+PLAYER_W>x;
-    if(horizontal&&p.vy>=0&&oldBottom<=y+2&&p.y+PLAYER_H>=y){p.y=y-PLAYER_H;p.vy=0;p.grounded=true;}
+    if(horizontal&&p.vy>=0&&oldBottom<=y+2&&p.y+PLAYER_H>=y){p.y=y-PLAYER_H;p.vy=0;p.grounded=true;p.gustUsed=false;p.gustFrames=0;}
     else if(horizontal&&p.vy<0&&oldY>=y+h&&p.y<y+h){p.y=y+h;p.vy=.4;p.jumpHold=0;}
    }
    if(p.grounded&&oldY+PLAYER_H< p.y+PLAYER_H)emit('land');
@@ -76,7 +84,7 @@
   function advance(ms,input={}){if(state.status!=='playing'||!finite(ms)||ms<0||ms>60000)return[];state.remainder+=ms;while(state.remainder+1e-7>=STEP&&state.status==='playing'){state.remainder=Math.max(0,state.remainder-STEP);tick(input);}const out=events;events=[];return out;}
   function next(){return state.status==='cleared'?create({stage:state.stage+1,score:state.score,lives:state.lives}):null;}
   function retry(){return state.status==='lost'?create({stage:state.stage,score:state.bankScore,lives:3}):null;}
-  function view(){return{...clone(state),level:{name:level().name,width:level().width,sky:level().sky,spawn:clone(level().spawn),gate:clone(level().gate),platforms:clone(level().platforms),bells:clone(level().bells),winds:clone(level().winds),checkpoint:clone(level().checkpoint)},bellCount:level().bells.length,collectedCount:state.collected.filter(Boolean).length,remaining:state.collected.filter(x=>!x).length};}
+  function view(){const collectedCount=state.collected.filter(Boolean).length;return{...clone(state),level:{name:level().name,width:level().width,sky:level().sky,spawn:clone(level().spawn),gate:clone(level().gate),platforms:clone(level().platforms),bells:clone(level().bells),winds:clone(level().winds),checkpoint:clone(level().checkpoint)},bellCount:level().bells.length,collectedCount,remaining:level().bells.length-collectedCount,gustCharges:collectedCount-state.gustsUsed};}
   return{advance,view,serialize:()=>clone(state),next,retry};
  }
  return{STEP,WIDTH,HEIGHT,PLAYER_W,PLAYER_H,MAX_SPEED,GRAVITY,LEVELS:clone(LEVELS),validSave,create,restore:s=>validSave(s)?create({saved:s}):null};
