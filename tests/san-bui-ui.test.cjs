@@ -40,6 +40,7 @@ test('mount opens immediately with original Sân Bụi art, an authored tower, a
   assert.equal(el(h, 'sbKnocked').textContent, '0 / 3');
   assert.equal(el(h, 'sbThrows').textContent, '3');
   assert.equal(el(h, 'sbOverlay').hidden, true);
+  assert.match(h.container.innerHTML, /id="sbPause"[^>]*>\|\|<\/button>/, 'pause icon uses visible text bars on the available font stack');
   assert.match(el(h, 'sbStatus').textContent, /góc và lực/);
   h.close();
 });
@@ -54,6 +55,19 @@ test('touch buttons, sliders, and direct canvas aiming set angle and power', () 
   const canvas = el(h, 'sbCanvas');
   canvas.dispatch('pointerdown', { pointerType: 'touch', clientX: 143, clientY: 277 });
   assert.equal(h.game.getModel().view().angle, 50);
+  h.close();
+});
+
+test('dragging on the canvas tracks aim until release, then ignores stray pointer movement', () => {
+  const h = open(), canvas = el(h, 'sbCanvas');
+  canvas.dispatch('pointerdown', { pointerId: 7, pointerType: 'touch', clientX: 400, clientY: 100, preventDefault() {} });
+  const first = h.game.getModel().view().angle;
+  canvas.dispatch('pointermove', { pointerId: 7, pointerType: 'touch', clientX: 500, clientY: 180, preventDefault() {} });
+  const dragged = h.game.getModel().view().angle;
+  assert.notEqual(dragged, first);
+  canvas.dispatch('pointerup', { pointerId: 7 });
+  canvas.dispatch('pointermove', { pointerId: 7, pointerType: 'touch', clientX: 250, clientY: 300, preventDefault() {} });
+  assert.equal(h.game.getModel().view().angle, dragged);
   h.close();
 });
 

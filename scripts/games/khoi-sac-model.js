@@ -168,6 +168,7 @@
   function scrambleForStage(stageIndex, seed = DEFAULT_SEED) {
     if (!Number.isInteger(stageIndex) || stageIndex < 0 || stageIndex >= STAGE_LENGTHS.length) return null;
     const stage = STAGES[stageIndex], targets = stageTargets(stageIndex);
+    const minimumMismatch = Math.ceil(stage.targetFaces.length * 4 / 2);
     for (let attempt = 0; attempt < 100; attempt++) {
       const rng = makeRng(`${String(seed)}:stage:${stageIndex + 1}:start:${attempt}`);
       const moves = [];
@@ -177,7 +178,8 @@
         moves.push({ face, turns: rng() < 0.5 ? 1 : -1 });
       }
       const start = applySequence(createSolvedCube(), moves);
-      if (!targetProgress(start, targets).complete) return moves.map(move => ({ ...move }));
+      const progress = targetProgress(start, targets);
+      if (progress.total - progress.matches >= minimumMismatch) return moves.map(move => ({ ...move }));
     }
     throw new Error(`Could not make a distinct seeded motif start for stage ${stage.id}.`);
   }

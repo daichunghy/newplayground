@@ -26,7 +26,7 @@
         <header class="sb-header">
           <div><p class="sb-eyebrow">Thử một cú ném</p><h2>Sân Bụi</h2></div>
           <div class="sb-header-actions">
-            <button class="sb-button sb-icon" id="sbPause" type="button" aria-label="Tạm dừng" title="Tạm dừng">Ⅱ</button>
+            <button class="sb-button sb-icon" id="sbPause" type="button" aria-label="Tạm dừng" title="Tạm dừng">||</button>
             <button class="sb-button sb-icon" id="sbRestart" type="button" aria-label="Chơi lại từ đầu" title="Chơi lại">↻</button>
           </div>
         </header>
@@ -177,13 +177,21 @@
       processEvents(model.advance(delta)); render(); schedule();
     }
     function cancelLoop() { if (frame !== null) cancelAnimationFrame(frame); frame = null; lastFrame = null; }
+    let aimPointerId = null;
+    function endAimPointer(event) {
+      if (aimPointerId === null || (event?.pointerId != null && event.pointerId !== aimPointerId)) return;
+      const pointerId = aimPointerId;
+      aimPointerId = null;
+      try { if (canvas.hasPointerCapture?.(pointerId)) canvas.releasePointerCapture(pointerId); } catch (_) { /* The pointer may already be gone. */ }
+    }
     function fire() {
       if (!alive || paused || !model.throwBall()) return false;
+      endAimPointer();
       announce('Cú ném đang bay…'); render(); schedule(); return true;
     }
     function pause(messageText = 'Đã tạm dừng.') {
       if (!alive || paused || model.view().status !== 'playing') return false;
-      paused = true; model.pause(); cancelLoop(); announce(messageText); render(); el('sbOverlayAction').focus({ preventScroll: true }); return true;
+      endAimPointer(); paused = true; model.pause(); cancelLoop(); announce(messageText); render(); el('sbOverlayAction').focus({ preventScroll: true }); return true;
     }
     function resume() {
       if (!alive || !paused || root.document.hidden) return false;
@@ -191,7 +199,7 @@
     }
     function restart() {
       if (!alive) return;
-      cancelLoop(); paused = false;
+      endAimPointer(); cancelLoop(); paused = false;
       seed = (Number(seedFactory()) >>> 0) || ((seed + 1) >>> 0) || 1;
       model = newModel(); announce('Chỉnh góc và lực, rồi ném. ← → ngắm · ↑ ↓ chỉnh lực · Space ném.'); render(); canvas.focus({ preventScroll: true });
     }
@@ -218,7 +226,17 @@
       }
     }
     listen(container, 'keydown', keydown);
-    listen(canvas, 'pointerdown', event => { event.preventDefault(); aimFromPoint(event); });
+    listen(canvas, 'pointerdown', event => {
+      if (!alive || paused || model.view().phase !== 'aiming' || aimPointerId !== null) return;
+      aimPointerId = event.pointerId ?? 1;
+      try { canvas.setPointerCapture?.(aimPointerId); } catch (_) { /* Capture is optional for synthetic pointers. */ }
+      event.preventDefault(); aimFromPoint(event);
+    });
+    listen(canvas, 'pointermove', event => {
+      if (aimPointerId !== null && event.pointerId === aimPointerId) { event.preventDefault(); aimFromPoint(event); }
+    });
+    listen(canvas, 'pointerup', endAimPointer);
+    listen(canvas, 'pointercancel', endAimPointer);
     listen(el('sbAngle'), 'input', event => { model.setAim(Number(event.target.value)); render(); });
     listen(el('sbPower'), 'input', event => { model.setPower(Number(event.target.value)); render(); });
     listen(el('sbAimDown'), 'click', () => { model.adjustAim(-2); render(); });
@@ -234,7 +252,7 @@
     listen(root, 'blur', () => pause('Tạm dừng khi đổi cửa sổ.'));
     listen(root.document, 'visibilitychange', () => { if (root.document.hidden) pause('Đã tạm dừng khi ẩn thẻ.'); });
     listen(root, 'pagehide', () => pause('Đã tạm dừng khi rời trang.'));
-    onCleanup(() => { alive = false; cancelLoop(); container.innerHTML = ''; container.classList.remove('sb-host'); });
+    onCleanup(() => { endAimPointer(); alive = false; cancelLoop(); container.innerHTML = ''; container.classList.remove('sb-host'); });
     render();
     return { getModel: () => model, fire, pause, resume, restart, isPaused: () => paused };
   }

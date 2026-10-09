@@ -104,6 +104,14 @@ test('Sân Bụi accepts a narrow mobile aim and throw through the live canvas g
   await openGame(page, 'nem-lon-truong-lang');
   await expect(page.locator('#modalGameTitle')).toHaveText('Sân Bụi');
   await expect(page.locator('#sbCanvas')).toBeVisible();
+  const canvasBox = await page.locator('#sbCanvas').boundingBox();
+  await page.mouse.move(canvasBox.x + canvasBox.width * .65, canvasBox.y + canvasBox.height * .25);
+  await page.mouse.down();
+  await page.mouse.move(canvasBox.x + canvasBox.width * .75, canvasBox.y + canvasBox.height * .5);
+  const draggedAngle = await page.locator('#sbAngleValue').textContent();
+  await page.mouse.up();
+  await page.mouse.move(canvasBox.x + canvasBox.width * .65, canvasBox.y + canvasBox.height * .25);
+  await expect(page.locator('#sbAngleValue')).toHaveText(draggedAngle);
   await page.locator('#sbAngle').evaluate(node => {
     node.value = '18'; node.dispatchEvent(new Event('input', { bubbles: true }));
   });
@@ -127,8 +135,14 @@ test('Kéo Nhịp starts quickly and keeps its rhythm controls touch-sized on mo
   await loadPortal(page);
   await openGame(page, 'keo-co-doi-khang');
   await expect(page.locator('#modalGameTitle')).toHaveText('Kéo Nhịp');
+  const readyPanel = await page.locator('#knOverlayAction').boundingBox();
+  const arenaPanel = await page.locator('.kn-arena-wrap').boundingBox();
+  expect(readyPanel.y).toBeGreaterThanOrEqual(arenaPanel.y);
+  expect(readyPanel.y + readyPanel.height).toBeLessThanOrEqual(arenaPanel.y + arenaPanel.height);
+  expect(readyPanel.width).toBeGreaterThanOrEqual(44);
+  expect(readyPanel.height).toBeGreaterThanOrEqual(44);
   await page.locator('#knOverlayAction').click();
-  const controls = await page.locator('.kn-step').evaluateAll(nodes => nodes.map(node => {
+  const controls = await page.locator('.kn-step, .kn-icon').evaluateAll(nodes => nodes.map(node => {
     const box = node.getBoundingClientRect();
     return { width: box.width, height: box.height };
   }));

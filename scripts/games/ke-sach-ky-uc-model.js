@@ -128,15 +128,17 @@
 
   function makeStart(stage, seed) {
     const order = stage.answer.slice(), random = makeRandom(seed);
-    let previous = -1;
+    const rank = new Map(stage.answer.map((id, index) => [id, index]));
     for (let move = 0; move < stage.scramble; move++) {
-      let index = Math.floor(random() * (order.length - 1));
-      if (index === previous) index = (index + 1) % (order.length - 1);
+      // Each adjacent swap increases inversion distance by exactly one, so the
+      // advertised scramble length guarantees the same minimum number of moves.
+      const choices = [];
+      for (let index = 0; index < order.length - 1; index++) {
+        if (rank.get(order[index]) < rank.get(order[index + 1])) choices.push(index);
+      }
+      if (!choices.length) throw new RangeError(`${stage.name} scramble is longer than its adjacent-swap state space.`);
+      const index = choices[Math.floor(random() * choices.length)];
       [order[index], order[index + 1]] = [order[index + 1], order[index]];
-      previous = index;
-    }
-    if (order.every((id, index) => id === stage.answer[index])) {
-      [order[0], order[1]] = [order[1], order[0]];
     }
     return order;
   }
@@ -152,7 +154,7 @@
       return {
         status, stageIndex, stageNumber: stageIndex + 1, stageCount: STAGES.length, stageName: stage.name,
         order: order.slice(), books: order.map(id => ({ ...BOOK_BY_ID.get(id) })),
-        clues: stage.clues.map(clue => ({ ...clue })), moves, budget: stage.budget,
+        clues: stage.clues.map(clue => ({ ...clue, satisfied: clueSatisfied(clue, order) })), moves, budget: stage.budget,
         movesLeft: Math.max(0, stage.budget - moves)
       };
     }

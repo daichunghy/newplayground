@@ -13,6 +13,17 @@ function solveCurrent(model, answer) {
   return model.view();
 }
 
+function adjacentDistance(order, answer) {
+  const rank = new Map(answer.map((id, index) => [id, index]));
+  let distance = 0;
+  for (let left = 0; left < order.length; left++) {
+    for (let right = left + 1; right < order.length; right++) {
+      if (rank.get(order[left]) > rank.get(order[right])) distance++;
+    }
+  }
+  return distance;
+}
+
 test('all three authored clue boards have one and only one solution', () => {
   assert.deepEqual(M.STAGES.map(stage => stage.books.length), [5, 6, 7]);
   for (let index = 0; index < M.STAGES.length; index++) {
@@ -42,6 +53,25 @@ test('seeded campaigns are repeatable, visibly scrambled, and every stage has a 
     assert.equal(a.view().status, 'won');
   }
   assert.notDeepEqual(M.create({ seed: 1 }).view().order, M.create({ seed: 2 }).view().order);
+});
+
+test('each stage starts exactly its advertised adjacent moves from its unique answer', () => {
+  for (let seed = 1; seed <= 32; seed++) {
+    const model = M.create({ seed });
+    for (let index = 0; index < M.STAGES.length; index++) {
+      const stage = M.STAGES[index], view = model.view();
+      assert.equal(adjacentDistance(view.order, stage.answer), stage.scramble, `${stage.name}, seed ${seed}`);
+      assert.ok(stage.scramble < stage.budget);
+      solveCurrent(model, stage.answer);
+      if (index < M.STAGES.length - 1) assert.equal(model.nextStage(), true);
+    }
+  }
+});
+
+test('the view reports which clues currently match without exposing the answer', () => {
+  const model = M.create({ seed: 817 }), view = model.view(), stage = M.STAGES[view.stageIndex];
+  assert.deepEqual(view.clues.map(clue => clue.satisfied), stage.clues.map(clue => M.clueSatisfied(clue, view.order)));
+  assert.ok(view.clues.every(clue => !('answer' in clue)));
 });
 
 test('a move shifts one book to its adjacent slot and invalid, edge, and terminal moves do nothing', () => {

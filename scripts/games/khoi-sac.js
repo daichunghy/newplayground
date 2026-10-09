@@ -17,7 +17,7 @@
         <header class="ks-head">
           <h2>Khối Sắc</h2>
           <div class="ks-actions">
-            <button id="ksPause" class="ks-icon" type="button" aria-label="Tạm dừng">Ⅱ</button>
+            <button id="ksPause" class="ks-icon" type="button" aria-label="Tạm dừng">||</button>
             <button id="ksRestart" class="ks-icon" type="button" aria-label="Chơi lại">↻</button>
           </div>
         </header>
@@ -94,7 +94,7 @@
       </div>`).join('');
       for (const button of container.querySelectorAll('.ks-turn')) button.disabled = !playing;
       el('ksPause').disabled = v.status === 'won' || v.status === 'lost';
-      el('ksPause').textContent = paused ? '▶' : 'Ⅱ';
+      el('ksPause').textContent = paused ? '▶' : '||';
       el('ksPause').setAttribute('aria-label', paused ? 'Tiếp tục' : 'Tạm dừng');
       el('ksOverlay').hidden = playing;
       if (paused) {

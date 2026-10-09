@@ -69,7 +69,7 @@
             <span class="ksku-sigil" aria-hidden="true">${book.sigil}</span><span class="ksku-book-title">${book.title}</span>
           </button>
         </li>`).join('');
-      el('kskuClueList').innerHTML = view.clues.map((clue, index) => `<li><span aria-hidden="true">${String(index + 1).padStart(2, '0')}</span>${clue.text}</li>`).join('');
+      el('kskuClueList').innerHTML = view.clues.map((clue, index) => `<li data-satisfied="${clue.satisfied}"><span class="ksku-clue-number" aria-hidden="true">${String(index + 1).padStart(2, '0')}</span><span class="ksku-clue-state" role="img" aria-label="${clue.satisfied ? 'Đã khớp' : 'Chưa khớp'}">${clue.satisfied ? '✓' : '○'}</span><span class="ksku-clue-text">${clue.text}</span></li>`).join('');
       const position = selectedPosition(view);
       el('kskuSelected').textContent = position >= 0 ? `Đang chọn · ${view.books[position].title}` : 'Chưa chọn sách';
       el('kskuLeft').disabled = !movable || position <= 0;

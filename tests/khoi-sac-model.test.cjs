@@ -74,9 +74,21 @@ test('seeded starts are reproducible, differ across seeds, and never begin at th
   assert.notDeepEqual(first.view().faces, M.create({ seed: 'harbor-18' }).view().faces);
   for (let stage = 0; stage < M.STAGES.length; stage++) {
     const target = M.stageTargets(stage), start = M.applySequence(M.createSolvedCube(), first.scramble(stage));
-    assert.equal(M.targetProgress(start, target).complete, false);
+    const progress = M.targetProgress(start, target);
+    assert.equal(progress.complete, false);
+    assert.ok(progress.total - progress.matches >= Math.ceil(progress.total / 2), `stage ${stage + 1} must not start nearly solved`);
     assert.deepEqual(target, M.stageTargets(stage));
     for (const face of M.STAGES[stage].targetFaces) assert.ok(new Set(target[face]).size > 1, 'motifs are not solved-color faces');
+  }
+});
+
+test('seeded starts keep at least half of each target pattern to solve across a wider seed sample', () => {
+  for (let seed = 1; seed <= 128; seed++) {
+    for (let stage = 0; stage < M.STAGES.length; stage++) {
+      const start = M.applySequence(M.createSolvedCube(), M.scrambleForStage(stage, seed));
+      const progress = M.targetProgress(start, M.stageTargets(stage));
+      assert.ok(progress.total - progress.matches >= Math.ceil(progress.total / 2), `seed ${seed}, stage ${stage + 1}`);
+    }
   }
 });
 

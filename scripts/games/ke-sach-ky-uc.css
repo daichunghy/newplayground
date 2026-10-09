@@ -50,8 +50,11 @@
 .ksku-clues { padding: 14px 16px; border: 1px solid #d3c9b5; border-radius: 15px; background: #fffdf7bd; }
 .ksku-clues h3 { margin: 0 0 8px; font-size: 16px; }
 .ksku-clues ol { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 20px; margin: 0; padding: 0; list-style: none; }
-.ksku-clues li { display: flex; gap: 9px; align-items: baseline; color: #495a54; font-size: 14px; line-height: 1.35; }
-.ksku-clues li span { flex: 0 0 auto; color: #98744c; font-size: 11px; font-weight: 700; letter-spacing: .08em; }
+.ksku-clues li { display: flex; gap: 8px; align-items: baseline; color: #495a54; font-size: 14px; line-height: 1.35; }
+.ksku-clue-number { flex: 0 0 auto; color: #98744c; font-size: 11px; font-weight: 700; letter-spacing: .08em; }
+.ksku-clue-state { flex: 0 0 20px; display: inline-grid; width: 20px; height: 20px; place-items: center; border-radius: 50%; color: #7a776c; background: #eee8da; font-size: 13px; font-weight: 800; }
+.ksku-clues li[data-satisfied="true"] .ksku-clue-state { color: #285448; background: #dcebd8; }
+.ksku-clue-text { min-width: 0; }
 .ksku-status { min-height: 1.4em; margin: 12px 1px 0; color: #415750; font-size: 14px; }
 .ksku-overlay { position: absolute; z-index: 2; inset: 0; display: grid; place-items: center; padding: 18px; border-radius: inherit; background: #1e322e75; }
 .ksku-overlay[hidden] { display: none; }

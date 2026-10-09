@@ -22,12 +22,18 @@ function clickBook(h, id) {
 }
 function solveWithControls(h, answer) {
   const model = h.mountResult.getModel();
+  const assertClues = () => assert.deepEqual(
+    Array.from(el(h, 'kskuClueList').querySelectorAll('li')).map(item => item.dataset.satisfied === 'true'),
+    Array.from(model.view().clues, clue => clue.satisfied)
+  );
+  assertClues();
   for (let target = 0; target < answer.length; target++) {
     let view = model.view();
     while (view.order.indexOf(answer[target]) > target) {
       if (!h.mountResult.isSelected(answer[target])) clickBook(h, answer[target]);
       click(h, 'kskuLeft');
       view = model.view();
+      assertClues();
     }
   }
   return model.view();
@@ -44,6 +50,11 @@ test('the game opens directly with fictional books, short clues, budget, replay,
   assert.equal(view.stageNumber, 1);
   assert.equal(h.container.querySelectorAll('.ksku-book').length, 5);
   assert.ok(el(h, 'kskuClueList').innerHTML.includes('Mây'));
+  assert.equal(el(h, 'kskuClueList').querySelectorAll('.ksku-clue-state').length, view.clues.length);
+  assert.deepEqual(
+    Array.from(el(h, 'kskuClueList').querySelectorAll('li')).map(item => item.dataset.satisfied === 'true'),
+    Array.from(view.clues, clue => clue.satisfied)
+  );
   for (const id of ['kskuPause', 'kskuReplay', 'kskuLeft', 'kskuRight', 'kskuOverlay', 'kskuStatus']) assert.ok(el(h, id), id);
   const css = read('scripts/games/ke-sach-ky-uc.css');
   assert.match(css, /min-width: 48px/);

@@ -53,13 +53,18 @@
   .kn-head-score span { display: flex; align-items: baseline; gap: 5px; font-size: 11px; }
   .kn-head-score b { font-size: 15px; }
   .kn-actions { flex: 0 0 auto; gap: 5px; margin-left: auto; }
-  .kn-icon { width: 42px; height: 42px; }
+  .kn-icon { width: 44px; height: 44px; }
   .kn-rules { font-size: 13px; }
   .kn-meter-row { grid-template-columns: 1.1fr 1.4fr .5fr; gap: 8px; }
   .kn-cue-box strong { font-size: 17px; }
   .kn-step { grid-template-columns: 34px 1fr; min-height: 58px; gap: 6px; padding: 6px 8px; }
   .kn-step > span { width: 32px; height: 32px; font-size: 21px; }
   .kn-step small { grid-column: 2; margin-top: -7px; }
+  .kn-overlay { position: relative; inset: auto; margin: 8px 0 0; padding: 0; background: transparent; backdrop-filter: none; }
+  .kn-card { padding: 12px 14px; box-shadow: none; }
+  .kn-card-mark { display: none; }
+  .kn-card h3 { margin: 0 0 4px; font-size: 19px; }
+  .kn-card p { margin-bottom: 8px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .kn-fatigue-track i { transition: none; }

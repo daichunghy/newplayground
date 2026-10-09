@@ -55,6 +55,7 @@ test('mount shows the original motif objective, six color-marked face windows an
   assert.equal(el(h, 'ksMoves').textContent, '0 / 10 lượt');
   assert.equal(el(h, 'ksGoalName').textContent, 'Đốm Sáng');
   assert.equal(el(h, 'ksOverlay').hidden, true);
+  assert.equal(el(h, 'ksPause').textContent, '||', 'pause icon uses a visible two-bar fallback');
   const css = read('scripts/games/khoi-sac.css');
   assert.match(css, /\.ks-turn\s*\{[^}]*min-height:\s*46px/s);
   assert.match(css, /\.ks-icon\s*\{[^}]*min-width:\s*48px/s);
