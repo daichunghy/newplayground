@@ -58,6 +58,34 @@
         const capture = typeof options === 'boolean' ? options : !!(options && options.capture);
         listeners.push({ target, type, callback, capture });
       },
+      bindHorizontalPan(viewport, controls) {
+        if (!active || !viewport || !controls?.group || !controls.left || !controls.right) return () => {};
+        const update = () => {
+          const clientWidth = Number(viewport.clientWidth) || Number(viewport.getBoundingClientRect?.().width) || 0;
+          const scrollWidth = Number(viewport.scrollWidth) || clientWidth;
+          const max = Math.max(0, scrollWidth - clientWidth);
+          controls.group.hidden = max < 2;
+          controls.left.disabled = max < 2 || viewport.scrollLeft <= 1;
+          controls.right.disabled = max < 2 || viewport.scrollLeft >= max - 1;
+        };
+        const pan = direction => {
+          const clientWidth = Number(viewport.clientWidth) || Number(viewport.getBoundingClientRect?.().width) || 0;
+          const scrollWidth = Number(viewport.scrollWidth) || clientWidth;
+          const max = Math.max(0, scrollWidth - clientWidth);
+          if (max < 2) return;
+          const distance = Math.min(max, Math.max(160, Math.round(clientWidth * .8)));
+          viewport.scrollBy({
+            left: direction * distance,
+            behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+          });
+        };
+        this.listen(controls.left, 'click', () => pan(-1));
+        this.listen(controls.right, 'click', () => pan(1));
+        this.listen(viewport, 'scroll', update, { passive: true });
+        this.listen(window, 'resize', update);
+        update();
+        return update;
+      },
       onCleanup(callback) {
         if (active) cleanups.add(callback);
         return () => cleanups.delete(callback);

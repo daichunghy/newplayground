@@ -85,6 +85,7 @@ function domHarness(options = {}) {
   const cleanups = [];
   const session = {
     listen(target, type, handler) { target.addEventListener(type, handler); },
+    bindHorizontalPan(_viewport, controls) { controls.group.hidden = true; return () => {}; },
     onCleanup(handler) { cleanups.push(handler); }
   };
   const game = window.NP_Klondike.mount(container, session, options);

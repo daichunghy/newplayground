@@ -32,6 +32,13 @@
 #fcProgress { flex: 0 0 auto; font-size: 12px; font-weight: 700; white-space: nowrap; }
 
 .fc-board-scroll { overflow-x: auto; overscroll-behavior-x: contain; border-radius: 20px; scrollbar-color: #89aa97 #e8eee1; }
+.fc-board-scroll { scroll-behavior: smooth; }
+.fc-board-scroll:focus-visible { outline: 3px solid #e0a43b; outline-offset: 2px; }
+.fc-board-pan { display: flex; justify-content: flex-end; gap: 6px; margin: 0 0 7px; }
+.fc-board-pan[hidden] { display: none; }
+.fc-pan-button { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 1px solid #ccd8cc; border-radius: 11px; color: var(--fc-ink); background: #fffdf6; font: 700 25px/1 Calibri, Inter, sans-serif; cursor: pointer; }
+.fc-pan-button:disabled { opacity: .45; cursor: default; }
+.fc-pan-button:focus-visible { outline: 3px solid #e0a43b; outline-offset: 2px; }
 .fc-board { min-width: 750px; padding: clamp(13px, 2vw, 22px); color: #fff; border: 1px solid rgba(8, 45, 34, .5); border-radius: 20px; background-color: var(--fc-felt-b); background-image: radial-gradient(ellipse at 50% -15%, rgba(255,255,255,.15), transparent 62%), repeating-linear-gradient(132deg, rgba(255,255,255,.025) 0 1px, transparent 1px 5px), linear-gradient(150deg, var(--fc-felt-a), var(--fc-felt-b)); box-shadow: 0 14px 34px rgba(23, 52, 40, .2), inset 0 1px rgba(255,255,255,.12); }
 .fc-topbar { display: flex; justify-content: space-between; gap: 24px; margin-bottom: 18px; }
 .fc-group { display: grid; grid-template-columns: repeat(4, minmax(58px, 76px)); gap: clamp(7px, 1.2vw, 13px); }
@@ -80,4 +87,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .fc-card { transition: none; }
+  .fc-board-scroll { scroll-behavior: auto; }
 }

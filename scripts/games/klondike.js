@@ -30,19 +30,27 @@
           <p id="klStatus" role="status" aria-live="polite" aria-atomic="true">Chạm lá bài rồi chạm cột đích. Có thể kéo bài trên máy tính.</p>
           <span id="klMoveCount">0 nước</span>
         </div>
-        <div class="kl-tabletop" aria-label="Kho bài và nền">
-          <div class="kl-slot-group">
-            <div class="kl-slot-wrap"><span class="kl-slot-label">Nọc</span>
-              <button class="kl-stock-slot" id="klStock" data-action="stock" type="button" aria-label="Rút một lá từ nọc"></button>
-            </div>
-            <div class="kl-slot-wrap"><span class="kl-slot-label">Bài lật</span>
-              <div class="kl-waste-slot" id="klWaste" aria-label="Bài lật"></div>
-            </div>
-          </div>
-          <div class="kl-spacer" aria-hidden="true"></div>
-          <div class="kl-foundations" aria-label="Bốn nền theo chất"></div>
+        <div class="kl-board-pan" id="klBoardPan" role="group" aria-label="Cuộn bàn bài" hidden>
+          <button class="kl-pan-button" id="klPanLeft" type="button" aria-label="Cuộn bàn bài sang trái">‹</button>
+          <button class="kl-pan-button" id="klPanRight" type="button" aria-label="Cuộn bàn bài sang phải">›</button>
         </div>
-        <div class="kl-tableau" id="klTableau" role="group" aria-label="Bảy cột bài"></div>
+        <div class="kl-board-scroll" id="klBoardScroll" tabindex="0" aria-label="Bàn bài, có thể cuộn ngang trên màn hình nhỏ">
+          <div class="kl-board">
+            <div class="kl-tabletop" aria-label="Kho bài và nền">
+              <div class="kl-slot-group">
+                <div class="kl-slot-wrap"><span class="kl-slot-label">Nọc</span>
+                  <button class="kl-stock-slot" id="klStock" data-action="stock" type="button" aria-label="Rút một lá từ nọc"></button>
+                </div>
+                <div class="kl-slot-wrap"><span class="kl-slot-label">Bài lật</span>
+                  <div class="kl-waste-slot" id="klWaste" aria-label="Bài lật"></div>
+                </div>
+              </div>
+              <div class="kl-spacer" aria-hidden="true"></div>
+              <div class="kl-foundations" aria-label="Bốn nền theo chất"></div>
+            </div>
+            <div class="kl-tableau" id="klTableau" role="group" aria-label="Bảy cột bài"></div>
+          </div>
+        </div>
         <div class="kl-footer">
           <p>Đặt lá thấp hơn khác màu. Chỉ Vua vào cột trống; Nọc rút 1 lá, đảo lại một lần.</p>
           <p class="kl-shortcuts">Phím: Z hoàn tác · Esc bỏ chọn</p>
@@ -50,6 +58,9 @@
       </section>`;
 
     const el = id => container.querySelector(`#${id}`);
+    const updateBoardPan = session.bindHorizontalPan(el('klBoardScroll'), {
+      group: el('klBoardPan'), left: el('klPanLeft'), right: el('klPanRight')
+    });
     const suitName = { clubs: 'Tép', diamonds: 'Rô', hearts: 'Cơ', spades: 'Bích' };
     const sourceEqual = (a, b) => Boolean(a && b && a.zone === b.zone && a.pile === b.pile && a.index === b.index && a.suit === b.suit);
 
@@ -168,6 +179,7 @@
       el('klStatus').textContent = statusText(view);
       el('klStatus').classList.toggle('kl-result', view.status !== 'playing');
       tableau.setAttribute('aria-label', `Bảy cột bài. ${view.tableaus.reduce((sum, pile) => sum + pile.length, 0)} lá đang nằm trong các cột.`);
+      updateBoardPan();
     }
 
     function tryMove(source, target) {

@@ -29,7 +29,11 @@
           <p id="fcStatus" role="status" aria-live="polite" aria-atomic="true">Chọn lá rồi chọn ô, cột hoặc nền.</p>
           <span id="fcProgress">0 / 52 lá lên nền</span>
         </div>
-        <div class="fc-board-scroll" tabindex="0" aria-label="Bàn bài, có thể cuộn ngang trên màn hình nhỏ">
+        <div class="fc-board-pan" id="fcBoardPan" role="group" aria-label="Cuộn bàn bài" hidden>
+          <button class="fc-pan-button" id="fcPanLeft" type="button" aria-label="Cuộn bàn bài sang trái">‹</button>
+          <button class="fc-pan-button" id="fcPanRight" type="button" aria-label="Cuộn bàn bài sang phải">›</button>
+        </div>
+        <div class="fc-board-scroll" id="fcBoardScroll" tabindex="0" aria-label="Bàn bài, có thể cuộn ngang trên màn hình nhỏ">
           <div class="fc-board">
             <div class="fc-topbar">
               <div class="fc-group fc-cells" aria-label="Bốn ô tạm"></div>
@@ -45,6 +49,9 @@
       </section>`;
 
     const el = id => container.querySelector(`#${id}`);
+    const updateBoardPan = session.bindHorizontalPan(el('fcBoardScroll'), {
+      group: el('fcBoardPan'), left: el('fcPanLeft'), right: el('fcPanRight')
+    });
     const sourceEqual = (a, b) => Boolean(a && b && a.zone === b.zone && a.pile === b.pile
       && a.index === b.index && a.cell === b.cell);
 
@@ -145,6 +152,7 @@
 
       el('fcStatus').textContent = statusText(view);
       el('fcStatus').classList.toggle('fc-result', view.status !== 'playing');
+      updateBoardPan();
     }
 
     function tryMove(source, target) {

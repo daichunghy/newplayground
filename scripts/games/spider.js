@@ -29,7 +29,11 @@
           </div>
         </header>
         <div class="sp-statusline"><p id="spStatus" role="status" aria-live="polite" aria-atomic="true">Chạm một lá hoặc dãy liền chất, rồi chạm vị trí đến.</p><button class="sp-action sp-hint-button" id="spHint" data-action="hint" type="button" aria-label="Gợi ý một nước đi" title="Gợi ý · H">Gợi ý</button><span id="spProgress">0 / 8 dãy</span></div>
-        <div class="sp-board-scroll" tabindex="0" aria-label="Bàn bài, có thể cuộn ngang trên màn hình nhỏ">
+        <div class="sp-board-pan" id="spBoardPan" role="group" aria-label="Cuộn bàn bài" hidden>
+          <button class="sp-pan-button" id="spPanLeft" type="button" aria-label="Cuộn bàn bài sang trái">‹</button>
+          <button class="sp-pan-button" id="spPanRight" type="button" aria-label="Cuộn bàn bài sang phải">›</button>
+        </div>
+        <div class="sp-board-scroll" id="spBoardScroll" tabindex="0" aria-label="Bàn bài, có thể cuộn ngang trên màn hình nhỏ">
           <div class="sp-board">
             <div class="sp-toolbar">
               <button class="sp-stock" id="spStock" data-action="deal" type="button" aria-label="Chia hàng mới từ nọc"></button>
@@ -44,6 +48,9 @@
       </section>`;
 
     const el = id => container.querySelector(`#${id}`);
+    const updateBoardPan = session.bindHorizontalPan(el('spBoardScroll'), {
+      group: el('spBoardPan'), left: el('spPanLeft'), right: el('spPanRight')
+    });
     const sourceEqual = (a, b) => Boolean(a && b && a.zone === b.zone && a.pile === b.pile && a.index === b.index);
 
     function sourceFrom(element) {
@@ -113,6 +120,7 @@
       el('spStatus').textContent = statusText(view);
       el('spStatus').classList.toggle('sp-result', view.status !== 'playing');
       tableau.setAttribute('aria-label', `Mười cột bài, ${view.tableaus.reduce((sum, pile) => sum + pile.length, 0)} lá còn trên bàn.`);
+      updateBoardPan();
     }
     function tryMove(source, target) {
       if (!source || !target || !model.move(source, target)) return false;

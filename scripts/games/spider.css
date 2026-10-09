@@ -29,7 +29,13 @@
 .sp-hint-button { min-height: 44px; padding-inline: 10px; white-space: nowrap; }
 .sp-statusline .sp-result { color: #174b3c; font-weight: 800; }
 #spProgress { flex: 0 0 auto; font-size: 12px; font-weight: 700; white-space: nowrap; }
-.sp-board-scroll { overflow: auto; overscroll-behavior: contain; border-radius: 20px; scrollbar-color: #89aa97 #e8eee1; touch-action: pan-x pan-y; }
+.sp-board-scroll { overflow: auto; overscroll-behavior: contain; border-radius: 20px; scrollbar-color: #89aa97 #e8eee1; touch-action: pan-x pan-y; scroll-behavior: smooth; }
+.sp-board-scroll:focus-visible { outline: 3px solid #e5b454; outline-offset: 2px; }
+.sp-board-pan { display: flex; justify-content: flex-end; gap: 6px; margin: 0 0 7px; }
+.sp-board-pan[hidden] { display: none; }
+.sp-pan-button { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 1px solid #ccd8cc; border-radius: 11px; color: var(--sp-ink); background: #fffdf6; font: 700 25px/1 Calibri, Inter, sans-serif; cursor: pointer; }
+.sp-pan-button:disabled { opacity: .45; cursor: default; }
+.sp-pan-button:focus-visible { outline: 3px solid #e5b454; outline-offset: 2px; }
 .sp-board { min-width: 1030px; padding: clamp(13px, 1.8vw, 20px); color: #fff; border: 1px solid rgba(8, 45, 34, .5); border-radius: 20px; background-color: var(--sp-felt-b); background-image: radial-gradient(ellipse at 50% -15%, rgba(255,255,255,.15), transparent 62%), repeating-linear-gradient(132deg, rgba(255,255,255,.025) 0 1px, transparent 1px 5px), linear-gradient(150deg, var(--sp-felt-a), var(--sp-felt-b)); box-shadow: 0 14px 34px rgba(23, 52, 40, .2), inset 0 1px rgba(255,255,255,.12); }
 .sp-toolbar { display: flex; align-items: center; gap: 12px; min-height: 82px; margin-bottom: 12px; }
 .sp-stock { position: relative; width: 64px; height: 82px; border: 0; border-radius: 9px; padding: 0; color: #f7f4e9; background: transparent; cursor: pointer; }
@@ -75,4 +81,4 @@
   .sp-footer { display: block; }
   .sp-shortcuts { margin-top: 5px !important; text-align: left; }
 }
-@media (prefers-reduced-motion: reduce) { .sp-card { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .sp-card { transition: none; } .sp-board-scroll { scroll-behavior: auto; } }

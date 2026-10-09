@@ -92,6 +92,7 @@ function domHarness(options = {}) {
       target.addEventListener(type, handler);
       cleanups.push(() => target.removeEventListener(type, handler));
     },
+    bindHorizontalPan(_viewport, controls) { controls.group.hidden = true; return () => {}; },
     onCleanup(handler) { cleanups.push(handler); },
     stop() { cleanups.splice(0).forEach(cleanup => cleanup()); }
   };

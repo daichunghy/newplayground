@@ -37,6 +37,20 @@ async function loadPortal(page) {
   await expect(page.locator('#catalogAvailability')).toContainText('60');
 }
 
+async function newMobilePage(browser, width = 320, height = 800) {
+  const context = await browser.newContext({
+    viewport: { width, height }, deviceScaleFactor: 1, isMobile: true, hasTouch: true
+  });
+  const page = await context.newPage();
+  await loadPortal(page);
+  return { context, page };
+}
+
+async function expectViewportFits(page) {
+  const size = await page.evaluate(() => ({ width: innerWidth, pageWidth: document.documentElement.scrollWidth }));
+  expect(size.pageWidth).toBeLessThanOrEqual(size.width);
+}
+
 test('the default grid is playable-only; explicit catalog browsing keeps planned entries informational', async ({ page }) => {
   await loadPortal(page);
   await expect(page.locator('#allSectionTitle')).toHaveText('Bản thử nghiệm có thể chơi (60)');
@@ -447,6 +461,118 @@ test('mobile Đập Chuột Chũi scores with direct keyboard/touch input, pause
     const hole = await page.locator('#moleHole0').boundingBox();
     expect(hole.width).toBeGreaterThanOrEqual(68);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await closeGame(page);
+    expect(errors).toEqual([]);
+  } finally {
+    await context.close();
+  }
+});
+
+test('mobile Bảy Cột keeps card taps 44px wide, pans its board, and draws from the stock', async ({ browser }) => {
+  const { context, page } = await newMobilePage(browser);
+  const errors = watchErrors(page);
+  try {
+    await openGame(page, 'xep-bai-solitaire');
+    await expect(page.locator('#klBoardPan')).toBeVisible();
+    const controls = await page.locator('.kl-pan-button').evaluateAll(nodes => nodes.map(node => {
+      const box = node.getBoundingClientRect();
+      return { width: box.width, height: box.height };
+    }));
+    expect(controls.every(box => box.width >= 44 && box.height >= 44), JSON.stringify(controls)).toBe(true);
+    const firstCard = await page.locator('.kl-card:not(.kl-back)').first().boundingBox();
+    expect(firstCard.width).toBeGreaterThanOrEqual(44);
+    await page.locator('#klPanRight').tap();
+    await expect.poll(() => page.locator('#klBoardScroll').evaluate(node => node.scrollLeft)).toBeGreaterThan(0);
+    await page.locator('#klPanLeft').tap();
+    await expect.poll(() => page.locator('#klBoardScroll').evaluate(node => node.scrollLeft)).toBe(0);
+    await page.locator('#klStock').tap();
+    await expect(page.locator('#klStatus')).toContainText('Đã lật một lá');
+    await expectViewportFits(page);
+    await closeGame(page);
+    expect(errors).toEqual([]);
+  } finally {
+    await context.close();
+  }
+});
+
+test('mobile Bốn Ô pans to the last columns and selects a face-up card by touch', async ({ browser }) => {
+  const { context, page } = await newMobilePage(browser);
+  const errors = watchErrors(page);
+  try {
+    await openGame(page, 'xep-bai-freecell');
+    await expect(page.locator('#fcBoardPan')).toBeVisible();
+    const controls = await page.locator('.fc-pan-button').evaluateAll(nodes => nodes.map(node => {
+      const box = node.getBoundingClientRect();
+      return { width: box.width, height: box.height };
+    }));
+    expect(controls.every(box => box.width >= 44 && box.height >= 44), JSON.stringify(controls)).toBe(true);
+    await page.locator('#fcPanRight').tap();
+    await expect.poll(() => page.locator('#fcBoardScroll').evaluate(node => node.scrollLeft)).toBeGreaterThan(0);
+    await page.locator('#fcPanLeft').tap();
+    await expect.poll(() => page.locator('#fcBoardScroll').evaluate(node => node.scrollLeft)).toBe(0);
+    await page.locator('.fc-card[data-pile="0"]').last().tap();
+    await expect(page.locator('.fc-card[data-pile="0"][aria-pressed="true"]')).toHaveCount(1);
+    await expect(page.locator('#fcStatus')).toContainText('Đã chọn bài');
+    await expectViewportFits(page);
+    await closeGame(page);
+    expect(errors).toEqual([]);
+  } finally {
+    await context.close();
+  }
+});
+
+test('mobile Bài Nhện pans its ten-column board, shows a legal hint, and completes that move', async ({ browser }) => {
+  const { context, page } = await newMobilePage(browser);
+  const errors = watchErrors(page);
+  try {
+    await openGame(page, 'xep-bai-nhen-spider');
+    await expect(page.locator('#spBoardPan')).toBeVisible();
+    await page.locator('#spPanRight').tap();
+    await expect.poll(() => page.locator('#spBoardScroll').evaluate(node => node.scrollLeft)).toBeGreaterThan(0);
+    await page.locator('#spPanLeft').tap();
+    await expect.poll(() => page.locator('#spBoardScroll').evaluate(node => node.scrollLeft)).toBe(0);
+    await page.locator('#spHint').tap();
+    const hint = await page.locator('#spStatus').innerText();
+    const move = hint.match(/Cột (\d+) → (\d+)/);
+    if (move) {
+      await page.locator(`.sp-pile[data-pile="${Number(move[2]) - 1}"]`).tap();
+      await expect(page.locator('#spUndo')).toBeEnabled();
+      await expect(page.locator('#spStatus')).not.toHaveText(hint);
+    } else if (hint.includes('Chia thêm một hàng')) {
+      await page.locator('#spStock').tap();
+      await expect(page.locator('#spStatus')).toContainText('Đã chia 10 lá');
+    } else {
+      throw new Error(`Unexpected Spider hint: ${hint}`);
+    }
+    await expectViewportFits(page);
+    await closeGame(page);
+    expect(errors).toEqual([]);
+  } finally {
+    await context.close();
+  }
+});
+
+test('mobile Sắc Chuyền reveals the full hand with pan controls and draws a card', async ({ browser }) => {
+  const { context, page } = await newMobilePage(browser);
+  const errors = watchErrors(page);
+  try {
+    await openGame(page, 'danh-bai-uno');
+    await expect(page.locator('#ssHandPan')).toBeVisible();
+    await expect(page.locator('#ssHand .ss-card')).toHaveCount(6);
+    const controls = await page.locator('.ss-hand-pan-button').evaluateAll(nodes => nodes.map(node => {
+      const box = node.getBoundingClientRect();
+      return { width: box.width, height: box.height };
+    }));
+    expect(controls.every(box => box.width >= 44 && box.height >= 44), JSON.stringify(controls)).toBe(true);
+    await page.locator('#ssHandPanRight').tap();
+    await expect.poll(() => page.locator('#ssHand').evaluate(node => node.scrollLeft)).toBeGreaterThan(0);
+    await page.locator('#ssHandPanLeft').tap();
+    await expect.poll(() => page.locator('#ssHand').evaluate(node => node.scrollLeft)).toBe(0);
+    const before = Number(await page.locator('#ssDrawCount').innerText());
+    await page.locator('#ssDraw').tap();
+    await expect.poll(async () => Number(await page.locator('#ssDrawCount').innerText())).toBe(before - 1);
+    await expect(page.locator('#ssHandCount')).toHaveText('7 lá');
+    await expectViewportFits(page);
     await closeGame(page);
     expect(errors).toEqual([]);
   } finally {
