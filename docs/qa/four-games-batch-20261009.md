@@ -29,7 +29,8 @@ Earlier in this batch, **Dò Mìn** gained a logic-only safe hint that waits for
 - `node scripts/release-preflight.mjs --prepare` — passed with **150 catalog entries, 69 prototype routes, 81 planned entries, and 150 declared assets**. This is static consistency/syntax validation, not game-rule or title-rights certification.
 - `git diff --check` — clean.
 - The current 320×800 app panels were captured and visually reviewed: [Mầm Măm](four-games-rebrand-20261009/mam-mam-mobile.png), [Cú Sao Gác Đèn](four-games-rebrand-20261009/cu-sao-mobile.png), [Đốm Biển](four-games-rebrand-20261009/dom-bien-mobile.png), and [Sắc Bậc](four-games-rebrand-20261009/sac-bac-mobile.png).
-- GitHub Actions on the new pushed SHA will be recorded after CI completes; deployment remains disabled for the draft PR.
+- The first GitHub browser run on `074aeb4e131c88006d976a154bdc6d922bb50f49` caught an invalid pre-existing 2048 Undo fixture: a one-tile save fails the model's minimum-two-tile validation. The fixture now uses two mergeable tiles and asserts the restored starting board. After that correction, local Chromium passed **44/44** and the full Node suite passed **1,372/1,372**.
+- GitHub Actions at `aa8368b89b7ff00ada796cd15f89b51e055d5c01`: [prepare — pass](https://github.com/daichunghy/newplayground/actions/runs/37938425999) and [Chromium smoke — pass](https://github.com/daichunghy/newplayground/actions/runs/37938425941). Deployment remains skipped while the PR is a draft.
 
 ## Limits
 
