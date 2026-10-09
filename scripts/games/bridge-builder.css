@@ -1,0 +1,45 @@
+.bb-host { color: #2d3d3c; font-family: Calibri, Inter, -apple-system, sans-serif; }
+.bb-game { position: relative; max-width: 760px; margin: 0 auto; padding: 14px; overflow: hidden; border: 1px solid #ccd8d4; border-radius: 20px; background: linear-gradient(145deg, #fffdf4, #e7eee5); box-shadow: 0 10px 24px #263a3d18; }
+.bb-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.bb-head h2 { margin: 0; color: #365c59; font-size: clamp(1.25rem, 5vw, 1.65rem); }
+.bb-actions { display: flex; gap: 8px; }
+.bb-button { min-width: 46px; min-height: 46px; padding: 8px 12px; border: 1px solid #a8bbb3; border-radius: 13px; background: #fffdf5; color: #365c59; font: 700 1rem Calibri, Inter, -apple-system, sans-serif; cursor: pointer; touch-action: manipulation; }
+.bb-button:focus-visible, .bb-joint:focus-visible { outline: 3px solid #dc9754; outline-offset: 2px; }
+.bb-button:disabled { opacity: .45; cursor: not-allowed; }
+.bb-hud { display: grid; grid-template-columns: 1.35fr 1fr .8fr; margin-bottom: 7px; border: 1px solid #d2ddd4; border-radius: 13px; background: #fffdf6; }
+.bb-hud > div { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 52px; padding: 4px; }
+.bb-hud > div + div { border-left: 1px solid #d2ddd4; }
+.bb-hud span { color: #718078; font-size: .78rem; }
+.bb-hud strong { color: #355d58; font-size: .98rem; }
+.bb-cue { margin: 4px 2px 8px; color: #65766e; font-size: .9rem; text-align: center; }
+.bb-board-frame { width: 100%; overflow-x: auto; overscroll-behavior-x: contain; border: 1px solid #c9d9d1; border-radius: 15px; background: linear-gradient(#dcecf0 0 53%, #a9d7da 54% 100%); }
+.bb-board { display: block; width: 100%; height: auto; aspect-ratio: 420 / 260; }
+.bb-game.is-wide .bb-board { width: 560px; max-width: none; }
+.bb-river { fill: #77bdc3; opacity: .78; }
+.bb-bank { fill: #907455; }
+.bb-road { stroke: #f1e4ba; stroke-width: 12; stroke-linecap: round; }
+.bb-member { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.bb-member.road { stroke: #805d3e; stroke-width: 8; }
+.bb-member.chord { stroke: #668478; stroke-width: 6; }
+.bb-member.brace { stroke: #d98451; stroke-width: 7; }
+.bb-ghost { stroke: #59786d; stroke-width: 3; stroke-dasharray: 6 7; opacity: .3; }
+.bb-joint { cursor: pointer; }
+.bb-joint .bb-hit { fill: transparent; stroke: transparent; }
+.bb-joint-dot { fill: #fff5d6; stroke: #4e6b62; stroke-width: 4; transition: fill .12s, r .12s; }
+.bb-joint-dot.deck { fill: #d8a56c; }
+.bb-joint text { fill: #3e5d56; font: 700 13px Calibri, sans-serif; pointer-events: none; }
+.bb-joint.selected .bb-joint-dot { fill: #f0be5c; stroke: #aa6e35; stroke-width: 5; }
+.bb-truck rect, .bb-truck path { fill: #d66e52; stroke: #714b3a; stroke-width: 2; }
+.bb-truck circle { fill: #34464a; stroke: #fff3d8; stroke-width: 2; }
+.bb-progress { height: 5px; margin: 9px 2px; overflow: hidden; border-radius: 99px; background: #d6e2db; }
+.bb-progress span { display: block; width: 0; height: 100%; border-radius: inherit; background: #5d9c77; transition: width .1s linear; }
+.bb-tools { display: flex; justify-content: center; gap: 10px; }
+.bb-primary { min-width: 120px; border-color: #3c725f; background: #3c725f; color: #fffdf5; }
+.bb-status { min-height: 1.35em; margin: 7px 0 0; color: #5d7168; font-size: .9rem; text-align: center; }
+.bb-overlay { position: absolute; z-index: 4; inset: 0; display: grid; place-items: center; padding: 16px; background: #1d3934a8; }
+.bb-overlay[hidden] { display: none; }
+.bb-overlay-card { width: min(100%, 320px); padding: 18px; border: 1px solid #d4ddcf; border-radius: 18px; background: #fffdf5; text-align: center; box-shadow: 0 10px 28px #18261c30; }
+.bb-overlay-card strong { color: #355d58; font-size: 1.3rem; }
+.bb-overlay-card p { margin: 7px 0 14px; color: #65746b; }
+@media (max-width: 360px) { .bb-game { padding: 10px; } .bb-hud > div { min-height: 48px; padding: 3px 2px; } .bb-hud strong { font-size: .88rem; } .bb-cue { margin-bottom: 6px; } }
+@media (prefers-reduced-motion: reduce) { .bb-progress span, .bb-joint-dot { transition: none; } }

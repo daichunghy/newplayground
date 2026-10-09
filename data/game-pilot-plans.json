@@ -1,0 +1,249 @@
+{
+  "version": 1,
+  "updated_at": "2026-10-07",
+  "plans": [
+    {
+      "id": "do-min-minesweeper",
+      "order": 1,
+      "reference_version": "Minesweeper cổ điển; đối chiếu riêng với tiện ích của Minesweeper Online",
+      "code_file": "scripts/games/minesweeper-model.js + scripts/games/minesweeper.js",
+      "source_review": "Ứng viên ms1: 3 preset cổ điển + pocket 6×8/8; safe opening, flood/chord/win/loss, keyboard, giữ-thả cờ, pause/resume, save/records và SVG/CSS/SFX nguyên bản. 101 test tự động pass, trong đó UI dùng DOM double. Chưa nghiệm thu browser/device. Hồ sơ chi tiết: docs/games/MINESWEEPER_RESEARCH_AND_QA.md.",
+      "source_urls": [
+        "https://minesweeper.online/help/gameplay",
+        "https://github.com/DavidNHill/JSMinesweeper#how-to-use-the-player",
+        "https://www.w3.org/WAI/ARIA/apg/patterns/grid/",
+        "https://www.w3.org/WAI/WCAG22/Understanding/pointer-cancellation.html",
+        "https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events"
+      ],
+      "evidence": "Primary-source review and 101 automated tests passed; browser/device/playtest gates remain pending",
+      "observation_date": "2026-10-07",
+      "rules_task": "Đã triển khai và kiểm tra model: số mìn/clue, safe opening, flood, chord đúng/sai, thắng không cần cờ. Tiếp: playthrough trên browser; không công bố no-guess.",
+      "controls_task": "Đã có keyboard roving focus, mode mở/cờ, long-press 450 ms commit khi thả, hủy kéo/đa chạm, 44px targets và pan/zoom. Tiếp: đo cảm giác trên touch thật và Safari.",
+      "progression_items_task": "Kỷ lục/played/won riêng bốn preset, active save schema 1, restore paused; không thêm vật phẩm. Còn QA reload/quota trên browser thật.",
+      "visual_feel_task": "Minimal visible text and essential controls only; optional short help, nonvisual accessibility retained. Browser/device/latency pending.",
+      "acceptance": "Chuỗi open/flag/chord/win/loss/restart khép kín; bàn khó không tràn viewport; timer và lịch sử không chạy sau đóng.",
+      "estimated_person_days": null,
+      "release_ready": false
+    },
+    {
+      "id": "tro-choi-2048",
+      "order": 2,
+      "reference_version": "2048 bản gốc Gabriele Cirulli",
+      "code_file": "scripts/games/game2048-model.js + scripts/games/game2048-view.js",
+      "source_review": "Ứng viên g2048-1: model/view tách riêng, chuẩn merge/spawn/win/continue/loss, save có validation, keyboard/swipe/D-pad, motion có thể hủy, SVG/CSS/SFX mới. Full suite123 groups pass, gồm9.184 oracle comparisons; browser/device pending. Chi tiết docs/games/2048_IMPLEMENTATION_AND_QA.md.",
+      "source_urls": [
+        "https://play2048.co/about",
+        "https://github.com/gabrielecirulli/2048"
+      ],
+      "evidence": "Primary source review and automated model/controller tests; device acceptance pending",
+      "observation_date": "2026-10-07",
+      "rules_task": "Core và save đã triển khai/kiểm tra tự động; browser playthrough để nghiệm thu scoped parity. Không Undo.",
+      "controls_task": "Mũi tên/WASD trong game, swipe>10px capture/cancel/multitouch, 4 nút44px; rapid input không khóa vì animation. Còn QA touch/pinch/Safari.",
+      "progression_items_task": "Win2048, Continue tới4096+, terminal/restart, best migration và guarded resume; không campaign/items.",
+      "visual_feel_task": "Minimal visible text and essential controls only; optional short help, nonvisual accessibility retained. Browser/device/latency pending.",
+      "acceptance": "Chuỗi 2-2-2-2 ghép đúng; reload phục hồi bàn; swipe một lần chỉ chạy một lượt; tiếp tục sau thắng được.",
+      "estimated_person_days": null,
+      "release_ready": false
+    },
+    {
+      "id": "line-98",
+      "order": 3,
+      "reference_version": "Color Lines 1992 / biến thể Lines 98 cần chọn một bản",
+      "code_file": "scripts/games/line98-model.js + scripts/games/line98.js",
+      "source_review": "Ứng viên NP Classic 1 đã triển khai: BFS, bốn trục, preview/RNG/Undo chính xác, ngoại lệ all-clear có công bố, input/cancel/save/animation độc lập. 38 focused tests pass; browser/device pending. Chi tiết docs/games/LINE98_RESEARCH_AND_QA.md.",
+      "source_urls": [
+        "https://www.mobygames.com/game/9862/color-lines/",
+        "https://en.wikipedia.org/wiki/Color_Lines"
+      ],
+      "evidence": "38 deterministic model/controller tests pass, independent variant documented; no browser/device acceptance",
+      "observation_date": "2026-10-07",
+      "rules_task": "Variant NP Classic 1 ghi rõ scoring và empty-board replenishment; model đã kiểm tra. Còn browser playthrough/acceptance.",
+      "controls_task": "81 ô44px, click/touch/keyboard, preview đường đi, hủy pan/cancel/multitouch; real touch/pinch pending.",
+      "progression_items_task": "Endless, preview3, Undo1 giữ cả RNG, safe save/restore và best tách legacy; không vật phẩm trả tiền.",
+      "visual_feel_task": "Minimal visible text and essential controls only; optional short help, nonvisual accessibility retained. Browser/device/latency pending.",
+      "acceptance": "Đường bị chặn không di chuyển; giao hai đường không đếm trùng; Undo khôi phục board, preview và điểm.",
+      "estimated_person_days": null,
+      "release_ready": false
+    },
+    {
+      "id": "hang-rong",
+      "order": 4,
+      "reference_version": "Game nguyên bản Việt Nam; benchmark time-management",
+      "code_file": "scripts/games/hangrong-model.js + scripts/games/hangrong.js",
+      "source_review": "hr3-simple: mở là nấu/giao; tự chọn menu, nhập hàng, lấy món và khớp món. Không còn các màn chuẩn bị, chợ, trang bị, thống kê hoặc help dài. Giữ v3/v2 progress. 35 focused tests pass; device/playtest pending.",
+      "source_urls": [
+        "https://developers.poki.com/guide/player-fit-test",
+        "https://www.dinerdashadventures.com/help-faq/"
+      ],
+      "evidence": "35 focused deterministic model/UI-double tests; no real browser or device acceptance",
+      "observation_date": "2026-10-07",
+      "rules_task": "Closed shift/economy/progression implemented and deterministic tests; validate human pacing and scoped gameplay in browser.",
+      "controls_task": "Chạm món để nấu, chạm khách để giao; phím 1–3 và Q/W/E/R; pause/resume. Real touch/AT pending.",
+      "progression_items_task": "Cấp và save giữ nguyên dưới game; không yêu cầu người chơi quản lý kho, trang bị hay bước chuẩn bị.",
+      "visual_feel_task": "Instant play, customers/dishes/timer only, original vector art, optional one-line help. Device/audio/latency pending.",
+      "acceptance": "Cấp 4/8/15/25 khớp bảng mở khóa đã chốt; save lỗi không làm mất khả năng chơi; không rơi vào ca không thể hoàn thành.",
+      "estimated_person_days": null,
+      "release_ready": false
+    },
+    {
+      "id": "xep-gach-tetris",
+      "order": 5,
+      "reference_version": "Original NewPlayground Xếp Khối endless; MIT rotation offsets attributed; no official Tetris parity claim",
+      "code_file": "scripts/games/falling-blocks-model.js + falling-blocks-input.js + falling-blocks.js",
+      "source_review": "fb1 integrated: original endless falling-block play, seeded bags, kicks, ghost, time-based input/gravity/lock, safe save and compact UI. 27 focused model/controller groups pass, including 100 seeded campaigns. Dossier: docs/games/FALLING_BLOCKS_RESEARCH_AND_SCOPE.md.",
+      "source_urls": [
+        "https://play.tetris.com/",
+        "https://github.com/simonlc/tetr.js/tree/57e5d07b18920389024ffa2ed07ce309d3644706",
+        "https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events"
+      ],
+      "evidence": "Primary source review and 27 focused automated groups; browser/device/playtest pending",
+      "observation_date": "2026-10-07",
+      "rules_task": "Implemented original scoring, seven-bag, rotation offset attribution, ghost/drop/line clear/top-out and capped lock delay. Not guideline compliance.",
+      "controls_task": "DAS160ms/ARR45ms, no OS hard-drop repeat, four touch buttons, keyboard and pause/restart. Device feel unmeasured.",
+      "progression_items_task": "Default endless and saved seeded round, separate best. Hidden model compatibility mechanics are not advertised as playable modes.",
+      "visual_feel_task": "Original SVG/CSS/canvas and muted-aware synth, minimal text, optional one-line help; no commercial BGM/assets. Browser/latency pending.",
+      "acceptance": "27 automated model/input/lifecycle groups pass; actual browser/device/playtest and release rights framing remain gates.",
+      "estimated_person_days": null,
+      "release_ready": false
+    },
+    {
+      "id": "pac-man",
+      "order": 6,
+      "reference_version": "Original NewPlayground Lối Sáng: finite three-stage maze chase, no licensed PAC-MAN parity claim",
+      "code_file": "scripts/games/maze-chase-model.js + scripts/games/maze-chase.js",
+      "source_review": "mc1 integrated: three connected original mazes, 120 Hz deterministic simulation, buffered turns/reversal, three sentry roles, power/bonus/death/finish and minimal UI. 45 focused tests pass. Dossier docs/games/MAZE_CHASE_RESEARCH_AND_QA.md.",
+      "source_urls": [
+        "https://www.bandainamcoent.com/games/pac-man-museum-plus"
+      ],
+      "evidence": "Primary-source review and 45 focused tests; no rendered browser/device/latency acceptance",
+      "observation_date": "2026-10-07",
+      "rules_task": "Original rules and AI roles documented; map connectivity and terminal progression tested. No original-game parity claim.",
+      "controls_task": "Keyboard, swipe, D-pad, mid-edge reversals and turn buffering implemented; physical touch feel pending.",
+      "progression_items_task": "Three finite stages with power, return AI, bonus, lives and safe saved run; no setup/progression panels.",
+      "visual_feel_task": "Original angular lantern/sentry Canvas art, original cover and short synth tones; minimal labels, optional compact help. Device/audio/contrast pending.",
+      "acceptance": "Model/controller tests pass; natural full playthrough, browser/mobile/accessibility and rights framing remain gates.",
+      "estimated_person_days": null,
+      "release_ready": false
+    },
+    {
+      "id": "zuma-ech-ban-ngoc",
+      "order": 7,
+      "reference_version": "Original NewPlayground Marble Trail / Đường Ngọc; historical Zuma comparison, no commercial parity claim",
+      "code_file": "scripts/games/marble-trail-model.js + scripts/games/marble-trail.js",
+      "source_review": "mt1 integrated: three original paths, fixed-step swept collisions, insertion/gaps/cascades, finite campaign, save/recovery and instant-play UI. 50 focused model/controller tests pass; browser/device pending. Dossier: docs/games/MARBLE_TRAIL_RESEARCH_AND_QA.md.",
+      "source_urls": [
+        "https://www.ea.com/games/zuma/zuma",
+        "https://www.ea.com/games/zuma/zumas-revenge",
+        "https://static-www.ec.popcap.com/support.popcap.com/sites/support.popcap.com/files/XBox_Vol1_manual.pdf"
+      ],
+      "evidence": "Primary-source review and 50 focused automated tests; browser/device gates remain pending",
+      "observation_date": "2026-10-07",
+      "rules_task": "Implemented and tested original chain/contact, quota, win/loss and campaign scope; no full reference parity claim.",
+      "controls_task": "Pointer aim/release, keyboard and buttons; cancelled gestures and scaled coordinates tested with doubles. Device feel unmeasured.",
+      "progression_items_task": "Three original routes, slow/reverse effects, finite campaign and saved progression implemented; playtest pending.",
+      "visual_feel_task": "Original vectors, procedural patterned marbles and synth; minimal visible labels and optional compact help. Browser/device/audio/latency pending.",
+      "acceptance": "Executable model/controller tests pass; actual browser/device/playtest and scoped release review still required.",
+      "estimated_person_days": null,
+      "release_ready": false
+    },
+    {
+      "id": "dat-bom-bomberman",
+      "order": 8,
+      "reference_version": "Bomberman; phải chọn game solo cụ thể, không nhập luật BnB",
+      "code_file": "scripts/engines.js",
+      "source_review": "Nguồn hiện có: lưới 13×11, stage, crate/item ngẫu nhiên; nhánh Space và J; cần phân biệt item kiểu bom nước.",
+      "source_urls": [
+        "https://dds.konami.com/games/manual/pcemini/en_Bomber93.pdf"
+      ],
+      "evidence": "Desk research and source review; no competitor playthrough or device measurements yet",
+      "observation_date": "2026-10-07",
+      "rules_task": "Khóa fuse, phạm vi nổ, chain reaction, chặn blast theo tường/crate, đi ra khỏi ô bom, exit và điều kiện qua màn.",
+      "controls_task": "Tách chuyển ô/bẻ góc khỏi tốc độ vẽ; Space edge-trigger đặt một bom; kiểm tra hai hướng cùng lúc, thả phím và focus.",
+      "progression_items_task": "Bảng fire/capacity/speed/pass-item theo bản đã chọn; nếu giữ water-bomb/needle thì ghi thành mode khác có luật riêng.",
+      "visual_feel_task": "Blast đọc được, danger không bị hạt che; nhân vật/crate/exit theo bộ art nhất quán.",
+      "acceptance": "Chain không nổ qua tường; không khóa người chơi trong ô spawn; chết/qua màn/reset đưa về trạng thái nhất quán.",
+      "estimated_person_days": null,
+      "release_ready": false
+    },
+    {
+      "id": "mario-co-dien",
+      "order": 9,
+      "reference_version": "Super Mario Bros. NES 1985; danh mục nội dung đầy đủ cần lập tiếp",
+      "code_file": "scripts/engines-classics.js",
+      "source_review": "Nguồn hiện có: platformer chạy/nhảy; keydown và keyup thay đổi trạng thái nhảy; chưa chứng minh parity NES.",
+      "source_urls": [
+        "https://www.nintendo.com/en-gb/Games/NES/Super-Mario-Bros-803853.html",
+        "https://mario.nintendo.com/history/"
+      ],
+      "evidence": "Desk research and source review; no competitor playthrough or device measurements yet",
+      "observation_date": "2026-10-07",
+      "rules_task": "Đặc tả gia tốc, chạy, nhảy theo giữ nút, trọng lực, collision, camera, pipe, enemy, checkpoint và world/level inventory.",
+      "controls_task": "Đo jump height/airtime/run-up/braking bằng video và frame-count; chỉ thêm coyote-time nếu chọn deviation có ghi nhận.",
+      "progression_items_task": "Power-up state machine, coin/life, enemy interactions, end-level và checkpoint; backlog nội dung theo từng màn/boss.",
+      "visual_feel_task": "Sprite đọc được ở native scale; art/camera parallax nhất quán; motion của nhân vật và camera không giật.",
+      "acceptance": "Nhảy thấp/cao theo giữ nút; không xuyên nền; hitbox trạng thái đúng; có chuỗi màn và hồi sinh; parity chưa được chứng nhận.",
+      "estimated_person_days": null,
+      "release_ready": false
+    },
+    {
+      "id": "diner-dash",
+      "order": 10,
+      "reference_version": "Diner Dash PC/Windows downloadable edition as an edition-level benchmark; original replacement is Tiệm Lá Trà, not a parity claim",
+      "code_file": "scripts/games/tea-service-model.js + scripts/games/tea-service.js",
+      "source_review": "The public Shockwave product page identifies a Windows downloadable edition, mouse-directed tasks, seating, orders, delivery, dish clearing, Quick Play/Career, 50 levels and 5 restaurants. It does not establish detailed timing, scoring, queue rules or level layouts. Tiệm Lá Trà is an original compact three-shift service game; meal scoring/table turnover are automatic, without manual billing or cleaning. Nine deterministic model tests and six DOM-double UI/lifecycle tests pass; browser/device/playtest pending. Dossier: docs/games/TEA_SERVICE_RESEARCH_AND_SCOPE.md.",
+      "source_urls": [
+        "https://www.shockwave.com/gamelanding/dinerdash"
+      ],
+      "evidence": "One official product-description page reviewed; 9 deterministic model and 6 DOM-double UI/lifecycle tests pass; no browser/device acceptance",
+      "observation_date": "2026-10-07",
+      "rules_task": "Original loop: seat a fitting group, accept order, FIFO auto-cooking, pick up and deliver to the matched table. Meal scoring and table turnover happen automatically; there is no manual billing, stock or upgrade workflow. The reference page is too high-level to support detailed parity.",
+      "controls_task": "Tap/click a guest and fitting table, take the order, then use the kitchen and matching-table actions. Meal scoring and table reset are automatic. Pause/restart are covered by DOM doubles; real-browser/device timing remains unmeasured.",
+      "progression_items_task": "Three original shifts, 15 fixed arrivals, three recipes and targets 320/480/640; persist one active shift and best score. No character progression, upgrades, ads, IAP or borrowed campaign content.",
+      "visual_feel_task": "Original Tiệm Lá Trà board and authored vector cover, compact touch-sized controls, minimal text and optional synthesized short cues. No third-party character art, fonts or audio; actual contrast/audio/device checks pending.",
+      "acceptance": "Test complete service cycle, capacity block/retained selection, FIFO cooking/table matching, patience/time loss, shift target/retry, deterministic restore, corrupt/future/quota storage, pause/close/reopen and route cleanup; then repeat on real desktop and mobile browsers and playtest pacing.",
+      "estimated_person_days": null,
+      "release_ready": false
+    },
+    {
+      "id": "plants-vs-zombies-2d",
+      "order": 11,
+      "reference_version": "Plants vs. Zombies PC 2009; không dùng thông số PvZ2/3",
+      "code_file": "scripts/games/beacon-shore-model.js + scripts/games/beacon-shore.js",
+      "source_review": "EA/PopCap PC readme identifies a grid lawn, sun resource, placed defenses, timed attackers, wave progression and a breach loss; it does not authorize assets or establish Bờ Kè Sao rules. Original candidate replaces plant/zombie presentation with a lighthouse coast, passive energy and fixed waves; detailed edition is deliberately not recreated. Fifteen deterministic model tests and six DOM-double UI/lifecycle tests pass; full suite 408/408; browser/device/playtest pending. Dossier: docs/games/BEACON_SHORE_RESEARCH_AND_SCOPE.md.",
+      "source_urls": [
+        "https://akamai.cdn.ea.com/eadownloads/u/f/manuals/GAME-PVZ/en_US_readme.html"
+      ],
+      "evidence": "One official PC readme reviewed; 15 deterministic model and 6 DOM-double UI/lifecycle tests pass; repository suite 408/408; no browser/device/playtest acceptance",
+      "observation_date": "2026-10-07",
+      "rules_task": "Original five-lane lighthouse defense with placed lamp/fan/bell devices, passive energy, four deterministic waves and breach loss; reference manual is high-level, so no detailed parity claim.",
+      "controls_task": "Choose device then tap/click an empty tile; devices act automatically and energy recovers automatically. Pause/restart; target and storage/lifecycle checks by DOM doubles, real phone/desktop QA pending.",
+      "progression_items_task": "Four authored waves and three device roles. No day/night/pool/fog/roof maps, seed inventory, campaign unlocks, upgrades, characters, ads or IAP.",
+      "visual_feel_task": "Original shoreline setting, authored vector cover and abstract iconography; no copied PopCap/EA art, fonts, music or characters. Narrow-device accessibility/contrast and playtest remain pending.",
+      "acceptance": "Confirm same authored wave outcomes at 50/60/120Hz, placement/input-cancel, row targeting, resource economy, full campaign win/loss/retry, pause/restart/reopen, future/corrupt/quota saves and cleanup. Then perform real desktop/mobile browser QA and playtest pacing.",
+      "estimated_person_days": null,
+      "release_ready": false,
+      "title": "Bờ Kè Sao"
+    },
+    {
+      "id": "danh-bai-uno",
+      "order": 12,
+      "reference_version": "Mattel UNO W2085 (2010) and official W2085 sheet; exact edition, archetype benchmark only, no parity claim.",
+      "code_file": "scripts/games/season-shed-model.js + scripts/games/season-shed.js",
+      "source_review": "Mattel W2085 product page and official W2085.pdf sheet reviewed. The selected edition specifies 108 cards, 7-card hands, color/number/action matching, Draw Two, Reverse/Skip, Wild Draw Four challenge, last-card callout and 500-point series. Sắc Chuyền deliberately uses four original seasons, 76 cards, 6-card hands, gust draw-two/wild dew, one round and no other branded rules/content. Seventeen model tests and seven DOM-double UI/lifecycle tests pass; full suite 433/433 and static preflight pass; browser/device/playtest pending. Dossier: docs/games/SEASON_SHED_RESEARCH_AND_SCOPE.md.",
+      "source_urls": [
+        "https://service.mattel.com/us/productDetail.aspx?prodno=W2085&siteid=27",
+        "https://service.mattel.com/instruction_sheets/W2085.pdf"
+      ],
+      "evidence": "Official W2085 product page and sheet reviewed; 17 model and 7 DOM-double UI/lifecycle tests pass; repository suite 433/433; real browser/device/playtest not done",
+      "observation_date": "2026-10-07",
+      "rules_task": "Original Sắc Chuyền 1v1 card shed: match by four custom season symbols or 1–8 number; gust draws two/skips, wild dew selects season. No score series, Reverse/Skip/Draw Four/challenge or stacking.",
+      "controls_task": "Tap/click playable card, draw one and optionally play/pass, choose a season for wild dew; single deterministic AI; no extra setup. Verify mobile scroll, focus, target size and turn safety in real browser.",
+      "progression_items_task": "Single round; six cards per player. No 500-point series, unlocked modes, stacks, challenge, traditional last-card callout, upgrades, ads or IAP.",
+      "visual_feel_task": "Original seasonal icons/patterns and card-back/face visuals with no Mattel branding, logo, source art, fonts, sound or music; color-blind support and device QA pending.",
+      "acceptance": "Deck conservation, match/no-match, every action, draw/play/pass, AI not using human private view, reshuffle, terminal, save restore/corruption/future/quota, restart/close/AI timer cleanup; then real desktop/mobile QA and playtest.",
+      "estimated_person_days": null,
+      "release_ready": false,
+      "title": "Sắc Chuyền"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+Ô Ăn Quan local candidate checks — 2026-10-07
+
+Focused command:
+  node --test --test-concurrency=1 tests/o-an-quan-model.test.cjs tests/o-an-quan-ui.test.cjs
+
+Result: 15 passed, 0 failed (11 model + 4 DOM-double UI/lifecycle).
+
+Coverage:
+- 10 fields and 2 Quan start with 50 dân + 2 Quan; score value conserved.
+- Sowing works in both directions; relay, occupied-Quan stop, empty-gap capture and capture-chain behavior are deterministic.
+- Quan capture adds ten points; automatic five-point refill and insufficient-score forfeit work.
+- Both Quan ending sweeps/scores remaining stones and handles win/draw; terminal moves reject; reset restores setup.
+- Catalog route launches, selects the current side, applies direction buttons, keeps quiet visible copy, closes cleanly and reopens a new match.
+- Cover path is original SVG; inherited cover is excluded from prepared artifact.
+
+Integrated repository command:
+  node --test --test-concurrency=1 tests/*.test.cjs
+
+Result: 625 passed, 0 failed.
+
+Static preparation:
+  node scripts/release-preflight.mjs --prepare
+
+Result: passed at 150 catalog entries, 42 prototype routes, 108 planned entries, 106 manifest asset records, 1,040,134 source JavaScript bytes and 19,786,444 source asset bytes. Prepared artifact includes `o-an-quan-original.svg` and omits `o_an_quan_cover.png`.
+
+Limits: deterministic rules tests and DOM doubles only. No actual browser layout/rendering, mobile touch, physical-device, assistive-technology, performance or human playtest acceptance is recorded. Historic catalog edition and exact regional rules remain unresolved.

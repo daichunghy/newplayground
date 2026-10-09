@@ -1,0 +1,327 @@
+.cupcake-host {
+  --cupcake-ink: #51383c;
+  --cupcake-muted: #8c7071;
+  --cupcake-rose: #e985a4;
+  --cupcake-mint: #9ecdb1;
+  --cupcake-cream: #f8e4b7;
+  --cupcake-paper: #fffaf2;
+  --cupcake-line: #efd8cc;
+  display: block;
+  width: 100%;
+  color: var(--cupcake-ink);
+  font-family: Calibri, Inter, -apple-system, sans-serif;
+}
+
+.cupcake-game,
+.cupcake-game * { box-sizing: border-box; }
+
+.cupcake-game {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(100%, 448px);
+  min-height: 100%;
+  margin: 0 auto;
+  padding: 14px;
+  border: 1px solid #f2ddd3;
+  border-radius: 20px;
+  background:
+    radial-gradient(ellipse at 50% -20%, #fff 4%, transparent 62%),
+    linear-gradient(160deg, #fff8ef 0%, #fff3ef 100%);
+  box-shadow: 0 14px 38px rgb(132 83 77 / 10%);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.cupcake-game button {
+  color: inherit;
+  font: inherit;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cupcake-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cupcake-head h2 {
+  margin: 0;
+  color: #58363f;
+  font-size: 21px;
+  line-height: 1.05;
+}
+
+.cupcake-head p { margin: 4px 0 0; color: var(--cupcake-muted); font-size: 13px; }
+.cupcake-head-actions { display: flex; gap: 6px; }
+
+.cupcake-icon,
+.cupcake-action {
+  display: inline-flex;
+  min-width: 48px;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--cupcake-line);
+  border-radius: 14px;
+  background: #fffdf9;
+  box-shadow: 0 2px 0 rgb(126 83 77 / 8%);
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cupcake-icon:active,
+.cupcake-action:active,
+.cupcake-tool:active { transform: translateY(1px); box-shadow: none; }
+.cupcake-icon:focus-visible,
+.cupcake-action:focus-visible,
+.cupcake-tool:focus-visible,
+.cupcake-slot:focus-visible { outline: 3px solid #4c95bb; outline-offset: 2px; }
+
+.cupcake-howto {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: #fff0e9;
+  color: #704f4f;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.cupcake-progress {
+  display: flex;
+  min-height: 32px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 3px;
+  color: #6c4b4d;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+#cupcakeStars { color: #cf8a34; letter-spacing: 1px; white-space: nowrap; }
+
+.cupcake-recipe {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 88px;
+  align-items: center;
+  gap: 8px;
+  min-height: 92px;
+  padding: 10px 12px;
+  border: 1px solid #f0ddce;
+  border-radius: 16px;
+  background: #fffdfa;
+  box-shadow: inset 0 1px #fff;
+}
+
+.cupcake-recipe-copy { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 8px; }
+.cupcake-recipe-copy > div { display: grid; gap: 2px; }
+.cupcake-eyebrow { color: #9b7a70; font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+.cupcake-recipe-copy strong { font-size: 17px; }
+.cupcake-recipe-icing {
+  max-width: 92px;
+  overflow: hidden;
+  padding: 5px 7px;
+  border-radius: 9px;
+  background: #fff0f1;
+  color: #9d5165;
+  font-size: 12px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cupcake-recipe-grid {
+  display: grid;
+  width: 82px;
+  height: 82px;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 2px;
+  padding: 5px;
+  border: 1px solid #e8d5d8;
+  border-radius: 50%;
+  background: #fff2f3;
+}
+
+.cupcake-recipe-cell {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  place-items: center;
+  border-radius: 50%;
+  color: #8c5a63;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.recipe-berry { color: #d65476; }
+.recipe-star { color: #c88a2b; }
+.recipe-choc { color: #765045; }
+.recipe-leaf { color: #4b8965; }
+
+.cupcake-canvas {
+  display: grid;
+  min-height: 198px;
+  justify-items: center;
+  align-content: center;
+  gap: 4px;
+  padding: 8px 0 2px;
+}
+
+.cupcake-cake { display: grid; justify-items: center; }
+
+.cupcake-top {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: min(202px, 70vw);
+  height: min(174px, 61vw);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 3px;
+  padding: 15px 19px 13px;
+  overflow: hidden;
+  border: 4px solid rgb(255 255 255 / 85%);
+  border-radius: 54% 54% 45% 45% / 52% 52% 43% 43%;
+  box-shadow: inset 0 -9px 0 rgb(98 51 65 / 7%), 0 6px 12px rgb(97 53 58 / 14%);
+  transition: background-color 160ms ease;
+}
+
+.cupcake-top.icing-vanilla { background: linear-gradient(150deg, #ffefc8, #f5cc89); }
+.cupcake-top.icing-berry { background: linear-gradient(150deg, #ffc0d3, #e987a7); }
+.cupcake-top.icing-mint { background: linear-gradient(150deg, #c1ecd1, #82c1a0); }
+
+.cupcake-slot {
+  display: grid;
+  width: 100%;
+  min-width: 44px;
+  min-height: 44px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 60%);
+  border-radius: 50%;
+  background: rgb(255 255 255 / 21%);
+  color: #7a4956;
+  font-size: 21px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.cupcake-slot:hover { background: rgb(255 255 255 / 44%); }
+.cupcake-slot:disabled { cursor: default; }
+.cupcake-slot.slot-berry { color: #c53862; text-shadow: 0 1px #fff; }
+.cupcake-slot.slot-star { color: #a76b14; text-shadow: 0 1px #fff; }
+.cupcake-slot.slot-choc { color: #563a33; text-shadow: 0 1px #fff; }
+.cupcake-slot.slot-leaf { color: #387952; text-shadow: 0 1px #fff; }
+
+.cupcake-liner {
+  display: flex;
+  width: 146px;
+  height: 55px;
+  justify-content: space-evenly;
+  margin-top: -6px;
+  padding: 9px 16px 4px;
+  overflow: hidden;
+  clip-path: polygon(8% 0, 92% 0, 77% 100%, 23% 100%);
+  border-radius: 0 0 18px 18px;
+  background: repeating-linear-gradient(100deg, #e9a890 0 13px, #ffd4b8 13px 24px);
+  filter: drop-shadow(0 7px 4px rgb(92 54 50 / 14%));
+}
+
+.cupcake-liner i { width: 1px; height: 46px; background: rgb(157 98 83 / 18%); }
+
+.cupcake-match {
+  min-height: 24px;
+  color: #78595a;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.cupcake-tools { display: grid; gap: 8px; }
+.cupcake-tool-group { display: grid; gap: 4px; }
+.cupcake-tool-group h3 { margin: 0; color: #987674; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; }
+.cupcake-tool-row { display: flex; flex-wrap: nowrap; align-items: stretch; gap: 5px; }
+
+.cupcake-tool {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 50px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 3px 2px;
+  border: 1px solid #ecd8d0;
+  border-radius: 12px;
+  background: #fffefa;
+  box-shadow: 0 2px 0 rgb(126 83 77 / 8%);
+  cursor: pointer;
+}
+
+.cupcake-tool b { max-width: 100%; overflow: hidden; color: #7d6261; font-size: 10px; font-weight: 700; line-height: 1.1; text-overflow: ellipsis; white-space: nowrap; }
+.cupcake-tool > span { display: grid; min-height: 22px; place-items: center; font-size: 19px; line-height: 1; }
+.cupcake-tool.is-selected { border: 2px solid #ad6577; background: #fff0f2; box-shadow: 0 0 0 2px rgb(237 165 178 / 18%); }
+.cupcake-tool:disabled { opacity: .58; cursor: default; }
+.frosting-tool > span { width: 24px; height: 13px; border: 2px solid rgb(112 74 69 / 18%); border-radius: 50% 50% 45% 45%; }
+.frosting-vanilla > span { background: #f0c474; }
+.frosting-berry > span { background: #e77d9b; }
+.frosting-mint > span { background: #81be98; }
+.topping-berry > span { color: #d44f76; }
+.topping-star > span { color: #c88a2b; }
+.topping-choc > span { color: #765045; }
+.topping-leaf > span { color: #4b8965; }
+.topping-erase > span { color: #896c70; }
+
+.cupcake-actions { display: grid; grid-template-columns: 1fr 1fr 1.25fr; gap: 6px; }
+.cupcake-action { min-width: 0; min-height: 48px; padding: 7px 8px; border-radius: 12px; font-size: 13px; }
+.cupcake-primary { border-color: #cb7188; background: linear-gradient(180deg, #ec9bb0, #dc7f98); color: #fff !important; box-shadow: 0 3px 0 #bd6179; }
+.cupcake-action:disabled,.cupcake-icon:disabled { opacity: .45; cursor: default; }
+.cupcake-key-help { margin: -3px 0 0; color: #977b78; font-size: 11px; text-align: center; }
+.cupcake-status { min-height: 20px; margin: 0; color: #6d4b4c; font-size: 13px; font-weight: 700; text-align: center; }
+.cupcake-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+.cupcake-overlay {
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  border-radius: inherit;
+  background: rgb(71 48 52 / 37%);
+  backdrop-filter: blur(3px);
+}
+
+.cupcake-overlay[hidden] { display: none; }
+.cupcake-overlay-card { display: grid; width: min(100%, 300px); gap: 12px; padding: 22px 18px 18px; border: 1px solid #f3ded4; border-radius: 18px; background: #fffaf3; box-shadow: 0 15px 40px rgb(54 34 35 / 22%); text-align: center; }
+.cupcake-overlay-card strong { color: #633e49; font-size: 21px; }
+.cupcake-overlay-card p { margin: 0; color: #796261; font-size: 14px; line-height: 1.35; }
+.cupcake-overlay-card .cupcake-action { justify-self: center; min-width: 150px; }
+
+@media (max-width: 360px) {
+  .cupcake-game { gap: 8px; padding: 10px; border-radius: 16px; }
+  .cupcake-head h2 { font-size: 19px; }
+  .cupcake-recipe { grid-template-columns: minmax(0, 1fr) 76px; min-height: 84px; padding: 8px; }
+  .cupcake-recipe-grid { width: 72px; height: 72px; }
+  .cupcake-canvas { min-height: 184px; }
+  .cupcake-top { width: min(190px, 69vw); height: min(164px, 59vw); padding: 7px 16px; }
+  .cupcake-tool-row { gap: 3px; }
+  .cupcake-tool { min-height: 48px; border-radius: 10px; }
+  .cupcake-tool b { font-size: 9px; }
+  .cupcake-actions { gap: 4px; }
+  .cupcake-action { padding-right: 5px; padding-left: 5px; font-size: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cupcake-top { transition: none; }
+  .cupcake-icon:active,.cupcake-action:active,.cupcake-tool:active { transform: none; }
+}

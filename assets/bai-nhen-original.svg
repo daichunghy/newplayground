@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">Bài Nhện — bìa bài nhện nguyên bản</title>
+  <desc id="desc">Một bộ bài xếp thành tám cột trên nền xanh, bên trên là đường tơ mảnh.</desc>
+  <defs>
+    <linearGradient id="felt" x2="0" y2="1"><stop stop-color="#39725f"/><stop offset="1" stop-color="#194c45"/></linearGradient>
+    <linearGradient id="paper" x2=".8" y2="1"><stop stop-color="#fffdf3"/><stop offset="1" stop-color="#e8ecdf"/></linearGradient>
+  </defs>
+  <rect width="640" height="360" rx="34" fill="url(#felt)"/>
+  <g fill="none" stroke="#d7e4d5" stroke-width="2" opacity=".58">
+    <path d="M320 25 190 150m130-125 55 125M320 25l-45 125M320 25l100 125M190 150l165-25m-165 25 80 0m80-25 65 25m-145-25 65 25M190 150l130 100m-130-100v130m165-155v155m-85-130v130m-80-130 165 130"/>
+    <path d="M246 86q74 40 146 0M221 112q99 47 194 0M202 136q116 52 234 0"/>
+  </g>
+  <g stroke="#fff" stroke-width="4" fill="url(#paper)">
+    <rect x="75" y="190" width="78" height="124" rx="9" transform="rotate(-8 75 190)"/>
+    <rect x="151" y="183" width="78" height="124" rx="9" transform="rotate(-4 151 183)"/>
+    <rect x="231" y="180" width="78" height="124" rx="9"/>
+    <rect x="311" y="180" width="78" height="124" rx="9"/>
+    <rect x="391" y="183" width="78" height="124" rx="9" transform="rotate(4 391 183)"/>
+    <rect x="469" y="190" width="78" height="124" rx="9" transform="rotate(8 469 190)"/>
+  </g>
+  <g fill="#214c42" font-family="Calibri, sans-serif" font-weight="800" text-anchor="middle">
+    <text x="112" y="232" font-size="26">K</text><text x="190" y="228" font-size="26">Q</text><text x="270" y="226" font-size="26">J</text>
+    <text x="350" y="226" font-size="26">10</text><text x="430" y="228" font-size="26">9</text><text x="508" y="232" font-size="26">8</text>
+    <text x="112" y="276" font-size="25">♠</text><text x="190" y="272" font-size="25">♠</text><text x="270" y="270" font-size="25">♠</text>
+    <text x="350" y="270" font-size="25">♠</text><text x="430" y="272" font-size="25">♠</text><text x="508" y="276" font-size="25">♠</text>
+  </g>
+</svg>

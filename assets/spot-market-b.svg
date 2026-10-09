@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="360" viewBox="0 0 600 360" role="img" aria-label="Sạp hoa nhỏ trong khu chợ">
+  <defs><linearGradient id="wall" x2="0" y2="1"><stop stop-color="#f8dfae"/><stop offset="1" stop-color="#eabf8c"/></linearGradient></defs>
+  <rect width="600" height="360" fill="#b8d8cc"/><rect y="185" width="600" height="175" fill="#a77a5c"/><path d="M0 206h600" stroke="#80614b" stroke-width="8"/><path d="M0 287h600" stroke="#c1966c" stroke-width="5"/>
+  <rect x="91" y="91" width="418" height="167" rx="8" fill="url(#wall)" stroke="#775d4d" stroke-width="6"/>
+  <path d="M76 93h448v61H76Z" fill="#d96d59" stroke="#775d4d" stroke-width="6"/><path d="M76 93h448v61H76Z" fill="#f4d98a" opacity=".88"/><path d="M132 96v55m88-55v55m88-55v55m88-55v55m88-55v55" stroke="#d96d59" stroke-width="29"/>
+  <rect x="224" y="168" width="151" height="48" rx="8" fill="#47766b" stroke="#6e543f" stroke-width="4"/><text x="299" y="199" text-anchor="middle" fill="#fff3d6" font-family="Calibri,sans-serif" font-size="24" font-weight="700">HOA</text>
+  <rect x="119" y="171" width="77" height="70" rx="4" fill="#d9efe2" stroke="#775d4d" stroke-width="4"/><path d="M158 172v68m-38-34h75" stroke="#86b5aa" stroke-width="3"/>
+  <path d="M413 232v-51h89v51" fill="#fff0ce" stroke="#72563f" stroke-width="4"/><path d="M424 232v-35h19v35m22-35h25v35" fill="#a8c8c0" stroke="#72563f" stroke-width="3"/>
+  <path d="M107 256h392" stroke="#755640" stroke-width="11"/><path d="M131 256v52m341-52v52" stroke="#755640" stroke-width="8"/>
+  <path d="M442 235h41l-6 37h-29Z" fill="#d97f63" stroke="#754c3f" stroke-width="4"/><path d="M449 235q-4-20 11-25 16 5 12 25" fill="#f1c65d" stroke="#754c3f" stroke-width="3"/><circle cx="459" cy="216" r="6" fill="#fff0d2"/>
+  <path d="M108 271h52l-6 28h-40Z" fill="#c58d53" stroke="#755640" stroke-width="4"/><path d="M113 276h43m-40 8h38m-35 8h32" stroke="#e5bf80" stroke-width="3"/>
+  <path d="M267 301q12-8 24 0t24 0" stroke="#e7c99f" stroke-width="4" fill="none"/>
+  <path d="M355 318h65" stroke="#e5c99d" stroke-width="7" stroke-linecap="round"/>
+  <path d="M414 291q15-16 31 0m-16-16v33m-15-10h31" stroke="#4f8a5d" stroke-width="5" stroke-linecap="round"/>
+  <path d="M420 178q0-10 9-10t9 10m-18 0h18" fill="#b7d6d1" stroke="#775d4d" stroke-width="3"/>
+  <path d="M88 325h424" stroke="#785b48" stroke-width="4" opacity=".7"/>
+  <rect x="118" y="98" width="27" height="52" fill="#f1d398"/>
+  <text x="299" y="199" text-anchor="middle" fill="#fff3d6" font-family="Calibri,sans-serif" font-size="24" font-weight="700">HO</text>
+  <path d="M442 235h41l-6 37h-29Z" fill="#47766b" stroke="#754c3f" stroke-width="4"/><path d="M449 235q-4-20 11-25 16 5 12 25" fill="#c65f55" stroke="#754c3f" stroke-width="3"/><circle cx="459" cy="216" r="6" fill="#f6de9d"/>
+  <path d="M112 275h43v20h-43Z" fill="#c58d53"/>
+  <path d="M404 294q-1-18 15-19 16 1 16 19h-31Z" fill="#687f8c" stroke="#40545d" stroke-width="3"/><circle cx="412" cy="287" r="2" fill="#f5eed7"/><circle cx="426" cy="287" r="2" fill="#f5eed7"/><path d="M405 294q-11-7-12-1m42 1q12-7 13-1" fill="none" stroke="#40545d" stroke-width="3"/>
+</svg>

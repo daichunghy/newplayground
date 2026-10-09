@@ -1,0 +1,118 @@
+.np-caro {
+  --caro-ink: #283248;
+  --caro-paper: #f5edda;
+  --caro-line: #b99b68;
+  --caro-x: #315bb5;
+  --caro-o: #b54842;
+  box-sizing: border-box;
+  width: min(100%, 548px);
+  margin: 0 auto;
+  color: var(--caro-ink);
+  font-family: Calibri, Inter, -apple-system, sans-serif;
+}
+
+.np-caro-status {
+  min-height: 1.5rem;
+  margin: 0 0 .55rem;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.np-caro-turn {
+  margin: 0 0 .3rem;
+  text-align: center;
+  font-weight: 700;
+}
+
+.np-caro-board {
+  display: grid;
+  grid-template-columns: repeat(15, minmax(0, 1fr));
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid #9d8154;
+  border-radius: 8px;
+  background-color: var(--caro-paper);
+  background-image:
+    linear-gradient(to right, transparent calc(100% - 1px), var(--caro-line) calc(100% - 1px)),
+    linear-gradient(to bottom, transparent calc(100% - 1px), var(--caro-line) calc(100% - 1px));
+  background-size: 6.6666667% 6.6666667%;
+  box-shadow: 0 8px 22px rgb(40 50 72 / 12%);
+  touch-action: manipulation;
+}
+
+.np-caro-cell {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--caro-ink);
+  font: 700 clamp(.76rem, 4.4vw, 1.35rem)/1 Calibri, Inter, -apple-system, sans-serif;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.np-caro-cell.is-x { color: var(--caro-x); }
+.np-caro-cell.is-o { color: var(--caro-o); }
+.np-caro-cell.is-last { box-shadow: inset 0 0 0 2px rgb(40 50 72 / 46%); }
+.np-caro-cell.is-winner { background: #f6cf72; }
+.np-caro-cell:focus-visible { outline: 2px solid #173f94; outline-offset: -2px; background-color: rgb(255 255 255 / 52%); }
+.np-caro-cell:disabled { cursor: default; }
+
+.np-caro-hint {
+  margin: 0;
+  color: #555d6c;
+  font-size: .92rem;
+}
+
+.np-caro-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .6rem;
+  margin: .55rem 0 .35rem;
+}
+
+.np-caro-mode {
+  min-height: 44px;
+  padding: .35rem .8rem;
+  border: 1px solid #8b7855;
+  border-radius: 999px;
+  background: #fffaf0;
+  color: var(--caro-ink);
+  font: 700 .94rem Calibri, Inter, -apple-system, sans-serif;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.np-caro-mode:focus-visible { outline: 3px solid #315bb5; outline-offset: 2px; }
+
+.np-caro-new {
+  display: block;
+  min-height: 44px;
+  margin: .4rem auto 0;
+  padding: .35rem 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--caro-ink);
+  color: white;
+  font: 700 1rem Calibri, Inter, -apple-system, sans-serif;
+  cursor: pointer;
+}
+
+.np-caro-new[hidden] { display: none; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .np-caro-cell.is-last { animation: caro-mark .18s ease-out; }
+  @keyframes caro-mark { from { transform: scale(.74); } to { transform: scale(1); } }
+}
+
+@media (max-width: 390px) {
+  .np-caro-options { align-items: stretch; flex-direction: column; }
+  .np-caro-hint { text-align: center; }
+}

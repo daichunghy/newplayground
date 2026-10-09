@@ -1,0 +1,10 @@
+Ranh Giới Mây depth follow-up — 2026-10-08
+
+Command: node --test --test-concurrency=1 tests/ranh-gioi-may-model.test.cjs tests/ranh-gioi-may-ui.test.cjs
+Result: 22 passed, 0 failed.
+
+The focused model suite checks fixed-step determinism, authored rival rosters, all three counter relationships, a mixed player cycle against each single-unit baseline, time-bounded win/loss policies, final-bridge shield-rush failure, progression and clear-time validation. The DOM-double suite checks the exact route, touch buttons and keyboard, save corruption/future-schema handling, clear/reload progression, storage-write failure, pause/visibility, replay and cleanup.
+
+Static preflight: node scripts/release-preflight.mjs passed; 150 catalog entries, 50 prototypes and 100 planned. It checks static consistency and syntax only.
+
+The canvas and browser APIs are mocked by tests/support/browser-harness.cjs. This result is not browser, device, visual, assistive-technology or human-playtest acceptance.

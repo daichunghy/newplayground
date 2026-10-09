@@ -1,0 +1,35 @@
+✔ all pieces conserve four cells and matrix rotations return after four turns (5.562256ms)
+✔ seven-bag is deterministic, bounded, complete and preserved through holds/restores (63.470415ms)
+✔ hold is once per piece, swaps in spawn orientation, resets after lock (0.350499ms)
+✔ hold detects immediate block-out instead of allowing an overlapping active piece (0.295567ms)
+✔ wall/floor rotation kicks stay inside bounds; failed rotation preserves state (10.188286ms)
+✔ hard drop lands at ghost, counts distance once and locks immediately (0.524747ms)
+✔ soft drop moves one row and cannot bypass floor or reset grounded delay (4.053323ms)
+✔ clears one through four rows and scores against pre-clear level (6.512734ms)
+✔ sprint wins at forty lines, endless continues, terminal mutations are blocked (0.832973ms)
+✔ lock delay is 500ms and movement can only reset it fifteen times (0.968124ms)
+✔ same elapsed time partitioned at 30/60/120Hz produces equivalent simulation (3.083526ms)
+✔ save corruption, sparse grids and future schema reject without touching input (0.509234ms)
+✔ soft-drop timing mode and deterministic progression survive serialization (1.246957ms)
+✔ invalid deltas, terminal timers and numeric inputs do not advance (0.345251ms)
+✔ seeded mixed-play invariants and bit-exact restore across 100 campaigns (1103.066119ms)
+✔ fresh play is instant and compact; saved round reopens paused without mutation (68.111668ms)
+✔ DAS/ARR has one initial press, deterministic repeat and last-key priority (0.382487ms)
+✔ horizontal holds repeat by elapsed time; release and hard-drop OS repeat are safe (24.318009ms)
+✔ pointer cancellation releases its owner and suppresses the compatibility click (12.857449ms)
+✔ blur, hidden tab and long frame gaps pause rather than catch up (30.701442ms)
+✔ restart confirmation is reversible and repeated restart keeps one loop (19.010075ms)
+✔ terminal rounds cannot mutate and restart preserves the legacy record (14.366022ms)
+✔ corrupt saves are backed up; future wrapper or model saves are never overwritten (41.20131ms)
+✔ shortcuts respect modifiers, editable targets and native button Space (7.262509ms)
+✔ read-board pauses with nonvisual state; controls and zoom retain alternatives (12.274241ms)
+✔ natural top-out reveals the result before moving keyboard focus to replay (42.213077ms)
+✔ restart invalidates an in-flight pointer before its delayed compatibility click (10.098924ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1336.264142

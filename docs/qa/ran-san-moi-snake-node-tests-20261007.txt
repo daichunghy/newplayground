@@ -1,0 +1,17 @@
+Rắn Săn Mồi candidate garden-snake-1 — local checks, 2026-10-07
+Worker branch: codex/ran-san-moi-snake-candidate-20261007
+Worker commit: d56c731505ab949039ac0c2ebeff89e2ec824c97
+Integrated locally into codex/deep-upgrades-20261007; shared route, cover, metadata and CSS/script order wired.
+
+Focused test command:
+  node --test --test-concurrency=1 tests/ran-san-moi-snake-model.test.cjs tests/ran-san-moi-snake-ui.test.cjs
+Result: PASS, 12 tests, 0 failures (7 deterministic model + 5 DOM-double UI/lifecycle).
+
+Model checks cover seeded initial state and bounds; bounded queued turns and reversal rejection; eating/growth/score; wall loss; safe entry into a vacating tail; self collision; filled-board win; malformed scenario rejection.
+DOM-double checks cover 18x14 board and status/HUD, keyboard and touch controls, pause/resume, visibility/pagehide interruption, fixed-time RAF movement, restart/listener stability, high-score storage failures, and close cleanup. Canvas/browser layout, actual touch hardware, assistive technology and playtest are not represented by these doubles.
+
+Static preflight command:
+  node scripts/release-preflight.mjs
+Result: PASS, exit 0. Reported 150 catalog IDs, 42 registered prototypes, 108 planned; 1,040,134 source JavaScript bytes, 19,786,444 asset bytes, 106 declared assets. At this worker checkpoint, the repository preflight did not include the unregistered modules. Shared wiring and assets were added during local integration; browser acceptance is still separate.
+
+Integration checks after wiring: route launch, visible-copy budget, assets and regression remain in the integration test run. Not run: published or local browser preview, device/screen-reader QA, frame-pacing/latency measurement, new-player playtest or release preparation. No browser/device acceptance claim.

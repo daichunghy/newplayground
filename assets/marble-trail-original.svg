@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 116 90" fill="none">
+<!-- Original NewPlayground garden-orbit badge, authored 2026-10-07. No external source art. -->
+<path d="M11 61C-2 26 36 3 69 12S120 44 104 68 53 87 40 66 47 36 67 39" stroke="#547B79" stroke-width="11" stroke-linecap="round"/>
+<path d="M11 61C-2 26 36 3 69 12S120 44 104 68 53 87 40 66 47 36 67 39" stroke="#98BCAF" stroke-width="1.5" stroke-dasharray="2 4"/>
+<circle cx="12" cy="49" r="9" fill="#FF7769" stroke="#12353D" stroke-width="2"/><circle cx="12" cy="49" r="3" fill="#143441"/>
+<circle cx="18" cy="30" r="9" fill="#66DBA4" stroke="#12353D" stroke-width="2"/><path d="m18 25 4 8h-8Z" fill="#143441"/>
+<circle cx="35" cy="17" r="9" fill="#67B8FF" stroke="#12353D" stroke-width="2"/><path d="M32 14h6v6h-6Z" fill="#143441"/>
+<circle cx="54" cy="13" r="9" fill="#FFDA71" stroke="#12353D" stroke-width="2"/><path d="m54 8 4 5-4 5-4-5Z" fill="#143441"/>
+<path d="m69 45 8-14 4 20Z" fill="#E9CF94"/><circle cx="70" cy="53" r="10" fill="#214B55" stroke="#B4D4BD" stroke-width="2"/>
+<path d="M97 11v8m-4-4h8M24 73v7m-3.5-3.5h7" stroke="#E9CF94" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

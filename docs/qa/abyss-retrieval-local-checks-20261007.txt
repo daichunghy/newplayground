@@ -1,0 +1,28 @@
+Vực Ngọc local candidate checks — 2026-10-07
+Branch: codex/deep-upgrades-20261007
+
+Reference research
+- Official GameRival / Margarite Entertainment Steam listing (modern Classic Edition, described as a revival of the 2003 internet classic): https://store.steampowered.com/app/3777060/Gold_MinerClassic_Edition/
+- Independent contemporary historical context: Jay Is Games 2004 Gold Miner review/walkthrough: https://jayisgames.com/review/gold-miner.php
+- Hosted control reference only: https://www.numuki.com/game/gold-miner/
+The old GameRival site URL is inaccessible. The sources are not treated as a complete 2003 rule manual; no original assets/code/levels were copied.
+
+Focused model tests
+Command: node --test tests/abyss-retrieval-model.test.cjs
+Result: 11 passed, 0 failed.
+
+Focused UI/lifecycle tests
+Command: node --test tests/abyss-retrieval-ui.test.cjs
+Result: 5 passed, 0 failed. Canvas/event doubles only; not browser/device acceptance.
+
+Full repository test suite
+Command: node --test tests/*.test.cjs tests/*.test.js
+Result: 450 passed, 0 failed, 0 skipped.
+
+Static release preparation
+Command: node scripts/release-preflight.mjs --prepare
+Result: 150 catalog IDs; 42 prototypes; 108 planned; 97 manifest assets; source JavaScript 1,090,244 bytes; source assets 19,763,783 bytes.
+Package checks: includes assets/abyss-retrieval-original.svg; omits unverified assets/dao_vang_cover.png and assets/daovang_intro.jpg; old GameRival-specific engine block is absent from scripts/engines.js.
+Whitespace check: git diff --check passed.
+
+Not established: real browser/mobile rendering, tether feel, screen-reader/accessibility acceptance, measured latency/FPS, player pacing/fairness, exact 2003 reference parity, legacy title rights or live release.

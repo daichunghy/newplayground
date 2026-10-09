@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
+  <title id="title">Cú Sao Gác Đèn · pinball NewPlayground</title>
+  <desc id="desc">Bàn pinball SVG vẽ nguyên bản với Cú Sao, sáu đèn mục tiêu, đường ray xanh ngọc và vòng đệm màu hổ phách.</desc>
+  <defs>
+    <linearGradient id="space" x2="0" y2="1"><stop stop-color="#09152d"/><stop offset="1" stop-color="#16234f"/></linearGradient>
+    <linearGradient id="cabinet" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#366c90"/><stop offset=".55" stop-color="#243970"/><stop offset="1" stop-color="#111d42"/></linearGradient>
+    <linearGradient id="playfield" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#193e69"/><stop offset=".5" stop-color="#192b5c"/><stop offset="1" stop-color="#322451"/></linearGradient>
+    <radialGradient id="bumper"><stop stop-color="#fff5c8"/><stop offset=".32" stop-color="#f8c86c"/><stop offset=".73" stop-color="#e68160"/><stop offset="1" stop-color="#873f67"/></radialGradient>
+    <radialGradient id="shine"><stop stop-color="#86f8eb" stop-opacity=".65"/><stop offset="1" stop-color="#67daf0" stop-opacity="0"/></radialGradient>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="10" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="960" height="600" rx="36" fill="url(#space)"/>
+  <g fill="#bbd9ee" opacity=".75"><circle cx="72" cy="85" r="2"/><circle cx="840" cy="66" r="2"/><circle cx="745" cy="160" r="1.6"/><circle cx="127" cy="238" r="1.8"/><circle cx="872" cy="323" r="2.4"/><circle cx="64" cy="457" r="1.8"/><circle cx="824" cy="502" r="1.6"/><circle cx="748" cy="420" r="2"/></g>
+  <circle cx="190" cy="170" r="130" fill="url(#shine)" opacity=".36"/>
+  <circle cx="800" cy="424" r="175" fill="url(#shine)" opacity=".18"/>
+  <g transform="translate(600 297) rotate(11)">
+    <path d="M-210-270Q-210-300-180-300H180Q210-300 210-270V265Q210 300 180 300H-180Q-210 300-210 265Z" fill="#0b1733" opacity=".55" transform="translate(13 18)"/>
+    <path d="M-224-281Q-224-312-193-312H193Q224-312 224-281V260Q224 298 188 298H-188Q-224 298-224 260Z" fill="url(#cabinet)" stroke="#86dedc" stroke-width="5"/>
+    <path d="M-196-257Q-196-281-172-281H172Q196-281 196-257V236Q196 267 167 267H-167Q-196 267-196 236Z" fill="url(#playfield)" stroke="#64b6ca" stroke-width="4"/>
+    <path d="M-174-226Q0-280 174-226M-174 221Q0 174 174 221" fill="none" stroke="#5ed8d7" stroke-width="4" opacity=".7"/>
+    <path d="M-159-174Q-130-237-78-234M78-234Q130-237 159-174M-154-8L-175 28L-109 28M154-8L175 28L109 28" fill="none" stroke="#90e8de" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M-169 89L-126 117M169 89L126 117M-165 161Q-119 116-77 158L-56 178M165 161Q119 116 77 158L56 178" fill="none" stroke="#e8ad72" stroke-width="8" stroke-linecap="round" opacity=".8"/>
+    <g filter="url(#glow)"><circle cx="-104" cy="-141" r="32" fill="url(#bumper)"/><circle cx="0" cy="-91" r="36" fill="url(#bumper)"/><circle cx="104" cy="-141" r="32" fill="url(#bumper)"/></g>
+    <g fill="#a4f4e2" stroke="#fff0bd" stroke-width="3"><rect x="-151" y="-36" width="54" height="14" rx="7"/><rect x="-30" y="-7" width="60" height="14" rx="7"/><rect x="97" y="-36" width="54" height="14" rx="7"/></g>
+    <g fill="#f6dc99" stroke="#fff4ce" stroke-width="4"><circle cx="-25" cy="236" r="10"/><circle cx="25" cy="236" r="10"/></g>
+    <path d="M-91 222L-20 204M91 222L20 204" stroke="#f3cc83" stroke-width="16" stroke-linecap="round"/>
+    <circle cx="169" cy="204" r="9" fill="#8ff4e8" stroke="#fff" stroke-width="3"/>
+  </g>
+  <g transform="translate(78 184)" aria-label="Cú Sao, nhân vật gác đèn">
+    <path d="M-22 12Q-42 4-36 25Q-28 33-12 23M22 12Q42 4 36 25Q28 33 12 23" fill="#e9b66f" stroke="#14254a" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M-20-2L-24-26L-7-15M20-2L24-26L7-15" fill="#74d8cf" stroke="#14254a" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M-27 3Q-27-22 0-22Q27-22 27 3V15Q0 31-27 15Z" fill="#74d8cf" stroke="#14254a" stroke-width="5"/>
+    <circle cx="-10" cy="2" r="7" fill="#fff7d7"/><circle cx="10" cy="2" r="7" fill="#fff7d7"/>
+    <circle cx="-9" cy="3" r="2.8" fill="#26365b"/><circle cx="11" cy="3" r="2.8" fill="#26365b"/>
+    <path d="M-5 12L0 19L5 12Z" fill="#e87963"/>
+    <path d="M0 25V31M-9 23V28M9 23V28" stroke="#f2c67c" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <g font-family="Calibri,Inter,-apple-system,sans-serif" text-anchor="middle">
+    <text x="176" y="246" fill="#8fece0" font-size="13" font-weight="800" letter-spacing="2">MASCOT GỐC · NEWPLAYGROUND</text>
+    <text x="176" y="319" fill="#f5efcb" font-size="32" font-weight="900" letter-spacing=".3">CÚ SAO GÁC ĐÈN</text>
+    <text x="176" y="365" fill="#b2d7e6" font-size="16" font-weight="700" letter-spacing="1.5">THẮP SÁNG CẢ SÁU ĐÈN</text>
+    <path d="M64 393H288" stroke="#7ee2d7" stroke-width="3" opacity=".72"/>
+    <circle cx="64" cy="393" r="5" fill="#f6cf81"/><circle cx="288" cy="393" r="5" fill="#f6cf81"/>
+  </g>
+</svg>

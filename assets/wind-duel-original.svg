@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 460" role="img" aria-labelledby="title desc">
+ <title id="title">Gió Ngang</title><desc id="desc">Two small original artillery carts face each other across a rolling green slope under a wind trail.</desc>
+ <defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#cce7ee"/><stop offset="1" stop-color="#f2eccd"/></linearGradient><linearGradient id="hill" x2="0" y2="1"><stop stop-color="#9cbd91"/><stop offset="1" stop-color="#5f825f"/></linearGradient></defs>
+ <rect width="720" height="460" rx="34" fill="url(#sky)"/><circle cx="580" cy="87" r="39" fill="#f2c765"/>
+ <path d="M0 287q100-68 207-4t190 10q108-82 206-7t117 2v172H0Z" fill="url(#hill)"/>
+ <path d="M0 347q142-46 265-9t213-17q119-48 242 15v129H0Z" fill="#668568"/>
+ <g fill="#fffdf0" opacity=".78"><ellipse cx="103" cy="98" rx="44" ry="13"/><ellipse cx="137" cy="95" rx="26" ry="18"/><ellipse cx="169" cy="101" rx="32" ry="12"/></g>
+ <g fill="none" stroke="#5c8fa0" stroke-width="8" stroke-linecap="round" opacity=".85"><path d="M236 92q38-22 77-5"/><path d="M291 72l24 15-28 7"/><path d="M324 126q34-18 69-3"/><path d="M373 108l22 14-26 7"/></g>
+ <g><path d="M95 312q38-23 76 0v26H95Z" fill="#d77a4e"/><circle cx="108" cy="340" r="11" fill="#344d42"/><circle cx="160" cy="340" r="11" fill="#344d42"/><path d="M139 306l33-22" stroke="#3e5348" stroke-width="11" stroke-linecap="round"/><circle cx="139" cy="304" r="13" fill="#f4e6bd"/></g>
+ <g><path d="M551 329q38-23 76 0v26h-76Z" fill="#497b86"/><circle cx="564" cy="357" r="11" fill="#344d42"/><circle cx="616" cy="357" r="11" fill="#344d42"/><path d="M580 323l-33-22" stroke="#3e5348" stroke-width="11" stroke-linecap="round"/><circle cx="580" cy="321" r="13" fill="#f4e6bd"/></g>
+ <path d="M181 258q150-166 338 0" fill="none" stroke="#e6a05d" stroke-width="5" stroke-dasharray="10 12"/><circle cx="350" cy="147" r="10" fill="#f3b357" stroke="#fff6d8" stroke-width="4"/>
+</svg>

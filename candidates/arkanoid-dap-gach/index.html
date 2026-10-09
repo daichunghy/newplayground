@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a1729">
+  <title>Vệ Tinh Giữ Quỹ Đạo · NewPlayground candidate</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body style="margin:0;padding:18px;background:#07111e">
+  <main id="game" aria-label="Vệ Tinh Giữ Quỹ Đạo"></main>
+  <script src="./model.js"></script>
+  <script src="./view.js"></script>
+  <script>
+    (() => {
+      const host = document.getElementById('game'), cleanups = [];
+      let stopped = false;
+      const session = {
+        listen(target, type, handler, options) {
+          target.addEventListener(type, handler, options);
+          cleanups.push(() => target.removeEventListener(type, handler, options));
+        },
+        requestAnimationFrame: callback => window.requestAnimationFrame(callback),
+        cancelAnimationFrame: id => window.cancelAnimationFrame(id),
+        onCleanup(callback) { cleanups.push(callback); }
+      };
+      window.NP_OrbitBrick.mount(host, session, null);
+      window.addEventListener('pagehide', () => {
+        if (stopped) return;
+        stopped = true;
+        for (const cleanup of cleanups.splice(0).reverse()) cleanup();
+      }, { once: true });
+    })();
+  </script>
+</body>
+</html>

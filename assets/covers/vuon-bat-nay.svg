@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-labelledby="title desc">
+ <title id="title">Vườn Bật Nảy</title><desc id="desc">Những quả màu sắc bay qua khu vườn nắng ấm.</desc>
+ <defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#b7e8d1"/><stop offset="1" stop-color="#f6d99c"/></linearGradient><radialGradient id="apple"><stop stop-color="#ff9981"/><stop offset="1" stop-color="#e84e4e"/></radialGradient></defs>
+ <rect width="640" height="400" rx="28" fill="url(#sky)"/><circle cx="520" cy="72" r="42" fill="#fff2ba" opacity=".9"/><path d="M0 305q135-65 260 0t250-3q70-32 130 0v98H0Z" fill="#57936c"/><path d="M0 342q150-42 280 1t360-7v64H0Z" fill="#397b55"/>
+ <g transform="translate(205 190) rotate(-15)"><circle r="54" fill="url(#apple)"/><path d="M3-50q-1-26 17-34" fill="none" stroke="#765237" stroke-width="9" stroke-linecap="round"/><ellipse cx="34" cy="-75" rx="21" ry="10" transform="rotate(-25 34 -75)" fill="#458550"/><ellipse cx="-17" cy="-16" rx="10" ry="17" fill="#ffe2cb" opacity=".75"/></g>
+ <g transform="translate(395 216) rotate(13)"><path d="M0-55q60 0 62 54t-62 57q-62-3-62-57t62-54Z" fill="#f4b83f"/><path d="M-3-50q2-25 22-33" fill="none" stroke="#765237" stroke-width="8" stroke-linecap="round"/><ellipse cx="18" cy="-76" rx="18" ry="8" transform="rotate(-20 18 -76)" fill="#458550"/><ellipse cx="-18" cy="-8" rx="8" ry="14" fill="#fff0c1" opacity=".7"/></g>
+ <g fill="#fff7d3" opacity=".8"><path d="M93 125h22M104 114v22" stroke="#fff7d3" stroke-width="4"/><circle cx="500" cy="284" r="5"/><circle cx="145" cy="250" r="4"/></g>
+ <text x="320" y="365" text-anchor="middle" fill="#fff8e6" stroke="#397b55" stroke-width="5" paint-order="stroke" font-family="Calibri,Inter,sans-serif" font-size="34" font-weight="700">VƯỜN BẬT NẢY</text>
+</svg>

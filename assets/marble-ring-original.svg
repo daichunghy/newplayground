@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-labelledby="t d">
+  <title id="t">Sân bi ve</title>
+  <desc id="d">Vòng phấn và những viên bi hình học do NewPlayground vẽ.</desc>
+  <defs>
+    <linearGradient id="ground" x2="0" y2="1"><stop stop-color="#9fc8a0"/><stop offset="1" stop-color="#5b8a68"/></linearGradient>
+    <radialGradient id="glass"><stop stop-color="#fff" stop-opacity=".92"/><stop offset=".22" stop-color="#fff" stop-opacity=".28"/><stop offset="1" stop-color="#101820" stop-opacity=".18"/></radialGradient>
+    <filter id="shadow" x="-.3" y="-.3" width="1.6" height="1.6"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#183221" flood-opacity=".35"/></filter>
+  </defs>
+  <rect width="640" height="400" rx="28" fill="#e9e3cf"/>
+  <rect x="18" y="18" width="604" height="364" rx="20" fill="url(#ground)"/>
+  <path d="M36 96q136-30 250 0t304 0M34 312q145 24 284-2t290 3" fill="none" stroke="#d8d7bb" stroke-width="3" opacity=".42"/>
+  <circle cx="330" cy="205" r="124" fill="#4e7657" fill-opacity=".3" stroke="#f2ead2" stroke-width="9" stroke-dasharray="7 6" filter="url(#shadow)"/>
+  <path d="M90 310Q145 260 210 276" fill="none" stroke="#f6efd9" stroke-width="6" stroke-linecap="round"/>
+  <g filter="url(#shadow)">
+    <g><circle cx="286" cy="156" r="23" fill="#32afd2"/><circle cx="286" cy="156" r="23" fill="url(#glass)"/><path d="M273 151q7-13 18-9" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="4" stroke-linecap="round"/></g>
+    <g><circle cx="348" cy="151" r="19" fill="#ec846c"/><circle cx="348" cy="151" r="19" fill="url(#glass)"/><path d="M338 147q6-11 15-7" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="3" stroke-linecap="round"/></g>
+    <g><circle cx="323" cy="211" r="27" fill="#f0c555"/><circle cx="323" cy="211" r="27" fill="url(#glass)"/><path d="M307 204q8-16 20-10" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="4" stroke-linecap="round"/></g>
+    <g><circle cx="380" cy="212" r="20" fill="#8976c8"/><circle cx="380" cy="212" r="20" fill="url(#glass)"/><path d="M369 207q6-11 16-7" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="3" stroke-linecap="round"/></g>
+    <g><circle cx="273" cy="250" r="18" fill="#f58d50"/><circle cx="273" cy="250" r="18" fill="url(#glass)"/><path d="M263 246q6-10 14-6" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="3" stroke-linecap="round"/></g>
+    <g><circle cx="168" cy="287" r="22" fill="#52c4a9"/><circle cx="168" cy="287" r="22" fill="url(#glass)"/><path d="M155 282q7-12 17-8" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="4" stroke-linecap="round"/></g>
+  </g>
+</svg>

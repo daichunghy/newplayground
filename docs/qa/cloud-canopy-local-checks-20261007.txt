@@ -1,0 +1,23 @@
+Vòm Mây local candidate checks — 2026-10-07
+Branch: codex/deep-upgrades-20261007
+
+Focused deterministic rules/save suite
+Command: node --test tests/cloud-canopy-model.test.cjs
+Result: 11 passed, 0 failed.
+
+Focused DOM/Canvas-double input/lifecycle suite
+Command: node --test tests/cloud-canopy-ui.test.cjs
+Result: 9 passed, 0 failed.
+Scope: fake DOM, canvas and event targets. This is not browser rendering or device acceptance.
+
+Full regression suite
+Command: node --test tests/*.test.cjs
+Result: 370 passed, 0 failed, 0 skipped.
+
+Static release preparation
+Command: node scripts/release-preflight.mjs --prepare
+Result: catalog 150; prototypes 42; planned 108; 93 manifest assets; source JavaScript 1,074,092 bytes; source assets 19,749,366 bytes.
+Packaged artifact check: includes assets/cloud-canopy-original.svg and scripts/games/cloud-canopy.js; omits provenance-unknown assets/mario_cover.png.
+Whitespace check: git diff --check passed.
+
+Not established: real-browser visuals, narrow-screen play, real touch cancellation, measured game feel, playtest acceptance, Super Mario Bros. parity, or live release rights for the historical catalog ID. Keep those gates pending.

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-labelledby="title desc">
+  <title id="title">Đấu Phao</title>
+  <desc id="desc">Hai thủy thủ nguyên bản ném bóng xốp qua vùng biển xanh giữa những bè gỗ nhỏ.</desc>
+  <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#8bd4df"/><stop offset=".7" stop-color="#f7e7bd"/><stop offset=".71" stop-color="#55b6c4"/><stop offset="1" stop-color="#176f89"/></linearGradient><linearGradient id="ball" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff5c8"/><stop offset="1" stop-color="#eaa76a"/></linearGradient></defs>
+  <rect width="640" height="400" fill="url(#sky)"/>
+  <circle cx="520" cy="76" r="34" fill="#ffd584"/>
+  <g fill="#fff9e9" opacity=".82"><ellipse cx="122" cy="83" rx="47" ry="12"/><ellipse cx="143" cy="75" rx="24" ry="18"/><ellipse cx="178" cy="85" rx="32" ry="10"/><ellipse cx="385" cy="112" rx="40" ry="10"/><ellipse cx="405" cy="105" rx="21" ry="14"/></g>
+  <path d="M0 284q46-13 92 0t92 0 92 0 92 0 92 0 92 0 92 0v116H0z" fill="#247d91"/>
+  <g fill="none" stroke="#9ee2d1" stroke-width="4" opacity=".8"><path d="M0 310q38-12 77 0t77 0 77 0 77 0 77 0 77 0 77 0 77 0 77 0"/><path d="M-20 352q45-12 90 0t90 0 90 0 90 0 90 0 90 0 90 0 90 0"/></g>
+  <g stroke="#5c503c" stroke-width="5" stroke-linejoin="round"><path d="m54 266 136 0-15 35H68z" fill="#d68d58"/><path d="m450 266 136 0-15 35h-107z" fill="#8b9eb6"/></g>
+  <g fill="#fff1c8"><path d="M71 274h15v18H71zm28 0h15v18H99zm28 0h15v18h-15zm28 0h15v18h-15z"/><path d="M469 274h15v18h-15zm28 0h15v18h-15zm28 0h15v18h-15zm28 0h15v18h-15z"/></g>
+  <g stroke="#3e5360" stroke-width="5" stroke-linecap="round"><path d="M120 250v-28m-17 17 17-14 17 14" fill="none"/><path d="M518 250v-28m-17 17 17-14 17 14" fill="none"/></g>
+  <g><circle cx="120" cy="218" r="13" fill="#eac39d"/><path d="M106 217q1-16 14-16t14 16" fill="#416777"/><path d="M104 234q16-11 32 0l8 28h-48z" fill="#e8874e"/><circle cx="518" cy="218" r="13" fill="#dcac84"/><path d="M504 217q1-16 14-16t14 16" fill="#394a65"/><path d="M502 234q16-11 32 0l8 28h-48z" fill="#718db2"/></g>
+  <path d="M151 211q86-74 174-47" fill="none" stroke="#fffdf2" stroke-width="4" stroke-dasharray="6 11" opacity=".8"/>
+  <circle cx="323" cy="159" r="12" fill="url(#ball)" stroke="#53717a" stroke-width="3"/>
+  <text x="28" y="48" fill="#214955" font-family="Calibri,Inter,sans-serif" font-size="34" font-weight="700">Đấu Phao</text>
+</svg>

@@ -1,0 +1,74 @@
+.g2048-host { background: #faf7ef; }
+.g2048-game { max-width: 480px; margin: auto; font-family: 'Calibri', 'Inter', -apple-system, sans-serif; color: #433728; }
+.g2048-game *, .g2048-game *::before, .g2048-game *::after { box-sizing: border-box; }
+.g2048-game [hidden] { display: none !important; }
+.g2048-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.g2048-eyebrow { font-size: .66rem; font-weight: 800; letter-spacing: .1em; color: #726047; }
+.g2048-header h3 { font-size: clamp(2.4rem, 7vw, 4rem); line-height: 1.1; margin: 0; font-weight: 900; }
+.g2048-scores { display: flex; gap: 6px; }
+.g2048-scores > div { min-width: 78px; border-radius: 9px; background: #6a5740; padding: 8px 10px; text-align: center; color: #fffdf5; }
+.g2048-scores span { display: block; font-size: .72rem; }
+.g2048-scores strong { font-size: clamp(1rem, 4vw, 1.5rem); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.g2048-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.g2048-toolbar p { flex: 1 1 100%; font-size: .9rem; line-height: 1.4; margin: 0; }
+.g2048-button { min-height: 44px; min-width: 44px; padding: 9px 14px; background: #f5ead6; color: #433728; border: 1px solid #8b785c; border-radius: 8px; font: 700 .95rem 'Calibri', 'Inter', -apple-system, sans-serif; cursor: pointer; touch-action: manipulation; }
+.g2048-button:hover { background: #e9dabd; }
+.g2048-button:disabled { opacity: .55; cursor: default; }
+.g2048-primary { background: #6a5740; color: #fffdf5; }
+.g2048-primary:hover { background: #4e402e; }
+.g2048-button:focus-visible, .g2048-stage:focus-visible, .g2048-help summary:focus-visible { outline: 3px solid #1559a0; outline-offset: 3px; }
+.g2048-board { position: relative; border-radius: 14px; background: #a79780; padding: 8px; width: 100%; }
+.g2048-stage { position: relative; aspect-ratio: 1; touch-action: pinch-zoom; user-select: none; -webkit-user-select: none; }
+.g2048-background { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 4px; }
+.g2048-background span { border-radius: 7px; background: #c6bba6; }
+.g2048-tiles { position: absolute; inset: 0; pointer-events: none; }
+.g2048-tile { position: absolute; top: 0; left: 0; width: 25%; height: 25%; padding: 4px; will-change: transform; }
+.g2048-tile > span { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; border-radius: 7px; background: #433728; color: #fffaf0; font-weight: 900; font-size: clamp(1.1rem, 6.5vw, 2.65rem); font-variant-numeric: tabular-nums; }
+.g2048-tile[data-value="2"] > span { background: #eee5d4; color: #514633; }
+.g2048-tile[data-value="4"] > span { background: #e7d6af; color: #514124; }
+.g2048-tile[data-value="8"] > span { background: #efb06d; color: #4b2c12; }
+.g2048-tile[data-value="16"] > span { background: #e99058; color: #49240e; }
+.g2048-tile[data-value="32"] > span { background: #d2693d; color: #231405; }
+.g2048-tile[data-value="64"] > span { background: #b44124; color: #fffdf4; }
+.g2048-tile[data-value="128"] > span { background: #efd078; color: #4b3916; }
+.g2048-tile[data-value="256"] > span { background: #e8c05b; color: #463311; }
+.g2048-tile[data-value="512"] > span { background: #d8ae40; color: #3d2b09; }
+.g2048-tile[data-value="1024"] > span { background: #d2a42b; color: #362600; }
+.g2048-tile[data-value="2048"] > span { background: #f1c845; color: #362600; box-shadow: inset 0 0 0 3px #ac7c17; }
+.g2048-tile[data-digits="4"] > span { font-size: clamp(1.1rem, 5vw, 2rem); }
+.g2048-tile[data-digits="5"] > span, .g2048-tile[data-digits="6"] > span { font-size: clamp(.9rem, 4vw, 1.6rem); }
+.g2048-tile[data-digits="7"] > span, .g2048-tile[data-digits="8"] > span { font-size: clamp(.7rem, 3vw, 1.2rem); }
+.g2048-spawned > span { animation: g2048-spawn 150ms ease-out; }
+.g2048-merged > span { animation: g2048-merge 180ms ease-out; }
+@keyframes g2048-spawn { from { opacity: .2; transform: scale(.7); } to { opacity: 1; transform: scale(1); } }
+@keyframes g2048-merge { 50% { transform: scale(1.09); } }
+.g2048-overlay { position: absolute; inset: 0; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 20px; text-align: center; background: #faf3dfed; z-index: 2; }
+.g2048-overlay h4 { font-size: clamp(1.3rem, 5vw, 2rem); margin: 0; }
+.g2048-overlay p { font-size: .95rem; line-height: 1.4; margin: 0; }
+.g2048-paused .g2048-stage { visibility: hidden; }
+.g2048-direction-pad { margin: 14px auto 10px; text-align: center; }
+.g2048-direction-pad > div { display: flex; justify-content: center; gap: 6px; margin-top: 6px; }
+.g2048-direction-pad button { width: 54px; height: 44px; font-size: 1.35rem; padding: 4px; }
+.g2048-status { min-height: 2.6em; font-size: .9rem; line-height: 1.4; margin: 8px 0; }
+.g2048-instructions, .g2048-help { font-size: .85rem; line-height: 1.5; }
+.g2048-help { border-top: 1px solid #c9bfae; margin-top: 14px; }
+.g2048-help summary { min-height: 44px; padding: 12px 0; cursor: pointer; font-weight: 700; }
+.g2048-help p { margin-bottom: 10px; }
+.g2048-help a { color: #194f92; text-decoration: underline; }
+.g2048-readable { width: 100%; table-layout: fixed; border-collapse: collapse; margin-bottom: 12px; }
+.g2048-readable caption { font-weight: 700; padding-bottom: 7px; }
+.g2048-readable td { text-align: center; border: 1px solid #bbaa8d; padding: 8px 3px; overflow-wrap: anywhere; }
+.g2048-confirm { padding: 12px; margin-bottom: 12px; border: 1px solid #ae8028; border-radius: 8px; background: #fff0c8; display: flex; flex-wrap: wrap; gap: 8px; }
+.g2048-confirm span { width: 100%; }
+.g2048-storage { color: #833325; font-size: .85rem; line-height: 1.4; margin-top: 10px; }
+@media (max-width: 420px) {
+  .g2048-host { padding: 10px; }
+  .g2048-header { flex-wrap: wrap; }
+  .g2048-eyebrow { font-size: .58rem; letter-spacing: .03em; }
+  .g2048-scores > div { min-width: 65px; padding: 8px 7px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .g2048-game *, .g2048-game *::before, .g2048-game *::after { animation: none !important; transition: none !important; }
+  .g2048-tile { will-change: auto; }
+}
+@media (forced-colors: active) { .g2048-tile > span { border: 2px solid CanvasText; } .g2048-overlay { background: Canvas; } }

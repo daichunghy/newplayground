@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-labelledby="title desc">
+  <title id="title">Bể Sao</title>
+  <desc id="desc">Bể nước xanh với ba loài cá hình học, rong biển và ngọc sáng.</desc>
+  <defs>
+    <linearGradient id="water" x2="0" y2="1"><stop stop-color="#9de3e5"/><stop offset=".55" stop-color="#2a9fb1"/><stop offset="1" stop-color="#0b596f"/></linearGradient>
+    <linearGradient id="sand" x2="0" y2="1"><stop stop-color="#efdbab"/><stop offset="1" stop-color="#c5a86e"/></linearGradient>
+    <radialGradient id="pearl"><stop stop-color="#fffde1"/><stop offset=".45" stop-color="#bff9e4"/><stop offset="1" stop-color="#52bca8"/></radialGradient>
+  </defs>
+  <rect width="640" height="400" rx="32" fill="#e7f5ee"/>
+  <rect x="20" y="20" width="600" height="360" rx="24" fill="url(#water)"/>
+  <path d="M22 330q70-28 140 0t140 0 140 0 158 0v28H22z" fill="url(#sand)"/>
+  <g fill="none" stroke-linecap="round" stroke-width="12" opacity=".9">
+    <path d="M76 332q-20-80 8-138m-5 96q-42-52-34-90m39 61q42-53 57-82" stroke="#58b18e"/>
+    <path d="M560 332q16-68-10-128m9 90q-38-39-37-76m41 54q34-48 49-78" stroke="#80c391"/>
+  </g>
+  <g transform="translate(210 149)"><path d="M-58 0-104-35v70z" fill="#e88451"/><ellipse rx="61" ry="35" fill="#f3a962"/><path d="M-4-32v64m25-62v60" stroke="#fff1c8" stroke-width="12" opacity=".9"/><circle cx="36" cy="-7" r="6" fill="#fff"/><circle cx="38" cy="-7" r="3" fill="#274956"/></g>
+  <g transform="translate(418 226) scale(.84)"><path d="M-58 0-104-35v70z" fill="#e2c65b"/><ellipse rx="61" ry="35" fill="#70cbbb"/><path d="M-6-31v62m27-60v58" stroke="#eaf8d8" stroke-width="11"/><circle cx="36" cy="-7" r="6" fill="#fff"/><circle cx="38" cy="-7" r="3" fill="#274956"/></g>
+  <circle cx="315" cy="112" r="17" fill="url(#pearl)" stroke="#e4fff2" stroke-width="3"/><path d="M304 108q9-14 20-2" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  <g fill="#e6faff" opacity=".55"><circle cx="98" cy="88" r="5"/><circle cx="127" cy="62" r="8"/><circle cx="520" cy="110" r="4"/><circle cx="486" cy="76" r="7"/></g>
+</svg>

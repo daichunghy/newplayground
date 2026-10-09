@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
+ <title id="title">Bờ Kè Sao</title>
+ <desc id="desc">Một hải đăng nhỏ soi ánh vàng qua màn sương xanh ngoài bờ kè.</desc>
+ <defs>
+  <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#193b51"/><stop offset="1" stop-color="#75949a"/></linearGradient>
+  <linearGradient id="sea" x2="0" y2="1"><stop stop-color="#668f91"/><stop offset="1" stop-color="#294e5c"/></linearGradient>
+  <linearGradient id="light" x2="1"><stop stop-color="#ffe9a0" stop-opacity=".05"/><stop offset="1" stop-color="#ffe9a0" stop-opacity=".78"/></linearGradient>
+  <filter id="glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+ </defs>
+ <rect width="960" height="600" fill="url(#sky)"/>
+ <circle cx="704" cy="118" r="48" fill="#f9e4a8" opacity=".9"/>
+ <path d="M0 300c115-50 198 33 302-9s196-28 299 18 236 25 359-19v310H0z" fill="#d8e1d7" opacity=".17"/>
+ <path d="M0 378c115-22 213 30 330 0s225-25 340 10 184 10 290-16v228H0z" fill="url(#sea)"/>
+ <path d="M0 430q120-24 240 0t240 0 240 0 240 0M0 488q120-24 240 0t240 0 240 0 240 0" fill="none" stroke="#b4d4cb" stroke-width="5" opacity=".35"/>
+ <path d="M308 384l174-164 164 164z" fill="#566b68"/>
+ <path d="M329 384l153-138 144 138z" fill="#73877a"/>
+ <path d="M407 385l28-174h95l26 174z" fill="#efe5c7" stroke="#304f58" stroke-width="9"/>
+ <path d="M430 214l23-45h57l22 45z" fill="#d3b56e" stroke="#304f58" stroke-width="8"/>
+ <rect x="450" y="188" width="62" height="44" rx="4" fill="#365765" stroke="#243f4a" stroke-width="6"/>
+ <path d="M478 201l-131 24 131 20 129-20z" fill="url(#light)" filter="url(#glow)"/>
+ <circle cx="481" cy="208" r="11" fill="#fff1be" filter="url(#glow)"/>
+ <path d="M432 252h20v39h-20zm57 0h20v39h-20zm-57 65h20v33h-20zm57 0h20v33h-20z" fill="#6d9a9b"/>
+ <path d="M246 388h442" stroke="#d3c291" stroke-width="13" stroke-linecap="round"/>
+ <path d="M282 388v44m72-44v42m72-42v42m72-42v42m72-42v42m72-42v42m-360-24h360" fill="none" stroke="#d6d1b2" stroke-width="7" stroke-linecap="round"/>
+ <circle cx="141" cy="156" r="4" fill="#fff0ba"/><circle cx="203" cy="103" r="3" fill="#fff0ba"/><circle cx="816" cy="207" r="4" fill="#fff0ba"/><path d="M808 179v-22m-11 11h22" stroke="#fff0ba" stroke-width="3" stroke-linecap="round"/>
+ <text x="54" y="530" fill="#fbf7e6" font-family="Calibri,Arial,sans-serif" font-size="43" font-weight="700" letter-spacing="1">Bờ Kè Sao</text>
+ <text x="57" y="563" fill="#d4e0d8" font-family="Calibri,Arial,sans-serif" font-size="18" letter-spacing="2">GIỮ ÁNH ĐÈN QUA BỐN LÀN SƯƠNG</text>
+</svg>

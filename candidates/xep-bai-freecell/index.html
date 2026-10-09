@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#154638">
+  <title>Bốn Ô · Xếp bài FreeCell</title>
+  <link rel="stylesheet" href="../../scripts/games/freecell.css">
+  <style>
+    html { min-height: 100%; background: #eef2e8; }
+    body { min-height: 100vh; margin: 0; background: linear-gradient(160deg, #f5f5eb, #e6eee3); }
+    main { padding: clamp(8px, 2vw, 24px); }
+  </style>
+</head>
+<body>
+  <main>
+    <div id="freecell-game"></div>
+  </main>
+  <script src="../../scripts/games/freecell-model.js"></script>
+  <script src="../../scripts/games/freecell.js"></script>
+  <script>
+    const cleanups = [];
+    const session = {
+      listen(target, type, handler, options) {
+        target.addEventListener(type, handler, options);
+        cleanups.push(() => target.removeEventListener(type, handler, options));
+      },
+      onCleanup(handler) { cleanups.push(handler); }
+    };
+    window.addEventListener('pagehide', () => cleanups.splice(0).forEach(cleanup => cleanup()), { once: true });
+    window.NP_FreeCell.mount(document.querySelector('#freecell-game'), session, { seed: 'bon-o-viet-20261008' });
+  </script>
+</body>
+</html>

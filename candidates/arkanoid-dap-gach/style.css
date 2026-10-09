@@ -1,0 +1,29 @@
+.og-host{font-family:'Calibri','Inter',-apple-system,sans-serif;color:#eef7ff}
+.og-game{position:relative;max-width:880px;margin:0 auto;padding:12px 14px 16px;border:1px solid rgba(141,190,224,.26);border-radius:18px;background:linear-gradient(145deg,#12233b,#0a1729);box-shadow:0 20px 46px rgba(3,10,20,.3);overflow:hidden}
+.og-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 2px 10px}
+.og-header h3{margin:0;font-size:1.18rem;letter-spacing:.01em;color:#f2f8ff}
+.og-actions{display:flex;gap:8px}
+.og-icon,.og-primary{min-width:44px;min-height:44px;border:1px solid rgba(180,218,240,.32);border-radius:12px;background:#203b52;color:#f2f8ff;font:inherit;font-weight:600;cursor:pointer;touch-action:manipulation}
+.og-icon{width:44px;font-size:1.1rem}
+.og-icon:hover,.og-primary:hover{background:#315675;border-color:#79dded}
+.og-icon:active,.og-primary:active{transform:translateY(1px)}
+.og-icon:focus-visible,.og-primary:focus-visible,.og-canvas:focus-visible{outline:3px solid #f5dd75;outline-offset:2px}
+.og-icon:disabled{opacity:.45;cursor:not-allowed}
+.og-hud{display:flex;justify-content:center;gap:clamp(20px,8vw,78px);margin:0 auto 10px;padding:8px 14px;width:max-content;max-width:100%;border:1px solid rgba(151,196,223,.19);border-radius:12px;background:rgba(8,18,31,.54)}
+.og-hud>div{display:grid;gap:1px;min-width:52px;text-align:center}
+.og-hud span{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:#b1c5d6}
+.og-hud strong{font-variant-numeric:tabular-nums;font-size:1.05rem;color:#fff}
+.og-stage{position:relative;border:1px solid rgba(159,207,231,.3);border-radius:14px;overflow:hidden;background:#091b2f;box-shadow:0 0 24px rgba(46,142,188,.12)}
+.og-canvas{display:block;width:100%;height:auto;aspect-ratio:3/2;touch-action:none;outline:none}
+.og-overlay{position:absolute;inset:0;display:grid;place-items:center;padding:18px;background:rgba(5,13,26,.58);backdrop-filter:blur(3px);pointer-events:none}
+.og-overlay[hidden]{display:none}
+.og-card{width:min(100%,350px);padding:20px 22px;text-align:center;border:1px solid rgba(192,222,239,.32);border-radius:18px;background:linear-gradient(150deg,rgba(26,50,73,.97),rgba(13,29,48,.98));box-shadow:0 16px 42px rgba(0,0,0,.32);pointer-events:auto}
+.og-card strong{display:block;font-size:1.3rem;color:#fff}
+.og-card p{margin:8px 0 16px;color:#d3e4f2;line-height:1.35}
+.og-primary{min-width:132px;padding:0 22px;background:linear-gradient(110deg,#4dadd2,#80e0d0);border-color:rgba(207,243,255,.58);color:#092134}
+.og-status{min-height:1.25em;margin:10px 2px 4px;text-align:center;color:#dcecf7;font-size:.92rem;font-variant-numeric:tabular-nums}
+.og-help{margin:0;text-align:center;color:#a8bacb;font-size:.79rem;line-height:1.4}
+.og-rules{margin:4px 0 0;text-align:center;color:#bcd2df;font-size:.76rem;line-height:1.4}
+@media(max-width:520px){.og-game{padding:10px;border-radius:14px}.og-header{margin-bottom:8px}.og-hud{gap:clamp(14px,6vw,28px);padding:7px 10px}.og-card{padding:16px}.og-help,.og-rules{font-size:.73rem}}
+@media(prefers-reduced-motion:reduce){.og-icon,.og-primary{transition:none;scroll-behavior:auto}}
+@media(forced-colors:active){.og-game,.og-stage,.og-hud,.og-card{border:1px solid CanvasText}.og-icon,.og-primary{border:1px solid ButtonText;color:ButtonText;background:ButtonFace}.og-canvas:focus-visible,.og-icon:focus-visible,.og-primary:focus-visible{outline:3px solid Highlight}}

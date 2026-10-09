@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" role="img" aria-labelledby="title desc">
+  <title id="title">Mầm Măm</title>
+  <desc id="desc">Một hạt vàng đung đưa trên dây phía trên Mầm, cây hạt tím có một mắt và miệng bát hứng, giữa vườn sao.</desc>
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#b9e7e1"/><stop offset=".61" stop-color="#f4e9cf"/><stop offset="1" stop-color="#d2dfa9"/></linearGradient>
+    <linearGradient id="mound" x2="0" y2="1"><stop stop-color="#c9dfa7"/><stop offset="1" stop-color="#8dbb8d"/></linearGradient>
+    <linearGradient id="sprout" x2="0" y2="1"><stop stop-color="#a9d897"/><stop offset="1" stop-color="#68a982"/></linearGradient>
+    <linearGradient id="seed" x2="0" y2="1"><stop stop-color="#f6cf79"/><stop offset="1" stop-color="#d99957"/></linearGradient>
+    <linearGradient id="mamm" x2="0" y2="1"><stop stop-color="#9e8bc5"/><stop offset="1" stop-color="#675f9d"/></linearGradient>
+    <filter id="glow" x="-.5" y="-.5" width="2" height="2"><feGaussianBlur stdDeviation="20"/></filter>
+  </defs>
+  <rect width="600" height="800" rx="40" fill="url(#sky)"/>
+  <circle cx="475" cy="142" r="87" fill="#fff0bb" opacity=".18" filter="url(#glow)"/>
+  <circle cx="475" cy="142" r="56" fill="#fff5ce" opacity=".8"/>
+  <path d="M0 510c91-65 177-80 285-22 109 59 197 62 315-8v320H0z" fill="url(#mound)"/>
+  <path d="M0 610c113-53 221-35 329 15s187 45 271 4v171H0z" fill="#83b388" opacity=".82"/>
+  <g fill="#fff2c8" stroke="#d99b50" stroke-width="4">
+    <path d="m142 278 13 27 30 5-22 21 5 30-26-15-27 15 5-30-22-21 30-5z"/>
+    <path d="m448 298 9 18 20 3-14 14 3 20-18-9-18 9 3-20-14-14 20-3z"/>
+    <path d="m372 431 8 16 18 3-13 12 3 18-16-8-16 8 3-18-13-12 18-3z"/>
+  </g>
+  <g fill="#f6f2dc" opacity=".56">
+    <ellipse cx="96" cy="140" rx="40" ry="11"/><ellipse cx="121" cy="132" rx="25" ry="15"/><ellipse cx="145" cy="141" rx="31" ry="10"/>
+    <ellipse cx="384" cy="205" rx="30" ry="9"/><ellipse cx="403" cy="199" rx="18" ry="12"/><ellipse cx="421" cy="206" rx="25" ry="8"/>
+  </g>
+  <path d="M300 48v64" stroke="#735a4b" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="300" cy="118" r="16" fill="#8b6852" stroke="#604a43" stroke-width="5"/>
+  <path d="M300 134v205" stroke="#987653" stroke-width="8" stroke-linecap="round"/>
+  <g fill="#c8a36e" stroke="#886747" stroke-width="3"><circle cx="300" cy="174" r="5"/><circle cx="300" cy="214" r="5"/><circle cx="300" cy="254" r="5"/><circle cx="300" cy="294" r="5"/></g>
+  <!-- Original seed-pod collectible: an oval with leaflets, not wrapped candy. -->
+  <g transform="translate(300 374) rotate(-8)">
+    <path d="M-7 10Q-33 16-34-3q18 0 30 7" fill="#79ae79" stroke="#49775f" stroke-width="4"/>
+    <path d="M-3 5Q-2-21 16-20q-1 18-12 29" fill="#9ccb83" stroke="#49775f" stroke-width="4"/>
+    <path d="M-18 14Q-39-4-17-29Q0-48 18-27Q41-4 19 17Q1 34-18 14z" fill="url(#seed)" stroke="#a66f51" stroke-width="5"/>
+    <g fill="#fff1cd"><ellipse cx="-8" cy="-19" rx="3" ry="5"/><ellipse cx="9" cy="-11" rx="3" ry="5"/><ellipse cx="-13" cy="1" rx="3" ry="5"/><ellipse cx="5" cy="11" rx="3" ry="5"/></g>
+    <ellipse cx="-7" cy="-23" rx="5" ry="3" fill="#fff6d6" opacity=".74"/>
+  </g>
+  <g transform="translate(300 618)">
+    <ellipse cy="76" rx="72" ry="16" fill="#344c62" opacity=".18"/>
+    <!-- Mầm is an upright pitcher-seed: one eye, an open bowl, a stem, and root leaves. -->
+    <path d="M0-70v-29" stroke="#547968" stroke-width="8" stroke-linecap="round"/>
+    <path d="M0-92q-48-42-51-2 26 26 51 2z" fill="url(#sprout)" stroke="#436c65" stroke-width="6"/>
+    <path d="M2-94q43-45 54-8-21 31-54 8z" fill="url(#sprout)" stroke="#436c65" stroke-width="6"/>
+    <path d="M-33 47Q-57 10-43-34q9-37 40-39 36-1 48 36 15 44-4 81-22 36-51 19-14-8-23-16z" fill="url(#mamm)" stroke="#50537e" stroke-width="8"/>
+    <path d="M-36-21Q-26-46-7-46q27-4 48 16Q21-8 1-7q-24 0-37-14z" fill="#b7a8d3" stroke="#50537e" stroke-width="7" stroke-linejoin="round"/>
+    <ellipse cy="-25" rx="27" ry="12" fill="#343e5d"/>
+    <path d="M-15-25q15-13 30 0-15 13-30 0z" fill="#f0a1a0"/>
+    <ellipse cx="12" cy="3" rx="8" ry="11" fill="#f3edce"/><circle cx="14" cy="5" r="3.5" fill="#313b60"/>
+    <path d="M-18 1q6 5 12 0m-17 13q5 4 10 0" fill="none" stroke="#d4a6d1" stroke-width="5" stroke-linecap="round"/>
+    <path d="M-20 57q-18 23-39 14 9-23 39-14zM14 59q19 20 38 8-11-22-38-8z" fill="#9dcc91" stroke="#547968" stroke-width="4"/>
+  </g>
+  <rect x="48" y="708" width="504" height="64" rx="22" fill="#fff8e5" opacity=".9"/>
+  <text x="300" y="735" text-anchor="middle" font-family="Calibri, Inter, sans-serif" font-size="17" font-weight="800" letter-spacing="3" fill="#6a8470">VUỐT DÂY · NHẶT SAO</text>
+  <text x="300" y="763" text-anchor="middle" font-family="Calibri, Inter, sans-serif" font-size="29" font-weight="900" fill="#514f80">MẦM MĂM</text>
+</svg>

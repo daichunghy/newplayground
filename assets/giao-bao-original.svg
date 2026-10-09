@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="200" viewBox="0 0 320 200" role="img" aria-label="Người giao báo đạp xe trên con phố ba làn">
+  <defs><linearGradient id="morning" x2="0" y2="1"><stop stop-color="#d5e6dc"/><stop offset="1" stop-color="#f1d6a8"/></linearGradient></defs>
+  <rect width="320" height="200" rx="22" fill="url(#morning)"/><path d="M0 128h320v72H0Z" fill="#798678"/><path d="M78 0h164v200H78Z" fill="#58615d"/><path d="M132 0v200m56-200v200" stroke="#f5e9c6" stroke-width="4" stroke-dasharray="14 11"/>
+  <path d="M0 134h73v34H0Zm246-20h74v55h-74Z" fill="#d7bd91"/><path d="M0 141h72m178-20h70" stroke="#96765b" stroke-width="5"/>
+  <g transform="translate(160 113)" fill="none" stroke="#273f3f" stroke-width="5"><circle cx="-31" cy="27" r="22"/><circle cx="32" cy="27" r="22"/><path d="m-31 27 24-42 23 42h-47m24-42h27m-27 0 32 42m-32-42 12-18"/></g>
+  <circle cx="151" cy="49" r="12" fill="#c77f55" stroke="#573e36" stroke-width="3"/><path d="M146 62q20-18 39-2l14 35-20 11-23-29-12 28-23-4 18-31Z" fill="#578e76" stroke="#365a4c" stroke-width="4"/>
+  <path d="m146 68 25 8-11 20-22-11Z" fill="#fff2c8" stroke="#755c41" stroke-width="3"/>
+  <g transform="translate(45 104)"><path d="M0 8h37v31H0Z" fill="#cc7557" stroke="#633f38" stroke-width="4"/><path d="M-5 8h47l-5-14H0Z" fill="#e4b873" stroke="#633f38" stroke-width="4"/><path d="M7 23h23" stroke="#ffe9bb" stroke-width="4"/></g>
+  <g fill="#78966e"><circle cx="28" cy="64" r="17"/><circle cx="294" cy="54" r="21"/><circle cx="279" cy="82" r="14"/></g>
+  <path d="m222 31 24-14m-20 23 28-6" stroke="#fff7dc" stroke-width="5" stroke-linecap="round"/>
+</svg>

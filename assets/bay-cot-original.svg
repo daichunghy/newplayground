@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-labelledby="title desc">
+  <title id="title">Bảy Cột</title>
+  <desc id="desc">Những lá bài nguyên bản xếp thành bảy cột trên tấm nỉ xanh dịu.</desc>
+  <defs><linearGradient id="felt" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#2d6756"/><stop offset="1" stop-color="#193f3c"/></linearGradient><filter id="shadow" x="-.2" y="-.2" width="1.4" height="1.4"><feDropShadow dx="0" dy="7" stdDeviation="6" flood-color="#102c2b" flood-opacity=".35"/></filter></defs>
+  <rect width="640" height="400" rx="24" fill="#172c2e"/><rect x="16" y="16" width="608" height="368" rx="19" fill="url(#felt)" stroke="#d9bd7b" stroke-width="4"/>
+  <g filter="url(#shadow)" stroke="#385258" stroke-width="3">
+    <g transform="translate(150 125) rotate(-8)"><rect width="110" height="154" rx="11" fill="#f5eedc"/><text x="15" y="34" fill="#a84443" font-family="Calibri, sans-serif" font-size="24" font-weight="700">A</text><text x="54" y="92" fill="#a84443" font-family="Georgia, serif" font-size="43">♥</text></g>
+    <g transform="translate(266 113) rotate(2)"><rect width="110" height="154" rx="11" fill="#f5eedc"/><text x="15" y="34" fill="#263847" font-family="Calibri, sans-serif" font-size="24" font-weight="700">K</text><text x="52" y="91" fill="#263847" font-family="Georgia, serif" font-size="43">♠</text></g>
+    <g transform="translate(382 125) rotate(9)"><rect width="110" height="154" rx="11" fill="#f5eedc"/><text x="15" y="34" fill="#a84443" font-family="Calibri, sans-serif" font-size="24" font-weight="700">Q</text><text x="54" y="92" fill="#a84443" font-family="Georgia, serif" font-size="43">♦</text></g>
+  </g>
+  <g fill="none" stroke="#dfc98e" stroke-width="3" opacity=".65"><path d="M78 306h480"/><path d="M87 317h466"/></g>
+  <text x="30" y="51" fill="#f8f0da" font-family="Calibri,Inter,sans-serif" font-size="34" font-weight="700">Bảy Cột</text>
+  <text x="604" y="356" fill="#d9c895" font-family="Calibri,Inter,sans-serif" font-size="12" font-weight="700" text-anchor="end" letter-spacing="2">BÀI LÁ · DRAW ONE</text>
+</svg>

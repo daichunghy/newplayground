@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#e8ddbc">
+  <title>Mầm Gió · NewPlayground candidate 39</title>
+  <link rel="stylesheet" href="../../scripts/games/bubble-trap.css">
+  <style>
+    body{margin:0;min-height:100vh;padding:20px;background:radial-gradient(ellipse at 50% 0,#d8ead2,#c7d8cf 54%,#b6c8c4);font-family:Calibri,Inter,-apple-system,sans-serif}
+    main{width:min(100%,900px);margin:0 auto}
+    .candidate-note{margin:0 auto 12px;color:#38525a;font-size:13px;text-align:center}
+    @media(max-width:580px){body{padding:8px}.candidate-note{font-size:11px}}
+  </style>
+</head>
+<body>
+  <main>
+    <p class="candidate-note">NewPlayground · local candidate 39 · Mầm Gió</p>
+    <div id="game"></div>
+  </main>
+  <script src="../../scripts/games/bubble-trap-model.js"></script>
+  <script src="../../scripts/games/bubble-trap.js"></script>
+  <script>
+    (() => {
+      const container = document.querySelector('#game');
+      const listeners = [];
+      const cleanups = [];
+      const session = {
+        listen(target, type, callback, options) {
+          target.addEventListener(type, callback, options);
+          listeners.push({ target, type, callback, options });
+        },
+        onCleanup(callback) { cleanups.push(callback); },
+        requestAnimationFrame: callback => window.requestAnimationFrame(callback),
+        cancelAnimationFrame: id => window.cancelAnimationFrame(id)
+      };
+      let audioContext = null;
+      const audio = {
+        tone(freq, type, duration, volume) {
+          try {
+            const Context = window.AudioContext || window.webkitAudioContext;
+            if (!Context) return;
+            audioContext ||= new Context();
+            if (audioContext.state === 'suspended') audioContext.resume();
+            const oscillator = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            const now = audioContext.currentTime;
+            oscillator.type = type;
+            oscillator.frequency.setValueAtTime(freq, now);
+            gain.gain.setValueAtTime(volume, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+            oscillator.connect(gain); gain.connect(audioContext.destination);
+            oscillator.start(now); oscillator.stop(now + duration);
+          } catch (_) {}
+        }
+      };
+      window.NP_BubbleTrap.mount(container, session, audio);
+      window.addEventListener('pagehide', () => {
+        cleanups.splice(0).forEach(fn => { try { fn(); } catch (_) {} });
+        listeners.forEach(({ target, type, callback, options }) => target.removeEventListener(type, callback, options));
+        listeners.length = 0;
+        try { audioContext?.close(); } catch (_) {}
+      }, { once: true });
+    })();
+  </script>
+</body>
+</html>

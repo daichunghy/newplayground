@@ -1,0 +1,27 @@
+Sắc Chuyền local candidate checks — 2026-10-07
+Branch: codex/deep-upgrades-20261007
+
+Exact edition research
+Mattel W2085 (2010) product page: https://service.mattel.com/us/productDetail.aspx?prodno=W2085&siteid=27
+Official W2085 sheet: https://service.mattel.com/instruction_sheets/W2085.pdf
+The original candidate is a documented variant, not a Mattel product/UNO recreation. No Mattel art, logo, faces, fonts, characters or sound were copied.
+
+Focused deterministic model tests
+Command: node --test tests/season-shed-model.test.cjs
+Result: 17 passed, 0 failed.
+
+Focused UI/lifecycle tests
+Command: node --test tests/season-shed-ui.test.cjs
+Result: 7 passed, 0 failed. Uses DOM/event doubles, not a real browser.
+
+Full repository suite
+Command: node --test tests/*.test.cjs tests/*.test.js
+Result: 433 passed, 0 failed, 0 skipped.
+
+Static release preparation
+Command: node scripts/release-preflight.mjs --prepare
+Result: 150 catalog IDs; 42 prototypes; 108 planned; 96 manifest assets; source JavaScript 1,097,971 bytes; source assets 19,760,454 bytes.
+Package checks: includes assets/season-shed-original.svg; excludes unverified assets/uno_cover.png and assets/uno_intro.jpg; the shipped scripts/engines-popcap.js no longer contains the prior UNO-style card-game prototype.
+Whitespace check: git diff --check passed.
+
+Not established: real desktop/mobile browser rendering, touch/focus/screen-reader acceptance, input latency, player fairness/pacing, reference parity, legacy title/distribution rights, or a live release.

@@ -1,0 +1,39 @@
+.mg-host{--mg-ink:#263e45;--mg-muted:#617777;--mg-paper:#f8f2e3;--mg-green:#3e7d6b;--mg-gold:#e3b66e;color:var(--mg-ink);font-family:Calibri,Inter,-apple-system,sans-serif}
+.mg-game{position:relative;box-sizing:border-box;width:min(100%,820px);margin:0 auto;padding:13px;background:linear-gradient(160deg,#fff9eb,#ebe5d4);border:1px solid #d7cfba;border-radius:20px;box-shadow:0 16px 42px #172f3320}
+.mg-game *{box-sizing:border-box}
+.mg-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 2px 10px}
+.mg-title-wrap{display:flex;align-items:center;gap:10px;min-width:0}
+.mg-title-wrap h2{margin:0;font-size:clamp(20px,4vw,27px);line-height:1.05;letter-spacing:.01em}
+.mg-title-wrap p{margin:4px 0 0;color:var(--mg-muted);font-size:12px}
+.mg-mark{display:grid;place-items:center;width:40px;height:40px;border:1px solid #d6c58f;border-radius:14px;background:linear-gradient(145deg,#f5db91,#b6d89e);color:#496f60;font-size:23px;box-shadow:inset 0 1px #fff9}
+.mg-header-actions{display:flex;gap:8px}
+.mg-icon,.mg-control,.mg-action{min-width:48px;min-height:48px;border:1px solid #c6c8b6;border-radius:13px;background:#fffaf0;color:#263e45;font:700 16px Calibri,Inter,sans-serif;cursor:pointer;touch-action:manipulation;box-shadow:0 2px 0 #d4cbb7}
+.mg-icon{width:48px;font-size:20px}
+.mg-icon:disabled,.mg-control:disabled{opacity:.48;cursor:default}
+.mg-hud{display:grid;grid-template-columns:1fr 1.45fr .9fr 1fr;align-items:center;gap:8px;margin:0 2px 10px;padding:8px 9px;background:#e5eadb;border:1px solid #d0d9c9;border-radius:13px}
+.mg-stat{display:grid;gap:2px;min-width:0}
+.mg-stat span{overflow:hidden;color:var(--mg-muted);font-size:10px;font-weight:700;text-overflow:ellipsis;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+.mg-stat strong{font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.mg-stat:last-child strong{color:#c66d5f;letter-spacing:.04em}
+.mg-playfield{position:relative;overflow:hidden;border:1px solid #3d5354;border-radius:15px;background:#344b50;box-shadow:inset 0 0 0 3px #f8efd9}
+.mg-playfield canvas{display:block;width:100%;height:auto;aspect-ratio:38/21;outline:none;touch-action:none}
+.mg-playfield canvas:focus-visible{box-shadow:inset 0 0 0 3px #fff2a8}
+.mg-overlay{position:absolute;inset:0;display:grid;place-items:center;padding:18px;background:rgba(25,43,51,.62);backdrop-filter:blur(3px)}
+.mg-overlay[hidden]{display:none}
+.mg-overlay-card{display:grid;justify-items:center;gap:8px;min-width:min(280px,90%);padding:18px 24px;background:#fff6df;border:1px solid #e6ce99;border-radius:18px;text-align:center;box-shadow:0 16px 44px #121e2c55}
+.mg-overlay-card strong{font-size:clamp(22px,5vw,30px)}
+.mg-overlay-card>span:not(.mg-overlay-spark){color:var(--mg-muted);font-size:14px}
+.mg-overlay-spark{color:#c68b46;font-size:25px}
+.mg-action{padding:0 24px;background:#397b67;color:#fff9e9;border-color:#2f6859}
+.mg-controls{display:grid;grid-template-columns:1fr 1.05fr 1.5fr 1fr;gap:8px;margin-top:10px}
+.mg-control{padding:6px 9px;user-select:none;-webkit-user-select:none}
+.mg-move{font-size:22px;background:#f7f2e4}
+.mg-jump{background:#e2edd9;border-color:#bfd0b9}
+.mg-bubble{background:#fae9c6;border-color:#e3cb92}
+.mg-help{margin:8px 2px 0;color:var(--mg-muted);font-size:12px;text-align:center}
+.mg-live{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.mg-icon:focus-visible,.mg-control:focus-visible,.mg-action:focus-visible{outline:3px solid #b47d38;outline-offset:2px}
+.mg-icon:active:not(:disabled),.mg-control:active:not(:disabled),.mg-action:active{transform:translateY(1px)}
+@media(max-width:580px){.mg-game{padding:9px;border-radius:15px}.mg-hud{grid-template-columns:.85fr 1.3fr .7fr 1fr;gap:6px;padding:7px}.mg-stat span{font-size:9px}.mg-stat strong{font-size:12px}.mg-controls{grid-template-columns:repeat(4,minmax(48px,1fr));gap:6px}.mg-control{padding:6px 4px;font-size:13px}.mg-move{font-size:20px}.mg-help{font-size:11px}}
+@media(max-width:360px){.mg-title-wrap p{font-size:11px}.mg-mark{width:35px;height:35px}.mg-hud{grid-template-columns:.85fr 1.25fr .6fr 1fr}.mg-stat strong{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.mg-control{transition:none}}

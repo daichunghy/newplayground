@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420" role="img" aria-labelledby="title desc">
+ <title id="title">Xe Săn Bụi</title><desc id="desc">Một xe thăm dò nhỏ di chuyển qua bãi đá cùng các drone hình thoi.</desc>
+ <defs><linearGradient id="field" x2="0" y2="1"><stop stop-color="#173a4b"/><stop offset="1" stop-color="#387378"/></linearGradient><radialGradient id="glow"><stop stop-color="#f3cf8c" stop-opacity=".85"/><stop offset="1" stop-color="#f3cf8c" stop-opacity="0"/></radialGradient></defs>
+ <rect width="640" height="420" rx="28" fill="url(#field)"/>
+ <g fill="#778981" stroke="#c2d0bd" stroke-width="4"><rect x="54" y="58" width="98" height="49" rx="14"/><rect x="488" y="70" width="99" height="48" rx="14"/><rect x="58" y="288" width="112" height="47" rx="13"/><rect x="458" y="292" width="119" height="49" rx="14"/><rect x="258" y="37" width="120" height="43" rx="13"/></g>
+ <g fill="none" stroke="#a6cab1" stroke-width="4" stroke-dasharray="8 13" opacity=".8"><path d="M120 204h400"/><path d="M320 92v218"/></g>
+ <circle cx="320" cy="203" r="104" fill="url(#glow)"/>
+ <g transform="translate(320 210)" fill="#59b99f" stroke="#d0f0df" stroke-width="5"><rect x="-64" y="-36" width="128" height="72" rx="23"/><rect x="-88" y="-28" width="21" height="56" rx="8"/><rect x="67" y="-28" width="21" height="56" rx="8"/><path d="M0-22 34 0 0 22-34 0z" fill="#e3f1d7"/><circle cx="0" cy="0" r="8" fill="#356970"/></g>
+ <g fill="#d98467" stroke="#ffe6c7" stroke-width="4"><path d="m211 139 24 12 12 24-12 24-24 12-24-12-12-24 12-24z"/><path d="m428 142 24 12 12 24-12 24-24 12-24-12-12-24 12-24z"/></g>
+ <g fill="#e7dfc8" opacity=".8"><circle cx="105" cy="170" r="3"/><circle cx="530" cy="253" r="4"/><circle cx="189" cy="351" r="3"/><circle cx="451" cy="55" r="3"/></g>
+ <text x="320" y="390" fill="#f2ead4" font-family="Calibri,Arial,sans-serif" font-size="28" font-weight="700" text-anchor="middle">XE SĂN BỤI</text>
+</svg>

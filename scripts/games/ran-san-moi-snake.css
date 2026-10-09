@@ -1,0 +1,68 @@
+/* Original NewPlayground garden palette and shapes; no borrowed logos or sprites. */
+.sn-host { padding: 12px; background: #f7f6ec; }
+.sn-game { --sn-ink: #183c31; --sn-muted: #597064; --sn-paper: #fbfaef; --sn-leaf: #81b84b; --sn-line: #9cad8c; max-width: 590px; margin: 0 auto; color: var(--sn-ink); font-family: 'Calibri', 'Inter', -apple-system, sans-serif; outline: none; }
+.sn-game *, .sn-game *::before, .sn-game *::after { box-sizing: border-box; }
+.sn-game [hidden] { display: none !important; }
+.sn-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 10px; }
+.sn-eyebrow { display: block; color: #658150; font-size: .66rem; font-weight: 800; letter-spacing: .13em; }
+.sn-header h2 { margin: 1px 0 0; font-size: clamp(1.35rem, 5vw, 1.8rem); line-height: 1.1; }
+.sn-button, .sn-direction { appearance: none; border: 1px solid #a2b39c; border-radius: 12px; background: #fffdf4; color: var(--sn-ink); font: 700 .94rem 'Calibri', 'Inter', -apple-system, sans-serif; cursor: pointer; touch-action: manipulation; }
+.sn-button { min-height: 44px; padding: 9px 14px; box-shadow: 0 2px 0 #d5ddcc; }
+.sn-button:hover:not(:disabled) { background: #edf4df; }
+.sn-button:active:not(:disabled), .sn-direction:active:not(:disabled) { transform: translateY(1px); box-shadow: none; }
+.sn-button:disabled, .sn-direction:disabled { opacity: .52; cursor: default; }
+.sn-button:focus-visible, .sn-direction:focus-visible, .sn-game:focus-visible { outline: 3px solid #176c8b; outline-offset: 3px; }
+.sn-primary { background: #22523b; border-color: #22523b; color: #fff; }
+.sn-primary:hover:not(:disabled) { background: #2e6849; }
+.sn-restart { white-space: nowrap; }
+.sn-restart span { margin-left: 3px; }
+.sn-hud { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 10px; overflow: hidden; border: 1px solid #d4dcc8; border-radius: 12px; background: #edf1e3; }
+.sn-hud > div { min-width: 0; padding: 7px 4px 8px; text-align: center; }
+.sn-hud > div + div { border-left: 1px solid #d5ddca; }
+.sn-hud span { display: block; color: var(--sn-muted); font-size: .72rem; line-height: 1.2; }
+.sn-hud strong { display: block; margin-top: 2px; font-size: 1.24rem; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.sn-board-frame { position: relative; overflow: hidden; width: 100%; border: 2px solid #486e4c; border-radius: 14px; background: #e8edcf; box-shadow: 0 5px 0 #cbd5b6, 0 10px 22px #183c3114; }
+.sn-grid { display: grid; width: 100%; aspect-ratio: 18 / 14; grid-template-columns: repeat(var(--sn-cols, 18), minmax(0, 1fr)); grid-template-rows: repeat(var(--sn-rows, 14), minmax(0, 1fr)); gap: 1px; padding: 5px; background-color: #d9e3bb; user-select: none; }
+.sn-cell { position: relative; min-width: 0; min-height: 0; border-radius: 4px; background: #f1f3dc; }
+.sn-cell:nth-child(odd) { background: #edf0d3; }
+.sn-body { border-radius: 6px; background: #2f8155 !important; box-shadow: inset 0 2px #67a968; }
+.sn-head { z-index: 1; border-radius: 42%; background: #164a39 !important; box-shadow: inset 0 2px #4e9964, 0 1px 3px #183c3155; }
+.sn-head::after { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #fff7d5; content: ''; }
+.sn-dir-up::after { top: 19%; right: 25%; box-shadow: -4px 0 #fff7d5; }
+.sn-dir-right::after { right: 19%; bottom: 25%; box-shadow: 0 -4px #fff7d5; }
+.sn-dir-down::after { bottom: 19%; left: 25%; box-shadow: 4px 0 #fff7d5; }
+.sn-dir-left::after { top: 25%; left: 19%; box-shadow: 0 4px #fff7d5; }
+.sn-food::before { position: absolute; inset: 20%; border-radius: 50% 50% 45% 45%; background: #ef8056; box-shadow: inset -2px -2px 0 #d86649, 0 1px 2px #6b473c44; content: ''; }
+.sn-food::after { position: absolute; top: 12%; left: 52%; width: 24%; height: 17%; border-radius: 90% 10% 90% 10%; background: #5f9b49; content: ''; transform: rotate(-20deg); }
+.sn-playbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 11px 0 7px; }
+.sn-help { margin: 0; color: var(--sn-muted); font-size: .8rem; line-height: 1.35; }
+.sn-pad { display: grid; grid-template-columns: repeat(3, 52px); grid-template-rows: repeat(3, 48px); gap: 5px; width: max-content; margin: 5px auto; }
+.sn-direction { width: 52px; height: 48px; border-radius: 13px; font-size: 1.35rem; line-height: 1; box-shadow: 0 2px 0 #d5ddcc; }
+.sn-pad-center { display: grid; place-items: center; border-radius: 13px; color: #88a076; font-size: 1.15rem; }
+.sn-status { min-height: 2.4em; margin: 8px 0 0; color: #294a39; font-size: .9rem; font-weight: 700; line-height: 1.35; text-align: center; }
+.sn-storage { margin: 0; color: #8b452e; font-size: .8rem; line-height: 1.4; text-align: center; }
+.sn-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.sn-overlay { position: absolute; z-index: 2; inset: 0; display: grid; place-items: center; padding: 16px; background: #173b2dbb; backdrop-filter: blur(2px); }
+.sn-overlay-card { width: min(100%, 310px); padding: 18px; border: 1px solid #d8e0ca; border-radius: 16px; background: #fbfaef; text-align: center; box-shadow: 0 10px 30px #0d241b55; }
+.sn-overlay-card strong { display: block; font-size: 1.45rem; }
+.sn-overlay-card p { margin: 7px 0 13px; color: var(--sn-muted); font-size: .9rem; line-height: 1.4; }
+.sn-overlay-card .sn-button { margin: 0 3px 5px; }
+@media (max-width: 420px) {
+  .sn-host { padding: 8px; }
+  .sn-header { margin-bottom: 8px; }
+  .sn-hud { margin-bottom: 8px; }
+  .sn-hud > div { padding: 6px 2px 7px; }
+  .sn-hud span { font-size: .66rem; }
+  .sn-hud strong { font-size: 1.12rem; }
+  .sn-playbar { align-items: flex-start; }
+  .sn-help { max-width: 60%; font-size: .75rem; }
+  .sn-restart { padding-inline: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sn-game *, .sn-game *::before, .sn-game *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .sn-button:active:not(:disabled), .sn-direction:active:not(:disabled) { transform: none; }
+}
+@media (forced-colors: active) {
+  .sn-board-frame, .sn-cell, .sn-body, .sn-head, .sn-food::before { border: 1px solid CanvasText; }
+  .sn-button:focus-visible, .sn-direction:focus-visible, .sn-game:focus-visible { outline-color: Highlight; }
+}

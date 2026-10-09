@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 450" role="img" aria-labelledby="title desc">
+  <title id="title">Quầy Nước Chanh</title>
+  <desc id="desc">Một quầy nước chanh nhỏ dưới nắng, với mái cam và những ly nước mát.</desc>
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#cbe8e8"/><stop offset="1" stop-color="#f5edcf"/></linearGradient>
+    <linearGradient id="wood" x2="0" y2="1"><stop stop-color="#dfad76"/><stop offset="1" stop-color="#b9794c"/></linearGradient>
+    <pattern id="stripe" width="96" height="1" patternUnits="userSpaceOnUse"><rect width="48" height="100" fill="#ee8c59"/><rect x="48" width="48" height="100" fill="#fff4de"/></pattern>
+  </defs>
+  <rect width="720" height="450" rx="34" fill="url(#sky)"/>
+  <circle cx="583" cy="91" r="42" fill="#f5cc5c"/>
+  <path d="M0 304c142-42 234-4 355-28 155-30 256-3 365-43v217H0z" fill="#e5d9b6"/>
+  <rect x="118" y="176" width="484" height="48" rx="8" fill="url(#stripe)" stroke="#bd6743" stroke-width="8"/>
+  <path d="M143 223h434l-25 43H168z" fill="#fff2da" stroke="#bd6743" stroke-width="8" stroke-linejoin="round"/>
+  <rect x="166" y="258" width="388" height="151" rx="12" fill="url(#wood)" stroke="#905f43" stroke-width="8"/>
+  <path d="M166 289h388" stroke="#f0c08a" stroke-width="10"/>
+  <rect x="236" y="297" width="90" height="94" rx="14" fill="#faf4df" stroke="#965f46" stroke-width="7"/>
+  <rect x="247" y="325" width="68" height="54" rx="9" fill="#f3cf64"/>
+  <path d="M248 322h66v12h-66z" fill="#e5f5df"/>
+  <rect x="398" y="297" width="90" height="94" rx="14" fill="#faf4df" stroke="#965f46" stroke-width="7"/>
+  <rect x="409" y="325" width="68" height="54" rx="9" fill="#f3cf64"/>
+  <path d="M410 322h66v12h-66z" fill="#e5f5df"/>
+  <circle cx="105" cy="237" r="19" fill="#dca46f"/>
+  <path d="M73 316c3-44 17-62 32-62s29 18 32 62z" fill="#668ba0"/>
+  <path d="M559 133c4-16 28-19 38-4 13-7 28 1 27 17h-76c0-6 4-11 11-13z" fill="#fffef8" opacity=".85"/>
+  <text x="360" y="438" text-anchor="middle" fill="#38574d" font-family="Calibri,Arial,sans-serif" font-size="20" font-weight="700" letter-spacing="3">QUẦY NƯỚC CHANH</text>
+</svg>

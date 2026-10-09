@@ -131,7 +131,7 @@
       } catch (e) {}
     },
 
-    // Heavy physical thud (landing, boulder drop, Mama Dino stomp)
+    // Heavy physical thud for landings and falling objects.
     thud(freq = 90) {
       try {
         const ctx = getAudioCtx();
@@ -368,18 +368,6 @@
       } catch (e) {}
     },
 
-    // Gunny artillery cannon blast
-    cannonFire() {
-      try {
-        const ctx = getAudioCtx();
-        if (!ctx) return;
-        const now = ctx.currentTime;
-        // Deep boom + high whistle
-        this.explosion(true);
-        this.tone(480, 'sine', 0.15, 0.2);
-      } catch (e) {}
-    },
-
     // Bright 2-tone melodic coin pick
     coin() {
       this.tone(987.77, 'sine', 0.08, 0.2);
@@ -599,26 +587,12 @@
           [N.E4, N.C3, 180], [N.G4, N.G3, 180], [N.A4, N.C3, 180], [N.C5, N.G3, 240],
           [N.A4, N.C3, 180], [N.G4, N.G3, 180], [N.E4, N.C3, 260], [N.R, N.R, 100]
         ],
-        // Bắn Trứng Khủng Long (Dynomite Deluxe): Nhịp gõ Marimba thổ dân vui nhộn
-        bantrung: [
-          [N.A4, N.A3, 130], [N.C5, N.E3, 130], [N.B4, N.A3, 130], [N.G4, N.E3, 130],
-          [N.A4, N.A3, 130], [N.E4, N.E3, 130], [N.G4, N.A3, 200], [N.R, N.R, 50],
-          [N.C5, N.A3, 130], [N.D5, N.E3, 130], [N.E5, N.A3, 130], [N.D5, N.E3, 130],
-          [N.C5, N.A3, 130], [N.B4, N.E3, 130], [N.A4, N.A3, 260], [N.R, N.R, 70]
-        ],
         // Plants vs. Zombies: Điệu bassline nhún nhảy dí dỏm "Graze the Roof"
         pvz: [
           [N.E4, N.A3, 160], [N.D4, N.E3, 160], [N.E4, N.A3, 160], [N.C4, N.E3, 160],
           [N.D4, N.A3, 160], [N.C4, N.E3, 160], [N.B3, N.A3, 240], [N.R, N.R, 80],
           [N.C4, N.A3, 160], [N.D4, N.E3, 160], [N.E4, N.A3, 160], [N.G4, N.E3, 160],
           [N.F4, N.A3, 160], [N.E4, N.E3, 160], [N.D4, N.A3, 260], [N.R, N.R, 80]
-        ],
-        // Gunny Online: Nhạc nền quân đoàn Gà Vàng hào hùng
-        gunny: [
-          [N.C4, N.C3, 150], [N.E4, N.G3, 150], [N.G4, N.C3, 150], [N.C5, N.G3, 200],
-          [N.B4, N.C3, 150], [N.G4, N.G3, 150], [N.E4, N.C3, 150], [N.D4, N.G3, 220],
-          [N.C4, N.C3, 150], [N.F4, N.F3, 150], [N.A4, N.C3, 150], [N.D5, N.G3, 200],
-          [N.C5, N.C3, 150], [N.B4, N.G3, 150], [N.C5, N.C3, 300], [N.R, N.R, 90]
         ],
         // Chicken Invaders: Khúc quân hành vũ trụ châm biếm
         chicken: [
@@ -627,13 +601,6 @@
           [N.C5, N.C3, 160], [N.E5, N.G3, 160], [N.G5, N.C3, 160], [N.E5, N.G3, 200],
           [N.D5, N.G3, 160], [N.B4, N.G3, 160], [N.C5, N.C3, 280], [N.R, N.R, 90]
         ],
-        // Feeding Frenzy: Nhịp lội nước nhún nhảy san hô PopCap
-        feeding: [
-          [N.C4, N.C3, 140], [N.D4, N.G3, 140], [N.E4, N.C3, 140], [N.G4, N.G3, 180],
-          [N.A4, N.F3, 140], [N.G4, N.C3, 140], [N.E4, N.G3, 180], [N.R, N.R, 60],
-          [N.F4, N.F3, 140], [N.A4, N.C3, 140], [N.C5, N.F3, 180], [N.A4, N.C3, 140],
-          [N.G4, N.G3, 140], [N.D4, N.G3, 140], [N.C4, N.C3, 250], [N.R, N.R, 70]
-        ],
         // Super Mario: Giai điệu Overworld 1985 huyền thoại
         mario: [
           [N.E4, N.D3, 120], [N.E4, N.D3, 120], [N.R, N.R, 120], [N.E4, N.D3, 120],
@@ -641,33 +608,12 @@
           [N.R, N.R, 200], [N.G3, N.G2, 260], [N.R, N.R, 200], [N.C4, N.C3, 220],
           [N.R, N.R, 120], [N.G3, N.G2, 180], [N.E3, N.C3, 220], [N.R, N.R, 100]
         ],
-        // Battle City (Xe Tăng 1990 NES): Fanfare mở màn huyền thoại
-        battlecity: [
-          [N.C4, N.C3, 130], [N.E4, N.E3, 130], [N.G4, N.G3, 130], [N.C5, N.C3, 220],
-          [N.G4, N.G3, 130], [N.E4, N.E3, 130], [N.C4, N.C3, 240], [N.R, N.R, 80],
-          [N.D4, N.D3, 130], [N.F4, N.F3, 130], [N.A4, N.A3, 130], [N.D5, N.D3, 220],
-          [N.B4, N.G3, 140], [N.G4, N.E3, 140], [N.C5, N.C3, 280], [N.R, N.R, 90]
-        ],
         // Tetris (Xếp Gạch): Khúc ca Korobeiniki Type-A bất hủ
         tetris: [
           [N.E4, N.E3, 160], [N.B3, N.G3, 160], [N.C4, N.A3, 160], [N.D4, N.B3, 160],
           [N.C4, N.A3, 160], [N.B3, N.G3, 160], [N.A3, N.E3, 240], [N.R, N.R, 60],
           [N.A3, N.E3, 160], [N.C4, N.A3, 160], [N.E4, N.C3, 160], [N.D4, N.B3, 160],
           [N.C4, N.A3, 160], [N.B3, N.E3, 240], [N.C4, N.A3, 160], [N.D4, N.B3, 200]
-        ],
-        // Insaniquarium Deluxe (Nuôi Cá Nemo): Giai điệu bập bùng thủy cung PopCap
-        insaniquarium: [
-          [N.C4, N.C3, 150], [N.F4, N.A3, 150], [N.G4, N.C3, 150], [N.A4, N.F3, 200],
-          [N.G4, N.C3, 150], [N.F4, N.A3, 150], [N.D4, N.G3, 220], [N.R, N.R, 70],
-          [N.E4, N.C3, 150], [N.G4, N.E3, 150], [N.C5, N.G3, 200], [N.B4, N.E3, 150],
-          [N.A4, N.F3, 150], [N.G4, N.C3, 150], [N.F4, N.C3, 280], [N.R, N.R, 80]
-        ],
-        // Nông Trại Vui Vẻ: Giai điệu đồng quê Zing Me thanh bình
-        nongtrai: [
-          [N.G4, N.C3, 170], [N.A4, N.E3, 170], [N.C5, N.G3, 220], [N.A4, N.E3, 170],
-          [N.G4, N.C3, 170], [N.E4, N.G3, 170], [N.D4, N.C3, 260], [N.R, N.R, 80],
-          [N.C4, N.C3, 170], [N.D4, N.E3, 170], [N.E4, N.G3, 170], [N.G4, N.E3, 200],
-          [N.E4, N.C3, 170], [N.D4, N.G3, 170], [N.C4, N.C3, 300], [N.R, N.R, 100]
         ],
         // Zuma Deluxe (PopCap Ếch Bắn Ngọc): Giai điệu bộ gõ thổ dân Aztec huyền bí
         zuma: [

@@ -1,0 +1,26 @@
+Bờ Kè Sao local candidate checks — 2026-10-07
+Branch: codex/deep-upgrades-20261007
+
+Official reference
+EA / PopCap PC readme reviewed: https://akamai.cdn.ea.com/eadownloads/u/f/manuals/GAME-PVZ/en_US_readme.html
+Used only to identify broad grid/lane, resource, waves and breach archetypes. No copied characters, title art, music, source code or level data used for the candidate.
+
+Focused deterministic model suite
+Command: node --test tests/beacon-shore-model.test.cjs
+Result: 15 passed, 0 failed.
+
+Focused UI and lifecycle suite
+Command: node --test tests/beacon-shore-ui.test.cjs
+Result: 6 passed, 0 failed. DOM/event doubles only; not browser acceptance.
+
+Full repository regression suite
+Command: node --test tests/*.test.cjs tests/*.test.js
+Result: 408 passed, 0 failed, 0 skipped.
+
+Static release preparation
+Command: node scripts/release-preflight.mjs --prepare
+Result: 150 catalog IDs; 42 prototypes; 108 planned; 95 manifest assets; source JavaScript 1,092,799 bytes; source assets 19,755,732 bytes.
+Package checks: includes assets/beacon-shore-original.svg; omits the unverified assets/pvz_cover.png; the shipped scripts/engines-classics.js no longer contains the prior Plants vs. Zombies game prototype.
+Whitespace check: git diff --check passed.
+
+Not established: real browser/mobile rendering, actual touch/keyboard feel, accessibility acceptance, measured FPS/input latency, player pacing/difficulty acceptance, commercial parity, title/distribution rights or live release.

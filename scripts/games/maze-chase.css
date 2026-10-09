@@ -1,0 +1,36 @@
+/* Original Lối sáng UI. Compact by default; details live behind the ? control. */
+.mc-host { width: 100%; min-width: 0; }
+.mc-game, .mc-game button { font-family: Calibri, Inter, -apple-system, sans-serif; }
+.mc-game { --mc-ink: #193e37; width: min(100%, 488px); margin: 0 auto; color: var(--mc-ink); padding: 12px; box-sizing: border-box; border: 1px solid #c8ddcd; border-radius: 24px; background: #eef4e8; box-shadow: 0 16px 46px #113c3020; }
+.mc-game * { box-sizing: border-box; }
+.mc-bar { display: flex; align-items: center; gap: 12px; min-height: 42px; padding: 0 4px 10px; }
+.mc-title { font-size: 19px; letter-spacing: -.5px; margin-right: auto; white-space: nowrap; }
+.mc-score { font-size: 21px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.mc-lives { font-size: 15px; color: #a44f44; letter-spacing: 2px; white-space: nowrap; }
+.mc-stage { color: #426258; font-size: 13px; }
+.mc-board { position: relative; overflow: hidden; border-radius: 14px; background: #10292b; box-shadow: 0 3px 0 #183d33; }
+#mcCanvas { width: 100%; height: auto; display: block; aspect-ratio: 19/17; touch-action: none; user-select: none; -webkit-user-select: none; outline-offset: -4px; }
+.mc-progress { height: 4px; margin: 13px 4px 2px; background: #d5e3d2; border-radius: 8px; overflow: hidden; }
+.mc-progress > span { display: block; width: 0; height: 100%; background: #39856a; border-radius: inherit; }
+.mc-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 2px 0; }
+.mc-tools { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; max-width: 150px; }
+.mc-game button { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; border: 1px solid #b6cebc; border-radius: 12px; color: var(--mc-ink); background: #fafff4; font-size: 21px; font-weight: 700; cursor: pointer; touch-action: manipulation; padding: 0 10px; box-shadow: 0 2px 0 #b6cebc; -webkit-tap-highlight-color: transparent; }
+.mc-game button:active:not(:disabled) { transform: translateY(2px); box-shadow: none; background: #d5ebd9; }
+.mc-game button:focus-visible, #mcCanvas:focus-visible { outline: 3px solid #ad6940; }
+.mc-game button:disabled { cursor: default; opacity: .4; box-shadow: none; }
+.mc-game button[aria-pressed="true"] { color: #748378; background: #d9e3d6; text-decoration: line-through; }
+.mc-pad { display: grid; grid-template-columns: repeat(3, 47px); grid-template-rows: repeat(2, 44px); gap: 5px; }
+.mc-pad button { font-family: Calibri, sans-serif; font-size: 25px; touch-action: none; }
+.mc-up { grid-column: 2; grid-row: 1; }.mc-left { grid-column: 1; grid-row: 2; }.mc-down { grid-column: 2; grid-row: 2; }.mc-right { grid-column: 3; grid-row: 2; }
+.mc-overlay { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; background: #0c2226aa; backdrop-filter: blur(3px); }
+.mc-card { text-align: center; padding: 23px; border-radius: 22px; background: #eff8e9; color: var(--mc-ink); box-shadow: 0 18px 50px #0004; max-width: 290px; }
+.mc-card strong { display: block; font-size: 25px; line-height: 1.15; margin: 0 0 18px; }
+.mc-card p { white-space: pre-line; font-size: 16px; line-height: 1.4; margin: -4px 0 20px; }
+.mc-card button { min-width: 58px; min-height: 50px; margin: 0 4px; }
+.mc-card .mc-primary { background: #276e56; color: #f5ffe5; border-color: #1b583f; box-shadow: 0 3px 0 #174b37; }
+.mc-save-note { width: 18px; height: 18px; border: 1px solid currentColor; border-radius: 50%; text-align: center; font-size: 13px; color: #9b5632; }
+.mc-sr { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
+.mc-game [hidden] { display: none !important; }
+@media (max-width: 380px) { .mc-game { padding: 8px; border-radius: 18px; }.mc-bar { gap: 8px; }.mc-title { font-size: 17px; }.mc-score { font-size: 19px; }.mc-lives { letter-spacing: 0; font-size: 13px; }.mc-tools { max-width: 96px; }.mc-pad { grid-template-columns: repeat(3, 44px); gap: 4px; } }
+@media (max-height: 590px) and (min-width: 680px) { .mc-game { display: grid; grid-template-columns: minmax(0, 370px) 150px; width: min(100%, 550px); gap: 10px; }.mc-bar { grid-column: 1 / -1; padding-bottom: 0; }.mc-board { grid-column: 1; }.mc-controls { grid-column: 2; grid-row: 2; flex-direction: column; justify-content: center; }.mc-progress { grid-column: 1; margin-top: 0; }.mc-tools { max-width: none; } }
+@media (prefers-reduced-motion: reduce) { .mc-game button:active:not(:disabled) { transform: none; }.mc-overlay { backdrop-filter: none; } }

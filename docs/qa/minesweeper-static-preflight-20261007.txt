@@ -1,0 +1,10 @@
+{
+  "catalog": 150,
+  "prototypes": 42,
+  "planned": 108,
+  "sourceJavaScriptBytes": 967383,
+  "assetBytes": 19717865,
+  "declaredAssetFiles": 83,
+  "scope": "Static consistency and syntax only; gameplay and rights require separate review."
+}
+Prepared static site: .pages-site

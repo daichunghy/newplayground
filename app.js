@@ -1,6 +1,6 @@
 /**
  * NEWPLAYGROUND PORTAL & RUNTIME ENGINE
- * 100 Curated Games, Responsive UI, Live Search, Audio Unlock & Playable Ca Pho
+ * Game catalog, responsive UI, exact game registry and managed game sessions
  */
 
 (function () {
@@ -8,8 +8,18 @@
 
   // --- STATE ---
   let allGames = [];
-  let favorites = JSON.parse(localStorage.getItem('np_favorites') || '[]');
-  let currentFilter = 'all';
+  function readPreference(key, fallback = null) {
+    try { return localStorage.getItem(key) ?? fallback; } catch (error) { return fallback; }
+  }
+  function writePreference(key, value) {
+    try { localStorage.setItem(key, value); } catch (error) { /* Storage can be unavailable. */ }
+  }
+  let favorites = [];
+  try {
+    const saved = JSON.parse(readPreference('np_favorites', '[]'));
+    if (Array.isArray(saved)) favorites = [...new Set(saved.filter(id => typeof id === 'string'))];
+  } catch (error) { /* Invalid favorites must not prevent the portal from opening. */ }
+  let currentFilter = 'playable';
   let searchQuery = '';
 
   // --- AUDIO SYNTHESIS FOR ZERO-DEPENDENCY INSTANT SOUND ---
@@ -84,6 +94,16 @@
   function initPortal() {
     const allPill = document.querySelector('.filter-pill[data-category="all"]');
     if (allPill) allPill.textContent = `Tất cả (${allGames.length})`;
+    const playableCount = allGames.filter(game => window.NP_GameRegistry.isPlayable(game.id)).length;
+    const playablePill = document.querySelector('.filter-pill[data-category="playable"]');
+    if (playablePill) playablePill.textContent = `Có thể chơi (${playableCount})`;
+    updateFilterPillsUI(currentFilter);
+    const availability = document.getElementById('catalogAvailability');
+    if (availability) availability.textContent = `${playableCount} chơi thử · ${allGames.length} trong danh mục`;
+    const search = document.getElementById('searchInput');
+    if (search) search.placeholder = 'Tìm game trong danh sách đang chọn...';
+    const browse = document.getElementById('heroBrowseBtn');
+    if (browse) browse.textContent = `Xem ${playableCount} game chơi thử`;
     updateFavCount();
     renderSections();
     setupEventListeners();
@@ -93,50 +113,78 @@
 
   // --- RENDERING ---
   const COVER_MAP = {
-    'ca-pho': 'assets/ca_pho_concept_art.jpg',
-    'hang-rong': 'assets/hang_rong_cover.png',
-    'dao-vang': 'assets/dao_vang_cover.png',
-    'dat-bom': 'assets/dat_bom_cover.png',
-    'xe-tang': 'assets/xe_tang_1990_cover.png',
-    'gunny': 'assets/gunny_cover.png',
-    'lat-the-tri-nho': 'assets/pikachu_cover.png',
-    'pikachu': 'assets/pikachu_cover.png',
-    'nuoi-ca': 'assets/nuoi_ca_cover.png',
+    'ca-pho': 'assets/hangrong-original.svg',
+    'hang-rong': 'assets/hangrong-original.svg',
+    'tro-choi-2048': 'assets/game2048-original.svg',
+    'dao-vang': 'assets/abyss-retrieval-original.svg',
+    'dat-bom': 'assets/garden-bombs-original.svg',
+    'xe-tang': 'assets/scrap-rover-original.svg',
+    'ban-xe-tang-1990': 'assets/scrap-rover-original.svg',
+    'gunny-2d': 'assets/wind-duel-original.svg',
+    'nuoi-ca-nemo': 'assets/sea-garden-original.svg',
+    'nong-trai-vui-ve': 'assets/sun-garden-original.svg',
+    'lat-the-tri-nho': 'assets/noi-hinh-original.svg',
     'nong-trai': 'assets/nong_trai_cover.png',
-    'xep-gach': 'assets/tetris_cover.png',
-    'tetris': 'assets/tetris_cover.png',
-    'plants-vs-zombies': 'assets/pvz_cover.png',
-    'feeding': 'assets/ca_lon_nuot_ca_be_cover.png',
+    'xep-gach': 'assets/falling-blocks-original.svg',
+    'tetris': 'assets/falling-blocks-original.svg',
+    'plants-vs-zombies': 'assets/beacon-shore-original.svg',
+    'feeding': 'assets/feeding-frenzy-original.svg',
+    'ran-san-moi-snake': 'assets/ran-san-moi-original.svg',
+    'chem-hoa-qua': 'assets/covers/vuon-bat-nay.svg',
+    'pha-gach-dx-ball': 'assets/pha-gach-original.svg',
+    'day-thung-sokoban': 'assets/day-thung-sokoban-original.svg',
+    'pong-1972': 'assets/pong-1972-original.svg',
+    'ban-ga-vu-tru': 'assets/ban_ga_vu_tru_original.svg',
+    'flappy-bird': 'assets/flappy-bird-original.svg',
     'ban-ga': 'assets/ban_ga_cover.png',
-    'ban-trung': 'assets/ban_trung_cover.png',
-    'kim-cuong': 'assets/kim_cuong_cover.png',
-    'line-98': 'assets/line_98_cover.png',
-    'mario': 'assets/mario_cover.png',
-    'pac-man': 'assets/pacman_cover.png',
-    'zuma': 'assets/zuma_cover.png',
-    'diner-dash': 'assets/diner_dash_cover.png',
-    'co-tuong': 'assets/co_tuong_cover.png',
-    'ban-bi': 'assets/ban_bi_cover.png',
-    'danh-bai-uno': 'assets/uno_cover.png',
-    'uno': 'assets/uno_cover.png',
-    'caro': 'assets/caro_cover.png',
-    'co-caro': 'assets/caro_cover.png',
-    'do-min': 'assets/do_min_cover.png',
-    'minesweeper': 'assets/do_min_cover.png',
-    'o-an-quan': 'assets/o_an_quan_cover.png',
+    'ban-trung': 'assets/starlight-match-original.svg',
+    'ban-trung-khung-long': 'assets/starlight-match-original.svg',
+    'kim-cuong': 'assets/mosaic-window-original.svg',
+    'kim-cuong-bejeweled': 'assets/mosaic-window-original.svg',
+    'line-98': 'assets/line98-original.svg',
+    'thoi-bong-xa-phong': 'assets/covers/thoi-bong-xa-phong.svg',
+    'xay-cau-bridge-builder': 'assets/xay-cau-original.svg',
+    'xe-dap-giao-bao': 'assets/giao-bao-original.svg',
+    'cut-the-rope': 'assets/covers/cut-rope-original.svg',
+    'pinball-3d-space-cadet': 'assets/covers/orbit-pinball-original.svg',
+    'typer-shark': 'assets/covers/typer-shark-original.svg',
+    'qbert-nhay-khoi-lap-phuong': 'assets/covers/qbert-pyramid-original.svg',
+    'mario': 'assets/cloud-canopy-original.svg',
+    'pac-man': 'assets/maze-chase-original.svg',
+    'zuma': 'assets/marble-trail-original.svg',
+    'diner-dash': 'assets/tea-service-original.svg',
+    'co-tuong': 'assets/xiangqi-original.svg',
+    'ban-bi': 'assets/marble-ring-original.svg',
+    'danh-bai-uno': 'assets/season-shed-original.svg',
+    'uno': 'assets/season-shed-original.svg',
+    'do-min': 'assets/minesweeper-original.svg',
+    'minesweeper': 'assets/minesweeper-original.svg',
+    'o-an-quan': 'assets/o-an-quan-original.svg',
     'peggle': 'assets/peggle_cover.png',
     'ran-san-moi': 'assets/snake_cover.png',
     'snake': 'assets/snake_cover.png',
-    'boom-online': 'assets/boom_online_cover.jpg',
-    'audition': 'assets/audition_cover.jpg',
-    'road-rash': 'assets/road_rash_cover.jpg',
-    'rockman': 'assets/rockman_cover.jpg',
-    'mega-man': 'assets/rockman_cover.jpg',
-    'duck-hunt': 'assets/duck_hunt_cover.jpg',
-    'street-fighter': 'assets/street_fighter_cover.jpg',
-    'bubble-bobble': 'assets/bubble_bobble_cover.jpg',
-    'age-of-war': 'assets/age_of_war_cover.jpg',
-    'bloxorz': 'assets/bloxorz_cover.jpg'
+    'boom-online-bnb': 'assets/dau-truong-bot-nuoc-original.svg',
+    'audition-nhip-dieu': 'assets/nhip-may-original.svg',
+    'road-rash-dua-xe-moto': 'assets/dua-gio-original.svg',
+    'rockman-mega-man': 'assets/mam-chop-original.svg',
+    'duck-hunt-ban-vit': 'assets/muc-tieu-bay-original.svg',
+    'age-of-war-thoi-dai-chien-tranh': 'assets/ranh-gioi-may-original.svg',
+    'bloxorz-khoi-da-lan': 'assets/khoi-da-lan-original.svg',
+    'xep-bai-solitaire': 'assets/bay-cot-original.svg',
+    'xep-bai-freecell': 'assets/bon-o-original.svg',
+    'xep-bai-nhen-spider': 'assets/bai-nhen-original.svg',
+    'arkanoid-dap-gach': 'assets/ve-tinh-giu-quy-dao-original.svg',
+    'puzzle-bobble-khung-long': 'assets/bi-vom-original.svg',
+    'dr-mario-diet-khuan': 'assets/ong-nghiem-original.svg',
+    'peggle-pachinko': 'assets/bat-chot-original.svg',
+    'lemonade-tycoon': 'assets/quay-nuoc-chanh-original.svg',
+    'thap-ha-noi-tower': 'assets/thap-ba-coc-original.svg',
+    'bookworm-sau-noi-chu': 'assets/mot-sach-noi-chu-original.svg',
+    'raft-wars-ban-sung-phao': 'assets/dau-phao-original.svg',
+    'street-fighter-2-doi-khang': 'assets/nay-lua-original.svg',
+    'bubble-bobble-khung-long-bong-bong': 'assets/mam-gio-original.svg',
+    'gap-chu-cho-qua-duong': 'assets/dog-crossing-original.svg',
+    'line-rider-truot-tuyet-vat-ly': 'assets/line-rider-original.svg',
   };
 
   function escapeXml(unsafe) {
@@ -186,9 +234,9 @@
       theme = 'runner';
     } else if (id.includes('nem-lon') || id.includes('tat-lon') || id.includes('keo-co') || id.includes('gap-thu') || id.includes('nem-vong') || id.includes('o-an-quan') || id.includes('ban-bi') || id.includes('snowcraft') || id.includes('bowman')) {
       theme = 'folk';
-    } else if (id.includes('among-us') || id.includes('skribbl') || id.includes('bi-lac') || id.includes('dau-vat') || id.includes('dap-chuot') || id.includes('dap-ruoi') || id.includes('boom-online') || id.includes('raft-wars') || id.includes('age-of-war') || id.includes('stick-war') || id.includes('defend-your-castle')) {
+    } else if (id.includes('among-us') || id.includes('skribbl') || id.includes('bi-lac') || id.includes('dau-vat') || id.includes('dap-chuot') || id.includes('dap-ruoi') || id.includes('boom-online') || id.includes('raft-wars') || id.includes('stick-war') || id.includes('defend-your-castle')) {
       theme = 'party';
-    } else if (id.includes('sky-garden') || id.includes('tiem-sach') || id.includes('thoi-bong') || cat.includes('chill') || id.includes('nong-trai') || id.includes('line-rider') || id.includes('bloxorz')) {
+    } else if (id.includes('sky-garden') || id.includes('tiem-sach') || id.includes('thoi-bong') || cat.includes('chill') || id.includes('nong-trai') || id.includes('line-rider')) {
       theme = 'chill';
     }
 
@@ -413,8 +461,9 @@
 
   function createGameCard(game) {
     const isLiked = favorites.includes(game.id);
+    const playable = window.NP_GameRegistry.isPlayable(game.id);
     const card = document.createElement('div');
-    card.className = 'game-card';
+    card.className = playable ? 'game-card' : 'game-card game-card-planned';
     card.setAttribute('data-id', game.id);
     card.setAttribute('data-category', game.category);
 
@@ -424,17 +473,17 @@
         <button class="game-card-heart-btn ${isLiked ? 'liked' : ''}" title="${isLiked ? 'Bỏ thích' : 'Yêu thích'}" data-heart-id="${game.id}">
           ${isLiked ? '❤️' : '🤍'}
         </button>
-        <span class="game-card-badge">${game.badge || game.category}</span>
+        <span class="game-card-badge">${playable ? 'Bản thử nghiệm' : 'Đang phát triển'}</span>
       </div>
       <div class="game-card-body">
         <h4 class="game-card-title">${game.title}</h4>
-        <p class="game-card-tagline">${game.tagline}</p>
-        <div class="game-card-footer">
-          <span class="game-card-category">${game.category}</span>
-          <span class="game-card-duration">${game.duration}</span>
-        </div>
+        ${playable
+          ? '<button class="game-card-play" type="button">Chơi thử</button>'
+          : '<span class="game-card-status" aria-label="Chưa có bản chơi">Chưa có bản chơi</span>'}
       </div>
     `;
+
+    card.querySelector('.game-card-play')?.setAttribute('aria-label', `Chơi thử ${game.title}`);
 
     // Heart click
     const heartBtn = card.querySelector('.game-card-heart-btn');
@@ -443,10 +492,8 @@
       toggleFavorite(game.id);
     });
 
-    // Card click -> Open Game Modal
-    card.addEventListener('click', () => {
-      openGameModal(game);
-    });
+    // Only implemented prototypes open a game dialog. Planned catalog entries remain status cards.
+    if (playable) card.addEventListener('click', () => openGameModal(game));
 
     return card;
   }
@@ -462,10 +509,11 @@
     if (gridFriends) gridFriends.innerHTML = '';
     if (gridAll) gridAll.innerHTML = '';
 
-    // Filter games for hot, quick, friends
-    const hotGames = allGames.filter(g => g.section === 'hot').slice(0, 6);
-    const quickGames = allGames.filter(g => g.section === 'quick').slice(0, 6);
-    const friendsGames = allGames.filter(g => g.section === 'friends').slice(0, 6);
+    // Showcase only games with a dedicated engine.
+    const playableGames = allGames.filter(g => window.NP_GameRegistry.isPlayable(g.id));
+    const hotGames = playableGames.filter(g => g.section === 'hot').slice(0, 6);
+    const quickGames = playableGames.filter(g => g.section === 'quick').slice(0, 6);
+    const friendsGames = playableGames.filter(g => g.section === 'friends').slice(0, 6);
 
     hotGames.forEach(g => gridHot && gridHot.appendChild(createGameCard(g)));
     quickGames.forEach(g => gridQuick && gridQuick.appendChild(createGameCard(g)));
@@ -497,7 +545,9 @@
     }
 
     // Category / Tag filter
-    if (currentFilter === 'hot') {
+    if (currentFilter === 'playable') {
+      filtered = filtered.filter(g => window.NP_GameRegistry.isPlayable(g.id));
+    } else if (currentFilter === 'hot') {
       filtered = filtered.filter(g => g.section === 'hot');
     } else if (currentFilter === 'quick') {
       filtered = filtered.filter(g => g.section === 'quick');
@@ -522,10 +572,12 @@
         allSectionTitle.textContent = `Kết quả tìm kiếm cho "${searchQuery}"`;
       } else if (currentFilter === 'fav') {
         allSectionTitle.textContent = `Trò chơi đã thích (${filtered.length})`;
+      } else if (currentFilter === 'playable') {
+        allSectionTitle.textContent = `Bản thử nghiệm có thể chơi (${filtered.length})`;
       } else if (currentFilter !== 'all') {
         allSectionTitle.textContent = `Danh mục: ${currentFilter} (${filtered.length})`;
       } else {
-        allSectionTitle.textContent = `Tất cả trò chơi (100)`;
+        allSectionTitle.textContent = `Tất cả trò chơi (${allGames.length})`;
       }
     }
   }
@@ -540,7 +592,7 @@
       favorites.push(id);
       showToast('Đã lưu vào danh sách yêu thích ❤️');
     }
-    localStorage.setItem('np_favorites', JSON.stringify(favorites));
+    writePreference('np_favorites', JSON.stringify(favorites));
     updateFavCount();
     renderSections();
   }
@@ -596,8 +648,8 @@
       resetSearchBtn.addEventListener('click', () => {
         if (searchInput) searchInput.value = '';
         searchQuery = '';
-        currentFilter = 'all';
-        updateFilterPillsUI('all');
+        currentFilter = 'playable';
+        updateFilterPillsUI('playable');
         renderFilteredAll();
       });
     }
@@ -631,8 +683,10 @@
     if (randomGameBtn) {
       randomGameBtn.addEventListener('click', () => {
         playSuccessSound();
-        const randomIndex = Math.floor(Math.random() * allGames.length);
-        const randomGame = allGames[randomIndex];
+        const playableGames = allGames.filter(game => window.NP_GameRegistry.isPlayable(game.id));
+        if (!playableGames.length) { showToast('Chưa có game sẵn sàng. Vui lòng thử lại sau.'); return; }
+        const randomIndex = Math.floor(Math.random() * playableGames.length);
+        const randomGame = playableGames[randomIndex];
         showToast(`🎲 Đã chọn: ${randomGame.title}!`);
         openGameModal(randomGame);
       });
@@ -725,10 +779,10 @@
 
     // CRT Scanlines toggle
     const crtBtn = document.getElementById('crtToggleBtn');
-    let crtEnabled = localStorage.getItem('np_crt') === 'true';
+    let crtEnabled = readPreference('np_crt') === 'true';
     function updateCrtState(active) {
       crtEnabled = active;
-      try { localStorage.setItem('np_crt', crtEnabled ? 'true' : 'false'); } catch (e) {}
+      try { writePreference('np_crt', crtEnabled ? 'true' : 'false'); } catch (e) {}
       if (crtBtn) {
         crtBtn.classList.toggle('active', crtEnabled);
         crtBtn.title = crtEnabled ? 'Hiệu ứng CRT Scanlines: Đang bật 📺' : 'Hiệu ứng CRT Scanlines: Đang tắt 📺';
@@ -772,7 +826,7 @@
 
   // --- THEME TOGGLE ---
   function setupTheme() {
-    const savedTheme = localStorage.getItem('np_theme') || 'light';
+    const savedTheme = readPreference('np_theme') || 'light';
     if (savedTheme === 'dark') {
       document.body.classList.add('dark-theme');
       updateThemeIcon(true);
@@ -782,7 +836,7 @@
       themeBtn.addEventListener('click', () => {
         playClickSound();
         const isDark = document.body.classList.toggle('dark-theme');
-        localStorage.setItem('np_theme', isDark ? 'dark' : 'light');
+        writePreference('np_theme', isDark ? 'dark' : 'light');
         updateThemeIcon(isDark);
       });
     }
@@ -818,7 +872,7 @@
       } else {
         window.NEWPLAYGROUND_MUTED = !window.NEWPLAYGROUND_MUTED;
         try {
-          localStorage.setItem('np_muted', window.NEWPLAYGROUND_MUTED ? 'true' : 'false');
+          writePreference('np_muted', window.NEWPLAYGROUND_MUTED ? 'true' : 'false');
         } catch (e) {}
         updateSoundIcons(window.NEWPLAYGROUND_MUTED);
       }
@@ -838,7 +892,8 @@
   }
 
   // --- GAME MODAL & RUNTIME ---
-  let gameInterval = null;
+  let gameReturnFocus = null;
+  let releaseGameFocus = null;
 
   function openGameModal(game) {
     playClickSound();
@@ -847,6 +902,8 @@
     const badge = document.getElementById('modalGameBadge');
     const container = document.getElementById('modalGameContainer');
 
+    if (modal.style.display !== 'flex') gameReturnFocus = document.activeElement;
+    if (releaseGameFocus) { releaseGameFocus(); releaseGameFocus = null; }
     title.textContent = game.title;
     badge.textContent = game.category;
     modal.style.display = 'flex';
@@ -856,87 +913,25 @@
 
     const gId = typeof game.id === 'string' ? game.id.toLowerCase() : '';
     try {
-      if (window.NP_Retro50Engines && window.NP_Retro50Engines.hasGame(gId)) {
-        window.NP_Retro50Engines.launchGame(container, game);
-      } else if (window.NP_Engines) {
-        if (gId.includes('hang-rong') || gId.includes('ca-pho')) {
-          window.NP_Engines.launchHangRong(container, game);
-        } else if (gId.includes('dao-vang') || gId.includes('gold-miner')) {
-          window.NP_Engines.launchDaoVang(container, game);
-        } else if (gId.includes('pac-man')) {
-          window.NP_Engines.launchPacMan(container, game);
-        } else if (gId.includes('mario') || gId.includes('sonic') || gId.includes('subway') || gId.includes('paperboy')) {
-          window.NP_Engines.launchMario(container, game);
-        } else if (gId.includes('gunny') || gId.includes('cung') || gId.includes('angry-birds')) {
-          window.NP_Engines.launchGunny(container, game);
-        } else if (gId.includes('nong-trai') || gId.includes('sky-garden') || gId.includes('vuon')) {
-          window.NP_Engines.launchNongTrai(container, game);
-        } else if (gId.includes('feeding') || gId.includes('ca-lon') || gId.includes('nuot-ca')) {
-          window.NP_Engines.launchFeedingFrenzy(container, game);
-        } else if (gId.includes('nuoi-ca') || gId.includes('nemo') || gId.includes('insaniquarium') || gId.includes('dao-rong')) {
-          window.NP_Engines.launchNuoiCaNemo(container, game);
-        } else if (gId.includes('zuma')) {
-          window.NP_Engines.launchZuma(container, game);
-        } else if (gId.includes('diner')) {
-          window.NP_Engines.launchDinerDash(container, game);
-        } else if (gId.includes('co-tuong')) {
-          window.NP_Engines.launchCoTuong(container, game);
-        } else if (gId.includes('ban-bi')) {
-          window.NP_Engines.launchBanBiVe(container, game);
-        } else if (gId.includes('danh-bai') || gId.includes('uno')) {
-          window.NP_Engines.launchDanhBaiUno(container, game);
-        } else if (gId.includes('plants') || gId.includes('zombie') || gId.includes('bloons') || gId.includes('thu-thanh')) {
-          window.NP_Engines.launchPvZ(container, game);
-        } else if (gId.includes('ban-ga') || gId.includes('galaga') || gId.includes('ban-ruoi') || gId.includes('chicken')) {
-          window.NP_Engines.launchChickenInvaders(container, game);
-        } else if (gId.includes('pha-gach') || gId.includes('dx-ball') || gId.includes('arkanoid') || gId.includes('peggle')) {
-          window.NP_Engines.launchDXBall(container, game);
-        } else if (gId.includes('2048')) {
-          window.NP_Engines.launchGame2048(container, game);
-        } else if (gId.includes('sokoban') || gId.includes('day-thung') || gId.includes('ha-noi')) {
-          window.NP_Engines.launchSokoban(container, game);
-        } else if (gId.includes('o-an-quan')) {
-          window.NP_Engines.launchOAnQuan(container, game);
-        } else if (gId.includes('pong') || gId.includes('bi-lac') || gId.includes('bong-ban')) {
-          window.NP_Engines.launchPong(container, game);
-        } else if (gId.includes('line-98')) {
-          window.NP_Engines.launchLine98(container, game);
-        } else if (gId.includes('ban-trung') || gId.includes('dynomite') || gId.includes('bobble')) {
-          window.NP_Engines.launchBanTrung(container, game);
-        } else if (gId.includes('kim-cuong') || gId.includes('bejeweled') || gId.includes('chuzzle')) {
-          window.NP_Engines.launchKimCuong(container, game);
-        } else if (gId.includes('dat-bom') || gId.includes('bomberman')) {
-          window.NP_Engines.launchDatBom(container, game);
-        } else if (gId.includes('xe-tang') || gId.includes('battle-city') || gId.includes('tank-1990') || gId.includes('heavy-weapon')) {
-          window.NP_Engines.launchXeTang1990(container, game);
-        } else if (gId.includes('caro')) {
-          window.NP_Engines.launchCaro(container, game);
-        } else if (gId.includes('ran-san-moi') || gId.includes('snake')) {
-          window.NP_Engines.launchSnake(container, game);
-        } else if (gId.includes('xep-gach') || gId.includes('tetris') || gId.includes('dr-mario')) {
-          window.NP_Engines.launchTetris(container, game);
-        } else if (gId.includes('flappy')) {
-          window.NP_Engines.launchFlappyBird(container, game);
-        } else if (gId.includes('chem-hoa-qua') || gId.includes('fruit-ninja')) {
-          window.NP_Engines.launchFruitNinja(container, game);
-        } else if (gId.includes('do-min') || gId.includes('minesweeper')) {
-          window.NP_Engines.launchDoMin(container, game);
-        } else if (gId.includes('pikachu') || gId.includes('lat-the') || gId.includes('noi-hinh')) {
-          window.NP_Engines.launchPikachu(container, game);
-        } else {
-          launchGameSandbox(container, game);
-        }
+      if (!window.NP_GameRegistry.launch(container, game)) {
+        showGameNotice(container, 'Game đang phát triển', '');
       } else {
-        launchGameSandbox(container, game);
+        // These buttons only begin a local game round. Skip legacy tutorial gates.
+        for (const id of ['dvStartGameBtn', 'btStartGameBtn', 'dbStartGameBtn', 'zmStartGameBtn', 'ddStartGameBtn', 'ctStartGameBtn', 'bvStartGameBtn', 'unoStartGameBtn']) {
+          const start = container.querySelector('#' + id);
+          if (start) { start.click(); break; }
+        }
       }
     } catch (error) {
       cleanupGameRuntime();
-      container.textContent = 'Không thể mở trò chơi. Bạn hãy đóng rồi thử lại.';
-      console.error('Game launch failed', error);
+      console.error('Game launch failed', game.id, error);
+      showGameNotice(container, 'Chưa thể mở game', 'Thử lại sau.');
     }
 
+    releaseGameFocus = window.NP_ModalAccessibility?.activate(modal, gameReturnFocus) || null;
+
     // Apply CRT state if active
-    if (localStorage.getItem('np_crt') === 'true') {
+    if (readPreference('np_crt') === 'true') {
       container.querySelectorAll('.canvas-game-box').forEach(box => box.classList.add('crt-active'));
     }
     // Apply vector mode to smooth canvas vector games
@@ -951,265 +946,33 @@
     if (modal) modal.style.display = 'none';
     document.body.style.overflow = '';
     cleanupGameRuntime();
+    if (releaseGameFocus) { releaseGameFocus(); releaseGameFocus = null; }
+    gameReturnFocus = null;
   }
 
   function cleanupGameRuntime() {
-    clearInterval(gameInterval);
-    gameInterval = null;
     if (window.NP_GameSession) window.NP_GameSession.stop();
     if (window.NP_Audio && typeof window.NP_Audio.stopBGM === 'function') window.NP_Audio.stopBGM();
     const container = document.getElementById('modalGameContainer');
     if (container) container.replaceChildren();
   }
 
+  function showGameNotice(container, heading, message) {
+    container.replaceChildren();
+    const panel = document.createElement('div');
+    panel.className = 'game-availability-notice';
+    const title = document.createElement('h3'); title.textContent = heading;
+    const text = document.createElement('p'); text.textContent = message;
+    const button = document.createElement('button');
+    button.className = 'btn'; button.textContent = 'Quay lại';
+    button.addEventListener('click', closeGameModal);
+    if (message) panel.append(title, text, button); else panel.append(title, button);
+    container.appendChild(panel);
+  }
+
   function closeDonateModal() {
     const modal = document.getElementById('donateModal');
     if (modal) modal.style.display = 'none';
-  }
-
-  // --- PLAYABLE HÀNG RONG (STREET STALL) GAME ENGINE ---
-  function launchPlayableHangRong(container, game) {
-    let coins = 50;
-    let shiftSeconds = 180;
-    let customersServed = 0;
-    let customersMissed = 0;
-    let tray = []; // Food on tray
-    const maxTray = 2;
-
-    const recipes = [
-      { id: 'banhmi', name: 'Bánh Mì Pate', icon: '🥖', cost: 4, price: 12, time: 2 },
-      { id: 'nuocmia', name: 'Nước Mía Đá', icon: '🥤', cost: 6, price: 18, time: 3 },
-      { id: 'cavien', name: 'Cá Viên Chiên', icon: '🍢', cost: 10, price: 25, time: 4 }
-    ];
-
-    let customers = [
-      { id: 1, name: 'Bác xe ôm', avatar: '🛵', order: recipes[0], patience: 100, maxPatience: 100 },
-      { id: 2, name: 'Chị văn phòng', avatar: '👩‍💼', order: recipes[1], patience: 80, maxPatience: 80 }
-    ];
-
-    container.innerHTML = `
-      <div class="game-viewport">
-        <div class="game-hud">
-          <div class="hud-stat">
-            <span>⏱️ Giờ bán:</span>
-            <span class="hud-value" id="hudTimer">${shiftSeconds}s</span>
-          </div>
-          <div class="hud-stat">
-            <span>🪙 Vốn liếng:</span>
-            <span class="hud-value" id="hudCoins">${coins} xu</span>
-          </div>
-          <div class="hud-stat">
-            <span>⭐ Đã bán:</span>
-            <span class="hud-value" id="hudServed">${customersServed}</span>
-          </div>
-        </div>
-
-        <div class="game-stage-area">
-          <div class="customer-counter-row" id="customerRow">
-            <!-- Customer cards rendered here -->
-          </div>
-
-          <div class="stall-workbench-row">
-            <div class="tray-status-bar">
-              <span>Khay thành phẩm (${tray.length}/${maxTray}):</span>
-              <div class="tray-slots-list" id="traySlots">
-                <!-- Tray items -->
-              </div>
-            </div>
-
-            <div class="dishes-selection-grid">
-              ${recipes.map(r => `
-                <button class="dish-cook-btn" data-recipe="${r.id}">
-                  <span class="dish-icon">${r.icon}</span>
-                  <span class="dish-name">${r.name}</span>
-                  <span class="dish-price">${r.price} xu (Nấu ${r.time}s)</span>
-                </button>
-              `).join('')}
-            </div>
-          </div>
-        </div>
-      </div>
-      <div style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center;">
-        <small style="color: var(--text-muted);">💡 Hướng dẫn: Bấm món để nấu đặt lên khay ➔ Bấm vào khách để phục vụ trước khi hết kiên nhẫn!</small>
-        <button class="btn btn-secondary" id="saveShiftBtn">Lưu tiến trình 💾</button>
-      </div>
-    `;
-
-    function updateHUD() {
-      const timerEl = document.getElementById('hudTimer');
-      const coinsEl = document.getElementById('hudCoins');
-      const servedEl = document.getElementById('hudServed');
-      if (timerEl) timerEl.textContent = `${shiftSeconds}s`;
-      if (coinsEl) coinsEl.textContent = `${coins} xu`;
-      if (servedEl) servedEl.textContent = `${customersServed}`;
-    }
-
-    function renderCustomers() {
-      const row = document.getElementById('customerRow');
-      if (!row) return;
-      row.innerHTML = customers.map(c => `
-        <div class="customer-slot" data-cust-id="${c.id}">
-          <div class="customer-avatar">${c.avatar}</div>
-          <div class="customer-order-bubble">${c.order.icon} ${c.order.name}</div>
-          <div class="patience-bar">
-            <div class="patience-fill" style="width: ${(c.patience / c.maxPatience) * 100}%; background-color: ${c.patience < 30 ? '#EF4444' : '#10B981'};"></div>
-          </div>
-        </div>
-      `).join('');
-
-      // Add click to serve
-      row.querySelectorAll('.customer-slot').forEach(slot => {
-        slot.addEventListener('click', () => {
-          const custId = parseInt(slot.getAttribute('data-cust-id'));
-          serveCustomer(custId);
-        });
-      });
-    }
-
-    function renderTray() {
-      const traySlots = document.getElementById('traySlots');
-      if (!traySlots) return;
-      let html = '';
-      for (let i = 0; i < maxTray; i++) {
-        const item = tray[i];
-        html += `<div class="tray-box" data-tray-idx="${i}" title="${item ? 'Bấm để vứt nếu nấu nhầm' : 'Khay trống'}">${item ? item.icon : ''}</div>`;
-      }
-      traySlots.innerHTML = html;
-
-      // Click tray item to discard (waste)
-      traySlots.querySelectorAll('.tray-box').forEach(box => {
-        box.addEventListener('click', () => {
-          const idx = parseInt(box.getAttribute('data-tray-idx'));
-          if (tray[idx]) {
-            playErrorSound();
-            showToast(`Đã bỏ ${tray[idx].name} (Lãng phí -${tray[idx].cost} xu)`);
-            coins = Math.max(0, coins - tray[idx].cost);
-            tray.splice(idx, 1);
-            renderTray();
-            updateHUD();
-          }
-        });
-      });
-    }
-
-    function cookDish(recipeId) {
-      if (tray.length >= maxTray) {
-        playErrorSound();
-        showToast('Khay đã đầy! Hãy phục vụ khách hoặc bấm khay để bỏ.');
-        return;
-      }
-      const recipe = recipes.find(r => r.id === recipeId);
-      if (!recipe) return;
-
-      playClickSound();
-      showToast(`Đang nấu ${recipe.name}...`);
-      setTimeout(() => {
-        if (tray.length < maxTray) {
-          tray.push(recipe);
-          playCoinSound();
-          renderTray();
-        }
-      }, recipe.time * 500); // Fast simulation for fun
-    }
-
-    function serveCustomer(custId) {
-      const custIndex = customers.findIndex(c => c.id === custId);
-      if (custIndex === -1) return;
-      const cust = customers[custIndex];
-
-      const matchingTrayIndex = tray.findIndex(item => item.id === cust.order.id);
-      if (matchingTrayIndex !== -1) {
-        // Correct order!
-        tray.splice(matchingTrayIndex, 1);
-        coins += cust.order.price;
-        customersServed++;
-        playSuccessSound();
-        showToast(`Tuyệt vời! +${cust.order.price} xu từ ${cust.name}!`);
-        customers.splice(custIndex, 1);
-        renderTray();
-        renderCustomers();
-        updateHUD();
-      } else {
-        playErrorSound();
-        showToast(`Khách cần ${cust.order.name}, trên khay chưa có!`);
-      }
-    }
-
-    // Bind cook buttons
-    container.querySelectorAll('.dish-cook-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const recipeId = btn.getAttribute('data-recipe');
-        cookDish(recipeId);
-      });
-    });
-
-    document.getElementById('saveShiftBtn')?.addEventListener('click', () => {
-      playSuccessSound();
-      localStorage.setItem('np_capho_save', JSON.stringify({ coins, customersServed, savedAt: new Date().toISOString() }));
-      showToast('Đã lưu tiến trình thành công vào trình duyệt! 💾');
-    });
-
-    // Start game tick loop
-    renderCustomers();
-    renderTray();
-    updateHUD();
-
-    clearInterval(gameInterval);
-    gameInterval = setInterval(() => {
-      shiftSeconds--;
-      if (shiftSeconds <= 0) {
-        clearInterval(gameInterval);
-        playSuccessSound();
-        showToast(`🎉 Ca bán kết thúc! Bạn kiếm được ${coins} xu và phục vụ ${customersServed} khách!`);
-        return;
-      }
-
-      // Decay customer patience
-      customers.forEach(c => {
-        c.patience -= 4;
-      });
-
-      // Remove angry customers
-      const angryCustomers = customers.filter(c => c.patience <= 0);
-      if (angryCustomers.length > 0) {
-        playErrorSound();
-        customersMissed += angryCustomers.length;
-        customers = customers.filter(c => c.patience > 0);
-        showToast('Một khách đã rời đi vì hết kiên nhẫn! 😢');
-      }
-
-      // Spawn new customer if space
-      if (customers.length < 2 && Math.random() < 0.3) {
-        const rIndex = Math.floor(Math.random() * recipes.length);
-        const avatars = [
-          { name: 'Bác xe ôm', avatar: '🛵' },
-          { name: 'Cô công sở', avatar: '👩‍💼' },
-          { name: 'Cậu sinh viên', avatar: '🎒' },
-          { name: 'Bé học sinh', avatar: '🚲' }
-        ];
-        const aIndex = Math.floor(Math.random() * avatars.length);
-        customers.push({
-          id: Date.now() + Math.random(),
-          name: avatars[aIndex].name,
-          avatar: avatars[aIndex].avatar,
-          order: recipes[rIndex],
-          patience: 100,
-          maxPatience: 100
-        });
-      }
-
-      renderCustomers();
-      updateHUD();
-    }, 1000);
-  }
-
-  // --- UNIVERSAL RETRO ARCADE RUNNER (REAL PLAYABLE GAME FOR ALL GAMES) ---
-  function launchGameSandbox(container, game) {
-    if (window.NP_Engines && typeof window.NP_Engines.launchRetroArcade === 'function') {
-      window.NP_Engines.launchRetroArcade(container, game);
-    } else {
-      container.textContent = 'Chưa tải được trò chơi. Bạn hãy tải lại trang rồi thử lại.';
-    }
   }
 
   // Expose helpers for automation and direct linking

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#e5f4fa">
+  <title>Bi Vòm · Bắn bóng ghép cụm</title>
+  <link rel="stylesheet" href="../../scripts/games/bubble-dome.css">
+  <style>html{min-height:100%;background:#edf2ef}body{min-height:100vh;margin:0;background:linear-gradient(155deg,#f5f7ee,#e8eff3)}main{padding:clamp(8px,2vw,24px)}</style>
+</head>
+<body>
+  <main><div id="bubble-game"></div></main>
+  <script src="../../scripts/games/bubble-dome-model.js"></script>
+  <script src="../../scripts/games/bubble-dome-campaign.js"></script>
+  <script src="../../scripts/games/bubble-dome.js"></script>
+  <script>
+    const gameCleanups = [];
+    const frames = new Set();
+    const session = {
+      listen(target, type, handler, options) { target.addEventListener(type, handler, options); gameCleanups.push(() => target.removeEventListener(type, handler, options)); },
+      onCleanup(handler) { gameCleanups.push(handler); },
+      requestAnimationFrame(callback) { let id; id = window.requestAnimationFrame(time => { frames.delete(id); callback(time); }); frames.add(id); return id; },
+      cancelAnimationFrame(id) { frames.delete(id); window.cancelAnimationFrame(id); }
+    };
+    window.addEventListener('pagehide', () => gameCleanups.splice(0).forEach(cleanup => cleanup()), { once: true });
+    window.NP_BubbleDome.mount(document.querySelector('#bubble-game'), session, { seed: 'bi-vom-viet-20261008' });
+  </script>
+</body>
+</html>

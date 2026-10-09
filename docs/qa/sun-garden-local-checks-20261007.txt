@@ -1,0 +1,17 @@
+Vườn Nắng (sg1) local verification — 2026-10-07
+
+Focused:
+- node --test tests/sun-garden-model.test.cjs tests/sun-garden-ui.test.cjs tests/minimal-play-ui.test.cjs
+- 34 tests in selected files passed; 0 failed (17 new game-specific groups; 17 prior shared compact-UI/control groups).
+
+Full repository:
+- node --test tests/*.test.cjs
+- 522 tests passed; 0 failed.
+
+Static release preparation:
+- node scripts/release-preflight.mjs --prepare
+- Catalog 150; registered prototypes 42; planned entries 108; 101 declared assets; source JavaScript 1,054,458 bytes; asset tree 19,772,454 bytes.
+- `.pages-site/assets/sun-garden-original.svg` and `.pages-site/scripts/games/sun-garden.css` exist; unverified `nong_trai_cover.png` is excluded.
+- `git diff --check` passed.
+
+Limitations: DOM/runtime doubles and static artifact checks only. No real browser rendering, device/touch/keyboard measurement, accessibility audit, audio verification, human playtest, publication or release acceptance.

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ddecf0">
+  <title>Bật Chốt · Bóng nảy qua chốt</title>
+  <link rel="stylesheet" href="../../scripts/games/pinball-pegs.css">
+  <style>html{min-height:100%;background:#edf1ef}body{min-height:100vh;margin:0;background:linear-gradient(150deg,#f5f6ef,#e7eff1)}main{padding:clamp(8px,2vw,24px)}</style>
+</head>
+<body>
+  <main><div id="peg-game"></div></main>
+  <script src="../../scripts/games/pinball-pegs-model.js"></script>
+  <script src="../../scripts/games/pinball-pegs.js"></script>
+  <script>
+    const cleanups = [], frames = new Set();
+    const session = {
+      listen(target, type, handler, options) { target.addEventListener(type, handler, options); cleanups.push(() => target.removeEventListener(type, handler, options)); },
+      onCleanup(handler) { cleanups.push(handler); },
+      requestAnimationFrame(callback) { let id; id = window.requestAnimationFrame(time => { frames.delete(id); callback(time); }); frames.add(id); return id; },
+      cancelAnimationFrame(id) { frames.delete(id); window.cancelAnimationFrame(id); }
+    };
+    window.addEventListener('pagehide', () => cleanups.splice(0).forEach(cleanup => cleanup()), { once: true });
+    window.NP_PinballPegs.mount(document.querySelector('#peg-game'), session, { seed: 'bat-chot-viet-20261008' });
+  </script>
+</body>
+</html>

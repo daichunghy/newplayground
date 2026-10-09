@@ -1,0 +1,59 @@
+.ct-host { width: 100%; min-width: 0; color: #21434a; font-family: 'Calibri', Inter, -apple-system, sans-serif; }
+.ct-game {
+  --ct-ink: #21434a; --ct-paper: #f7f0dc; --ct-edge: rgba(41, 79, 78, .2);
+  width: min(100%, 580px); margin: 0 auto; padding: clamp(12px, 3vw, 20px);
+  border: 1px solid var(--ct-edge); border-radius: 22px;
+  background: radial-gradient(ellipse at 50% -12%, #fff9e9 0, #f1e8d2 70%, #e9e1cd 100%);
+  box-shadow: 0 16px 38px rgba(44, 64, 57, .2);
+}
+.ct-game:focus-visible { outline: 3px solid #bd704e; outline-offset: 3px; }
+.ct-head { display: flex; align-items: center; gap: 12px; min-height: 53px; }
+.ct-title { min-width: 112px; }
+.ct-kicker { display: block; margin: 0 0 3px; color: #70857b; font-size: 10px; font-weight: 800; letter-spacing: .13em; }
+.ct-head h2 { margin: 0; color: #274951; font-size: clamp(22px, 4vw, 29px); line-height: 1.05; }
+.ct-score { display: flex; gap: 12px; margin-left: auto; color: #6b817a; font-size: 12px; }
+.ct-score span { display: grid; gap: 1px; }
+.ct-score b { color: #304e4e; font-size: 16px; font-variant-numeric: tabular-nums; }
+.ct-actions { display: flex; gap: 7px; }
+.ct-icon, .ct-cut, .ct-primary, .ct-secondary {
+  font: inherit; font-weight: 750; cursor: pointer; touch-action: manipulation;
+}
+.ct-icon { flex: 0 0 46px; width: 46px; height: 46px; border: 1px solid rgba(56, 99, 91, .27); border-radius: 14px; background: #f5efdc; color: #37635b; font-size: 21px; }
+.ct-icon:disabled, .ct-cut:disabled { opacity: .5; cursor: default; }
+.ct-help { margin: 12px 0 10px; color: #526c66; font-size: 14px; line-height: 1.4; }
+.ct-arena-wrap { position: relative; width: min(100%, 400px); margin: 0 auto; overflow: hidden; border: 1px solid rgba(47, 82, 72, .24); border-radius: 18px; background: #d9ece0; box-shadow: 0 7px 18px rgba(47, 82, 72, .12); }
+.ct-arena { display: block; width: 100%; height: auto; aspect-ratio: 2 / 3; touch-action: none; cursor: crosshair; }
+.ct-arena:focus-visible { outline: 3px solid #bd704e; outline-offset: -4px; }
+.ct-overlay { position: absolute; inset: 0; display: grid; place-items: center; padding: 15px; background: rgba(31, 63, 61, .48); backdrop-filter: blur(3px); }
+.ct-overlay[hidden] { display: none; }
+.ct-card { width: min(100%, 320px); padding: 19px 20px; border: 1px solid rgba(255,255,255,.66); border-radius: 19px; background: rgba(250, 246, 230, .97); text-align: center; box-shadow: 0 14px 30px rgba(22, 55, 53, .22); }
+.ct-card-mark { display: block; color: #d49a47; font-size: 23px; }
+.ct-card h3 { margin: 2px 0 6px; color: #274d4e; font-size: 22px; }
+.ct-card p { margin: 0 0 15px; color: #60736d; font-size: 14px; line-height: 1.4; }
+.ct-primary, .ct-secondary { min-height: 48px; padding: 0 18px; border-radius: 14px; }
+.ct-primary { border: 0; background: #367b66; color: #fff8e6; box-shadow: 0 3px 0 #285d52; }
+.ct-secondary { margin: 8px 4px 0; border: 1px solid rgba(52, 101, 88, .25); background: #f7f0dd; color: #42685d; }
+.ct-bottom-row { display: flex; align-items: center; gap: 12px; padding-top: 8px; }
+.ct-status { flex: 1; min-height: 20px; margin: 0; color: #60766e; font-size: 13px; line-height: 1.35; }
+.ct-tools { display: flex; align-items: center; gap: 8px; }
+.ct-stars { min-width: 56px; color: #cb9144; font-size: 16px; letter-spacing: 1px; white-space: nowrap; }
+.ct-cut { min-width: 94px; min-height: 48px; padding: 0 17px; border: 0; border-radius: 14px; background: linear-gradient(180deg, #f19b73, #dc755e); color: #fff9e9; box-shadow: 0 3px 0 #a84e50; }
+.ct-cut:active, .ct-primary:active { transform: translateY(2px); box-shadow: 0 1px 0 #285d52; }
+.ct-game button:focus-visible { outline: 3px solid #cb7658; outline-offset: 2px; }
+@media (max-width: 560px) {
+  .ct-game { padding: 11px; border-radius: 17px; }
+  .ct-head { flex-wrap: wrap; gap: 7px 8px; }
+  .ct-title { flex: 1 1 112px; }
+  .ct-kicker { font-size: 9px; }
+  .ct-score { order: 3; flex: 1 0 100%; margin: 0; }
+  .ct-score span { display: flex; align-items: baseline; gap: 5px; }
+  .ct-score b { font-size: 14px; }
+  .ct-actions { margin-left: auto; }
+  .ct-icon { width: 44px; height: 44px; flex-basis: 44px; }
+  .ct-help { margin: 9px 0; font-size: 13px; }
+  .ct-bottom-row { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .ct-tools { width: 100%; justify-content: space-between; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ct-cut:active, .ct-primary:active { transform: none; }
+}

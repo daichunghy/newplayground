@@ -1,0 +1,32 @@
+Quầy Nước Chanh campaign local checks — 2026-10-08 UTC
+
+Candidate branch: codex/lemonade-campaign-20261008
+Base checkpoint: d32df02b8c1b7111ab600bf3051c2add488d1be7
+
+Focused command:
+  node --test --test-concurrency=1 tests/lemonade-stand-model.test.cjs tests/lemonade-stand-ui.test.cjs
+Result: 19 passed, 0 failed.
+Coverage: five authored day schedules and rising targets, seeded strategy/balance sweep, bounded strategy search for baseline-lost seeds, recipe and price rules, saved campaign seed, save/recovery, unlock/replay, input, hidden-page suspension and session cleanup.
+
+Campaign balance sweep:
+  Weather-matched recipe/price policy across 500 deterministic seeds per day.
+  Mở Quầy: 492/500 wins
+  Mưa Trước: 473/500 wins
+  Mây Nắng: 460/500 wins
+  Ngày Chợ: 457/500 wins
+  Chốt Tuần: 433/500 wins
+These are model results, not human-play or browser evidence.
+
+Bounded feasibility search:
+  The weather-matched baseline lost 185/2,500 sampled shifts. For each loss, a bounded search tried every legal recipe/price pair for each five-second action block (63 choices per block) on the same deterministic seed. Every one of the 185 sample losses had a modeled winning schedule. This search uses seed-conditioned hindsight and is only a feasibility check; it is not a human strategy or a human-balance result.
+
+Full regression command:
+  node --test --test-concurrency=1 tests/*.test.cjs
+Result: 1,041 passed, 0 failed; process exit 0.
+
+Static preflight:
+  node scripts/release-preflight.mjs
+Result: catalog 150; prototypes 50; planned 100; source JavaScript 1,534,483 bytes; assets 19,868,424 bytes; 133 declared asset files.
+`git diff --check` passed. The preflight checks static consistency and syntax only.
+
+Real browser/device rendering, screen reader, touch hardware and novice difficulty acceptance remain pending.

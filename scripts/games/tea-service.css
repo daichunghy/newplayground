@@ -1,0 +1,31 @@
+/* Original Tiệm Lá Trà service prototype: compact, clear states and 44px actions. */
+.ts-host{padding:12px;background:#f4f0e6}
+.ts-game{position:relative;--ts-ink:#36483e;--ts-muted:#738078;--ts-line:#a3ad9b;max-width:720px;margin:auto;color:var(--ts-ink);font-family:'Calibri','Inter',-apple-system,sans-serif}
+.ts-game *, .ts-game *::before,.ts-game *::after{box-sizing:border-box}
+.ts-game [hidden]{display:none!important}
+.ts-header{position:relative;display:flex;align-items:center;min-height:54px;margin-bottom:8px;padding-right:100px}
+.ts-header h3{margin:0;font-size:1.45rem;line-height:1.2}.ts-kicker{display:block;color:var(--ts-muted);font-size:.62rem;font-weight:800;letter-spacing:.12em}
+.ts-toolbar{position:absolute;right:0;top:4px;display:flex;gap:6px}
+.ts-button{appearance:none;min-width:44px;min-height:44px;padding:8px 11px;border:1px solid var(--ts-line);border-radius:9px;background:#fffdf7;color:var(--ts-ink);font:700 .9rem 'Calibri','Inter',-apple-system,sans-serif;cursor:pointer;touch-action:manipulation}
+.ts-button:hover{background:#ecf1e3}.ts-button:active:not(:disabled){transform:translateY(1px)}.ts-button:disabled{opacity:.5;cursor:default}
+.ts-button:focus-visible,.ts-help summary:focus-visible{outline:3px solid #165d89;outline-offset:3px}
+.ts-primary{background:#456b53;border-color:#456b53;color:#fff}.ts-primary:hover{background:#365942}
+.ts-hud{display:grid;grid-template-columns:repeat(4,1fr);margin-bottom:9px;overflow:hidden;border:1px solid #c8cfbe;border-radius:10px;background:#eaf0e1}
+.ts-hud>div{padding:6px 4px 8px;text-align:center}.ts-hud>div+div{border-left:1px solid #cdd5c4}.ts-hud span{display:block;color:var(--ts-muted);font-size:.7rem}.ts-hud strong{font-size:1.02rem;font-variant-numeric:tabular-nums}
+.ts-service{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(180px,.9fr);gap:9px;margin-bottom:10px}
+.ts-panel{min-width:0;padding:9px;border:1px solid #c7cfbf;border-radius:11px;background:#fffdf7}.ts-panel h4{margin:0 0 7px;font-size:.9rem}
+.ts-queue{display:grid;gap:5px}.ts-guest{display:grid;grid-template-columns:28px 1fr 46px;align-items:center;gap:7px;min-height:44px;width:100%;text-align:left}
+.ts-face{display:grid;width:27px;height:27px;place-items:center;border-radius:50%;background:#d8e8d7;color:#335c50;font-size:.82rem}.ts-guest:nth-child(2) .ts-face{background:#f4dfb9;color:#815d30}.ts-guest:nth-child(3) .ts-face{background:#d9e7ee;color:#41697d}
+.ts-party{font-weight:700;font-variant-numeric:tabular-nums}.ts-recipe{display:block;color:var(--ts-muted);font-size:.74rem;font-weight:400}.ts-patience{height:7px;overflow:hidden;border-radius:99px;background:#e7e7d9}.ts-patience i{display:block;height:100%;background:#75a873;border-radius:inherit}
+.ts-kitchen-action{width:100%;text-align:left}.ts-kitchen-note{min-height:1.2em;margin:5px 0 0;color:var(--ts-muted);font-size:.75rem;line-height:1.25}
+.ts-tables{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ts-table{display:flex;min-width:0;min-height:105px;flex-direction:column;align-items:flex-start;justify-content:space-between;text-align:left;padding:10px}
+.ts-table strong{font-size:.88rem}.ts-table span{font-size:.8rem;line-height:1.25}.ts-table[data-state=empty]{background:#edf2e6}.ts-table[data-state=order]{border-color:#d59a5d;background:#fff2dc}.ts-table[data-state=ordered]{background:#e4edf0}.ts-table[data-state=eating]{background:#ecf0e4}
+.ts-status{margin:8px 0 0;color:#5d6d64;font-size:.78rem;line-height:1.3}
+.ts-storage{margin:8px 0 0;color:#84422e;font-size:.8rem}.ts-help{margin-top:5px;border:0;font-size:.8rem}.ts-help summary{display:grid;width:44px;height:44px;place-items:center;border:1px solid var(--ts-line);border-radius:50%;cursor:pointer;list-style:none;font-weight:800}.ts-help summary::-webkit-details-marker{display:none}.ts-help p{margin:6px 0 0;color:var(--ts-muted)}
+.ts-overlay{position:absolute;inset:0;z-index:3;display:grid;place-items:center;padding:18px;background:#26392bc0}.ts-card{width:min(320px,100%);padding:20px;border:1px solid #b8c7b5;border-radius:14px;background:#fffdf7;text-align:center;box-shadow:0 14px 45px #0003}.ts-card strong{display:block;font-size:1.35rem}.ts-card p{color:var(--ts-muted);font-size:.88rem}.ts-card button{min-width:110px}
+.ts-confirm{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px;padding:9px;border:1px solid #c4aa6b;border-radius:9px;background:#f8f0d9}.ts-confirm span{flex-basis:100%;font-weight:700}
+@media(max-width:520px){.ts-host{padding:8px}.ts-service{grid-template-columns:1fr 1fr;gap:6px}.ts-panel{padding:7px}.ts-tables{gap:5px}.ts-table{min-height:112px;padding:7px}.ts-button{padding:7px 8px;font-size:.82rem}}
+@media(max-width:350px){.ts-service{grid-template-columns:1fr}.ts-table{min-height:105px}}
+@media(prefers-reduced-motion:reduce){.ts-game *,.ts-game *::before,.ts-game *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.ts-button:active{transform:none}}
+@media(forced-colors:active){.ts-button,.ts-panel,.ts-hud,.ts-confirm{border:1px solid ButtonText}.ts-button:focus-visible{outline-color:Highlight}}

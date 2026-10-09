@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-labelledby="title desc">
+  <title id="title">Original box-pushing puzzle cover</title>
+  <desc id="desc">A small warehouse grid with a person guiding two wooden crates toward glowing floor targets.</desc>
+  <defs>
+    <linearGradient id="paper" x2="0" y2="1"><stop stop-color="#f7f2df"/><stop offset="1" stop-color="#e8e6d3"/></linearGradient>
+    <linearGradient id="wall" x2="0" y2="1"><stop stop-color="#78907d"/><stop offset="1" stop-color="#4f6a58"/></linearGradient>
+    <linearGradient id="wood" x2="1" y2="1"><stop stop-color="#d99f64"/><stop offset="1" stop-color="#a86435"/></linearGradient>
+    <radialGradient id="glow"><stop stop-color="#fff1bd"/><stop offset=".5" stop-color="#f1be63"/><stop offset="1" stop-color="#e29d46" stop-opacity="0"/></radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="7" stdDeviation="8" flood-color="#273b30" flood-opacity=".2"/></filter>
+  </defs>
+  <rect width="640" height="400" rx="30" fill="url(#paper)"/>
+  <circle cx="536" cy="76" r="56" fill="#fffdf4" opacity=".62"/>
+  <g transform="translate(100 58)" filter="url(#shadow)">
+    <rect x="0" y="0" width="440" height="282" rx="22" fill="#425e4d"/>
+    <g transform="translate(12 12)">
+      <rect width="416" height="258" rx="13" fill="#d7dfd0"/>
+      <g fill="url(#wall)" stroke="#91a28e" stroke-width="2">
+        <rect x="0" y="0" width="52" height="52"/><rect x="52" y="0" width="52" height="52"/><rect x="104" y="0" width="52" height="52"/><rect x="156" y="0" width="52" height="52"/><rect x="208" y="0" width="52" height="52"/><rect x="260" y="0" width="52" height="52"/><rect x="312" y="0" width="52" height="52"/><rect x="364" y="0" width="52" height="52"/>
+        <rect x="0" y="52" width="52" height="52"/><rect x="364" y="52" width="52" height="52"/>
+        <rect x="0" y="104" width="52" height="52"/><rect x="364" y="104" width="52" height="52"/>
+        <rect x="0" y="156" width="52" height="52"/><rect x="364" y="156" width="52" height="52"/>
+        <rect x="0" y="208" width="52" height="50"/><rect x="52" y="208" width="52" height="50"/><rect x="104" y="208" width="52" height="50"/><rect x="156" y="208" width="52" height="50"/><rect x="208" y="208" width="52" height="50"/><rect x="260" y="208" width="52" height="50"/><rect x="312" y="208" width="52" height="50"/><rect x="364" y="208" width="52" height="50"/>
+      </g>
+      <g fill="url(#glow)">
+        <circle cx="130" cy="130" r="36"/><circle cx="286" cy="130" r="36"/>
+      </g>
+      <g fill="none" stroke="#d58c37" stroke-width="5">
+        <circle cx="130" cy="130" r="15"/><circle cx="286" cy="130" r="15"/>
+      </g>
+      <g stroke="#7c4b2b" stroke-width="4" stroke-linejoin="round" fill="url(#wood)">
+        <rect x="210" y="65" width="48" height="48" rx="6"/><path d="m216 71 36 36m0-36-36 36" fill="none" stroke="#8c572f" stroke-width="3"/>
+        <rect x="286" y="157" width="48" height="48" rx="6"/><path d="m292 163 36 36m0-36-36 36" fill="none" stroke="#8c572f" stroke-width="3"/>
+      </g>
+      <g transform="translate(78 157)">
+        <ellipse cx="25" cy="43" rx="24" ry="7" fill="#315643" opacity=".2"/>
+        <path d="M10 19q15-12 30 0l4 23H6z" fill="#3d7061"/>
+        <circle cx="25" cy="10" r="10" fill="#edc99a" stroke="#b78458" stroke-width="2"/>
+        <path d="M15 9q1-11 12-9 8 1 9 9" fill="#4a4134"/>
+      </g>
+      <g fill="#fff8e4" opacity=".95">
+        <path d="M169 124h17l-5-8 20 14-20 14 5-8h-17z"/>
+        <path d="M345 124h10l-3-6 15 12-15 12 3-6h-10z"/>
+      </g>
+    </g>
+  </g>
+  <text x="320" y="374" fill="#405f4d" font-family="Calibri,Inter,sans-serif" font-size="15" font-weight="700" letter-spacing="3" text-anchor="middle">ONE PUSH AT A TIME</text>
+</svg>

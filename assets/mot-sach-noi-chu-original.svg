@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="340" height="200" viewBox="0 0 340 200" role="img" aria-labelledby="title desc">
+  <title id="title">Mọt Sách Nối Chữ</title>
+  <desc id="desc">Những ô chữ lục giác nối thành một từ bên dưới dải lửa màu hổ phách.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#102b31"/><stop offset=".55" stop-color="#173d3b"/><stop offset="1" stop-color="#302d31"/></linearGradient>
+    <linearGradient id="ember" x2="0" y2="1"><stop stop-color="#ffe08a"/><stop offset="1" stop-color="#ed7838"/></linearGradient>
+    <linearGradient id="tile" x2="0" y2="1"><stop stop-color="#f7f1d9"/><stop offset="1" stop-color="#c7d6bb"/></linearGradient>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter>
+  </defs>
+  <rect width="340" height="200" rx="20" fill="url(#bg)"/>
+  <path d="M14 147 49 128l26 11 31-29 27 13 35-35 29 19 31-33 30 17 35-30 33 16" fill="none" stroke="#92b49f" stroke-opacity=".18" stroke-width="2"/>
+  <path d="M15 170h310" stroke="#9cc3a3" stroke-opacity=".17"/>
+  <g fill="none" stroke="#93bdab" stroke-opacity=".19" stroke-width="1.5">
+    <path d="m35 29 14-8 14 8v16l-14 8-14-8zM78 52l14-8 14 8v16l-14 8-14-8zM283 104l14-8 14 8v16l-14 8-14-8zM244 37l14-8 14 8v16l-14 8-14-8z"/>
+    <path d="m127 24 14-8 14 8v16l-14 8-14-8zM176 117l14-8 14 8v16l-14 8-14-8z"/>
+  </g>
+  <circle cx="265" cy="75" r="36" fill="#f28b3e" opacity=".17" filter="url(#glow)"/>
+  <path d="M244 91c-8-16 8-20 5-34 11 8 10 14 12 19 7-10 6-19 15-28-1 15 12 20 10 33-2 13-11 20-23 20-9 0-15-4-19-10Z" fill="url(#ember)"/>
+  <path d="M258 91c-3-8 5-10 6-18 5 6 8 11 5 18-2 4-9 5-11 0Z" fill="#fff2bd" opacity=".92"/>
+  <path d="M32 112c34-15 64-15 97-1s61 14 91-3" fill="none" stroke="#63c4a0" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 9" opacity=".74"/>
+  <g font-family="Calibri,Arial,sans-serif" font-weight="800" text-anchor="middle">
+    <g transform="translate(44 94)"><path d="m0 12 19-11 19 11v23L19 46 0 35z" fill="#071d20" opacity=".42" transform="translate(0 5)"/><path d="m0 8 19-11 19 11v23L19 42 0 31z" fill="url(#tile)" stroke="#fff6dc" stroke-width="2"/><text x="19" y="25" font-size="25" fill="#1c5149">W</text></g>
+    <g transform="translate(99 94)"><path d="m0 12 19-11 19 11v23L19 46 0 35z" fill="#071d20" opacity=".42" transform="translate(0 5)"/><path d="m0 8 19-11 19 8v23L19 42 0 31z" fill="url(#tile)" stroke="#fff6dc" stroke-width="2"/><text x="19" y="24" font-size="26" fill="#1c5149">O</text></g>
+    <g transform="translate(154 94)"><path d="m0 12 19-11 19 11v23L19 46 0 35z" fill="#071d20" opacity=".42" transform="translate(0 5)"/><path d="m0 8 19-11 19 8v23L19 42 0 31z" fill="url(#tile)" stroke="#fff6dc" stroke-width="2"/><text x="19" y="24" font-size="26" fill="#1c5149">R</text></g>
+    <g transform="translate(209 94)"><path d="m0 12 19-11 19 11v23L19 46 0 35z" fill="#071d20" opacity=".42" transform="translate(0 5)"/><path d="m0 8 19-11 19 8v23L19 42 0 31z" fill="url(#tile)" stroke="#fff6dc" stroke-width="2"/><text x="19" y="24" font-size="26" fill="#1c5149">D</text></g>
+  </g>
+  <text x="22" y="182" fill="#e8e5d4" font-family="Calibri,Arial,sans-serif" font-size="14" font-weight="700" letter-spacing="1.4">MỌT SÁCH NỐI CHỮ</text>
+  <text x="318" y="182" fill="#86c9a4" font-family="Calibri,Arial,sans-serif" font-size="10" text-anchor="end" letter-spacing="1">FIND · LINK · SAVE</text>
+</svg>

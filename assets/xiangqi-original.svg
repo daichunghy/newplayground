@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-labelledby="t d">
+  <title id="t">Cờ Tướng</title>
+  <desc id="d">Bàn cờ vàng nâu với quân cờ đỏ và đen do NewPlayground vẽ bằng hình học.</desc>
+  <defs>
+    <linearGradient id="paper" x2="0" y2="1"><stop stop-color="#f2dba9"/><stop offset="1" stop-color="#d9b878"/></linearGradient>
+    <linearGradient id="wood" x2="0" y2="1"><stop stop-color="#755136"/><stop offset="1" stop-color="#39291f"/></linearGradient>
+    <filter id="shadow" x="-.3" y="-.3" width="1.6" height="1.6"><feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#2d1e15" flood-opacity=".35"/></filter>
+  </defs>
+  <rect width="640" height="400" rx="30" fill="#ded7c8"/>
+  <rect x="20" y="20" width="600" height="360" rx="22" fill="url(#wood)"/>
+  <rect x="44" y="42" width="552" height="316" rx="10" fill="url(#paper)" stroke="#382719" stroke-width="7"/>
+  <g fill="none" stroke="#825b37" stroke-width="3" opacity=".85">
+    <path d="M76 78H564M76 105H564M76 132H564M76 159H564M76 186H564M76 213H564M76 240H564M76 267H564M76 294H564M76 321H564"/>
+    <path d="M76 78V186M76 213V321M137 78V186M137 213V321M198 78V186M198 213V321M259 78V186M259 213V321M320 78V186M320 213V321M381 78V186M381 213V321M442 78V186M442 213V321M503 78V186M503 213V321M564 78V186M564 213V321"/>
+    <path d="m259 78 122 108m0-108L259 186m0 27 122 108m0-108L259 321"/>
+  </g>
+  <path d="M78 200H562" stroke="#9a754e" stroke-width="2" stroke-dasharray="5 5"/>
+  <text x="320" y="205" text-anchor="middle" fill="#795a3d" font-family="serif" font-size="16" font-weight="700">SỞ HÀ · HÁN GIỚI</text>
+  <g filter="url(#shadow)" font-family="serif" font-size="24" font-weight="700" text-anchor="middle" dominant-baseline="central">
+    <g><circle cx="320" cy="105" r="23" fill="#f7e7bb" stroke="#24201b" stroke-width="4"/><circle cx="320" cy="105" r="18" fill="none" stroke="#24201b"/><text x="320" y="105" fill="#24201b">將</text></g>
+    <g><circle cx="259" cy="132" r="23" fill="#f7e7bb" stroke="#24201b" stroke-width="4"/><circle cx="259" cy="132" r="18" fill="none" stroke="#24201b"/><text x="259" y="132" fill="#24201b">馬</text></g>
+    <g><circle cx="381" cy="159" r="23" fill="#f7e7bb" stroke="#a72d2a" stroke-width="4"/><circle cx="381" cy="159" r="18" fill="none" stroke="#a72d2a"/><text x="381" y="159" fill="#a72d2a">炮</text></g>
+    <g><circle cx="320" cy="267" r="23" fill="#f7e7bb" stroke="#a72d2a" stroke-width="4"/><circle cx="320" cy="267" r="18" fill="none" stroke="#a72d2a"/><text x="320" y="267" fill="#a72d2a">帥</text></g>
+  </g>
+</svg>

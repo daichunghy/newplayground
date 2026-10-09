@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">Bi Vòm — bìa game nguyên bản</title>
+  <desc id="desc">Những quả cầu màu bay trên nền bầu trời xanh, tạo thành một vòm hình học.</desc>
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#d9eff4"/><stop offset="1" stop-color="#eff1dc"/></linearGradient>
+    <radialGradient id="shine" cx=".3" cy=".24"><stop stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="640" height="360" rx="36" fill="url(#sky)"/>
+  <path d="M80 294 Q320 16 560 294" fill="none" stroke="#91a9bc" stroke-width="5" stroke-dasharray="6 16" opacity=".48"/>
+  <g stroke="#fff" stroke-width="5">
+    <circle cx="146" cy="220" r="48" fill="#e6ad45"/><circle cx="146" cy="220" r="48" fill="url(#shine)" stroke="none"/>
+    <circle cx="248" cy="132" r="50" fill="#48ad91"/><circle cx="248" cy="132" r="50" fill="url(#shine)" stroke="none"/>
+    <circle cx="370" cy="108" r="49" fill="#658ad0"/><circle cx="370" cy="108" r="49" fill="url(#shine)" stroke="none"/>
+    <circle cx="490" cy="192" r="48" fill="#df7283"/><circle cx="490" cy="192" r="48" fill="url(#shine)" stroke="none"/>
+  </g>
+  <g fill="#273b5c" font-family="Calibri, sans-serif" font-weight="700" text-anchor="middle">
+    <text x="146" y="230" font-size="30">◆</text><text x="248" y="142" font-size="31">●</text>
+    <text x="370" y="119" font-size="32">▲</text><text x="490" y="202" font-size="31">✦</text>
+  </g>
+  <path d="M270 320h100l-18-32h-64z" fill="#415881" stroke="#263959" stroke-width="5" stroke-linejoin="round"/>
+  <circle cx="320" cy="273" r="26" fill="#e6ad45" stroke="#fff" stroke-width="5"/>
+</svg>
