@@ -52,7 +52,7 @@ test('the default grid is playable-only; explicit catalog browsing keeps planned
   await expect(page.locator('#gameModal')).toHaveCSS('display', 'none');
 });
 
-test('all 56 registered games open, render, close and release their session', async ({ page }) => {
+test('all 58 registered games open, render, close and release their session', async ({ page }) => {
   test.setTimeout(120_000);
   const errors = watchErrors(page);
   await loadPortal(page);
@@ -712,7 +712,7 @@ test('2048 completes a deterministic 2048 win, continue, and reload resume', asy
   await expect(page.locator('#g2048Overlay')).toBeHidden();
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('np_2048_state_v1')).keepPlaying)).toBe(true);
   await page.reload();
-  await expect(page.locator('#catalogAvailability')).toContainText('56');
+  await expect(page.locator('#catalogAvailability')).toContainText('58');
   await openGame(page, 'tro-choi-2048');
   await expect(page.locator('#g2048Overlay')).toBeHidden();
   await expect(page.locator('#g2048Score')).toHaveText('2048');
