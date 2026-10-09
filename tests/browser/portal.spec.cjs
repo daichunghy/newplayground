@@ -34,13 +34,13 @@ async function closeGame(page) {
 
 async function loadPortal(page) {
   await page.goto('/');
-  await expect(page.locator('#catalogAvailability')).toContainText('58');
+  await expect(page.locator('#catalogAvailability')).toContainText('60');
 }
 
 test('the default grid is playable-only; explicit catalog browsing keeps planned entries informational', async ({ page }) => {
   await loadPortal(page);
-  await expect(page.locator('#allSectionTitle')).toHaveText('Bản thử nghiệm có thể chơi (58)');
-  await expect(page.locator('#gridAll .game-card')).toHaveCount(58);
+  await expect(page.locator('#allSectionTitle')).toHaveText('Bản thử nghiệm có thể chơi (60)');
+  await expect(page.locator('#gridAll .game-card')).toHaveCount(60);
   await expect(page.locator('.filter-pill[data-category="playable"]')).toHaveClass(/active/);
 
   await page.locator('.filter-pill[data-category="all"]').click();
@@ -52,7 +52,7 @@ test('the default grid is playable-only; explicit catalog browsing keeps planned
   await expect(page.locator('#gameModal')).toHaveCSS('display', 'none');
 });
 
-test('all 58 registered games open, render, close and release their session', async ({ page }) => {
+test('all 60 registered games open, render, close and release their session', async ({ page }) => {
   test.setTimeout(120_000);
   const errors = watchErrors(page);
   await loadPortal(page);
@@ -62,7 +62,7 @@ test('all 58 registered games open, render, close and release their session', as
       id, engine, title: byId.get(id)?.title || id
     }));
   });
-  expect(routes).toHaveLength(58);
+  expect(routes).toHaveLength(60);
 
   for (const route of routes) {
     await openGame(page, route.id);
@@ -115,6 +115,51 @@ test('Sân Bụi accepts a narrow mobile aim and throw through the live canvas g
   await page.locator('#sbFire').click();
   await expect(page.locator('#sbThrows')).toHaveText('2');
   await expect(page.locator('#sbStatus')).toContainText('Cú ném đang bay');
+  const viewport = await page.evaluate(() => ({ width: innerWidth, pageWidth: document.documentElement.scrollWidth }));
+  expect(viewport.pageWidth).toBeLessThanOrEqual(viewport.width);
+  await closeGame(page);
+  expect(errors).toEqual([]);
+});
+
+test('Kéo Nhịp starts quickly and keeps its rhythm controls touch-sized on mobile', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  const errors = watchErrors(page);
+  await loadPortal(page);
+  await openGame(page, 'keo-co-doi-khang');
+  await expect(page.locator('#modalGameTitle')).toHaveText('Kéo Nhịp');
+  await page.locator('#knOverlayAction').click();
+  const controls = await page.locator('.kn-step').evaluateAll(nodes => nodes.map(node => {
+    const box = node.getBoundingClientRect();
+    return { width: box.width, height: box.height };
+  }));
+  expect(controls.every(box => box.width >= 44 && box.height >= 44), JSON.stringify(controls)).toBe(true);
+  await expect(page.locator('#knOverlay')).toBeHidden();
+  await page.keyboard.press('p');
+  await expect(page.locator('#knOverlayTitle')).toHaveText('Tạm nghỉ');
+  const viewport = await page.evaluate(() => ({ width: innerWidth, pageWidth: document.documentElement.scrollWidth }));
+  expect(viewport.pageWidth).toBeLessThanOrEqual(viewport.width);
+  await closeGame(page);
+  expect(errors).toEqual([]);
+});
+
+test('Kệ Sách Ký Ức keeps its shelf playable at 320px and responds to a real tap', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  const errors = watchErrors(page);
+  await loadPortal(page);
+  await openGame(page, 'tiem-sach-cu-pho-co');
+  await expect(page.locator('#modalGameTitle')).toHaveText('Kệ Sách Ký Ức');
+  const books = page.locator('.ksku-book');
+  await expect(books).toHaveCount(5);
+  const first = books.first();
+  await first.click();
+  await expect(first).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('#kskuRight').click();
+  await expect(page.locator('#kskuMoves')).toHaveText('1 / 8');
+  const boxes = await page.locator('.ksku-tool, .ksku-shift-button, .ksku-book').evaluateAll(nodes => nodes.map(node => {
+    const box = node.getBoundingClientRect();
+    return { width: box.width, height: box.height };
+  }));
+  expect(boxes.every(box => box.width >= 44 && box.height >= 44), JSON.stringify(boxes)).toBe(true);
   const viewport = await page.evaluate(() => ({ width: innerWidth, pageWidth: document.documentElement.scrollWidth }));
   expect(viewport.pageWidth).toBeLessThanOrEqual(viewport.width);
   await closeGame(page);
@@ -712,7 +757,7 @@ test('2048 completes a deterministic 2048 win, continue, and reload resume', asy
   await expect(page.locator('#g2048Overlay')).toBeHidden();
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('np_2048_state_v1')).keepPlaying)).toBe(true);
   await page.reload();
-  await expect(page.locator('#catalogAvailability')).toContainText('58');
+  await expect(page.locator('#catalogAvailability')).toContainText('60');
   await openGame(page, 'tro-choi-2048');
   await expect(page.locator('#g2048Overlay')).toBeHidden();
   await expect(page.locator('#g2048Score')).toHaveText('2048');

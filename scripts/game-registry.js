@@ -59,7 +59,9 @@
     'atomix-ghep-phan-tu-hoa-hoc': 'launchAtomGlide',
     'noi-ong-nuoc-pipemania': 'launchPipeRoute',
     'nem-lon-truong-lang': 'launchSanBui',
-    'khoi-rubik-mini': 'launchKhoiSac'
+    'khoi-rubik-mini': 'launchKhoiSac',
+    'keo-co-doi-khang': 'launchKeoNhip',
+    'tiem-sach-cu-pho-co': 'launchKeSachKyUc'
   });
   const engineFor = id => Object.prototype.hasOwnProperty.call(entries, id) ? entries[id] : null;
   const isPlayable = id => Boolean(engineFor(id) && window.NP_Engines &&

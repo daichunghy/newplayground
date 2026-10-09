@@ -889,15 +889,15 @@ window.__NP_GAMES_CACHE__ = [
   },
   {
     "id": "keo-co-doi-khang",
-    "title": "Kéo Co Đối Kháng",
-    "tagline": "Đọ tốc độ bấm phím kéo đối thủ qua vạch đỏ.",
-    "category": "Party",
-    "section": "friends",
-    "players": "2 người",
-    "duration": "1-2 phút",
-    "mechanic": "Bấm phím luân phiên đọ lực kéo dây thừng",
-    "badge": "Dân gian",
-    "color": "#EF4444"
+    "title": "Kéo Nhịp",
+    "tagline": "Canh phách trái phải, vượt dấu đèn trong trận ba lượt.",
+    "category": "Kỹ năng",
+    "section": "all",
+    "players": "1 người",
+    "duration": "2-4 phút",
+    "mechanic": "Bước đúng nhịp để đẩy dấu đèn; nghỉ đúng lúc để hồi sức.",
+    "badge": "Bản thử",
+    "color": "#3c7880"
   },
   {
     "id": "lat-the-tri-nho",
@@ -1189,14 +1189,14 @@ window.__NP_GAMES_CACHE__ = [
   },
   {
     "id": "tiem-sach-cu-pho-co",
-    "title": "Tiệm Sách Cũ Phố Cổ",
-    "tagline": "Sắp xếp những cuốn sách bìa da ngả màu thời gian.",
-    "category": "Chill",
+    "title": "Kệ Sách Ký Ức",
+    "tagline": "Đọc manh mối, xếp gáy sách đúng hàng.",
+    "category": "Giải đố",
     "section": "all",
     "players": "1 người",
-    "duration": "3-7 phút",
-    "mechanic": "Phân loại các cuốn sách theo gáy màu và tựa sách hoài niệm",
-    "badge": "Chill",
+    "duration": "3-5 phút",
+    "mechanic": "Dịch từng cuốn liền kề để xếp hàng sách theo manh mối.",
+    "badge": "Bản thử",
     "color": "#C75B3A"
   },
   {

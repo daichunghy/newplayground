@@ -1,0 +1,90 @@
+/* Kệ Sách Ký Ức — quiet paper, ink and cloth-spine palette. */
+.ksku-host { --ksku-ink: #283a38; --ksku-muted: #63716d; --ksku-paper: #f4f0e5; --ksku-card: #fffdf7; --ksku-line: #d7d1c2; color: var(--ksku-ink); font-family: Calibri, Inter, -apple-system, sans-serif; }
+.ksku-game { position: relative; isolation: isolate; max-width: 920px; margin: 0 auto; padding: clamp(14px, 3vw, 26px); border: 1px solid #c9c1ad; border-radius: 24px; background: radial-gradient(ellipse at 15% 0%, #fbf8ef 0, var(--ksku-paper) 66%); box-shadow: 0 16px 40px #182a2522; }
+.ksku-head, .ksku-title, .ksku-tools, .ksku-hud, .ksku-shift { display: flex; align-items: center; }
+.ksku-head { justify-content: space-between; gap: 14px; }
+.ksku-title { gap: 12px; min-width: 0; }
+.ksku-mark { display: grid; width: 46px; height: 46px; flex: 0 0 46px; place-items: center; border: 1px solid #b9ab88; border-radius: 15px 15px 7px 15px; background: #e9e0ca; color: #765a3f; font-size: 25px; }
+.ksku-title h2 { margin: 0; font-size: clamp(22px, 4vw, 30px); letter-spacing: -.03em; }
+.ksku-title p { margin: 3px 0 0; color: var(--ksku-muted); font-size: 14px; }
+.ksku-tools { gap: 8px; }
+.ksku-tool, .ksku-shift-button, .ksku-primary { min-width: 48px; min-height: 48px; border: 1px solid #a9b8ae; border-radius: 14px; background: #fffdf7; color: #263d39; font: inherit; font-size: 21px; cursor: pointer; touch-action: manipulation; }
+.ksku-tool:hover, .ksku-shift-button:hover:not(:disabled), .ksku-primary:hover { background: #e5eee5; }
+.ksku-tool:focus-visible, .ksku-shift-button:focus-visible, .ksku-primary:focus-visible, .ksku-book:focus-visible { outline: 3px solid #397c6a; outline-offset: 3px; }
+.ksku-hud { gap: 10px; margin-top: 18px; }
+.ksku-hud > div { display: flex; min-height: 55px; flex: 0 0 auto; flex-direction: column; justify-content: center; gap: 2px; padding: 7px 13px; border: 1px solid #ded8ca; border-radius: 13px; background: #fffdf7c9; }
+.ksku-hud span { color: var(--ksku-muted); font-size: 12px; }
+.ksku-hud strong { font-size: 16px; }
+.ksku-hud .ksku-room { flex: 1 1 auto; align-items: flex-end; }
+.ksku-instruction { margin: 20px 0 10px; color: #475a55; font-size: 15px; }
+.ksku-shelf { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 14px 12px 13px; list-style: none; border: 1px solid #b9a98d; border-radius: 17px; background: linear-gradient(#d8c8a7 0 8px, #e9dfca 8px calc(100% - 8px), #bea987 calc(100% - 8px)); box-shadow: inset 0 0 0 5px #ffffff35, 0 4px 0 #aa9472; }
+.ksku-slot { display: flex; min-width: 0; flex-direction: column; gap: 5px; }
+.ksku-position { color: #766d5e; font-size: 12px; text-align: center; }
+.ksku-book { display: flex; min-height: 110px; height: 100%; min-width: 0; flex-direction: column; align-items: center; justify-content: center; gap: 9px; padding: 8px 6px; border: 1px solid #ffffffc2; border-radius: 10px 10px 4px 4px; background: var(--book-paper, #fffdf7); color: #273a36; box-shadow: 0 4px 6px #3e34251a, inset 5px 0 #fff8; cursor: pointer; font: inherit; touch-action: manipulation; }
+.ksku-book[data-tone="ochre"] { --book-paper: #e5c787; }
+.ksku-book[data-tone="blue"] { --book-paper: #b5cad2; }
+.ksku-book[data-tone="plum"] { --book-paper: #c4aec0; }
+.ksku-book[data-tone="leaf"] { --book-paper: #b8c5a9; }
+.ksku-book[data-tone="coral"] { --book-paper: #dda995; }
+.ksku-book[data-tone="mint"] { --book-paper: #c0d4c5; }
+.ksku-book[data-tone="sky"] { --book-paper: #a9c8d0; }
+.ksku-book[data-tone="rust"] { --book-paper: #d2a27f; }
+.ksku-book[data-tone="sand"] { --book-paper: #dbcaa6; }
+.ksku-book[data-tone="teal"] { --book-paper: #9fc5bd; }
+.ksku-book[data-tone="violet"] { --book-paper: #c3b4d1; }
+.ksku-book[data-tone="gold"] { --book-paper: #dfc27b; }
+.ksku-book[data-tone="indigo"] { --book-paper: #b0b7d3; }
+.ksku-book[data-tone="aqua"] { --book-paper: #acd1cc; }
+.ksku-book[data-tone="green"] { --book-paper: #b9cc9a; }
+.ksku-book[data-tone="navy"] { --book-paper: #a7b6cb; }
+.ksku-book[data-tone="amber"] { --book-paper: #dfb68c; }
+.ksku-book[data-tone="water"] { --book-paper: #a8c4d0; }
+.ksku-book[aria-pressed="true"] { outline: 3px solid #467a68; outline-offset: 1px; transform: translateY(-4px); box-shadow: 0 8px 10px #3e34252b; }
+.ksku-book:disabled { cursor: default; }
+.ksku-sigil { display: grid; width: 34px; height: 34px; place-items: center; border: 1px solid #263d3929; border-radius: 50%; background: #fff9; color: #304b43; font-size: 20px; }
+.ksku-book-title { display: -webkit-box; overflow: hidden; width: 100%; color: #293a36; font-size: 13px; font-weight: 700; line-height: 1.1; text-align: center; text-overflow: ellipsis; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.ksku-shift { justify-content: center; gap: 15px; margin: 17px 0 20px; }
+.ksku-shift-button { width: 60px; min-height: 50px; font-size: 23px; }
+.ksku-shift-button:disabled, .ksku-tool:disabled { opacity: .48; cursor: default; }
+.ksku-shift span { min-width: 190px; color: #53635e; font-size: 14px; text-align: center; }
+.ksku-clues { padding: 14px 16px; border: 1px solid #d3c9b5; border-radius: 15px; background: #fffdf7bd; }
+.ksku-clues h3 { margin: 0 0 8px; font-size: 16px; }
+.ksku-clues ol { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 20px; margin: 0; padding: 0; list-style: none; }
+.ksku-clues li { display: flex; gap: 9px; align-items: baseline; color: #495a54; font-size: 14px; line-height: 1.35; }
+.ksku-clues li span { flex: 0 0 auto; color: #98744c; font-size: 11px; font-weight: 700; letter-spacing: .08em; }
+.ksku-status { min-height: 1.4em; margin: 12px 1px 0; color: #415750; font-size: 14px; }
+.ksku-overlay { position: absolute; z-index: 2; inset: 0; display: grid; place-items: center; padding: 18px; border-radius: inherit; background: #1e322e75; }
+.ksku-overlay[hidden] { display: none; }
+.ksku-overlay-card { width: min(100%, 350px); padding: 25px; border: 1px solid #d9ceb8; border-radius: 19px; background: #fbf7ec; box-shadow: 0 18px 42px #17272055; text-align: center; }
+.ksku-seal { display: block; color: #98744c; font-size: 28px; }
+.ksku-overlay-card h3 { margin: 5px 0 7px; font-size: 22px; }
+.ksku-overlay-card p { margin: 0 0 17px; color: #586862; line-height: 1.4; }
+.ksku-overlay-card .ksku-primary { min-width: 140px; padding: 0 18px; background: #dbe8dc; font-size: 15px; font-weight: 700; }
+.ksku-overlay-card .ksku-primary[hidden] { display: none; }
+@media (max-width: 720px) {
+  .ksku-shelf { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .ksku-clues ol { grid-template-columns: 1fr; }
+  .ksku-book { min-height: 92px; }
+}
+@media (max-width: 420px) {
+  .ksku-game { padding: 13px; border-radius: 18px; }
+  .ksku-head { align-items: flex-start; flex-wrap: wrap; gap: 8px; }
+  .ksku-title { min-width: 0; flex: 1 1 100%; }
+  .ksku-title > div { min-width: 0; }
+  .ksku-title h2 { font-size: 22px; white-space: nowrap; }
+  .ksku-title p { font-size: 12px; }
+  .ksku-tools { margin-left: auto; }
+  .ksku-mark { width: 42px; height: 42px; flex-basis: 42px; }
+  .ksku-hud { flex-wrap: wrap; gap: 6px; }
+  .ksku-hud > div { padding: 7px 9px; }
+  .ksku-hud strong { font-size: 14px; }
+  .ksku-hud .ksku-room { min-width: 90px; }
+  .ksku-shelf { gap: 6px; padding: 11px 7px; }
+  .ksku-book { min-height: 84px; padding: 6px 4px; gap: 6px; }
+  .ksku-book-title { font-size: 12px; }
+  .ksku-shift { gap: 7px; }
+  .ksku-shift span { min-width: 0; flex: 1 1 auto; font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ksku-book[aria-pressed="true"] { transform: none; }
+}
