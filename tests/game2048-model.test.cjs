@@ -80,11 +80,35 @@ test('a move causing win and loss retains both flags and loss has display priori
 });
 test('corrupt, sparse and inconsistent saved states reject; valid copies are independent',()=>{
   const g=M.create(()=>0), good=g.serialize();assert.ok(M.restore(good));
-  const bads=[null,{}, {...good,version:2},{...good,board:Array(4)},{...good,board:[Array(4),[0,0,0,0],[0,0,0,0],[2,2,0,0]]},
-    {...good,score:NaN},{...good,score:-4},{...good,score:3},{...good,moves:-1},{...good,won:true},{...good,keepPlaying:true},{...good,over:true},
+  const bads=[null,{}, {...good,version:3},{...good,board:Array(4)},{...good,board:[Array(4),[0,0,0,0],[0,0,0,0],[2,2,0,0]]},
+    {...good,undo:{...good,draws:[1]}},{...good,randomReplay:[NaN]},{...good,score:NaN},{...good,score:-4},{...good,score:3},{...good,moves:-1},{...good,won:true},{...good,keepPlaying:true},{...good,over:true},
     {...good,board:blank()},{...good,board:[[3,2,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]}];
   for(const bad of bads){assert.equal(M.restore(bad),null,JSON.stringify(bad));}
   const r=M.restore(good);good.board[0][0]=999;assert.notEqual(r.state().board[0][0],999);const view=r.state();view.board[0][0]=888;assert.notEqual(r.state().board[0][0],888);
+});
+
+test('one-step undo restores score, board and move count; replay reuses the consumed random draws', () => {
+  const b=blank();b[0]=[2,2,0,0];
+  const game=restore(b,{},()=>0);const first=game.move('left');
+  assert.equal(first.undoAvailable,true);assert.equal(first.score,4);assert.equal(first.moves,1);
+  const saved=game.serialize();assert.equal(saved.version,2);assert.equal(saved.undo.moves,0);assert.deepEqual(saved.undo.draws,[0,0]);
+  const loaded=M.restore(saved,()=>.99);assert.ok(loaded);assert.equal(loaded.state().undoAvailable,true);
+  const undone=loaded.undo();assert.equal(undone.changed,true);assert.deepEqual(undone.board,b);assert.equal(undone.score,0);assert.equal(undone.moves,0);
+  assert.equal(loaded.state().undoAvailable,false);assert.equal(loaded.undo().changed,false);
+  assert.deepEqual(loaded.move('left'),first,'undo restores the random position as well as the board');
+});
+
+test('undo follows only the last changed move and can recover a terminal win or loss', () => {
+  const pair=blank();pair[0]=[2,2,0,0];const game=restore(pair);
+  game.move('left');const after=game.serialize();assert.equal(game.move('down').changed,true);
+  assert.equal(game.state().undoAvailable,true);game.undo();assert.equal(game.state().moves,1);
+  assert.equal(game.move('right').changed,true);assert.equal(game.state().undoAvailable,true);
+  assert.equal(game.serialize().moves,2);
+
+  const win=blank();win[0]=[1024,1024,0,0];const finishing=restore(win);
+  assert.equal(finishing.move('left').status,'won');assert.equal(finishing.undo().status,'playing');
+  assert.equal(finishing.state().board[0][0],1024);assert.equal(finishing.state().board[0][1],1024);
+  assert.equal(M.restore(after).state().undoAvailable,true);
 });
 test('deterministic replay survives serialize/restore and continues the same transactions',()=>{
   function rng(seed){return()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};}

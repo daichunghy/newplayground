@@ -108,6 +108,34 @@
       settle();
       return result(status === 'won' ? 'win' : 'chord', changed);
     }
+    function hint() {
+      if (status !== 'playing') return null;
+      const constraints = [];
+      for (let index = 0; index < cells.length; index++) {
+        const cell = cells[index];
+        if (!cell.revealed || cell.adjacent <= 0) continue;
+        const adjacent = neighbors(index), flags = adjacent.filter(i => cells[i].flagged).length;
+        const unknown = adjacent.filter(i => !cells[i].revealed && !cells[i].flagged);
+        const remaining = cell.adjacent - flags;
+        if (unknown.length && remaining >= 0 && remaining <= unknown.length) constraints.push({ cells: unknown, remaining });
+      }
+      const candidates = [];
+      for (const constraint of constraints) {
+        if (constraint.remaining === 0) candidates.push({ index: constraint.cells[0], reason: 'count-clear' });
+      }
+      // Pairwise subset subtraction: if A is contained by B and both need the
+      // same number of mines, every cell in B\A is provably safe.
+      for (const small of constraints) for (const large of constraints) {
+        if (small.cells.length >= large.cells.length) continue;
+        const smallSet = new Set(small.cells);
+        if (!small.cells.every(i => large.cells.includes(i))) continue;
+        const difference = large.cells.filter(i => !smallSet.has(i));
+        if (difference.length && large.remaining - small.remaining === 0) candidates.push({ index: difference[0], reason: 'subset-clear' });
+      }
+      if (!candidates.length) return null;
+      candidates.sort((a, b) => a.index - b.index || a.reason.localeCompare(b.reason));
+      return { ...candidates[0], row: Math.floor(candidates[0].index / cols) + 1, col: candidates[0].index % cols + 1 };
+    }
     function view() {
       return { presetId, rows, cols, mines, status, revealedCount, flagCount, firstIndex, explodedIndex,
         cells: cells.map(cell => ({ ...cell })) };
@@ -140,7 +168,7 @@
       revealedCount = saved.revealed.length; flagCount = saved.flags.length;
       countClues(); return true;
     }
-    return { reveal, flag, question, cycleMark, chord, neighbors, view, serialize, hydrate };
+    return { reveal, flag, question, cycleMark, chord, hint, neighbors, view, serialize, hydrate };
   }
   function create(...args) {
     const { hydrate, ...board } = build(...args);

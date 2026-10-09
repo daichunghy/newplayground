@@ -34,7 +34,7 @@ async function closeGame(page) {
 
 async function loadPortal(page) {
   await page.goto('/');
-  await expect(page.locator('#catalogAvailability')).toContainText('65');
+  await expect(page.locator('#catalogAvailability')).toContainText('69');
 }
 
 async function newMobilePage(browser, width = 320, height = 800) {
@@ -53,8 +53,8 @@ async function expectViewportFits(page) {
 
 test('the default grid is playable-only; explicit catalog browsing keeps planned entries informational', async ({ page }) => {
   await loadPortal(page);
-  await expect(page.locator('#allSectionTitle')).toHaveText('Bản thử nghiệm có thể chơi (65)');
-  await expect(page.locator('#gridAll .game-card')).toHaveCount(65);
+  await expect(page.locator('#allSectionTitle')).toHaveText('Bản thử nghiệm có thể chơi (69)');
+  await expect(page.locator('#gridAll .game-card')).toHaveCount(69);
   await expect(page.locator('.filter-pill[data-category="playable"]')).toHaveClass(/active/);
 
   await page.locator('.filter-pill[data-category="all"]').click();
@@ -66,7 +66,7 @@ test('the default grid is playable-only; explicit catalog browsing keeps planned
   await expect(page.locator('#gameModal')).toHaveCSS('display', 'none');
 });
 
-test('all 65 registered games open, render, close and release their session', async ({ page }) => {
+test('all 69 registered games open, render, close and release their session', async ({ page }) => {
   test.setTimeout(120_000);
   const errors = watchErrors(page);
   await loadPortal(page);
@@ -76,7 +76,7 @@ test('all 65 registered games open, render, close and release their session', as
       id, engine, title: byId.get(id)?.title || id
     }));
   });
-  expect(routes).toHaveLength(65);
+  expect(routes).toHaveLength(69);
 
   for (const route of routes) {
     await openGame(page, route.id);
@@ -1091,6 +1091,81 @@ test('P1A games accept a real browser input and update their visible state', asy
   expect(errors).toEqual([]);
 });
 
+test('four new games take real input, fit mobile and desktop, and release sessions', async ({ browser, page }) => {
+  test.setTimeout(60_000);
+  for (const mobile of [true, false]) {
+    const context = mobile ? await browser.newContext({
+      viewport: { width: 320, height: 800 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true
+    }) : null;
+    const target = context ? await context.newPage() : page;
+    const errors = watchErrors(target);
+    try {
+      await loadPortal(target);
+      for (const [id, selectors] of [
+        ['cut-the-rope', '#ctGame'],
+        ['pinball-3d-space-cadet', '#opGame'],
+        ['typer-shark', '.ts-game'],
+        ['qbert-nhay-khoi-lap-phuong', '.qbp-game']
+      ]) {
+        await openGame(target, id);
+        await expect(target.locator(selectors)).toBeVisible();
+        await expectViewportFits(target);
+        const undersized = await target.locator('#modalGameContainer button:visible').evaluateAll(buttons =>
+          buttons.filter(button => {
+            const bounds = button.getBoundingClientRect();
+            return bounds.width < 44 || bounds.height < 44;
+          }).map(button => button.id || button.getAttribute('aria-label') || button.textContent.trim()));
+        expect(undersized, `${id} touch targets`).toEqual([]);
+
+        if (id === 'cut-the-rope') {
+          await target.locator('#ctCut').click();
+          await expect(target.locator('#ctCut')).toBeDisabled();
+          await target.locator('#ctPause').click();
+          await expect(target.locator('#ctOverlayTitle')).toHaveText('Tạm dừng');
+          await target.locator('#ctOverlayAction').click();
+          await expect(target.locator('#ctOverlay')).toBeHidden();
+          await target.locator('#ctRestart').click();
+          await expect(target.locator('#ctCut')).toBeEnabled();
+        } else if (id === 'pinball-3d-space-cadet') {
+          await target.locator('#opLaunch').click();
+          await expect(target.locator('#opLaunch')).toBeDisabled();
+          await target.locator('#opLeft').dispatchEvent('pointerdown', { button: 0, pointerId: 4, pointerType: 'touch' });
+          await expect(target.locator('.op-flipper-art.is-active')).toHaveCount(1);
+          await target.locator('#opLeft').dispatchEvent('pointerup', { button: 0, pointerId: 4, pointerType: 'touch' });
+          await target.locator('#opPause').click();
+          await expect(target.locator('#opOverlayTitle')).toHaveText('Field paused');
+          await target.locator('#opOverlayAction').click();
+          await target.locator('#opRestart').click();
+          await expect(target.locator('#opTargets')).toHaveText('0 / 6');
+          await expect(target.locator('#opBalls')).toHaveText('3');
+        } else if (id === 'typer-shark') {
+          await target.locator('#tsKeyboard [data-letter="S"]').click();
+          await expect(target.locator('#tsTyped')).toHaveText('S');
+          await target.locator('#tsPause').click();
+          await expect(target.locator('#tsOverlayTitle')).toHaveText('Tạm dừng');
+          await target.locator('#tsOverlayAction').click();
+          await expect(target.locator('#tsOverlay')).toBeHidden();
+          await target.locator('#tsRestart').click();
+          await expect(target.locator('#tsTyped')).toBeEmpty();
+        } else {
+          await target.locator('#qbpDownLeft').click();
+          await expect(target.locator('.qbp-progress')).toHaveAttribute('aria-valuenow', '2');
+          await target.locator('#qbpPause').click();
+          await expect(target.locator('#qbpOverlayTitle')).toHaveText('Đã tạm dừng');
+          await target.locator('#qbpOverlayAction').click();
+          await expect(target.locator('#qbpOverlay')).toBeHidden();
+          await target.locator('#qbpRestart').click();
+          await expect(target.locator('.qbp-progress')).toHaveAttribute('aria-valuenow', '1');
+        }
+        await closeGame(target);
+      }
+      expect(errors).toEqual([]);
+    } finally {
+      if (context) await context.close();
+    }
+  }
+});
+
 test('large puzzle boards expose a touch-sized pan control only when the board overflows', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 780 });
   await loadPortal(page);
@@ -1162,6 +1237,56 @@ test('Minesweeper restores an active pocket board, wins the last safe reveal, an
   expect(errors).toEqual([]);
 });
 
+test('Minesweeper highlights a proven safe move and waits for the player to reveal it', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('np_minesweeper_v1', JSON.stringify({
+      version: 1, difficulty: 'pocket', stats: {}, elapsed: 1200,
+      board: { version: 1, presetId: 'pocket', status: 'playing', firstIndex: 32,
+        mines: [0, 1, 2, 3, 4, 5, 7, 8], revealed: [6, 32], flags: [0, 1, 7] }
+    }));
+  });
+  const errors = watchErrors(page);
+  await loadPortal(page);
+  await openGame(page, 'do-min-minesweeper');
+  await page.locator('#dmResume').click();
+  const safeCell = page.locator('#dmGrid [data-cell="12"]');
+  await page.locator('#dmHint').click();
+  await expect(safeCell).toHaveClass(/dm-hint-target/);
+  await expect(safeCell).not.toHaveClass(/dm-open/);
+  await expect(page.locator('#dmStatus')).toContainText('cột 1 an toàn');
+  await safeCell.click();
+  await expect(safeCell).toHaveClass(/dm-open/);
+  await closeGame(page);
+  expect(errors).toEqual([]);
+});
+
+test('2048 Undo rolls back the visible move and disables after one use', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('np_2048_state_v1', JSON.stringify({
+      version: 1,
+      board: [[2, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+      score: 0, moves: 0, won: false, keepPlaying: false, over: false
+    }));
+  });
+  const errors = watchErrors(page);
+  await loadPortal(page);
+  await openGame(page, 'tro-choi-2048');
+  const before = await page.evaluate(() => JSON.parse(localStorage.getItem('np_2048_state_v1')));
+  const undo = page.locator('#g2048Undo');
+  await expect(undo).toBeDisabled();
+  await page.locator('#g2048Right').click();
+  await expect(page.locator('#g2048Status')).toContainText('Lượt 1');
+  await expect(undo).toBeEnabled();
+  await undo.click();
+  const restored = await page.evaluate(() => JSON.parse(localStorage.getItem('np_2048_state_v1')));
+  expect(restored.board).toEqual(before.board);
+  expect(restored.score).toBe(before.score);
+  expect(restored.moves).toBe(0);
+  await expect(undo).toBeDisabled();
+  await closeGame(page);
+  expect(errors).toEqual([]);
+});
+
 test('2048 completes a deterministic 2048 win, continue, and reload resume', async ({ page }) => {
   await page.addInitScript(() => {
     if (!localStorage.getItem('np-browser-qa-2048-fixture')) {
@@ -1187,7 +1312,7 @@ test('2048 completes a deterministic 2048 win, continue, and reload resume', asy
   await expect(page.locator('#g2048Overlay')).toBeHidden();
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('np_2048_state_v1')).keepPlaying)).toBe(true);
   await page.reload();
-  await expect(page.locator('#catalogAvailability')).toContainText('65');
+  await expect(page.locator('#catalogAvailability')).toContainText('69');
   await openGame(page, 'tro-choi-2048');
   await expect(page.locator('#g2048Overlay')).toBeHidden();
   await expect(page.locator('#g2048Score')).toHaveText('2048');

@@ -66,7 +66,11 @@
     'line-rider-truot-tuyet-vat-ly': 'launchLineRider',
     'thoi-bong-xa-phong': 'launchSoapBubbleGarden',
     'xay-cau-bridge-builder': 'launchBridgeBuilder',
-    'xe-dap-giao-bao': 'launchPaperboy'
+    'xe-dap-giao-bao': 'launchPaperboy',
+    'cut-the-rope': 'launchCutRope',
+    'pinball-3d-space-cadet': 'launchOrbitPinball',
+    'typer-shark': 'launchTyperShark',
+    'qbert-nhay-khoi-lap-phuong': 'launchQbertPyramid'
   });
   const engineFor = id => Object.prototype.hasOwnProperty.call(entries, id) ? entries[id] : null;
   const isPlayable = id => Boolean(engineFor(id) && window.NP_Engines &&

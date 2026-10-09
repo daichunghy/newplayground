@@ -58,6 +58,27 @@ test('question mode marks uncertain cells without starting play and persists the
   h.context.closeGameModal(); assertStopped(h);
 });
 
+test('logic hint highlights a proven safe square, opens only on player input, and never guesses', () => {
+  const board = { version: 1, presetId: 'pocket', status: 'playing', firstIndex: 32,
+    mines: [0,1,2,3,4,5,7,8], revealed: [6,32], flags: [0,1,7], questions: [] };
+  const activeSave = { version: 1, difficulty: 'pocket', stats: {}, board, elapsed: 1200 };
+  const h = harness({ compact: true, storage: new Map([[KEY, JSON.stringify(activeSave)]]) }); open(h);
+  assert.equal(el(h, 'dmPauseCover').hidden, false);
+  click(h, 'dmResume'); click(h, 'dmHint');
+  assert.ok(cells(h)[12].classList.contains('dm-hint-target'));
+  assert.equal(saved(h).board.revealed.includes(12), false, 'hint points to a tile without playing it');
+  assert.match(el(h, 'dmStatus').textContent, /hàng 3, cột 1 an toàn/);
+  tap(h, 12); assert.equal(saved(h).board.revealed.includes(12), true);
+  assert.equal(cells(h)[12].classList.contains('dm-hint-target'), false);
+  h.context.closeGameModal(); assertStopped(h);
+
+  const uncertain = { ...activeSave, board: { ...board, flags: [] } };
+  const u = harness({ compact: true, storage: new Map([[KEY, JSON.stringify(uncertain)]]) }); open(u); click(u, 'dmResume'); click(u, 'dmHint');
+  assert.match(el(u, 'dmStatus').textContent, /Chưa suy ra được ô an toàn/);
+  assert.equal(saved(u).board.revealed.includes(12), false);
+  u.context.closeGameModal(); assertStopped(u);
+});
+
 test('bounded keyboard navigation, one tab stop, repeat safety and accessible labels', () => {
   const h = harness(); open(h);
   input(h, 'keydown', 0, { key: 'ArrowLeft' }); assert.equal(cells(h)[0].tabIndex, 0);

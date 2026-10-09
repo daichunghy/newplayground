@@ -57,43 +57,73 @@
     board[at[0]][at[1]] = value;
     return { at: at.slice(), value };
   }
+  function validState(state) {
+    if (!state || !Array.isArray(state.board) || state.board.length !== 4 ||
+      Array.from(state.board).some(row => !Array.isArray(row) || row.length !== 4 || Array.from(row).some(n => !validValue(n)))) return false;
+    if (!Number.isSafeInteger(state.score) || state.score < 0 || state.score % 4 !== 0 ||
+      !Number.isSafeInteger(state.moves) || state.moves < 0 ||
+      typeof state.won !== 'boolean' || typeof state.keepPlaying !== 'boolean' || typeof state.over !== 'boolean') return false;
+    const max = Math.max(...state.board.flat());
+    return state.board.flat().filter(Boolean).length >= 2 && !(state.keepPlaying && !state.won) &&
+      state.won === (max >= 2048) && state.over === !hasMoves(state.board);
+  }
+  const validDraws = draws => Array.isArray(draws) && draws.length <= 2 && draws.every(n => Number.isFinite(n) && n >= 0 && n < 1);
   function validSave(saved) {
-    if (!saved || saved.version !== 1 || !Array.isArray(saved.board) || saved.board.length !== 4 ||
-      Array.from(saved.board).some(row => !Array.isArray(row) || row.length !== 4 || Array.from(row).some(n => !validValue(n)))) return false;
-    if (!Number.isSafeInteger(saved.score) || saved.score < 0 || saved.score % 4 !== 0 ||
-      !Number.isSafeInteger(saved.moves) || saved.moves < 0 ||
-      typeof saved.won !== 'boolean' || typeof saved.keepPlaying !== 'boolean' || typeof saved.over !== 'boolean') return false;
-    const max = Math.max(...saved.board.flat());
-    if (saved.board.flat().filter(Boolean).length < 2 || saved.keepPlaying && !saved.won || saved.won !== (max >= 2048) || saved.over !== !hasMoves(saved.board)) return false;
+    if (!saved || ![1, 2].includes(saved.version) || !validState(saved)) return false;
+    if (saved.version === 1) return true;
+    if (!validDraws(saved.randomReplay) || !(saved.undo === null ||
+      (validState(saved.undo) && saved.undo.moves + 1 === saved.moves && validDraws(saved.undo.draws)))) return false;
     return true;
   }
   function create(random = Math.random, saved = null) {
-    let board, score, moves, won, keepPlaying, over;
+    let board, score, moves, won, keepPlaying, over, lastMove = null, randomReplay = [];
     if (saved) {
       if (!validSave(saved)) return null;
       ({ score, moves, won, keepPlaying, over } = saved); board = copy(saved.board);
+      if (saved.version === 2) {
+        lastMove = saved.undo ? { ...saved.undo, board: copy(saved.undo.board), draws: saved.undo.draws.slice() } : null;
+        randomReplay = saved.randomReplay.slice();
+      }
     } else {
       board = Array.from({ length: 4 }, () => [0, 0, 0, 0]); score = 0; moves = 0; won = false; keepPlaying = false; over = false;
       spawn(board, random); spawn(board, random);
     }
-    const state = () => ({ board: copy(board), score, moves, won, keepPlaying, over,
+    const state = () => ({ board: copy(board), score, moves, won, keepPlaying, over, undoAvailable: !!lastMove,
       status: over ? 'lost' : won && !keepPlaying ? 'won' : 'playing' });
     function move(direction) {
       if (over || won && !keepPlaying) return { changed: false, ...state() };
       const transaction = slide(board, direction);
       if (!transaction.changed) return { ...transaction, ...state() };
       if (!Number.isSafeInteger(score + transaction.scoreDelta)) return { changed: false, ...state() };
-      const before = copy(board); board = transaction.board; score += transaction.scoreDelta; moves++;
+      const before = { board: copy(board), score, moves, won, keepPlaying, over };
+      board = transaction.board; score += transaction.scoreDelta; moves++;
       if (transaction.merges.some(m => m.value === 2048)) won = true;
-      const spawned = spawn(board, random); over = !hasMoves(board);
+      const draws = [];
+      const spawned = spawn(board, () => {
+        const value = randomReplay.length ? randomReplay.shift() : randomUnit(random);
+        draws.push(value); return value;
+      });
+      over = !hasMoves(board);
+      lastMove = { ...before, draws };
       return { ...transaction, ...state(), before, spawned };
+    }
+    function undo() {
+      if (!lastMove) return { changed: false, ...state() };
+      const previous = lastMove;
+      board = copy(previous.board); score = previous.score; moves = previous.moves;
+      won = previous.won; keepPlaying = previous.keepPlaying; over = previous.over;
+      randomReplay = previous.draws.slice(); lastMove = null;
+      return { changed: true, ...state(), undone: true };
     }
     function continueGame() {
       if (!won || keepPlaying || over) return false;
       keepPlaying = true; return true;
     }
-    const serialize = () => ({ version: 1, board: copy(board), score, moves, won, keepPlaying, over });
-    return { state, move, continueGame, serialize };
+    const serialize = () => ({ version: 2, board: copy(board), score, moves, won, keepPlaying, over,
+      undo: lastMove ? { board: copy(lastMove.board), score: lastMove.score, moves: lastMove.moves,
+        won: lastMove.won, keepPlaying: lastMove.keepPlaying, over: lastMove.over, draws: lastMove.draws.slice() } : null,
+      randomReplay: randomReplay.slice() });
+    return { state, move, undo, continueGame, serialize };
   }
   return { DIRECTIONS, create, restore: (saved, random = Math.random) => validSave(saved) ? create(random, saved) : null, slide, hasMoves, validSave };
 });

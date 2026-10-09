@@ -27,12 +27,21 @@ test('modifier shortcuts and editable controls never become game moves',()=>{
 });
 test('direction keys from toolbar and help controls do not unexpectedly move the board',()=>{
  const h=launch(),before=h.stored.get(KEY);
- for(const target of [el(h,'g2048NewBtn'),el(h,'g2048Pause'),h.container.querySelector('.g2048-help')]){
+ for(const target of [el(h,'g2048NewBtn'),el(h,'g2048Undo'),el(h,'g2048Pause'),h.container.querySelector('.g2048-help')]){
   h.container.dispatch('keydown',{target,key:'ArrowLeft'});
   h.container.dispatch('keydown',{target,key:'a'});
  }
  assert.equal(h.stored.get(KEY),before);assert.equal(saved(h).moves,0);
  key(h,'ArrowLeft');assert.equal(saved(h).moves,1);
+ h.context.closeGameModal();assertStopped(h);
+});
+test('one-move rewind restores the exact saved board and remains available after reload',()=>{
+ const h=launch();const original=b();key(h,'ArrowLeft');assert.equal(saved(h).moves,1);
+ assert.equal(el(h,'g2048Undo').disabled,false);click(h,'g2048Undo');
+ assert.deepEqual(saved(h).board,original);assert.equal(saved(h).score,0);assert.equal(saved(h).moves,0);assert.equal(saved(h).undo,null);
+ assert.equal(el(h,'g2048Undo').disabled,true);key(h,'ArrowLeft');assert.equal(saved(h).moves,1);
+ h.context.closeGameModal();h.context.openGameById('tro-choi-2048');assert.equal(el(h,'g2048Undo').disabled,false);
+ click(h,'g2048Undo');assert.deepEqual(saved(h).board,original);assert.equal(saved(h).moves,0);
  h.context.closeGameModal();assertStopped(h);
 });
 test('swipe starts at zero, has >10px threshold, vertical ties and one commit',()=>{
@@ -87,7 +96,7 @@ test('invalid/corrupt best migrates safely; storage failure and future saves are
  const h=launch(fixture(),[['np_2048_high','1200'],[BEST,'NaN']]);assert.equal(h.stored.get(BEST),'1200');
  h.context.localStorage.setItem=()=>{throw new Error('quota');};key(h,'ArrowLeft');assert.match(el(h,'g2048Storage').textContent,/Không lưu/);assert.equal(el(h,'g2048Score').textContent,'4');
  h.context.closeGameModal();assertStopped(h);
- const future={...fixture(),version:2};const f=launch(future);key(f,'ArrowLeft');assert.deepEqual(JSON.parse(f.stored.get(KEY)),future);f.context.closeGameModal();assertStopped(f);
+ const future={...fixture(),version:3};const f=launch(future);key(f,'ArrowLeft');assert.deepEqual(JSON.parse(f.stored.get(KEY)),future);f.context.closeGameModal();assertStopped(f);
  const invalid=launch({...fixture(),board:'bad'});assert.ok(Array.isArray(saved(invalid).board));invalid.context.closeGameModal();assertStopped(invalid);
 });
 test('animation cancellation never drops rapid model moves and close cancels active effects',()=>{

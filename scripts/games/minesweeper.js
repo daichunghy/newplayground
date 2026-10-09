@@ -28,7 +28,7 @@
     let startedAt = null, ticker = null, paused = board.view().status === 'playing', alive = true;
     let mode = 'reveal', focusIndex = 0, pointer = null, holdTimer = null;
     const suppressedClicks = new Map();
-    let cellEls = [], rendered = [], toastTimer = null, pendingDifficulty = null;
+    let cellEls = [], rendered = [], toastTimer = null, hintTimer = null, hintTarget = null, pendingDifficulty = null;
     let storageAvailable = true;
     const now = () => performance.now();
     const terminal = () => ['won', 'lost'].includes(board.view().status);
@@ -60,6 +60,7 @@
             <button class="dm-button dm-mode" id="dmFlagMode" type="button" aria-pressed="false">${ICONS.flag} Cờ</button>
             <button class="dm-button dm-mode" id="dmQuestionMode" type="button" aria-pressed="false" aria-label="Đánh dấu chưa chắc" title="Dấu hỏi · Q">?</button>
           </div>
+          <button class="dm-button dm-hint" id="dmHint" type="button">Gợi ý</button>
           <button class="dm-button" id="dmPan" type="button" aria-label="Cuộn ngang sang phải" hidden>→</button>
           <button class="dm-button" id="dmPause" type="button" aria-label="Tạm dừng">Ⅱ</button>
         </div>
@@ -143,6 +144,19 @@
         if (paused) el('dmResume').focus(); else cellEls[focusIndex]?.focus({ preventScroll: true });
       }
     }
+    function clearHint() {
+      if (hintTimer !== null) clearTimeout(hintTimer);
+      hintTimer = null; hintTarget = null;
+    }
+    function showHint() {
+      const clue = board.hint();
+      if (!clue) { announce('Chưa suy ra được ô an toàn từ các số đã mở.'); return; }
+      clearHint(); setMode('reveal'); hintTarget = clue.index; focusIndex = clue.index;
+      render(); cellEls[focusIndex]?.focus({ preventScroll: true });
+      cellEls[focusIndex]?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+      announce(`Suy luận: hàng ${clue.row}, cột ${clue.col} an toàn. Chạm ô để mở.`);
+      hintTimer = setTimeout(() => { hintTarget = null; hintTimer = null; render(); }, 3200);
+    }
     function suspendForInterruption() {
       if (board.view().status === 'playing') setPaused(true, undefined, false);
       else { cancelPointer(Boolean(pointer)); save(); }
@@ -175,11 +189,11 @@
       v.cells.forEach((cell, i) => {
         const mineVisible = (ended && cell.mine), wrongFlag = v.status === 'lost' && cell.flagged && !cell.mine;
         const flagVisible = cell.flagged || (v.status === 'won' && cell.mine);
-        const key = `${cell.revealed}/${flagVisible}/${cell.questioned}/${mineVisible}/${wrongFlag}/${paused}/${v.status}/${v.explodedIndex === i}`;
+        const key = `${cell.revealed}/${flagVisible}/${cell.questioned}/${mineVisible}/${wrongFlag}/${paused}/${v.status}/${v.explodedIndex === i}/${hintTarget === i}`;
         if (rendered[i] === key) return;
         rendered[i] = key;
         const node = cellEls[i];
-        node.className = 'dm-cell' + (cell.revealed ? ' dm-open' : '') + (flagVisible ? ' dm-flagged' : '') + (mineVisible ? ' dm-mine' : '') + (wrongFlag ? ' dm-wrong' : '') + (v.explodedIndex === i ? ' dm-exploded' : '');
+        node.className = 'dm-cell' + (cell.revealed ? ' dm-open' : '') + (flagVisible ? ' dm-flagged' : '') + (mineVisible ? ' dm-mine' : '') + (wrongFlag ? ' dm-wrong' : '') + (v.explodedIndex === i ? ' dm-exploded' : '') + (hintTarget === i ? ' dm-hint-target' : '');
         node.dataset.number = String(cell.adjacent);
         let label = 'chưa mở';
         node.innerHTML = '';
@@ -196,6 +210,7 @@
       el('dmTime').textContent = timeText(duration());
       el('dmProgress').textContent = `${v.revealedCount} / ${v.rows * v.cols - v.mines}`;
       el('dmPause').disabled = v.status !== 'playing';
+      el('dmHint').disabled = paused || v.status !== 'playing';
       el('dmPause').textContent = paused ? '▶' : 'Ⅱ';
       el('dmPause').setAttribute('aria-label', paused ? 'Chơi tiếp' : 'Tạm dừng');
       updatePanButton();
@@ -217,6 +232,7 @@
     }
     function act(index, action = mode) {
       if (!alive || paused || terminal() || !el('dmConfirm').hidden) return;
+      clearHint();
       const result = action === 'flag' ? board.flag(index) : action === 'question' ? board.question(index) : action === 'mark' ? board.cycleMark(index) : board.reveal(index);
       if (result.kind === 'none') {
         if (result.reason === 'flags-mismatch') announce('Số cờ xung quanh chưa khớp ô số. Kiểm tra cờ trước khi mở nhanh.');
@@ -242,7 +258,7 @@
       toastTimer = setTimeout(() => cellEls.forEach(node => node.classList.remove('dm-just-opened')), 180);
     }
     function newBoard(id) {
-      cancelPointer(); stopClock(); clearTimeout(toastTimer);
+      cancelPointer(); clearHint(); stopClock(); clearTimeout(toastTimer);
       board = create(id); elapsed = 0; paused = false; focusIndex = 0;
       el('dmConfirm').hidden = true; pendingDifficulty = null;
       setMode('reveal'); buildBoard(); render(); save();
@@ -330,6 +346,7 @@
     listen(el('dmRevealMode'), 'click', () => setMode('reveal'));
     listen(el('dmFlagMode'), 'click', () => setMode('flag'));
     listen(el('dmQuestionMode'), 'click', () => setMode('question'));
+    listen(el('dmHint'), 'click', showHint);
     listen(el('dmPan'), 'click', () => {
       const maxScroll = Math.max(0, scroll.scrollWidth - scroll.clientWidth);
       if (maxScroll <= 1) return;
@@ -353,7 +370,7 @@
     listen(document, 'visibilitychange', () => { if (document.hidden) suspendForInterruption(); });
     listen(window, 'pagehide', suspendForInterruption);
     onCleanup(() => {
-      stopClock(); cancelPointer(); save(); alive = false;
+      stopClock(); cancelPointer(); clearHint(); save(); alive = false;
       container.classList.remove('dm-host');
     });
     buildBoard(); render();

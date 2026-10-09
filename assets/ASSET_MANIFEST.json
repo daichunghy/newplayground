@@ -1218,5 +1218,45 @@
     "source": "Original cover illustration for NewPlayground Giao Báo.",
     "author": "NewPlayground project contributors",
     "created_at": "2026-10-09"
+  },
+  {
+    "category": "game-cover",
+    "file": "cut-rope-original.svg",
+    "local_path": "assets/covers/cut-rope-original.svg",
+    "size_bytes": 3494,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Original vector cover illustration authored for NewPlayground Cắt Dây; no third-party art or fonts.",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-09"
+  },
+  {
+    "category": "game-cover",
+    "file": "orbit-pinball-original.svg",
+    "local_path": "assets/covers/orbit-pinball-original.svg",
+    "size_bytes": 4320,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Original vector cover illustration authored for NewPlayground Pinball Quỹ Đạo; no third-party art or fonts.",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-09"
+  },
+  {
+    "category": "game-cover",
+    "file": "typer-shark-original.svg",
+    "local_path": "assets/covers/typer-shark-original.svg",
+    "size_bytes": 1187,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Original vector cover illustration authored for NewPlayground Gõ Chữ Nhanh; no third-party art or fonts.",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-09"
+  },
+  {
+    "category": "game-cover",
+    "file": "qbert-pyramid-original.svg",
+    "local_path": "assets/covers/qbert-pyramid-original.svg",
+    "size_bytes": 4516,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Original vector cover illustration authored for NewPlayground Nhảy Bậc Kim Tự Tháp; no third-party art or fonts.",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-09"
   }
 ]

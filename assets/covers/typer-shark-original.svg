@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300" role="img" aria-label="Cá mập chữ giữa biển xanh">
+  <defs><linearGradient id="ocean" x2="0" y2="1"><stop stop-color="#12718a"/><stop offset="1" stop-color="#082f4a"/></linearGradient></defs>
+  <rect width="480" height="300" rx="28" fill="url(#ocean)"/>
+  <path d="M0 240q50-25 100 0t100 0 100 0 100 0 100 0v60H0Z" fill="#125d52"/>
+  <g transform="translate(220 122)" fill="#f2bd72"><path d="M-115 0q38-52 112-29l50-34 4 45q48 12 74 38-28 26-75 39l-3 47-52-43q-73 23-111-27l-42 27 7-43-7-41Z"/><circle cx="36" cy="-5" r="6" fill="#062e43"/><path d="M-69 17q58 25 109 7" fill="none" stroke="#f6efe0" stroke-width="6"/></g>
+  <g font-family="Calibri,Arial,sans-serif" font-weight="700" text-anchor="middle"><rect x="319" y="205" width="54" height="44" rx="8" fill="#104761" stroke="#8ed3ca" stroke-width="2"/><text x="346" y="235" font-size="24" fill="#fff">S</text><rect x="378" y="205" width="54" height="44" rx="8" fill="#104761" stroke="#8ed3ca" stroke-width="2"/><text x="405" y="235" font-size="24" fill="#fff">E</text><text x="99" y="66" font-size="29" fill="#fff3dc" letter-spacing="4">TYPE!</text></g>
+</svg>

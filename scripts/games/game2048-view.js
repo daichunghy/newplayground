@@ -14,7 +14,7 @@
       const raw = localStorage.getItem(STATE_KEY);
       if (raw) {
         try { saved = JSON.parse(raw); } catch (_) { storageMessage = 'Bản lưu không đọc được. Bắt đầu một ván mới.'; }
-        preserveFutureSave = Number.isInteger(saved?.version) && saved.version > 1;
+        preserveFutureSave = Number.isInteger(saved?.version) && saved.version > 2;
       }
       best = Math.max(parseBest(localStorage.getItem(BEST_KEY)), parseBest(localStorage.getItem('np_2048_high')));
     } catch (_) { storageMessage = 'Không truy cập được bộ nhớ. Ván này chỉ giữ trong phiên đang mở.'; }
@@ -30,7 +30,7 @@
       <section class="g2048-game" aria-label="Trò chơi 2048">
         <header class="g2048-header"><div><h3>2048</h3></div>
           <div class="g2048-scores"><div><span>Điểm</span><strong id="g2048Score">0</strong></div><div><span>Kỷ lục</span><strong id="g2048Best">0</strong></div></div></header>
-        <div class="g2048-toolbar"><button class="g2048-button" id="g2048NewBtn" type="button">Ván mới</button><button class="g2048-button" id="g2048Pause" type="button" aria-label="Tạm dừng">Ⅱ</button></div>
+        <div class="g2048-toolbar"><button class="g2048-button" id="g2048NewBtn" type="button">Ván mới</button><button class="g2048-button" id="g2048Undo" type="button">Lùi 1 nước</button><button class="g2048-button" id="g2048Pause" type="button" aria-label="Tạm dừng">Ⅱ</button></div>
         <div class="g2048-confirm" id="g2048Confirm" hidden><span>Chơi lại?</span><button class="g2048-button g2048-primary" id="g2048ConfirmYes" type="button">Ván mới</button><button class="g2048-button" id="g2048ConfirmNo" type="button">Chơi tiếp</button></div>
         <div class="g2048-board" id="g2048Board">
           <div class="g2048-stage" id="g2048Grid" tabindex="0" role="group" aria-label="Bàn chơi 2048. Dùng phím mũi tên hoặc WASD để trượt." aria-describedby="g2048Instructions">
@@ -107,6 +107,7 @@
       const s = model.state(), blocked = s.status !== 'playing' || paused || confirm;
       el('g2048Score').textContent = String(s.score); el('g2048Best').textContent = String(best);
       el('g2048Pause').disabled = s.status !== 'playing' || confirm;
+      el('g2048Undo').disabled = !s.undoAvailable || paused || confirm;
       el('g2048Pause').textContent = paused ? '▶' : 'Ⅱ';
       el('g2048Pause').setAttribute('aria-label', paused ? 'Chơi tiếp' : 'Tạm dừng');
       el('g2048PauseOverlay').hidden = !paused;
@@ -138,6 +139,15 @@
       announce(result.status === 'won' ? `Bạn thắng! Đạt 2048 với ${result.score} điểm. Chọn Tiếp tục chơi hoặc Chơi lại.` : result.status === 'lost' ? `Hết nước đi. Điểm ${result.score}.` : `${result.scoreDelta ? '+' + result.scoreDelta + ' điểm. ' : ''}Lượt ${result.moves}. Tổng điểm ${result.score}.`);
       if (result.status !== 'playing') el(result.status === 'won' ? 'g2048Continue' : 'g2048Again').focus();
     }
+    function rewind() {
+      if (!alive || paused || confirm || !model.state().undoAvailable) return;
+      resetPointer(); cancelMotion();
+      const result = model.undo();
+      if (!result.changed) return;
+      persist(true); drawStable(); update();
+      announce(`Đã lùi một nước. Lượt ${result.moves}, ${result.score} điểm.`);
+      stage.focus({ preventScroll:true });
+    }
     function resetPointer() { pointer = null; }
     function pause(value) {
       if (model.state().status !== 'playing' || confirm) return;
@@ -155,6 +165,7 @@
     }
     for (const direction of Model.DIRECTIONS) listen(el('g2048' + direction[0].toUpperCase() + direction.slice(1)), 'click', () => move(direction));
     listen(el('g2048NewBtn'), 'click', requestRestart); listen(el('g2048Again'), 'click', requestRestart);
+    listen(el('g2048Undo'), 'click', rewind);
     listen(el('g2048ConfirmYes'), 'click', restart);
     listen(el('g2048ConfirmNo'), 'click', () => { confirm = false; el('g2048Confirm').hidden = true; update(); el(paused ? 'g2048Resume' : model.state().status === 'won' ? 'g2048Continue' : 'g2048Grid').focus(); });
     listen(el('g2048Continue'), 'click', () => { if (!confirm && !paused && model.continueGame()) { cancelMotion(); drawStable(); persist(true); update(); announce('Tiếp tục ván đã thắng. Thử tiến tới 4096!'); stage.focus(); } });

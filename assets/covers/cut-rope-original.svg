@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" role="img" aria-labelledby="title desc">
+  <title id="title">Cắt Dây</title>
+  <desc id="desc">Một viên kẹo treo trên dây phía trên chú ếch lá đang đợi, giữa những ngôi sao.</desc>
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#a8d9dc"/><stop offset=".64" stop-color="#f3e9cf"/><stop offset="1" stop-color="#b9d4a2"/></linearGradient>
+    <linearGradient id="frog" x2="0" y2="1"><stop stop-color="#96d895"/><stop offset="1" stop-color="#56a976"/></linearGradient>
+    <linearGradient id="candy" x2="0" y2="1"><stop stop-color="#ffa27c"/><stop offset="1" stop-color="#e06f5d"/></linearGradient>
+    <filter id="soft" x="-.3" y="-.3" width="1.6" height="1.6"><feGaussianBlur stdDeviation="16"/></filter>
+  </defs>
+  <rect width="600" height="800" rx="40" fill="url(#sky)"/>
+  <circle cx="468" cy="146" r="68" fill="#fff4bd" opacity=".72"/>
+  <circle cx="468" cy="146" r="97" fill="#fff4bd" opacity=".22" filter="url(#soft)"/>
+  <path d="M0 515c105-78 191-73 297-13s186 53 303-4v302H0z" fill="#c8dba9"/>
+  <path d="M0 595c129-59 222-36 329 14s191 56 271 8v183H0z" fill="#9fc98f"/>
+  <g fill="#fff2bf" stroke="#db9d50" stroke-width="4">
+    <path d="m133 278 14 29 32 5-23 23 5 32-28-16-28 16 6-32-24-23 33-5z"/>
+    <path d="m452 322 10 20 22 3-16 16 4 22-20-11-20 11 4-22-16-16 22-3z"/>
+    <path d="m363 445 8 16 18 3-13 13 3 18-16-9-16 9 3-18-13-13 18-3z"/>
+  </g>
+  <path d="M300 42v71" stroke="#6e5140" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="300" cy="114" r="18" fill="#7b5745" stroke="#4f3d36" stroke-width="5"/>
+  <path d="M300 131 300 349" stroke="#986d4c" stroke-width="9" stroke-linecap="round"/>
+  <g fill="#c79a67" stroke="#855e43" stroke-width="3">
+    <circle cx="300" cy="168" r="6"/><circle cx="300" cy="207" r="6"/><circle cx="300" cy="246" r="6"/><circle cx="300" cy="285" r="6"/><circle cx="300" cy="324" r="6"/>
+  </g>
+  <g transform="translate(300 382)">
+    <path d="m-37-12-26-17 4 35 24 13h70l24-13 4-35-26 17q-37-34-74 0z" fill="url(#candy)" stroke="#a94e4c" stroke-width="6" stroke-linejoin="round"/>
+    <ellipse cy="-2" rx="39" ry="33" fill="#ff9875" stroke="#a94e4c" stroke-width="6"/>
+    <ellipse cx="-11" cy="-12" rx="8" ry="5" fill="#fff0d4" opacity=".9"/>
+  </g>
+  <g transform="translate(300 615)">
+    <ellipse cy="38" rx="142" ry="36" fill="#46775a" opacity=".2"/>
+    <ellipse cy="4" rx="116" ry="88" fill="url(#frog)" stroke="#367c5b" stroke-width="9"/>
+    <circle cx="-63" cy="-55" r="39" fill="#77c98a" stroke="#367c5b" stroke-width="8"/>
+    <circle cx="63" cy="-55" r="39" fill="#77c98a" stroke="#367c5b" stroke-width="8"/>
+    <circle cx="-60" cy="-54" r="20" fill="#fff2d6"/><circle cx="66" cy="-54" r="20" fill="#fff2d6"/>
+    <circle cx="-55" cy="-50" r="8" fill="#28534b"/><circle cx="70" cy="-50" r="8" fill="#28534b"/>
+    <path d="M-69 17q69 74 138 0" fill="none" stroke="#285c4c" stroke-width="12" stroke-linecap="round"/>
+    <ellipse cy="57" rx="30" ry="13" fill="#d67d82"/>
+  </g>
+  <rect x="52" y="686" width="496" height="77" rx="22" fill="#fff8e5" opacity=".88"/>
+  <text x="300" y="722" text-anchor="middle" font-family="Calibri, Inter, sans-serif" font-size="24" font-weight="800" letter-spacing="2" fill="#6b8570">VUỐT DÂY · NHẶT SAO</text>
+  <text x="300" y="757" text-anchor="middle" font-family="Calibri, Inter, sans-serif" font-size="30" font-weight="900" fill="#315f5a">CẮT DÂY</text>
+</svg>

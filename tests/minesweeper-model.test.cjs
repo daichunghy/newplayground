@@ -132,7 +132,7 @@ test('public boards expose gameplay operations without a reusable internal hydra
   assert.ok(restored);
   for (const candidate of [board, restored]) {
     assert.equal('hydrate' in candidate, false);
-    for (const method of ['view', 'reveal', 'flag', 'chord', 'neighbors', 'serialize']) {
+    for (const method of ['view', 'reveal', 'flag', 'chord', 'hint', 'neighbors', 'serialize']) {
       assert.equal(typeof candidate[method], 'function', `missing public method ${method}`);
     }
   }
@@ -206,6 +206,29 @@ for (const [presetId, preset] of Object.entries(PRESETS)) {
     }
   });
 }
+
+test('logical hint reveals only a forced safe tile and remains read-only', () => {
+  const saved = { version: 1, presetId: 'pocket', status: 'playing', firstIndex: 32,
+    mines: [0, 1, 2, 3, 4, 5, 7, 8], revealed: [6, 32], flags: [0, 1, 7], questions: [] };
+  const board = restore(saved);
+  assert.ok(board);
+  const before = copy(board.serialize());
+  assert.deepEqual(board.hint(), { index: 12, reason: 'count-clear', row: 3, col: 1 });
+  assert.deepEqual(board.serialize(), before, 'hints do not change the board or RNG');
+  assert.equal(board.reveal(board.hint().index).kind, 'reveal');
+  assert.equal(board.view().cells[12].revealed, true);
+  assert.equal(board.view().status, 'playing');
+  assertInvariants(board);
+});
+
+test('logical hint does not guess when revealed clues leave several mine layouts possible', () => {
+  const saved = { version: 1, presetId: 'pocket', status: 'playing', firstIndex: 32,
+    mines: [0, 1, 2, 3, 4, 5, 7, 8], revealed: [6, 32], flags: [], questions: [] };
+  const board = restore(saved);
+  assert.ok(board);
+  assert.equal(board.hint(), null);
+  assert.equal(board.view().status, 'playing');
+});
 
 test('invalid indices are harmless for every public operation and do not generate a board', () => {
   const board = create('pocket', () => { throw new Error('unexpected generation'); });
