@@ -34,13 +34,13 @@ async function closeGame(page) {
 
 async function loadPortal(page) {
   await page.goto('/');
-  await expect(page.locator('#catalogAvailability')).toContainText('56');
+  await expect(page.locator('#catalogAvailability')).toContainText('58');
 }
 
 test('the default grid is playable-only; explicit catalog browsing keeps planned entries informational', async ({ page }) => {
   await loadPortal(page);
-  await expect(page.locator('#allSectionTitle')).toHaveText('Bản thử nghiệm có thể chơi (56)');
-  await expect(page.locator('#gridAll .game-card')).toHaveCount(56);
+  await expect(page.locator('#allSectionTitle')).toHaveText('Bản thử nghiệm có thể chơi (58)');
+  await expect(page.locator('#gridAll .game-card')).toHaveCount(58);
   await expect(page.locator('.filter-pill[data-category="playable"]')).toHaveClass(/active/);
 
   await page.locator('.filter-pill[data-category="all"]').click();
@@ -62,7 +62,7 @@ test('all 56 registered games open, render, close and release their session', as
       id, engine, title: byId.get(id)?.title || id
     }));
   });
-  expect(routes).toHaveLength(56);
+  expect(routes).toHaveLength(58);
 
   for (const route of routes) {
     await openGame(page, route.id);
@@ -71,6 +71,53 @@ test('all 56 registered games open, render, close and release their session', as
     expect(await page.evaluate(() => window.NP_GameSession.getCurrent() !== null), route.id).toBe(true);
     await closeGame(page);
   }
+  expect(errors).toEqual([]);
+});
+
+test('Khối Sắc stays touch-sized on a narrow mobile screen and accepts a real face turn and pause', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  const errors = watchErrors(page);
+  await loadPortal(page);
+  await openGame(page, 'khoi-rubik-mini');
+  await expect(page.locator('#modalGameTitle')).toHaveText('Khối Sắc');
+  await expect(page.locator('.ks-face-panel')).toHaveCount(6);
+  await expect(page.locator('.ks-goal-face')).toHaveCount(1);
+  const controls = await page.locator('.ks-turn').evaluateAll(nodes => nodes.map(node => {
+    const box = node.getBoundingClientRect();
+    return { width: box.width, height: box.height };
+  }));
+  expect(controls.every(box => box.width >= 44 && box.height >= 44), JSON.stringify(controls)).toBe(true);
+  await page.locator('#ks-r-cw').click();
+  await expect(page.locator('#ksMoves')).toHaveText('1 / 10 lượt');
+  await page.keyboard.press('p');
+  await expect(page.locator('#ksOverlayTitle')).toHaveText('Tạm dừng');
+  await page.locator('#ksOverlayAction').click();
+  await expect(page.locator('#ksOverlay')).toBeHidden();
+  await closeGame(page);
+  expect(errors).toEqual([]);
+});
+
+test('Sân Bụi accepts a narrow mobile aim and throw through the live canvas game', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  const errors = watchErrors(page);
+  await loadPortal(page);
+  await openGame(page, 'nem-lon-truong-lang');
+  await expect(page.locator('#modalGameTitle')).toHaveText('Sân Bụi');
+  await expect(page.locator('#sbCanvas')).toBeVisible();
+  await page.locator('#sbAngle').evaluate(node => {
+    node.value = '18'; node.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await page.locator('#sbPower').evaluate(node => {
+    node.value = '75'; node.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await expect(page.locator('#sbAngleValue')).toHaveText('18°');
+  await expect(page.locator('#sbPowerValue')).toHaveText('75%');
+  await page.locator('#sbFire').click();
+  await expect(page.locator('#sbThrows')).toHaveText('2');
+  await expect(page.locator('#sbStatus')).toContainText('Cú ném đang bay');
+  const viewport = await page.evaluate(() => ({ width: innerWidth, pageWidth: document.documentElement.scrollWidth }));
+  expect(viewport.pageWidth).toBeLessThanOrEqual(viewport.width);
+  await closeGame(page);
   expect(errors).toEqual([]);
 });
 

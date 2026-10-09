@@ -721,15 +721,15 @@ window.__NP_GAMES_CACHE__ = [
   },
   {
     "id": "nem-lon-truong-lang",
-    "title": "Ném Lon Trường Làng",
-    "tagline": "Căn góc ném chiếc dép trúng chồng lon sữa bò!",
+    "title": "Sân Bụi",
+    "tagline": "Căn góc và lực ném, hạ đủ lon qua ba chặng.",
     "category": "Kỹ năng",
     "section": "all",
     "players": "1 người",
     "duration": "2-4 phút",
-    "mechanic": "Căn lực và góc ném dép hạ gục tháp lon",
-    "badge": "Dân gian",
-    "color": "#EF4444"
+    "mechanic": "Dùng quỹ đạo và va chạm để hạ chồng lon trong số lượt giới hạn.",
+    "badge": "Bản thử",
+    "color": "#3c7880"
   },
   {
     "id": "tat-lon-via-he",
@@ -913,15 +913,15 @@ window.__NP_GAMES_CACHE__ = [
   },
   {
     "id": "khoi-rubik-mini",
-    "title": "Khối Rubik 2x2 Mini",
-    "tagline": "Xoay mặt đưa các khối màu về cùng một mặt.",
+    "title": "Khối Sắc",
+    "tagline": "Nối các mẫu tín hiệu bằng vài lượt xoay mặt.",
     "category": "Giải đố",
     "section": "all",
     "players": "1 người",
-    "duration": "3-7 phút",
-    "mechanic": "Xoay ma trận 3D giải mã khối lập phương",
-    "badge": "Trí tuệ",
-    "color": "#C8FF4A"
+    "duration": "2-4 phút",
+    "mechanic": "Xoay các ô màu trên sáu mặt để ghép mô-típ từng chặng.",
+    "badge": "Bản thử",
+    "color": "#8A74C6"
   },
   {
     "id": "ninja-cuu-me",

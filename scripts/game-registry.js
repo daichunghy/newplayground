@@ -57,7 +57,9 @@
     'tim-diem-khac-biet': 'launchSpotDifference',
     'dap-chuot-chui': 'launchMoleTap',
     'atomix-ghep-phan-tu-hoa-hoc': 'launchAtomGlide',
-    'noi-ong-nuoc-pipemania': 'launchPipeRoute'
+    'noi-ong-nuoc-pipemania': 'launchPipeRoute',
+    'nem-lon-truong-lang': 'launchSanBui',
+    'khoi-rubik-mini': 'launchKhoiSac'
   });
   const engineFor = id => Object.prototype.hasOwnProperty.call(entries, id) ? entries[id] : null;
   const isPlayable = id => Boolean(engineFor(id) && window.NP_Engines &&

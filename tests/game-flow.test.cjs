@@ -44,9 +44,9 @@ test('the default catalog favors playable prototypes and planned entries have no
   const playable = h.document.body.querySelectorAll('.filter-pill').find(pill => pill.getAttribute('data-category') === 'playable');
   const all = h.document.body.querySelectorAll('.filter-pill').find(pill => pill.getAttribute('data-category') === 'all');
   assert.equal(playable.classList.contains('active'), true);
-  assert.equal(grid.children.length, 56);
-  assert.equal(h.document.getElementById('allSectionTitle').textContent, 'Bản thử nghiệm có thể chơi (56)');
-  assert.equal(h.document.getElementById('catalogAvailability').textContent, '56 chơi thử · 150 trong danh mục');
+  assert.equal(grid.children.length, 58);
+  assert.equal(h.document.getElementById('allSectionTitle').textContent, 'Bản thử nghiệm có thể chơi (58)');
+  assert.equal(h.document.getElementById('catalogAvailability').textContent, '58 chơi thử · 150 trong danh mục');
 
   all.click();
   assert.equal(grid.children.length, 150, 'the full catalog remains available by explicit selection');
@@ -60,7 +60,7 @@ test('the default catalog favors playable prototypes and planned entries have no
   assert.equal(h.container.children.length, 0, 'a planned card cannot open a misleading or empty game dialog');
 
   playable.click();
-  assert.equal(grid.children.length, 56);
+  assert.equal(grid.children.length, 58);
 });
 
 test('Quầy Nước Chanh opens instantly with its own cover and releases its session', () => {
