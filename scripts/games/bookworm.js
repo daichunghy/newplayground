@@ -119,7 +119,7 @@
       path = [];
       if (result.status === 'won') announce(`“${result.word}” · +${result.points}. Bạn đã giữ an toàn cả ba kệ!`);
       else if (result.status === 'lost') announce(`“${result.word}” · +${result.points}. Tia lửa đã tới đáy kệ.`);
-      else if (result.stageCleared !== null) announce(`“${result.word}” · +${result.points}. Kệ mới: ${model.view().stage}.`);
+      else if (result.stageCleared !== null) announce(`“${result.word}” · +${result.points}${result.doused ? ' · dập tắt tia lửa!' : '.'} Kệ mới: ${model.view().stage}.`);
       else announce(`“${result.word}” · +${result.points}${result.doused ? ' · dập tắt tia lửa!' : '.'}`);
       render();
     }

@@ -103,6 +103,37 @@ test('a word containing the burning tile gives a visible bonus and pushes the sp
   h.close();
 });
 
+test('clearing a shelf with a fire word announces both the bonus and the new shelf', () => {
+  const h = setup(1), shadow = M.create({ seed: 1 });
+  tapWord(h, M.LEVELS[0].path);
+  shadow.submit(M.LEVELS[0].path);
+  const route = shadow.hint(), expected = shadow.submit(route);
+  assert.equal(expected.word, 'SUPER'); assert.equal(expected.doused, true); assert.equal(expected.stageCleared, 0);
+  tapWord(h, route);
+  assert.match(el(h, 'bwStatus').textContent, /SUPER.*\+33.*dập tắt tia lửa.*Kệ mới/);
+  assert.equal(el(h, 'bwShelf').textContent, '2 / 3');
+  assert.equal(el(h, 'bwScore').textContent, '0 / 68');
+  h.close();
+});
+
+test('pointercancel ends a drag and leaves its visible route editable and clearable', () => {
+  const h = setup();
+  const original = h.document.elementFromPoint;
+  h.document.elementFromPoint = x => el(h, `bwTile${Math.max(0, Math.min(35, Math.floor(x / 50)))}`);
+  el(h, 'bwTile0').dispatch('pointerdown', { button: 0, isPrimary: true, pointerId: 8, pointerType: 'touch', clientX: 25, clientY: 0 });
+  h.document.dispatch('pointermove', { pointerId: 8, pointerType: 'touch', clientX: 75, clientY: 0 });
+  assert.equal(el(h, 'bwWord').textContent, 'SH');
+  h.document.dispatch('pointercancel', { pointerId: 8, pointerType: 'touch' });
+  assert.equal(el(h, 'bwWord').textContent, 'SH');
+  assert.equal(el(h, 'bwClear').disabled, false);
+  el(h, 'bwClear').click();
+  assert.equal(el(h, 'bwWord').textContent, '—');
+  el(h, 'bwTile0').click(); el(h, 'bwTile1').click();
+  assert.equal(el(h, 'bwWord').textContent, 'SH', 'tap selection still works after the cancelled drag');
+  h.document.elementFromPoint = original;
+  h.close();
+});
+
 test('three shelves resolve to a win; replay starts a fresh campaign and closing releases listeners', () => {
   const h = setup(3);
   let actions = 0;

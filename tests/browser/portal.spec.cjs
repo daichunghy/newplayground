@@ -228,6 +228,29 @@ test('catalog card opens Quầy Nước Chanh and shows the short recipe-and-pri
   expect(errors).toEqual([]);
 });
 
+test('mobile Xiangqi accepts a legal tap move, CPU reply, and keeps focus in the board', async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
+  const page = await context.newPage();
+  const errors = watchErrors(page);
+  try {
+    await loadPortal(page);
+    await openGame(page, 'co-tuong');
+    await expect(page.locator('#xqBoard button')).toHaveCount(90);
+    await page.locator('#xqBoard [data-row="6"][data-col="0"]').tap();
+    await expect(page.locator('#xqBoard .is-legal')).not.toHaveCount(0);
+    await expect(page.locator('#xqBoard button:focus')).toHaveCount(1);
+    await page.locator('#xqBoard [data-row="5"][data-col="0"]').tap();
+    await expect(page.locator('#xqStatus')).toContainText('Máy đi');
+    await expect(page.locator('#xqBoard button:focus')).toHaveCount(1);
+    await page.locator('.np-xiangqi-new').tap();
+    await expect(page.locator('#xqTurn')).toHaveText('Lượt của bạn · Đỏ');
+    expect(errors).toEqual([]);
+    await closeGame(page);
+  } finally {
+    await context.close();
+  }
+});
+
 test('P1A games accept a real browser input and update their visible state', async ({ page }) => {
   test.setTimeout(60_000);
   const errors = watchErrors(page);

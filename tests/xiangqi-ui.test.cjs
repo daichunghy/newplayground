@@ -138,7 +138,7 @@ test('the game routes to the original asset and is not represented by the old pu
   assert.match(read('app.js'), /'co-tuong': 'assets\/xiangqi-original\.svg'/);
   assert.match(read('scripts/release-preflight.mjs'), /'co_tuong_cover\.png', 'cotuong_intro\.jpg'/);
   assert.match(read('index.html'), /scripts\/engines-popcap\.js\?v=20261007_bbv1/);
-  assert.match(read('index.html'), /scripts\/games\/xiangqi\.js\?v=20261008_xq2/);
+  assert.match(read('index.html'), /scripts\/games\/xiangqi\.js\?v=20261009_xq3/);
   assert.match(read('scripts/games/xiangqi.css'), /\.np-xiangqi-mode \{[^}]*min-height: 44px/s);
   assert.match(read('scripts/games/xiangqi.css'), /\.np-xiangqi-board \{[^}]*min-width: 405px/s);
 });

@@ -815,7 +815,7 @@
       "implementation_status": "implemented-awaiting-browser-device-qa",
       "automated_tests": {
         "command": "node --test --test-concurrency=1 tests/caro-candidate-model.test.cjs tests/caro-candidate-ui.test.cjs",
-        "passed": 15,
+        "passed": 17,
         "failed": 0,
         "date": "2026-10-08",
         "evidence": "docs/games/CARO_CANDIDATE_RESEARCH_AND_SCOPE.md",
@@ -1617,53 +1617,53 @@
         "command": "node --test --test-concurrency=1 tests/xiangqi-model.test.cjs tests/xiangqi-ui.test.cjs",
         "passed": 21,
         "failed": 0,
-        "date": "2026-10-08",
-        "evidence": "docs/games/XIANGQI_RESEARCH_AND_QA.md",
-        "limitation": "Model and DOM-double tests only; no browser/device acceptance or human playtest."
+        "date": "2026-10-09",
+        "evidence": "docs/games/XIANGQI_RESEARCH_AND_SCOPE.md and docs/qa/gameplay-playtest-20261009.md",
+        "limitation": "21 model and DOM-double tests plus a local Chromium touch-emulation smoke; no physical-device, screen-reader, Xiangqi-player rules review or human playtest acceptance."
       },
       "gates": {
         "reference_parity": {
           "status": "pending",
-          "evidence": "Candidate scope and automated checks are documented in docs/games/XIANGQI_RESEARCH_AND_QA.md; real browser/device, human playtest, and distribution review remain pending."
+          "evidence": "Candidate scope and local Chromium touch-emulation result are documented in docs/games/XIANGQI_RESEARCH_AND_SCOPE.md and docs/qa/gameplay-playtest-20261009.md; physical-device, human playtest and distribution review remain pending."
         },
         "content": {
           "status": "pending",
-          "evidence": "Candidate scope and automated checks are documented in docs/games/XIANGQI_RESEARCH_AND_QA.md; real browser/device, human playtest, and distribution review remain pending."
+          "evidence": "Candidate scope and local Chromium touch-emulation result are documented in docs/games/XIANGQI_RESEARCH_AND_SCOPE.md and docs/qa/gameplay-playtest-20261009.md; physical-device, human playtest and distribution review remain pending."
         },
         "controls": {
           "status": "pending",
-          "evidence": "Candidate scope and automated checks are documented in docs/games/XIANGQI_RESEARCH_AND_QA.md; real browser/device, human playtest, and distribution review remain pending."
+          "evidence": "Candidate scope and local Chromium touch-emulation result are documented in docs/games/XIANGQI_RESEARCH_AND_SCOPE.md and docs/qa/gameplay-playtest-20261009.md; physical-device, human playtest and distribution review remain pending."
         },
         "visual_audio": {
           "status": "pending",
-          "evidence": "Candidate scope and automated checks are documented in docs/games/XIANGQI_RESEARCH_AND_QA.md; real browser/device, human playtest, and distribution review remain pending."
+          "evidence": "Candidate scope and local Chromium touch-emulation result are documented in docs/games/XIANGQI_RESEARCH_AND_SCOPE.md and docs/qa/gameplay-playtest-20261009.md; physical-device, human playtest and distribution review remain pending."
         },
         "device_qa": {
           "status": "pending",
-          "evidence": "Candidate scope and automated checks are documented in docs/games/XIANGQI_RESEARCH_AND_QA.md; real browser/device, human playtest, and distribution review remain pending."
+          "evidence": "Candidate scope and local Chromium touch-emulation result are documented in docs/games/XIANGQI_RESEARCH_AND_SCOPE.md and docs/qa/gameplay-playtest-20261009.md; physical-device, human playtest and distribution review remain pending."
         },
         "save_recovery": {
           "status": "pending",
-          "evidence": "Candidate scope and automated checks are documented in docs/games/XIANGQI_RESEARCH_AND_QA.md; real browser/device, human playtest, and distribution review remain pending."
+          "evidence": "Candidate scope and local Chromium touch-emulation result are documented in docs/games/XIANGQI_RESEARCH_AND_SCOPE.md and docs/qa/gameplay-playtest-20261009.md; physical-device, human playtest and distribution review remain pending."
         },
         "playtest": {
           "status": "pending",
-          "evidence": "Candidate scope and automated checks are documented in docs/games/XIANGQI_RESEARCH_AND_QA.md; real browser/device, human playtest, and distribution review remain pending."
+          "evidence": "Candidate scope and local Chromium touch-emulation result are documented in docs/games/XIANGQI_RESEARCH_AND_SCOPE.md and docs/qa/gameplay-playtest-20261009.md; physical-device, human playtest and distribution review remain pending."
         },
         "distribution_rights": {
           "status": "pending",
-          "evidence": "Candidate scope and automated checks are documented in docs/games/XIANGQI_RESEARCH_AND_QA.md; real browser/device, human playtest, and distribution review remain pending."
+          "evidence": "Candidate scope and local Chromium touch-emulation result are documented in docs/games/XIANGQI_RESEARCH_AND_SCOPE.md and docs/qa/gameplay-playtest-20261009.md; physical-device, human playtest and distribution review remain pending."
         }
       },
       "research": {
         "status": "candidate-depth-updated",
-        "evidence_date": "2026-10-08",
+        "evidence_date": "2026-10-09",
         "reference_version": "World Xiangqi Rules 2018 core movement/check rules; historic catalog edition unknown.",
         "current_mechanic": "Legal 9x10 Xiangqi; Red versus deterministic legal-move Black default, optional hot-seat.",
         "first_delivery": "Add a bounded one-reply opponent without altering movement or terminal rules.",
         "rules_task": "The candidate keeps its documented rules and marks differences from the selected reference; no unidentified historic-edition parity is claimed.",
-        "content_task": "Keep standard 32-piece opening and existing casual repetition draw.",
-        "controls_task": "Select/move with touch, pointer, arrows and Enter; compact hot-seat toggle.",
+        "content_task": "Keep the standard 32-piece opening; Red receives one deterministic legal Black reply by default, with local hot-seat available. No puzzle campaign, ladder, clock or items.",
+        "controls_task": "Tap/click a piece then a highlighted legal point; arrows plus Enter; hot-seat toggle. At 390px, pan horizontally to reach all nine files; confirm pan and focus on physical devices.",
         "visual_assets_and_license_to_resolve": "Original geometric board and vector cover.",
         "feel_speed_and_performance_to_measure": "Verify decision time, legal response, counterplay and actual glyph/touch readability.",
         "rights_status": "Catalog route/title clearance pending.",
@@ -1671,9 +1671,10 @@
           "https://www.wxf-xiangqi.org/images/wxf-rules/2018_World_XiangQi_Rules_English2018.pdf",
           "https://www.asianxiangqi.org/English/AXFrulesEng.htm"
         ],
-        "backlog_status": "Original candidate updated; browser/device, human playtest and title/distribution review pending. See docs/games/XIANGQI_RESEARCH_AND_QA.md."
+        "backlog_status": "Original candidate updated; legal tap move, CPU reply, restart and 390px horizontal board scrolling passed local Chromium touch emulation. Physical-device, human playtest and title/distribution review pending. See docs/qa/gameplay-playtest-20261009.md.",
+        "progression_and_items_to_research": "Keep the standard 32-piece opening; Red receives one deterministic legal Black reply by default, with local hot-seat available. No puzzle campaign, ladder, clock or items."
       },
-      "player_ui": "Cờ Tướng opens Red versus a deterministic legal-move CPU with optional local two-player."
+      "player_ui": "Cờ Tướng opens Red versus a deterministic legal-move CPU with optional local two-player. At 390px the 405px board requires horizontal scrolling; Chromium touch emulation passed."
     },
     "ban-bi-ve": {
       "scope": "original-candidate-not-reference-parity",
@@ -2030,11 +2031,11 @@
       "implementation_status": "implemented-awaiting-human-device-qa",
       "automated_tests": {
         "command": "node --test tests/bookworm-model.test.cjs tests/bookworm-ui.test.cjs",
-        "passed": 15,
+        "passed": 17,
         "failed": 0,
         "date": "2026-10-09",
         "evidence": "docs/games/BOOKWORM_RESEARCH_AND_SCOPE.md and tests/browser/portal.spec.cjs",
-        "limitation": "DOM doubles plus local Chromium 320px smoke; no physical-device, assistive-technology, human balance, or distribution-rights acceptance."
+        "limitation": "17 model/DOM tests plus seeded local Chromium touch-emulation win/loss and drag-cancellation checks; no physical-device, assistive-technology, human balance, dictionary or distribution-rights acceptance."
       },
       "gates": {
         "reference_parity": {
@@ -2070,7 +2071,7 @@
           "evidence": "Original candidate dossier docs/games/BOOKWORM_RESEARCH_AND_SCOPE.md; local automated/browser smoke only. Human playtest, physical-device/accessibility QA, title/rights review, and product acceptance are still pending."
         }
       },
-      "player_ui": "Instant compact 6x6 hex board; tap or drag letters, then submit; optional text is kept short. Local 320px Chromium smoke passed; accessibility and device acceptance pending.",
+      "player_ui": "Instant compact 6x6 hex board; tap or drag letters, then submit; seeded local Chromium touch emulation verified valid scoring, fire bonus, shelf transition, campaign win/loss, and pointercancel recovery. Physical-device and accessibility acceptance pending.",
       "research": {
         "status": "original-candidate-depth",
         "evidence_date": "2026-10-09",

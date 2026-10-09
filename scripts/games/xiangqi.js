@@ -74,7 +74,7 @@
     }
 
     function focusCursor() {
-      const cell = board.querySelectorAll('button').find(item => Number(item.dataset.row) === cursor.row && Number(item.dataset.col) === cursor.col);
+      const cell = Array.from(board.querySelectorAll('button')).find(item => Number(item.dataset.row) === cursor.row && Number(item.dataset.col) === cursor.col);
       if (cell && typeof cell.focus === 'function') cell.focus({ preventScroll: true });
     }
 
