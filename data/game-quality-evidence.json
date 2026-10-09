@@ -2094,7 +2094,7 @@
     "tim-diem-khac-biet": {
       "scope": "original-candidate-not-reference-parity",
       "reference_version": "Generic visual-search round; historic catalog build unknown and not used as an asset source.",
-      "candidate_build": "spot-difference-original-1",
+      "candidate_build": "spot-difference-original-2-three-scene-course",
       "accepted_build": null,
       "owner": null,
       "accepted_at": null,
@@ -2104,128 +2104,130 @@
         "passed": 9,
         "failed": 0,
         "date": "2026-10-09",
-        "evidence": "docs/games/SPOT_DIFFERENCE_RESEARCH_AND_SCOPE.md and docs/qa/p3-discovery-playtest-20261009.md",
-        "limitation": "Model/DOM tests plus local Chromium pointer/keyboard and responsive-layout checks; no physical-device, human comprehension, assistive-technology or title-rights acceptance."
+        "evidence": "docs/qa/depth-batch-20261009.md",
+        "limitation": "Model/DOM checks plus local Chromium touch/keyboard, scene transitions, responsive layout and lifecycle; no physical-device, novice comprehension, accessibility or title-rights acceptance."
       },
       "gates": {
         "reference_parity": {
           "status": "pending",
-          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+          "evidence": "Updated three-scene original course and responsive scene transition checks are documented in docs/qa/depth-batch-20261009.md; human clarity, physical-device, accessibility and rights acceptance remain pending."
         },
         "content": {
           "status": "pending",
-          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+          "evidence": "Updated three-scene original course and responsive scene transition checks are documented in docs/qa/depth-batch-20261009.md; human clarity, physical-device, accessibility and rights acceptance remain pending."
         },
         "controls": {
           "status": "pending",
-          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+          "evidence": "Updated three-scene original course and responsive scene transition checks are documented in docs/qa/depth-batch-20261009.md; human clarity, physical-device, accessibility and rights acceptance remain pending."
         },
         "visual_audio": {
           "status": "pending",
-          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+          "evidence": "Updated three-scene original course and responsive scene transition checks are documented in docs/qa/depth-batch-20261009.md; human clarity, physical-device, accessibility and rights acceptance remain pending."
         },
         "device_qa": {
           "status": "pending",
-          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+          "evidence": "Updated three-scene original course and responsive scene transition checks are documented in docs/qa/depth-batch-20261009.md; human clarity, physical-device, accessibility and rights acceptance remain pending."
         },
         "save_recovery": {
           "status": "pending",
-          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+          "evidence": "Updated three-scene original course and responsive scene transition checks are documented in docs/qa/depth-batch-20261009.md; human clarity, physical-device, accessibility and rights acceptance remain pending."
         },
         "playtest": {
           "status": "pending",
-          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+          "evidence": "Updated three-scene original course and responsive scene transition checks are documented in docs/qa/depth-batch-20261009.md; human clarity, physical-device, accessibility and rights acceptance remain pending."
         },
         "distribution_rights": {
           "status": "pending",
-          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+          "evidence": "Updated three-scene original course and responsive scene transition checks are documented in docs/qa/depth-batch-20261009.md; human clarity, physical-device, accessibility and rights acceptance remain pending."
         }
       },
       "research": {
         "status": "original-playable-candidate",
         "evidence_date": "2026-10-09",
         "reference_version": "Generic spot-the-difference loop; the catalog edition/build is unidentified.",
-        "current_mechanic": "Compare two authored vector views; tap five distinct changes before 90 seconds, with up to three misses.",
-        "first_delivery": "One original coastal scene pair, five authored differences, 90-second timer, three-miss limit, pause and restart.",
+        "current_mechanic": "Compare three authored vector scene pairs; tap fifteen distinct changes before a shared 150-second timer expires, with up to five misses.",
+        "first_delivery": "An original three-scene course with five differences per scene, 150-second timer, five-miss limit, pause and replay.",
         "rules_task": "Generic candidate mechanics only; confirm round length, miss limit and hotspot forgiveness with novice playtests. No historical edition parity is claimed.",
-        "content_task": "One project-authored coastal comparison pair with five discrete changes; no copied scene, photo, icon, clue or text.",
-        "progression_and_items_to_research": "One bounded round with five targets; no collection, shop, upgrade, account or campaign progression.",
+        "content_task": "Three original project-authored vector pairs (coast, rain garden, flower market), five discrete changes each; no copied scene, photo, icon, clue or text.",
+        "progression_and_items_to_research": "Three postcard scenes in one bounded course; progress carries across scenes; no collection, shop, upgrade or account.",
         "controls_task": "Touch/click either picture; keyboard-focus a picture, move visible search cursor with arrows and choose with Enter. Check stacked mobile and side-by-side wide layouts.",
         "visual_assets_and_license_to_resolve": "Both SVG scenes are project-authored geometric art under the repository MIT license and listed in assets/ASSET_MANIFEST.json. No third-party source asset is used.",
         "feel_speed_and_performance_to_measure": "Check hot-spot accuracy after responsive resize, recognition of all five changes, timer pressure and tap latency on real devices; none measured.",
         "rights_status": "No third-party art/audio/code. Historical catalog route/title rights and generic candidate clearance are not reviewed.",
         "source_urls": [],
-        "backlog_status": "Original five-difference round implemented with original SVG pair; local browser touch/keyboard and resize checks passed. Physical-device, human clarity, accessibility and title-rights review remain pending."
+        "backlog_status": "Two additional original SVG scene pairs and seamless 15-spot progression added. Local Chromium touch, responsive layout and scene transitions pass; physical-device and human clarity review remain pending.",
+        "candidate_build": "spot-difference-original-2-three-scene-course"
       },
-      "player_ui": "Two original coastal pictures; find five changes in 90 seconds, with three misses. Tap/click or keyboard cursor. Pause and replay available; local browser responsive checks passed."
+      "player_ui": "Three project-authored scenes; find five changes per scene before the 2:30 clock expires; 5 misses; touch, pointer or keyboard; pause and replay."
     },
     "dap-chuot-chui": {
       "scope": "original-candidate-not-reference-parity",
       "reference_version": "Generic timed-target reflex round; historic branded edition unknown and not used as an asset source.",
-      "candidate_build": "mole-tap-original-1",
+      "candidate_build": "mole-tap-original-2-gold-combo",
       "accepted_build": null,
       "owner": null,
       "accepted_at": null,
       "implementation_status": "implemented-awaiting-human-device-qa",
       "automated_tests": {
         "command": "node --test tests/mole-tap-model.test.cjs tests/mole-tap-ui.test.cjs",
-        "passed": 9,
+        "passed": 10,
         "failed": 0,
         "date": "2026-10-09",
-        "evidence": "docs/games/MOLE_TAP_RESEARCH_AND_SCOPE.md and docs/qa/p3-discovery-playtest-20261009.md",
-        "limitation": "Model/DOM tests plus local Chromium touch/keyboard, resize and lifecycle checks; no physical-device latency, balance, assistive-technology or title-rights acceptance."
+        "evidence": "docs/qa/depth-batch-20261009.md",
+        "limitation": "Model/DOM checks plus local Chromium mobile/desktop playthrough; physical-device timing, novice balance, accessibility and title-rights acceptance remain pending."
       },
       "gates": {
         "reference_parity": {
           "status": "pending",
-          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+          "evidence": "Updated original 12-target round has model/DOM tests, gold/combo feedback and Chromium playthrough documented in docs/qa/depth-batch-20261009.md; physical-device, novice, accessibility and rights acceptance remain pending."
         },
         "content": {
           "status": "pending",
-          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+          "evidence": "Updated original 12-target round has model/DOM tests, gold/combo feedback and Chromium playthrough documented in docs/qa/depth-batch-20261009.md; physical-device, novice, accessibility and rights acceptance remain pending."
         },
         "controls": {
           "status": "pending",
-          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+          "evidence": "Updated original 12-target round has model/DOM tests, gold/combo feedback and Chromium playthrough documented in docs/qa/depth-batch-20261009.md; physical-device, novice, accessibility and rights acceptance remain pending."
         },
         "visual_audio": {
           "status": "pending",
-          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+          "evidence": "Updated original 12-target round has model/DOM tests, gold/combo feedback and Chromium playthrough documented in docs/qa/depth-batch-20261009.md; physical-device, novice, accessibility and rights acceptance remain pending."
         },
         "device_qa": {
           "status": "pending",
-          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+          "evidence": "Updated original 12-target round has model/DOM tests, gold/combo feedback and Chromium playthrough documented in docs/qa/depth-batch-20261009.md; physical-device, novice, accessibility and rights acceptance remain pending."
         },
         "save_recovery": {
           "status": "pending",
-          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+          "evidence": "Updated original 12-target round has model/DOM tests, gold/combo feedback and Chromium playthrough documented in docs/qa/depth-batch-20261009.md; physical-device, novice, accessibility and rights acceptance remain pending."
         },
         "playtest": {
           "status": "pending",
-          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+          "evidence": "Updated original 12-target round has model/DOM tests, gold/combo feedback and Chromium playthrough documented in docs/qa/depth-batch-20261009.md; physical-device, novice, accessibility and rights acceptance remain pending."
         },
         "distribution_rights": {
           "status": "pending",
-          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+          "evidence": "Updated original 12-target round has model/DOM tests, gold/combo feedback and Chromium playthrough documented in docs/qa/depth-batch-20261009.md; physical-device, novice, accessibility and rights acceptance remain pending."
         }
       },
       "research": {
         "status": "original-playable-candidate",
         "evidence_date": "2026-10-09",
         "reference_version": "Generic reflex-target mechanic; the catalog edition/build is unidentified.",
-        "current_mechanic": "Tap one rising target among nine holes; catch twelve to win, or lose after three misses. Target windows ramp from 1150 to 980 then 820 ms.",
-        "first_delivery": "One immediately playable round with twelve targets, bounded score, three misses, escalating response windows, pause and replay.",
+        "current_mechanic": "Tap one rising target among nine holes; catch twelve to win or lose after three misses. Every fourth target is gold, has a shorter window and awards a bonus; three-hit streak thresholds multiply points up to ×3.",
+        "first_delivery": "A compact 12-target round with gold bonus targets, combo scoring, 3 misses, pause and replay.",
         "rules_task": "Generic candidate mechanics only; measure a comfortable response window and clear loss condition in novice/device playtests. No historical edition parity is claimed.",
-        "content_task": "Nine authored CSS-drawn holes and one original abstract critter silhouette; twelve target turns. No copied characters, levels or sound.",
-        "progression_and_items_to_research": "One short score round; no item shop, currency, unlocks, accounts or retained leaderboard.",
+        "content_task": "Nine authored CSS-drawn holes; twelve turns including three gold bonus targets. No copied character, art or sound.",
+        "progression_and_items_to_research": "One short score round with a per-round streak; no shop, currency, unlocks, accounts or retained leaderboard.",
         "controls_task": "Tap/click target; arrows move focus and Enter/Space activate; number keys 1–9 select a hole. Pause, restart and hidden-page interruption are implemented.",
         "visual_assets_and_license_to_resolve": "Original mound, soil, hole and critter drawing is CSS in scripts/games/mole-tap.css under the repository MIT license; no third-party asset is used.",
         "feel_speed_and_performance_to_measure": "Measure target acquisition, missed-target comprehension, input latency, target-window fairness and frame pacing on physical phones/tablets; none measured.",
         "rights_status": "No third-party art/audio/code. The catalog suffix uses a known historical game name; trademark/route/title and distribution rights require review.",
         "source_urls": [],
-        "backlog_status": "Original 3x3 reflex round implemented with touch, keyboard, pause and replay; local browser checks passed. Physical-device, balance, accessibility and title-rights review remain pending."
+        "backlog_status": "The gold target and streak scoring deepen the original reflex round. Local Chromium mobile/desktop play and session cleanup pass; physical-device timing and human balance remain pending.",
+        "candidate_build": "mole-tap-original-2-gold-combo"
       },
-      "player_ui": "One tap-ready 3×3 board; catch twelve rising targets before three misses. Each catch is 100 points. Pause, restart and keyboard selection are available; no sound starts automatically."
+      "player_ui": "3×3 touch board; 12 targets; every fourth target is a short-window gold bonus; clean streaks multiply score; 3 misses end the round; pause and replay."
     },
     "atomix-ghep-phan-tu-hoa-hoc": {
       "scope": "original-candidate-not-reference-parity",
@@ -2588,6 +2590,142 @@
         "focused_test_result": "1/1 passed; touch holds complete and win the three-gate course at 320px, keyboard completes it at 1280px, pause/resume/restart work, and session cleanup reports no browser errors.",
         "evidence": "docs/qa/new-games-local-checks-20261009.md",
         "limitation": "Chromium touch emulation and desktop only; no physical-device, human clarity/balance, screen-reader or title-rights acceptance."
+      }
+    },
+    "xay-cau-bridge-builder": {
+      "scope": "original-playable-candidate",
+      "reference_version": "Original project-authored candidate; no historical edition parity is claimed.",
+      "candidate_build": "bridge-builder-original-1-truss-course",
+      "accepted_build": null,
+      "owner": null,
+      "accepted_at": null,
+      "implementation_status": "implemented-awaiting-human-device-qa",
+      "automated_tests": {
+        "command": "node --test tests/bridge-builder-model.test.cjs tests/bridge-builder-ui.test.cjs",
+        "passed": 6,
+        "failed": 0,
+        "date": "2026-10-09",
+        "evidence": "docs/qa/depth-batch-20261009.md",
+        "limitation": "Linear-static solver model tests, DOM/session lifecycle and local Chromium first-stage build/load test; no physical-device, structural-engineering validation, novice balance, accessibility or distribution-rights acceptance."
+      },
+      "gates": {
+        "reference_parity": {
+          "status": "pending",
+          "evidence": "Original candidate code and automated browser/model checks exist; human, physical-device, rights and accessibility acceptance are pending."
+        },
+        "content": {
+          "status": "pending",
+          "evidence": "Original candidate code and automated browser/model checks exist; human, physical-device, rights and accessibility acceptance are pending."
+        },
+        "controls": {
+          "status": "pending",
+          "evidence": "Original candidate code and automated browser/model checks exist; human, physical-device, rights and accessibility acceptance are pending."
+        },
+        "visual_audio": {
+          "status": "pending",
+          "evidence": "Original candidate code and automated browser/model checks exist; human, physical-device, rights and accessibility acceptance are pending."
+        },
+        "device_qa": {
+          "status": "pending",
+          "evidence": "Original candidate code and automated browser/model checks exist; human, physical-device, rights and accessibility acceptance are pending."
+        },
+        "save_recovery": {
+          "status": "pending",
+          "evidence": "Original candidate code and automated browser/model checks exist; human, physical-device, rights and accessibility acceptance are pending."
+        },
+        "playtest": {
+          "status": "pending",
+          "evidence": "Original candidate code and automated browser/model checks exist; human, physical-device, rights and accessibility acceptance are pending."
+        },
+        "distribution_rights": {
+          "status": "pending",
+          "evidence": "Original candidate code and automated browser/model checks exist; human, physical-device, rights and accessibility acceptance are pending."
+        }
+      },
+      "player_ui": "Connect adjacent bridge joints with touch or keyboard, then test a truck load across three span levels; pause, undo and rebuild.",
+      "research": {
+        "status": "original-playable-candidate",
+        "evidence_date": "2026-10-09",
+        "reference_version": "Original project-authored candidate; no historical edition parity is claimed.",
+        "current_mechanic": "Place budgeted diagonal members between bridge deck and top joints. A linear elastic pin-jointed truss solver tests vertical deflection and tension/compression under a moving truck load across three levels.",
+        "first_delivery": "An immediately playable three-level truss-building course with a limited brace budget, load test, failure feedback, pause and replay.",
+        "rules_task": "Original simplified static truss rules: fixed bank supports, elastic bars, bounded deflection and axial force. Validate model assumptions and fairness with human/device playtests; no commercial edition parity claimed.",
+        "content_task": "Three original bridge span layouts, joint grid, truck and procedural vector art; no third-party assets.",
+        "controls_task": "Tap/click two neighboring joints to place a diagonal brace; undo, test load, pause and rebuild. Keyboard focus and Enter/Space activate joints.",
+        "visual_assets_and_license_to_resolve": "Project-authored SVG cover and procedural inline SVG board, MIT; no external art or sound.",
+        "feel_speed_and_performance_to_measure": "Static solver runs over at most twelve joints and a short 3-second load animation; measure frame pacing and build usability on physical touch devices.",
+        "rights_status": "No third-party assets/code. Historic game title and the simplified physics claims require review before release.",
+        "progression_and_items_to_research": "Three progressively wider spans; no shop, currency, unlocks or accounts.",
+        "backlog_status": "Three-span truss model and load solver are playable locally. Physical-device, structural assumption and human-difficulty review remain pending.",
+        "source_urls": []
+      }
+    },
+    "xe-dap-giao-bao": {
+      "scope": "original-playable-candidate",
+      "reference_version": "Original project-authored candidate; no historical edition parity is claimed.",
+      "candidate_build": "paperboy-original-1-three-lane-route",
+      "accepted_build": null,
+      "owner": null,
+      "accepted_at": null,
+      "implementation_status": "implemented-awaiting-human-device-qa",
+      "automated_tests": {
+        "command": "node --test tests/paperboy-model.test.cjs tests/paperboy-ui.test.cjs",
+        "passed": 6,
+        "failed": 0,
+        "date": "2026-10-09",
+        "evidence": "docs/qa/depth-batch-20261009.md",
+        "limitation": "Model/DOM checks and local Chromium 320px touch plus desktop keyboard delivery; physical-device timing, novice balance, accessibility and title-rights acceptance remain pending."
+      },
+      "gates": {
+        "reference_parity": {
+          "status": "pending",
+          "evidence": "Original candidate code and automated browser/model checks exist; human, physical-device, rights and accessibility acceptance are pending."
+        },
+        "content": {
+          "status": "pending",
+          "evidence": "Original candidate code and automated browser/model checks exist; human, physical-device, rights and accessibility acceptance are pending."
+        },
+        "controls": {
+          "status": "pending",
+          "evidence": "Original candidate code and automated browser/model checks exist; human, physical-device, rights and accessibility acceptance are pending."
+        },
+        "visual_audio": {
+          "status": "pending",
+          "evidence": "Original candidate code and automated browser/model checks exist; human, physical-device, rights and accessibility acceptance are pending."
+        },
+        "device_qa": {
+          "status": "pending",
+          "evidence": "Original candidate code and automated browser/model checks exist; human, physical-device, rights and accessibility acceptance are pending."
+        },
+        "save_recovery": {
+          "status": "pending",
+          "evidence": "Original candidate code and automated browser/model checks exist; human, physical-device, rights and accessibility acceptance are pending."
+        },
+        "playtest": {
+          "status": "pending",
+          "evidence": "Original candidate code and automated browser/model checks exist; human, physical-device, rights and accessibility acceptance are pending."
+        },
+        "distribution_rights": {
+          "status": "pending",
+          "evidence": "Original candidate code and automated browser/model checks exist; human, physical-device, rights and accessibility acceptance are pending."
+        }
+      },
+      "player_ui": "Three lanes; change lanes, dodge dogs and cars, and throw at six mailboxes; 3 missed or collision events end the route.",
+      "research": {
+        "status": "original-playable-candidate",
+        "evidence_date": "2026-10-09",
+        "reference_version": "Original project-authored candidate; no historical edition parity is claimed.",
+        "current_mechanic": "Steer between three fixed lanes, avoid timed cars and dogs, and throw a paper into each of six lane-specific mailbox windows. Three misses or collisions lose the route.",
+        "first_delivery": "An immediately playable 16-second route with six timed deliveries, three-lane steering, hazards, miss/crash limits, pause and replay.",
+        "rules_task": "Original arcade delivery candidate with deterministic route hazards and a short throw window; calibrate route speed and forgiving hit windows with novice/device playtests; no historical edition parity claimed.",
+        "content_task": "Six original mailbox targets, seven authored traffic/pet hazards and project-authored inline SVG street art; no third-party assets.",
+        "controls_task": "Tap 44px lane buttons or use arrow/A-D keys; tap Ném báo or Space during the mailbox window; pause and restart.",
+        "visual_assets_and_license_to_resolve": "Project-authored SVG cover and inline SVG road, rider, mailbox, dog and car art, MIT; no external assets or sounds.",
+        "feel_speed_and_performance_to_measure": "16-second deterministic route with requestAnimationFrame timing; measure touch response and hazard readability on physical phones.",
+        "rights_status": "No third-party assets/code. Historic game title and distribution rights require review before release.",
+        "progression_and_items_to_research": "One short route with six addresses; no collectibles, power-ups, store or account state.",
+        "backlog_status": "Original deterministic three-lane route is playable on local Chromium touch and desktop keyboard. Physical-device timing and novice difficulty review remain pending.",
+        "source_urls": []
       }
     }
   }

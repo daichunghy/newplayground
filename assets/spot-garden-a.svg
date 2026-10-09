@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="360" viewBox="0 0 600 360" role="img" aria-label="Khu vườn sau cơn mưa">
+  <defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#b7dfec"/><stop offset="1" stop-color="#edf1cc"/></linearGradient></defs>
+  <rect width="600" height="360" fill="url(#sky)"/><path d="M0 196q108-60 216 0t208-2t176 8v158H0Z" fill="#8cba78"/><path d="M0 258q126-37 240 0t223-1t137 10v93H0Z" fill="#659b63"/>
+  <g fill="#fffef2"><path d="M70 67q4-22 29-17 15-25 36-5 27-5 29 23H70Z"/><path d="M372 83q7-20 28-13 16-24 35-4 28-6 32 19h-95Z"/></g>
+  <g fill="#57835a"><path d="M34 222q-2-85 18-135 25 43 17 135Zm34 2q-3-69 22-101 21 46 4 105Zm443-1q-7-84 22-131 21 47 9 134Zm34 1q-5-68 19-99 18 44 6 102Z"/></g>
+  <path d="M210 176V119l72-42 72 42v58Z" fill="#c98b5b" stroke="#765b43" stroke-width="5"/><path d="M198 121l84-54 84 54" fill="none" stroke="#6e5843" stroke-width="12" stroke-linejoin="round"/><rect x="240" y="130" width="31" height="33" rx="3" fill="#b6dbe0" stroke="#6e5843" stroke-width="4"/><rect x="291" y="130" width="31" height="33" rx="3" fill="#b6dbe0" stroke="#6e5843" stroke-width="4"/><path d="M258 176v-48h30v48" fill="#754f3a"/>
+  <path d="M224 236h152" stroke="#765a3e" stroke-width="9" stroke-linecap="round"/><path d="M240 235v42m122-42v42" stroke="#765a3e" stroke-width="7"/>
+  <path d="M88 283q24-18 49 0t49 0" fill="none" stroke="#c8e7d4" stroke-width="7" stroke-linecap="round"/><path d="M80 308h118" stroke="#d0d99b" stroke-width="8" stroke-linecap="round"/>
+  <path d="M407 263q-3-30 15-37 23 2 24 34l19 12-9 13h-50l-10-11Z" fill="#69a7a0" stroke="#365f59" stroke-width="4"/><circle cx="427" cy="254" r="3" fill="#193d3a"/><path d="M435 267q7 6 14 0" fill="none" stroke="#193d3a" stroke-width="3"/>
+  <path d="M452 182v41m0-30q17-18 28 0" stroke="#496f40" stroke-width="7" stroke-linecap="round"/><circle cx="480" cy="188" r="12" fill="#e87865"/><circle cx="480" cy="188" r="4" fill="#f4d377"/>
+  <path d="M338 259h34v26h-34Z" fill="#b6814f" stroke="#70543a" stroke-width="4"/><path d="M345 259v-13h20v13" fill="none" stroke="#70543a" stroke-width="4"/>
+  <path d="M105 95q10-10 20 0m13 0q10-10 20 0" fill="none" stroke="#678c87" stroke-width="3"/>
+  <path d="M231 128q10-13 20 0q10-13 20 0" fill="none" stroke="#355f66" stroke-width="5" stroke-linecap="round"/>
+  <path d="M442 143v20m0-13q-15-15-20-2 8 10 20 7m0-7q15-15 20-2-8 10-20 7" fill="#e87865" stroke="#99524a" stroke-width="3"/><circle cx="442" cy="143" r="5" fill="#f4d377"/>
+  <path d="M326 239h42l-5 21h-32Zm6 0v-12q0-8 8-8h11q8 0 8 8v12" fill="#72aeb0" stroke="#496c63" stroke-width="4"/><path d="M368 244q15 0 10 11" fill="none" stroke="#496c63" stroke-width="4"/>
+  <path d="M146 300q15-19 33 0-17 17-33 0m32 0 11-8v16Z" fill="#82b85f" stroke="#446d49" stroke-width="3"/><circle cx="158" cy="297" r="2.5" fill="#203c35"/>
+</svg>

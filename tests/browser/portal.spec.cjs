@@ -34,7 +34,7 @@ async function closeGame(page) {
 
 async function loadPortal(page) {
   await page.goto('/');
-  await expect(page.locator('#catalogAvailability')).toContainText('63');
+  await expect(page.locator('#catalogAvailability')).toContainText('65');
 }
 
 async function newMobilePage(browser, width = 320, height = 800) {
@@ -53,8 +53,8 @@ async function expectViewportFits(page) {
 
 test('the default grid is playable-only; explicit catalog browsing keeps planned entries informational', async ({ page }) => {
   await loadPortal(page);
-  await expect(page.locator('#allSectionTitle')).toHaveText('Bản thử nghiệm có thể chơi (63)');
-  await expect(page.locator('#gridAll .game-card')).toHaveCount(63);
+  await expect(page.locator('#allSectionTitle')).toHaveText('Bản thử nghiệm có thể chơi (65)');
+  await expect(page.locator('#gridAll .game-card')).toHaveCount(65);
   await expect(page.locator('.filter-pill[data-category="playable"]')).toHaveClass(/active/);
 
   await page.locator('.filter-pill[data-category="all"]').click();
@@ -66,7 +66,7 @@ test('the default grid is playable-only; explicit catalog browsing keeps planned
   await expect(page.locator('#gameModal')).toHaveCSS('display', 'none');
 });
 
-test('all 63 registered games open, render, close and release their session', async ({ page }) => {
+test('all 65 registered games open, render, close and release their session', async ({ page }) => {
   test.setTimeout(120_000);
   const errors = watchErrors(page);
   await loadPortal(page);
@@ -76,7 +76,7 @@ test('all 63 registered games open, render, close and release their session', as
       id, engine, title: byId.get(id)?.title || id
     }));
   });
-  expect(routes).toHaveLength(63);
+  expect(routes).toHaveLength(65);
 
   for (const route of routes) {
     await openGame(page, route.id);
@@ -389,6 +389,64 @@ test('Kéo Nhịp starts quickly and keeps its rhythm controls touch-sized on mo
   expect(errors).toEqual([]);
 });
 
+test('Xây Cầu and Giao Báo take real mobile touches and fit a desktop viewport', async ({ browser, page }) => {
+  test.setTimeout(45_000);
+  const { context: mobileContext, page: mobile } = await newMobilePage(browser, 320, 800);
+  const mobileErrors = watchErrors(mobile);
+  await openGame(mobile, 'xay-cau-bridge-builder');
+  await expect(mobile.locator('#modalGameTitle')).toHaveText('Xây Cầu Vật Lý (Bridge Builder)');
+  await expectViewportFits(mobile);
+  const jointBox = await mobile.locator('.bb-joint[data-joint="t0"]').boundingBox();
+  expect(jointBox.width).toBeGreaterThanOrEqual(44); expect(jointBox.height).toBeGreaterThanOrEqual(44);
+  for (let span = 0; span < 4; span++) {
+    await mobile.locator(`.bb-joint[data-joint="t${span}"]`).tap();
+    await mobile.locator(`.bb-joint[data-joint="b${span}"]`).tap();
+    await mobile.locator(`.bb-joint[data-joint="t${span}"]`).tap();
+    await mobile.locator(`.bb-joint[data-joint="b${span + 1}"]`).tap();
+  }
+  await expect(mobile.locator('#bbBudget')).toHaveText('8 / 8');
+  await mobile.locator('#bbTest').click();
+  await expect(mobile.locator('#bbTruck')).toHaveCount(1);
+  await mobile.locator('#bbPause').click();
+  await expect(mobile.locator('#bbOverlayTitle')).toHaveText('Tạm dừng');
+  await mobile.locator('#bbOverlayAction').click();
+  await expect(mobile.locator('#bbOverlayTitle')).toHaveText('Tải qua an toàn', { timeout: 8_000 });
+  await mobile.locator('#bbOverlayAction').click();
+  await expect(mobile.locator('#bbLevel')).toContainText('Hẻm Gió');
+  await closeGame(mobile);
+
+  await openGame(mobile, 'xe-dap-giao-bao');
+  await expect(mobile.locator('#modalGameTitle')).toHaveText('Cậu Bé Giao Báo (Paperboy)');
+  await expectViewportFits(mobile);
+  for (const selector of ['#pbLeft', '#pbRight', '#pbThrow']) {
+    const box = await mobile.locator(selector).boundingBox();
+    expect(box.width).toBeGreaterThanOrEqual(44); expect(box.height).toBeGreaterThanOrEqual(44);
+  }
+  await mobile.locator('#pbRight').click(); await mobile.locator('#pbLeft').click();
+  await expect(mobile.locator('#pbThrow')).toBeEnabled({ timeout: 2_000 });
+  const throwBox = await mobile.locator('#pbThrow').boundingBox();
+  const touch = { x: throwBox.x + throwBox.width / 2, y: throwBox.y + throwBox.height / 2, id: 4 };
+  const cdp = await mobileContext.newCDPSession(mobile);
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [touch] });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await cdp.detach();
+  await expect(mobile.locator('#pbDeliveries')).toHaveText('1 / 6');
+  await mobile.locator('#pbPause').click();
+  await expect(mobile.locator('#pbOverlayTitle')).toHaveText('Tạm dừng');
+  await mobile.locator('#pbOverlayAction').click();
+  await closeGame(mobile);
+  expect(mobileErrors).toEqual([]);
+  await mobileContext.close();
+
+  const desktopErrors = watchErrors(page);
+  await loadPortal(page); await openGame(page, 'xe-dap-giao-bao'); await expectViewportFits(page);
+  await expect(page.locator('#pbThrow')).toBeEnabled({ timeout: 2_000 });
+  await page.keyboard.press('Space');
+  await expect(page.locator('#pbDeliveries')).toHaveText('1 / 6');
+  await closeGame(page);
+  expect(desktopErrors).toEqual([]);
+});
+
 test('Kệ Sách Ký Ức keeps its shelf playable at 320px and responds to a real tap', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 800 });
   const errors = watchErrors(page);
@@ -590,7 +648,7 @@ test('mobile Xiangqi accepts a legal tap move, CPU reply, and keeps focus in the
   }
 });
 
-test('mobile Tìm Điểm Khác Biệt resolves vector hot spots by keyboard and touch, then reflows wide', async ({ browser }) => {
+test('mobile Tìm Điểm Khác Biệt finishes its three-scene course by keyboard and touch, then reflows wide', async ({ browser }) => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
   const page = await context.newPage();
   const errors = watchErrors(page);
@@ -610,15 +668,28 @@ test('mobile Tìm Điểm Khác Biệt resolves vector hot spots by keyboard and
     await page.locator('#sdOverlayAction').tap();
     await expect(page.locator('#sdOverlay')).toBeHidden();
     for (let index = 1; index < 5; index++) {
-      const point = await page.evaluate(i => window.NP_SpotDifferenceModel.TARGETS[i].b, index);
+      const point = await page.evaluate(i => window.NP_SpotDifferenceModel.SCENES[0].targets[i].b, index);
       const box = await page.locator('#sdImageB').boundingBox();
       await page.locator('#sdImageB').tap({ position: { x: point[0] * box.width, y: point[1] * box.height } });
-      await expect(page.locator('#sdFound')).toHaveText(`${index + 1} / 5`);
+      if (index < 4) await expect(page.locator('#sdFound')).toHaveText(`${index + 1} / 5`);
     }
-    await expect(page.locator('#sdOverlayTitle')).toHaveText('Tìm đủ 5!');
+    await expect(page.locator('#sdScene')).toHaveText('2 / 3');
+    await expect(page.locator('#sdFound')).toHaveText('0 / 5');
+    for (let sceneIndex = 1; sceneIndex < 3; sceneIndex++) {
+      const targets = await page.evaluate(i => window.NP_SpotDifferenceModel.SCENES[i].targets.map(target => target.b), sceneIndex);
+      for (const point of targets) {
+        const box = await page.locator('#sdImageB').boundingBox();
+        await page.locator('#sdImageB').tap({ position: { x: point[0] * box.width, y: point[1] * box.height } });
+      }
+      if (sceneIndex === 1) {
+        await expect(page.locator('#sdScene')).toHaveText('3 / 3');
+        await expect(page.locator('#sdFound')).toHaveText('0 / 5');
+      }
+    }
+    await expect(page.locator('#sdOverlayTitle')).toHaveText('Xong cả ba!');
     await page.locator('#sdOverlayAction').tap();
     await expect(page.locator('#sdFound')).toHaveText('0 / 5');
-    for (let i = 0; i < 3; i++) await page.locator('#sdImageA').tap({ position: { x: 3, y: 3 } });
+    for (let i = 0; i < 5; i++) await page.locator('#sdImageA').tap({ position: { x: 3, y: 3 } });
     await expect(page.locator('#sdOverlayTitle')).toHaveText('Hết lượt');
     await page.locator('#sdOverlayAction').tap();
     await closeGame(page);
@@ -666,7 +737,7 @@ test('mobile Đập Chuột Chũi scores with direct keyboard/touch input, pause
       await expect(page.locator('#moleHits')).toHaveText(`${hits + 1} / 12`);
     }
     await expect(page.locator('#moleOverlayTitle')).toHaveText('Bắt đủ 12!');
-    await expect(page.locator('#moleScore')).toHaveText('1200');
+    await expect(page.locator('#moleScore')).toHaveText('3500');
     await page.locator('#moleOverlayAction').tap();
     await expect(page.locator('#moleHits')).toHaveText('0 / 12');
     await expect(page.locator('#moleOverlay')).toBeHidden();
@@ -1116,7 +1187,7 @@ test('2048 completes a deterministic 2048 win, continue, and reload resume', asy
   await expect(page.locator('#g2048Overlay')).toBeHidden();
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('np_2048_state_v1')).keepPlaying)).toBe(true);
   await page.reload();
-  await expect(page.locator('#catalogAvailability')).toContainText('63');
+  await expect(page.locator('#catalogAvailability')).toContainText('65');
   await openGame(page, 'tro-choi-2048');
   await expect(page.locator('#g2048Overlay')).toBeHidden();
   await expect(page.locator('#g2048Score')).toHaveText('2048');

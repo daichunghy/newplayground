@@ -7,8 +7,9 @@
 .sd-button:focus-visible, .sd-picture:focus-visible { outline: 3px solid #de9251; outline-offset: 3px; }
 .sd-button:disabled { opacity: .5; cursor: not-allowed; }
 .sd-cue { margin: 5px 2px 8px; color: #62746d; font-size: .92rem; }
-.sd-hud { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 7px; color: #2e5558; font-size: .95rem; }
-.sd-hud #sdMisses { color: #d37851; letter-spacing: .15em; }
+.sd-hud { display: grid; grid-template-columns: auto auto auto 1fr; align-items: center; justify-content: space-between; gap: 5px; margin-bottom: 7px; color: #2e5558; font-size: .92rem; }
+.sd-hud > * { padding: 3px 5px; border: 1px solid #d7e0d9; border-radius: 8px; background: #fffdf7; white-space: nowrap; }
+.sd-hud #sdMisses { color: #d37851; letter-spacing: .12em; text-align: right; }
 .sd-progress { height: 5px; margin-bottom: 11px; overflow: hidden; border-radius: 99px; background: #d8e4dc; }
 .sd-progress span { display: block; height: 100%; border-radius: inherit; background: #75aa76; transition: width .18s ease-out; }
 .sd-images { display: grid; grid-template-columns: 1fr; gap: 9px; }
@@ -25,5 +26,5 @@
 .sd-overlay-card p { margin: 6px 0 14px; color: #64746f; }
 .sd-primary { min-width: 120px; border-color: #276d76; background: #276d76; color: white; }
 @media (min-width: 720px) { .sd-images { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; } }
-@media (max-width: 350px) { .sd-game { padding: 10px; } .sd-head h2 { max-width: 60%; } }
+@media (max-width: 350px) { .sd-game { padding: 10px; } .sd-head h2 { max-width: 60%; } .sd-hud { font-size: .88rem; gap: 3px; } .sd-hud #sdMisses { letter-spacing: .08em; } }
 @media (prefers-reduced-motion: reduce) { .sd-progress span { transition: none; } }

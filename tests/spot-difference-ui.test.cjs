@@ -13,8 +13,8 @@ function setup() {
   h.close = () => { h.context.NP_GameSession.stop(); assertStopped(h); assert.deepEqual(h.errors, []); };
   return h;
 }
-function tapTarget(h, index, side = 'a') {
-  const [x, y] = M.TARGETS[index][side], panel = el(h, `sdImage${side.toUpperCase()}`);
+function tapTarget(h, index, side = 'a', sceneIndex = 0) {
+  const [x, y] = M.SCENES[sceneIndex].targets[index][side], panel = el(h, `sdImage${side.toUpperCase()}`);
   panel.dispatch('click', { detail: 1, clientX: x * 640, clientY: y * 480 });
 }
 
@@ -26,7 +26,7 @@ test('mount presents the two original comparison images and a compact five-spot 
   assert.equal(h.container.querySelectorAll('img')[1].getAttribute('src'), 'assets/spot-the-difference-b.svg');
   assert.equal(el(h, 'sdMarkA0').hidden, true);
   assert.equal(el(h, 'sdFound').textContent, '0 / 5');
-  assert.match(h.container.innerHTML, /Tìm 5 chỗ khác · 3 lần sai/);
+  assert.match(h.container.innerHTML, /Tìm 5 điểm · 3 cảnh/);
   h.close();
 });
 
@@ -38,6 +38,23 @@ test('touch-sized panel taps accept a real difference and show a marker on both 
   assert.equal(el(h, 'sdMarkA0').hidden, false);
   assert.equal(el(h, 'sdMarkB0').hidden, false);
   assert.match(el(h, 'sdStatus').textContent, /Đúng/);
+  h.close();
+});
+
+test('the view swaps authored images and markers as the three-scene course advances', () => {
+  const h = setup(), model = h.game.getModel();
+  for (const [sceneIndex, scene] of M.SCENES.entries()) {
+    for (let index = 0; index < scene.targets.length; index++) tapTarget(h, index, 'b', sceneIndex);
+    assert.equal(el(h, 'sdScene').textContent, `${Math.min(sceneIndex + 2, 3)} / 3`);
+    assert.equal(el(h, 'sdProgress').style.width, `${(sceneIndex + 1) * 5 / M.TOTAL_TARGETS * 100}%`);
+    if (sceneIndex < M.SCENES.length - 1) {
+      assert.equal(el(h, 'sdPhotoA').getAttribute('src'), M.SCENES[sceneIndex + 1].a);
+      assert.equal(el(h, 'sdFound').textContent, '0 / 5');
+      assert.equal(el(h, 'sdMarkA0').hidden, true);
+    }
+  }
+  assert.equal(model.view().status, 'won');
+  assert.equal(el(h, 'sdOverlayTitle').textContent, 'Xong cả ba!');
   h.close();
 });
 
@@ -54,7 +71,7 @@ test('keyboard arrows move the visible cursor and Enter uses that position', () 
 
 test('misses, loss, pause/resume, timeout restart and game cleanup work together', () => {
   const h = setup(), model = h.game.getModel();
-  for (let miss = 0; miss < 3; miss++) el(h, 'sdImageA').dispatch('click', { detail: 1, clientX: 610, clientY: 441 });
+  for (let miss = 0; miss < 5; miss++) el(h, 'sdImageA').dispatch('click', { detail: 1, clientX: 610, clientY: 441 });
   assert.equal(model.view().status, 'lost');
   assert.equal(el(h, 'sdOverlayTitle').textContent, 'Hết lượt');
   el(h, 'sdOverlayAction').click();

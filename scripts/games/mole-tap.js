@@ -22,6 +22,7 @@
         <div class="mole-hud" aria-label="Tiến độ ván">
           <div><span>Bắt</span><strong id="moleHits">0 / 12</strong></div>
           <div><span>Điểm</span><strong id="moleScore">0</strong></div>
+          <div><span>Nhịp</span><strong id="moleCombo">×1</strong></div>
           <div><span>Sượt</span><strong id="moleMisses">●●●</strong></div>
         </div>
         <div class="mole-clock" aria-hidden="true"><span id="moleClockFill"></span></div>
@@ -54,11 +55,14 @@
       const v = model.view(), playing = v.status === 'playing', paused = v.status === 'paused';
       el('moleHits').textContent = `${v.hits} / ${v.targetCount}`;
       el('moleScore').textContent = String(v.score);
+      el('moleCombo').textContent = `×${v.multiplier}`;
+      el('moleCombo').setAttribute('aria-label', `Hệ số điểm nhân ${v.multiplier}`);
       el('moleMisses').textContent = '●'.repeat(v.maxMisses - v.misses) + '○'.repeat(v.misses);
       el('moleClockFill').style.width = `${v.targetTimeLeft / v.targetWindowMs * 100}%`;
       holes.forEach((button, index) => {
         const target = v.target === index;
         button.classList.toggle('is-up', target);
+        button.classList.toggle('is-gold', target && v.targetKind === 'gold');
         button.disabled = !playing;
         button.tabIndex = index === focusIndex ? 0 : -1;
         button.setAttribute('aria-pressed', String(target));
@@ -75,7 +79,7 @@
         el('moleOverlayAction').textContent = 'Tiếp tục';
       } else if (v.status === 'won') {
         el('moleOverlayTitle').textContent = 'Bắt đủ 12!';
-        el('moleOverlayCopy').textContent = `${v.score} điểm`;
+        el('moleOverlayCopy').textContent = `${v.score} điểm · nhịp ${v.bestStreak}`;
         el('moleOverlayAction').textContent = 'Chơi lại';
       } else if (v.status === 'lost') {
         el('moleOverlayTitle').textContent = 'Hết lượt';
@@ -108,7 +112,9 @@
       focusIndex = index;
       const result = model.whack(index);
       if (!result.accepted) return;
-      if (result.hit) announce(`Trúng · ${result.hits} / ${M.TARGET_COUNT}`);
+      if (result.hit && result.targetKind === 'gold') announce(`✦ +${result.points} · ${result.hits} / ${M.TARGET_COUNT}`);
+      else if (result.hit && result.multiplier > 1) announce(`×${result.multiplier} · ${result.hits} / ${M.TARGET_COUNT}`);
+      else if (result.hit) announce(`Trúng · ${result.hits} / ${M.TARGET_COUNT}`);
       else announce(result.status === 'lost' ? 'Hết lượt.' : `Sượt · ${M.MAX_MISSES - result.misses} lượt`);
       render();
       if (result.status !== 'playing') stopLoop();

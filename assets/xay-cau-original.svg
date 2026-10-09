@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="200" viewBox="0 0 320 200" role="img" aria-label="Cầu giàn gỗ vươn qua khe suối">
+  <defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#d6e9e6"/><stop offset="1" stop-color="#f1e2be"/></linearGradient></defs>
+  <rect width="320" height="200" rx="22" fill="url(#sky)"/><path d="M0 140h320v60H0Z" fill="#80bdc0"/><path d="M0 122h66v38H0Zm253 0h67v38h-67Z" fill="#8c795a"/>
+  <path d="M36 123 160 51l124 72M55 123l105-61 105 61M65 123l95-55 95 55" fill="none" stroke="#bd8051" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M46 120h228" stroke="#76563d" stroke-width="13" stroke-linecap="round"/><path d="M67 107v23m46-50v50m47-77v77m47-50v50m46-23v23" stroke="#f2d38e" stroke-width="5"/>
+  <g transform="translate(160 98)"><rect x="-20" y="-15" width="30" height="17" rx="3" fill="#d97656" stroke="#654739" stroke-width="3"/><path d="M10-12h13l10 14H10Z" fill="#e5ad63" stroke="#654739" stroke-width="3"/><circle cx="-12" cy="5" r="6" fill="#354746"/><circle cx="24" cy="5" r="6" fill="#354746"/></g>
+  <path d="M22 164q44-16 88 0t88 0t100 0" fill="none" stroke="#d4f0d2" stroke-width="6" opacity=".7"/>
+  <circle cx="274" cy="37" r="17" fill="#f1ca6d"/><path d="M273 16v-7m0 56v-7m-22-21h-7m58 0h-7" stroke="#df9a54" stroke-width="4" stroke-linecap="round"/>
+</svg>

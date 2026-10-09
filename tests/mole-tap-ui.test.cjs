@@ -30,14 +30,19 @@ test('touch/click hits score, keyboard digits work, and the twelfth hit shows re
   assert.equal(model.view().hits, 1);
   h.document.dispatch('keydown', { key: String(model.view().target + 1) });
   assert.equal(model.view().hits, 2);
+  el(h, `moleHole${model.view().target}`).click();
+  assert.equal(model.view().hits, 3);
+  assert.equal(el(h, `moleHole${model.view().target}`).classList.contains('is-gold'), true);
+  assert.equal(el(h, 'moleCombo').textContent, '×2');
   while (model.view().status === 'playing') el(h, `moleHole${model.view().target}`).click();
   assert.equal(model.view().status, 'won');
-  assert.equal(el(h, 'moleScore').textContent, '1200');
+  assert.equal(el(h, 'moleScore').textContent, '3500');
   assert.equal(el(h, 'moleOverlay').hidden, false);
   assert.equal(el(h, 'moleOverlayTitle').textContent, 'Bắt đủ 12!');
   el(h, 'moleOverlayAction').click();
   assert.equal(model.view().status, 'playing');
   assert.equal(model.view().hits, 0);
+  assert.equal(el(h, 'moleCombo').textContent, '×1');
   h.close();
 });
 

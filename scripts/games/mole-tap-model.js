@@ -35,12 +35,15 @@
 
     function reset() {
       randomState = seed;
-      state = { status: 'playing', hits: 0, misses: 0, score: 0, target: nextTarget(), elapsed: 0, lastEvent: 'start' };
+      state = { status: 'playing', hits: 0, misses: 0, score: 0, streak: 0, bestStreak: 0, target: nextTarget(), elapsed: 0, lastEvent: 'start' };
     }
 
     function windowMs() {
+      if (state.hits % 4 === 3) return [860, 800, 740][Math.min(2, Math.floor(state.hits / 4))];
       return WINDOWS[Math.min(WINDOWS.length - 1, Math.floor(state.hits / 4))];
     }
+
+    function targetKind() { return state.hits % 4 === 3 ? 'gold' : 'normal'; }
 
     function advanceTarget() {
       state.elapsed = 0;
@@ -49,6 +52,7 @@
 
     function miss(reason) {
       state.misses++;
+      state.streak = 0;
       state.lastEvent = reason;
       if (state.misses >= MAX_MISSES) {
         state.status = 'lost';
@@ -67,7 +71,11 @@
         misses: state.misses,
         maxMisses: MAX_MISSES,
         score: state.score,
+        streak: state.streak,
+        bestStreak: state.bestStreak,
+        multiplier: Math.min(3, 1 + Math.floor(state.streak / 3)),
         target: state.target,
+        targetKind: state.target === null ? null : targetKind(),
         targetWindowMs: windowMs(),
         targetTimeLeft: state.target === null ? 0 : Math.max(0, windowMs() - state.elapsed),
         lastEvent: state.lastEvent
@@ -80,14 +88,19 @@
         if (state.status !== 'playing') return { accepted: false, hit: false, status: state.status };
         if (!Number.isInteger(index) || index < 0 || index >= HOLES) return { accepted: false, hit: false, status: state.status };
         if (index !== state.target) return miss('wrong-hole');
+        const kind = targetKind();
         state.hits++;
-        state.score += 100;
+        state.streak++;
+        state.bestStreak = Math.max(state.bestStreak, state.streak);
+        const multiplier = Math.min(3, 1 + Math.floor(state.streak / 3));
+        const points = 100 * multiplier + (kind === 'gold' ? 200 : 0);
+        state.score += points;
         state.lastEvent = 'hit';
         if (state.hits >= TARGET_COUNT) {
           state.status = 'won';
           state.target = null;
         } else advanceTarget();
-        return { accepted: true, hit: true, status: state.status, hits: state.hits, misses: state.misses, score: state.score };
+        return { accepted: true, hit: true, targetKind: kind, points, multiplier, status: state.status, hits: state.hits, misses: state.misses, score: state.score };
       },
       advance(milliseconds) {
         if (!finite(milliseconds) || milliseconds <= 0 || milliseconds > 60000 || state.status !== 'playing') return false;

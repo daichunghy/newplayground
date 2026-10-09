@@ -1158,5 +1158,65 @@
     "source": "Created in this repository for NewPlayground; original soap-bubble garden cover art, no third-party artwork copied or used",
     "author": "NewPlayground project contributors",
     "created_at": "2026-10-09"
+  },
+  {
+    "category": "original-game-art",
+    "file": "spot-garden-a.svg",
+    "local_path": "assets/spot-garden-a.svg",
+    "size_bytes": 2880,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Original left image for NewPlayground's Vườn mưa spot-difference scene.",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-09"
+  },
+  {
+    "category": "original-game-art",
+    "file": "spot-garden-b.svg",
+    "local_path": "assets/spot-garden-b.svg",
+    "size_bytes": 2937,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Original right image for NewPlayground's Vườn mưa spot-difference scene.",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-09"
+  },
+  {
+    "category": "original-game-art",
+    "file": "spot-market-a.svg",
+    "local_path": "assets/spot-market-a.svg",
+    "size_bytes": 2396,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Original left image for NewPlayground's Chợ hoa spot-difference scene.",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-09"
+  },
+  {
+    "category": "original-game-art",
+    "file": "spot-market-b.svg",
+    "local_path": "assets/spot-market-b.svg",
+    "size_bytes": 3158,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Original right image for NewPlayground's Chợ hoa spot-difference scene.",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-09"
+  },
+  {
+    "category": "game-cover",
+    "file": "xay-cau-original.svg",
+    "local_path": "assets/xay-cau-original.svg",
+    "size_bytes": 1376,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Original cover illustration for NewPlayground Xây Cầu.",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-09"
+  },
+  {
+    "category": "game-cover",
+    "file": "giao-bao-original.svg",
+    "local_path": "assets/giao-bao-original.svg",
+    "size_bytes": 1662,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Original cover illustration for NewPlayground Giao Báo.",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-09"
   }
 ]

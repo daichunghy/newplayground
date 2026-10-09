@@ -554,12 +554,12 @@
   {
     "id": "xay-cau-bridge-builder",
     "title": "Xây Cầu Vật Lý (Bridge Builder)",
-    "tagline": "Nối dầm thép chịu tải trọng tàu xe lăn qua.",
+    "tagline": "Nối giằng, thử sức tải của xe qua ba nhịp cầu.",
     "category": "Giải đố",
     "section": "all",
     "players": "1 người",
-    "duration": "5-10 phút",
-    "mechanic": "Thiết kế kết cấu giàn chịu ứng suất nén và kéo",
+    "duration": "2-4 phút",
+    "mechanic": "Đặt giằng thép, cân bằng lực kéo/nén rồi cho xe qua ba khe",
     "badge": "Physics",
     "color": "#C75B3A"
   },
@@ -1154,12 +1154,12 @@
   {
     "id": "xe-dap-giao-bao",
     "title": "Cậu Bé Giao Báo (Paperboy)",
-    "tagline": "Đạp xe ném tờ báo trúng hộp thư trước cửa nhà.",
+    "tagline": "Đổi làn, né va chạm và ném báo đúng hộp thư.",
     "category": "Kỹ năng",
     "section": "all",
     "players": "1 người",
-    "duration": "3-6 phút",
-    "mechanic": "Đạp xe né chó dữ và xe hơi ném báo trúng hộp thư",
+    "duration": "1 phút",
+    "mechanic": "Chuyển giữa ba làn, tránh chó/xe và ném trong cửa sổ giao báo",
     "badge": "Arcade",
     "color": "#C8FF4A"
   },

@@ -10,15 +10,19 @@ test('starts immediately with a deterministic target and a forgiving short windo
   assert.equal(first.view().targetTimeLeft, 1150);
 });
 
-test('a correct whack scores once, moves the target, and ramps every four hits', () => {
+test('streaks multiply score and every fourth target is a tighter gold bonus', () => {
   const model = M.create({ seed: 9 });
+  const expectedPoints = [100, 100, 200, 400, 200, 300, 300, 500, 300, 300, 300, 500];
   for (let hit = 1; hit <= 8; hit++) {
     const before = model.view();
-    assert.equal(model.whack(before.target).hit, true);
+    const result = model.whack(before.target);
+    assert.equal(result.hit, true);
+    assert.equal(result.points, expectedPoints[hit - 1]);
     const after = model.view();
-    assert.equal(after.score, hit * 100);
+    assert.equal(after.score, expectedPoints.slice(0, hit).reduce((sum, points) => sum + points, 0));
+    assert.equal(result.targetKind, hit % 4 === 0 ? 'gold' : 'normal');
     if (hit < M.TARGET_COUNT) assert.notEqual(after.target, before.target);
-    assert.equal(after.targetWindowMs, hit < 4 ? 1150 : hit < 8 ? 980 : 820);
+    assert.equal(after.targetWindowMs, hit === 3 ? 860 : hit === 7 ? 800 : hit < 4 ? 1150 : hit < 8 ? 980 : 820);
   }
 });
 
@@ -42,7 +46,8 @@ test('twelve correct hits win; pause freezes the target clock and resume restore
   const model = M.create({ seed: 7 });
   for (let hit = 0; hit < M.TARGET_COUNT; hit++) assert.equal(model.whack(model.view().target).hit, true);
   assert.equal(model.view().status, 'won');
-  assert.equal(model.view().score, 1200);
+  assert.equal(model.view().score, 3500);
+  assert.equal(model.view().bestStreak, 12);
 
   model.restart();
   model.advance(340);
@@ -53,6 +58,16 @@ test('twelve correct hits win; pause freezes the target clock and resume restore
   assert.equal(model.resume(), true);
   assert.equal(model.advance(remaining), true);
   assert.equal(model.view().misses, 1);
+});
+
+test('a miss breaks a scoring streak before the next target', () => {
+  const model = M.create({ seed: 19 });
+  for (let hit = 0; hit < 3; hit++) model.whack(model.view().target);
+  assert.equal(model.view().targetKind, 'gold');
+  model.whack((model.view().target + 1) % M.HOLES);
+  assert.equal(model.view().streak, 0);
+  assert.equal(model.view().multiplier, 1);
+  assert.equal(model.whack(model.view().target).points, 300, 'gold bonus survives a broken streak');
 });
 
 test('invalid holes and elapsed times never change score or lives', () => {
