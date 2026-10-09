@@ -18,6 +18,8 @@
 .hr3-awning { height: 26px; background: repeating-linear-gradient(90deg, #305e5c 0 40px, #e7ecdc 40px 80px); border-bottom: 4px solid #204846; }
 .hr3-customers { display: flex; justify-content: center; gap: 12px; padding: 16px 12px 12px; background: linear-gradient(0deg, #c9cab7 0 9px, transparent 9px), #eeecdf; min-height: 180px; }
 .hr3-customer { position: relative; width: min(46%, 175px); border: 1px solid #aeb9ad; border-radius: 10px 10px 5px 5px; background: #fffdf5; padding: 8px; text-align: center; display: flex; align-items: center; flex-direction: column; box-shadow: 0 4px 0 #b9b7a7; }
+.hr3-customers.hr3-four-seats { display: grid; grid-template-columns: repeat(4, minmax(44px, 1fr)); gap: 10px; }
+.hr3-four-seats .hr3-customer { width: auto; min-width: 44px; }
 .hr3-customer:disabled { background: #e2e2d5; border-style: dashed; box-shadow: none; }
 .hr3-customer strong { font-size: 14px; line-height: 1.15; margin: 3px 0 5px; }
 .hr3-order { position: absolute; top: 6px; right: 4px; border: 1px solid #d1d0bb; border-radius: 9px; background: #fffaf0; width: 64px; }
@@ -74,7 +76,7 @@
   .hr3-recipe strong { font-size: 13px; }
   .hr3-recipe small { font-size: 11px; }
   .hr3-stations { padding: 7px 0; }
-  .hr3-four-seats .hr3-customer { min-height: 120px; width: 25%; padding: 6px 3px; }
+  .hr3-four-seats .hr3-customer { min-height: 120px; padding: 6px 3px; }
   .hr3-four-seats .hr3-portrait { display: none; }
   .hr3-four-seats .hr3-order { position: static; width: 100%; border: 0; }
   .hr3-four-seats .hr3-order .hr3-art { height: 35px; }

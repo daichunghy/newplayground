@@ -64,6 +64,15 @@ test('pause, hidden tab and cleanup cancel gestures and preserve board',()=>{
  assert.equal(h.stored.get(KEY),before);assert.equal(el(h,'g2048PauseOverlay').hidden,false);
  h.context.closeGameModal();assertStopped(h);h.flushTimeouts();assertStopped(h);
 });
+test('stale tab lifecycle saves preserve the external board until a local move commits',()=>{
+ const h=launch(),external=fixture([[8,0,0,0],[0,4,0,0],[0,0,0,0],[0,0,0,0]],{score:4,moves:2});
+ const externalRaw=JSON.stringify(external);h.stored.set(KEY,externalRaw);h.window.dispatch('storage',{key:KEY,newValue:externalRaw});
+ h.window.dispatch('blur');assert.equal(h.stored.get(KEY),externalRaw,'blur auto-pause must not overwrite a newer tab save');
+ click(h,'g2048Resume');h.window.dispatch('pagehide');assert.equal(h.stored.get(KEY),externalRaw,'pagehide must also preserve the newer save');
+ key(h,'ArrowLeft');assert.notEqual(h.stored.get(KEY),externalRaw,'a committed local move intentionally takes ownership');
+ assert.equal(saved(h).score,4);assert.equal(saved(h).moves,1);
+ h.context.closeGameModal();assertStopped(h);
+});
 test('invalid/corrupt best migrates safely; storage failure and future saves are non-destructive',()=>{
  const h=launch(fixture(),[['np_2048_high','1200'],[BEST,'NaN']]);assert.equal(h.stored.get(BEST),'1200');
  h.context.localStorage.setItem=()=>{throw new Error('quota');};key(h,'ArrowLeft');assert.match(el(h,'g2048Storage').textContent,/Không lưu/);assert.equal(el(h,'g2048Score').textContent,'4');

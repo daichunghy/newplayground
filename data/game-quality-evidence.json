@@ -2019,6 +2019,76 @@
         "backlog_status": "Original candidate updated; browser/device, human playtest and title/distribution review pending. See docs/games/BEACON_SHORE_RESEARCH_AND_SCOPE.md."
       },
       "player_ui": "Bờ Kè Sao offers both mixed AoE and faster lamp-only responses to a lane rush."
+    },
+    "bookworm-sau-noi-chu": {
+      "scope": "prototype-only",
+      "reference_version": "Original NewPlayground hex-connected word puzzle candidate; not a replica or edition-parity claim",
+      "candidate_build": "bookworm-hex1",
+      "accepted_build": null,
+      "owner": null,
+      "accepted_at": null,
+      "implementation_status": "implemented-awaiting-human-device-qa",
+      "automated_tests": {
+        "command": "node --test tests/bookworm-model.test.cjs tests/bookworm-ui.test.cjs",
+        "passed": 15,
+        "failed": 0,
+        "date": "2026-10-09",
+        "evidence": "docs/games/BOOKWORM_RESEARCH_AND_SCOPE.md and tests/browser/portal.spec.cjs",
+        "limitation": "DOM doubles plus local Chromium 320px smoke; no physical-device, assistive-technology, human balance, or distribution-rights acceptance."
+      },
+      "gates": {
+        "reference_parity": {
+          "status": "pending",
+          "evidence": "Original candidate dossier docs/games/BOOKWORM_RESEARCH_AND_SCOPE.md; local automated/browser smoke only. Human playtest, physical-device/accessibility QA, title/rights review, and product acceptance are still pending."
+        },
+        "content": {
+          "status": "pending",
+          "evidence": "Original candidate dossier docs/games/BOOKWORM_RESEARCH_AND_SCOPE.md; local automated/browser smoke only. Human playtest, physical-device/accessibility QA, title/rights review, and product acceptance are still pending."
+        },
+        "controls": {
+          "status": "pending",
+          "evidence": "Original candidate dossier docs/games/BOOKWORM_RESEARCH_AND_SCOPE.md; local automated/browser smoke only. Human playtest, physical-device/accessibility QA, title/rights review, and product acceptance are still pending."
+        },
+        "visual_audio": {
+          "status": "pending",
+          "evidence": "Original candidate dossier docs/games/BOOKWORM_RESEARCH_AND_SCOPE.md; local automated/browser smoke only. Human playtest, physical-device/accessibility QA, title/rights review, and product acceptance are still pending."
+        },
+        "device_qa": {
+          "status": "pending",
+          "evidence": "Original candidate dossier docs/games/BOOKWORM_RESEARCH_AND_SCOPE.md; local automated/browser smoke only. Human playtest, physical-device/accessibility QA, title/rights review, and product acceptance are still pending."
+        },
+        "save_recovery": {
+          "status": "pending",
+          "evidence": "Original candidate dossier docs/games/BOOKWORM_RESEARCH_AND_SCOPE.md; local automated/browser smoke only. Human playtest, physical-device/accessibility QA, title/rights review, and product acceptance are still pending."
+        },
+        "playtest": {
+          "status": "pending",
+          "evidence": "Original candidate dossier docs/games/BOOKWORM_RESEARCH_AND_SCOPE.md; local automated/browser smoke only. Human playtest, physical-device/accessibility QA, title/rights review, and product acceptance are still pending."
+        },
+        "distribution_rights": {
+          "status": "pending",
+          "evidence": "Original candidate dossier docs/games/BOOKWORM_RESEARCH_AND_SCOPE.md; local automated/browser smoke only. Human playtest, physical-device/accessibility QA, title/rights review, and product acceptance are still pending."
+        }
+      },
+      "player_ui": "Instant compact 6x6 hex board; tap or drag letters, then submit; optional text is kept short. Local 320px Chromium smoke passed; accessibility and device acceptance pending.",
+      "research": {
+        "status": "original-candidate-depth",
+        "evidence_date": "2026-10-09",
+        "reference_version": "Original NewPlayground candidate informed by Bookworm-era word-linking/fire-pressure references; intentionally uses the catalog-specified hex adjacency, not exact historical rules.",
+        "current_mechanic": "6x6 odd-row-offset hex letter grid; 3–7 unique adjacent letters form a listed word; length-squared score, falling refills, three shelf goals and descending fire pressure.",
+        "first_delivery": "Playable original candidate with three short shelves, authored finite word list, touch and keyboard input, and one original cover asset.",
+        "rules_task": "Validate the original candidate rules and shelf goals in human playtests; maintain an explicit distinction from four-direction commercial editions.",
+        "content_task": "Review finite English dictionary coverage, acceptable words, and shelf goals with players; measure whether the first shelf teaches the loop without lengthy instructions.",
+        "controls_task": "Test tap selection and pointer drag on real phones/tablets, keyboard roving focus, and screen-reader feedback.",
+        "visual_assets_and_license_to_resolve": "Original CSS visuals and SVG cover are authored for this prototype. Historical name/route rights and distribution clearance remain unresolved.",
+        "feel_speed_and_performance_to_measure": "Test touch path acquisition, refill/score feedback timing, and board readability across devices; turn-based simulation has no animation clock dependency.",
+        "rights_status": "Original implementation and cover; historical Bookworm title/route rights not reviewed.",
+        "backlog_status": "Prototype riêng; ứng viên nối chữ ô lục giác nguyên bản, chưa nghiệm thu người dùng/thiết bị/quyền phát hành.",
+        "source_urls": [
+          "https://www.ea.com/ea-studios/popcap/games",
+          "https://www.scribd.com/document/358205637/Bookworm-for-DS-Game-Manual"
+        ]
+      }
     }
   }
 }

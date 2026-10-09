@@ -172,6 +172,7 @@
     'peggle-pachinko': 'assets/bat-chot-original.svg',
     'lemonade-tycoon': 'assets/quay-nuoc-chanh-original.svg',
     'thap-ha-noi-tower': 'assets/thap-ba-coc-original.svg',
+    'bookworm-sau-noi-chu': 'assets/mot-sach-noi-chu-original.svg',
     'raft-wars-ban-sung-phao': 'assets/dau-phao-original.svg',
     'street-fighter-2-doi-khang': 'assets/nay-lua-original.svg',
     'bubble-bobble-khung-long-bong-bong': 'assets/mam-gio-original.svg',

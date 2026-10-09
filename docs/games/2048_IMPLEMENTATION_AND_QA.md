@@ -27,7 +27,7 @@ Khác biệt có chủ ý: hướng dẫn tiếng Việt/Calibri, palette tươn
 
 Validation: 4×4, không sparse, tile0 hoặc lũy thừa2 nguyên an toàn, score nguyên không âm chia hết4, moves nguyên không âm; flags boolean và nhất quán với board/khả năng di chuyển. Bản schema mới hơn được giữ nguyên, chỉ chơi RAM. Corrupt/denied/quota không chặn gameplay; thông báo rõ. Không dùng localStorage.clear.
 
-Nhiều tab: best lấy max trước ghi; active board dùng last-writer-wins và thông báo khi nhận storage event. Đây là local single-user game, không anti-cheat hoặc đồng bộ tài khoản.
+Nhiều tab: best lấy max trước ghi; active board dùng last-writer-wins và thông báo khi nhận storage event. Sau khi nhận save mới từ tab khác, pause/blur/visibility/pagehide/cleanup không ghi đè save đó; nước đi đã commit hoặc restart/continue có chủ ý sẽ cho tab hiện tại lưu bàn của mình. Không gộp hai bàn. Đây là local single-user game, không anti-cheat hoặc đồng bộ tài khoản.
 
 ## Asset ledger
 
@@ -42,7 +42,11 @@ Tính toán sRGB từ literal CSS, **không phải đo screenshot**: contrast s�
 
 `node --test tests/*.test.cjs`: **123/123 groups pass** tại checkpoint2048 (101 base +11 model +11 controller). Model suites chứa thêm9.184 vector comparisons deterministic với oracle độc lập: 5.184 tổ hợp line×direction +4.000 full-board×direction. Đây không phải9.184 device tests.
 
-Đã test: exact merge/no double merge/no-op/RNG bounds, destinations right/down, win/continue/4096, đồng thời won+over, corrupt/sparse saves, replay, zero-coordinate swipe, multi-touch/cancel/lost capture, modifier/editable, live save/Continue, reset trước callback cũ, pause/visibility/close, legacy best/future save/quota, rapid model inputs during motion, shared SFX cleanup. Full portal/session/Minesweeper regression vẫn chạy.
+Đã test: exact merge/no double merge/no-op/RNG bounds, destinations right/down, win/continue/4096, đồng thời won+over, corrupt/sparse saves, replay, zero-coordinate swipe, multi-touch/cancel/lost capture, modifier/editable, live save/Continue, reset trước callback cũ, pause/visibility/close, stale-tab storage event qua blur/pagehide rồi commit move, legacy best/future save/quota, rapid model inputs during motion, shared SFX cleanup. Full portal/session/Minesweeper regression vẫn chạy.
+
+### Follow-up save fix — 09/10/2026
+
+Assessment found that a stale tab's automatic blur pause could overwrite a newer save received from another tab. Lifecycle saves now preserve the external board until the player commits a move or deliberately restarts/continues in the local tab. Regression coverage includes blur, pagehide, and the next committed move. `node --test tests/game2048-model.test.cjs tests/game2048-ui.test.cjs`: **23/23 groups pass**. Full current-tree run, including concurrent work: `node --test tests/*.test.cjs`, **1164/1164 pass**.
 
 Probe nghiên cứu legacy được lưu bền ở `scripts/research/check-2048-legacy.cjs`; source cũ đọc từ checkpoint78b598d với SHA256 guard. Upstream pin478b6ec. Có thể cấp `NP_2048_REFERENCE_DIR` đã được tải hợp lệ để chạy offline; nếu không script cần mạng đọc source GitHub chính thức. Probe này không được ship vào site hoặc chạy mạng trong CI. Đã giữ nguyên giới hạn chứng cứ của phép thử nghiên cứu trước implementation.
 

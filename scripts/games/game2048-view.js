@@ -7,7 +7,7 @@
   function mount(container, session, audio) {
     const { setTimeout, clearTimeout, listen, onCleanup } = session;
     const Model = window.NP_2048Model;
-    let alive = true, storageMessage = '', preserveFutureSave = false, saved = null;
+    let alive = true, storageMessage = '', preserveFutureSave = false, externalSaveChanged = false, saved = null;
     const parseBest = raw => typeof raw === 'string' && /^\d+$/.test(raw) && Number.isSafeInteger(Number(raw)) ? Number(raw) : 0;
     let best = 0;
     try {
@@ -51,15 +51,16 @@
     el('g2048Background').innerHTML = '<span></span>'.repeat(16);
     function showStorage() { el('g2048Storage').textContent = storageMessage; el('g2048Storage').hidden = !storageMessage; }
     const announce = text => { el('g2048Status').textContent = text; };
-    function persist() {
+    function persist(takeOwnership = false) {
       if (!alive) return;
       const state = model.state(); best = Math.max(best, state.score);
       try {
         best = Math.max(best, parseBest(localStorage.getItem(BEST_KEY)));
         localStorage.setItem(BEST_KEY, String(best));
-        if (!preserveFutureSave) {
+        if (!preserveFutureSave && (takeOwnership || !externalSaveChanged)) {
           if (state.over) localStorage.removeItem(STATE_KEY);
           else localStorage.setItem(STATE_KEY, JSON.stringify(model.serialize()));
+          externalSaveChanged = false;
         }
       } catch (_) { storageMessage = 'Không lưu được ván này.'; }
       showStorage();
@@ -133,7 +134,7 @@
       if (!alive || paused || confirm) return;
       const result = model.move(direction);
       if (!result.changed) { if (model.state().status === 'playing') announce('Hướng này chưa làm đổi bàn. Thử một hướng khác.'); return; }
-      best = Math.max(best, result.score); persist(); animate(result); update(); sound(result);
+      best = Math.max(best, result.score); persist(true); animate(result); update(); sound(result);
       announce(result.status === 'won' ? `Bạn thắng! Đạt 2048 với ${result.score} điểm. Chọn Tiếp tục chơi hoặc Chơi lại.` : result.status === 'lost' ? `Hết nước đi. Điểm ${result.score}.` : `${result.scoreDelta ? '+' + result.scoreDelta + ' điểm. ' : ''}Lượt ${result.moves}. Tổng điểm ${result.score}.`);
       if (result.status !== 'playing') el(result.status === 'won' ? 'g2048Continue' : 'g2048Again').focus();
     }
@@ -145,7 +146,7 @@
     }
     function restart() {
       resetPointer(); cancelMotion(); model = Model.create(); paused = false; confirm = false;
-      el('g2048Confirm').hidden = true; persist(); drawStable(); update(); announce('Ván mới. Hai ô đã sẵn sàng.'); stage.focus();
+      el('g2048Confirm').hidden = true; persist(true); drawStable(); update(); announce('Ván mới. Hai ô đã sẵn sàng.'); stage.focus();
     }
     function requestRestart() {
       if (model.state().moves > 0 && !model.state().over) {
@@ -156,7 +157,7 @@
     listen(el('g2048NewBtn'), 'click', requestRestart); listen(el('g2048Again'), 'click', requestRestart);
     listen(el('g2048ConfirmYes'), 'click', restart);
     listen(el('g2048ConfirmNo'), 'click', () => { confirm = false; el('g2048Confirm').hidden = true; update(); el(paused ? 'g2048Resume' : model.state().status === 'won' ? 'g2048Continue' : 'g2048Grid').focus(); });
-    listen(el('g2048Continue'), 'click', () => { if (!confirm && !paused && model.continueGame()) { cancelMotion(); drawStable(); persist(); update(); announce('Tiếp tục ván đã thắng. Thử tiến tới 4096!'); stage.focus(); } });
+    listen(el('g2048Continue'), 'click', () => { if (!confirm && !paused && model.continueGame()) { cancelMotion(); drawStable(); persist(true); update(); announce('Tiếp tục ván đã thắng. Thử tiến tới 4096!'); stage.focus(); } });
     listen(el('g2048Pause'), 'click', () => pause(!paused)); listen(el('g2048Resume'), 'click', () => pause(false));
     listen(container, 'keydown', e => {
       if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || e.target.closest?.('input, textarea, select, [contenteditable]')) return;
@@ -177,10 +178,13 @@
     listen(stage, 'pointercancel', resetPointer); listen(stage, 'lostpointercapture', resetPointer);
     listen(window, 'blur', () => { resetPointer(); if (model.state().status === 'playing' && !confirm) pause(true); });
     listen(document, 'visibilitychange', () => { if (document.hidden) { resetPointer(); if (model.state().status === 'playing' && !confirm) pause(true); persist(); } });
-    listen(window, 'pagehide', persist);
+    listen(window, 'pagehide', () => persist());
     listen(window, 'storage', e => {
       if (e.key === BEST_KEY) { best = Math.max(best, parseBest(e.newValue)); update(); }
-      if (e.key === STATE_KEY && e.newValue) announce('Ván trong tab khác vừa thay đổi. Tab này giữ bàn hiện tại; nước tiếp theo sẽ lưu theo tab này.');
+      if (e.key === STATE_KEY) {
+        externalSaveChanged = true;
+        announce('Ván trong tab khác vừa thay đổi. Tab này giữ bàn hiện tại; nước tiếp theo sẽ lưu theo tab này.');
+      }
     });
     if (reduced?.addEventListener) listen(reduced, 'change', () => { cancelMotion(); drawStable(); });
     onCleanup(() => { resetPointer(); cancelMotion(); persist(); alive = false; container.classList.remove('g2048-host'); });

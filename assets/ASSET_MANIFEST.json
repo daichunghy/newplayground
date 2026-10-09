@@ -1100,5 +1100,13 @@
     "size_bytes": 1696,
     "license": "MIT — original project-authored SVG; see LICENSE",
     "source": "Created in this repository for NewPlayground; no third-party artwork copied"
+  },
+  {
+    "category": "game-cover",
+    "file": "mot-sach-noi-chu-original.svg",
+    "local_path": "assets/mot-sach-noi-chu-original.svg",
+    "size_bytes": 3507,
+    "license": "MIT (project-authored original artwork; see LICENSE)",
+    "source": "Created for NewPlayground Mọt Sách Nối Chữ; original connected word tiles and ember motif, no branded assets copied"
   }
 ]

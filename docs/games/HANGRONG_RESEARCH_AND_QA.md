@@ -26,6 +26,7 @@ Các giá trị model giữ lại để tương thích, không tạo thêm quy�
 - Bổ sung một phần nguyên liệu khi thực sự cần trong ca; cập nhật cả kho đầu ca và kho hiện tại để hạch toán/restore không lệch. Hết vốn dùng cơ chế hỗ trợ nguyên liệu có sẵn, không tạo nợ.
 - Bản lỗi/future được giữ nguyên; thử backup read-only, nếu không có thì chơi tạm. Storage/quota lỗi không chặn chơi.
 - Blur/hidden/pagehide pause; cleanup lưu và hủy RAF/listener/nốt audio thuộc session.
+- Bản lưu giữ nâng cấp bốn ghế từ phiên bản cũ; bốn nút khách dùng lưới bốn cột theo chiều rộng để không tràn khung ở màn hình hẹp.
 
 ## Hình ảnh và nguồn
 
@@ -41,7 +42,7 @@ Nguồn đọc ngày 2026-10-07:
 
 ## Kiểm thử và tích hợp
 
-**35 test riêng pass: 21 model + 14 DOM-double.** Full base-worktree 136 test pass. Log ở `docs/qa/hangrong-*-20261007.txt` được cập nhật theo bản đơn giản này.
+**36 test riêng pass: 21 model + 15 DOM-double.** Full base-worktree 136 test pass trước lần sửa bố cục bốn ghế; test bổ sung bao phủ bản lưu có nâng cấp này. Log ở `docs/qa/hangrong-*-20261007.txt` được cập nhật theo bản đơn giản trước đó.
 
 Bao phủ mới: instant start, chỉ hai thao tác nấu/giao, tự lấy/match món, chặn nấu dư, phím tối giản, help tùy chọn, next/retry một nút, giữ nguyên active v3, v2 không bị ghi, cứu bản hướng dẫn cũ hết kho, quota/corrupt/cleanup. Các kiểm tra model giai đoạn/kinh tế cũ vẫn còn để bảo vệ save.
 

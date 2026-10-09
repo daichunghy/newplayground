@@ -145,3 +145,16 @@ test('icons have accessible text fallback, controls are 44px minimum and compact
   const svg = read('assets/sprites/hangrong/atlas.svg'); for (const id of Object.keys(M.RECIPES)) assert.ok(svg.includes(`id="food-${id}"`));
   assert.equal(el(h, 'Status').getAttribute('aria-live'), 'polite'); assert.match(el(h, 'Customer0').getAttribute('aria-label'), /Bánh mì/); close(h);
 });
+
+test('saved four-seat upgrade lays out all customer controls in a responsive four-column grid', () => {
+  const p = M.create().view().profile; p.upgrades.extraChair = true;
+  const m = M.create({ profile: p }); m.restock(); assert.ok(m.begin().ok);
+  const h = setup({ compact: true, storage: new Map([[KEY, JSON.stringify(m.serialize())]]) }); open(h); click(h, 'Resume');
+  for (let i = 0; i < 4; i++) assert.equal(el(h, 'Customer' + i).hidden, false);
+  const css = read('scripts/games/hangrong.css');
+  assert.match(css, /\.hr3-customers\.hr3-four-seats\s*\{[^}]*display:\s*grid/);
+  assert.match(css, /grid-template-columns:\s*repeat\(4,\s*minmax\(44px,\s*1fr\)\)/);
+  assert.match(css, /\.hr3-four-seats \.hr3-customer\s*\{[^}]*width:\s*auto/);
+  assert.doesNotMatch(css, /\.hr3-four-seats \.hr3-customer\s*\{[^}]*width:\s*25%/);
+  close(h);
+});

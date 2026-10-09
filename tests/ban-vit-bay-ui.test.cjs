@@ -32,7 +32,9 @@ test('pointer targeting, keyboard aiming and the touch fire button update the sa
   const h = launch(), model = h.mountResult.getModel();
   const target = model.view().target;
   el(h, 'bvbCanvas').dispatch('pointermove', { clientX: target.x, clientY: target.y });
-  assert.deepEqual(model.view().aim, { x: target.x, y: target.y });
+  const aim = model.view().aim;
+  assert.equal(aim.x, target.x);
+  assert.ok(Math.abs(aim.y - target.y) < 1e-9, 'scaled pointer math may differ by floating-point roundoff');
   el(h, 'bvbCanvas').dispatch('pointerdown', { clientX: target.x, clientY: target.y, preventDefault() {} });
   assert.equal(model.view().phase, 'hit');
   assert.equal(el(h, 'bvbLive').textContent, 'Trúng!');

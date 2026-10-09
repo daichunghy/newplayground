@@ -30,6 +30,7 @@
     'pha-gach-dx-ball': 'launchDXBall',
     'day-thung-sokoban': 'launchSokoban',
     'tro-choi-2048': 'launchGame2048',
+    'bookworm-sau-noi-chu': 'launchBookworm',
     'danh-bai-uno': 'launchDanhBaiUno',
     'pong-1972': 'launchPong',
     'ban-ga-vu-tru': 'launchChickenInvaders',

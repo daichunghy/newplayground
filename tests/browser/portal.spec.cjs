@@ -34,13 +34,13 @@ async function closeGame(page) {
 
 async function loadPortal(page) {
   await page.goto('/');
-  await expect(page.locator('#catalogAvailability')).toContainText('51');
+  await expect(page.locator('#catalogAvailability')).toContainText('52');
 }
 
 test('the default grid is playable-only; explicit catalog browsing keeps planned entries informational', async ({ page }) => {
   await loadPortal(page);
-  await expect(page.locator('#allSectionTitle')).toHaveText('Bản thử nghiệm có thể chơi (51)');
-  await expect(page.locator('#gridAll .game-card')).toHaveCount(51);
+  await expect(page.locator('#allSectionTitle')).toHaveText('Bản thử nghiệm có thể chơi (52)');
+  await expect(page.locator('#gridAll .game-card')).toHaveCount(52);
   await expect(page.locator('.filter-pill[data-category="playable"]')).toHaveClass(/active/);
 
   await page.locator('.filter-pill[data-category="all"]').click();
@@ -52,7 +52,7 @@ test('the default grid is playable-only; explicit catalog browsing keeps planned
   await expect(page.locator('#gameModal')).toHaveCSS('display', 'none');
 });
 
-test('all 51 registered games open, render, close and release their session', async ({ page }) => {
+test('all 52 registered games open, render, close and release their session', async ({ page }) => {
   test.setTimeout(120_000);
   const errors = watchErrors(page);
   await loadPortal(page);
@@ -62,7 +62,7 @@ test('all 51 registered games open, render, close and release their session', as
       id, engine, title: byId.get(id)?.title || id
     }));
   });
-  expect(routes).toHaveLength(51);
+  expect(routes).toHaveLength(52);
 
   for (const route of routes) {
     await openGame(page, route.id);
@@ -71,6 +71,102 @@ test('all 51 registered games open, render, close and release their session', as
     expect(await page.evaluate(() => window.NP_GameSession.getCurrent() !== null), route.id).toBe(true);
     await closeGame(page);
   }
+  expect(errors).toEqual([]);
+});
+
+test('a stale 2048 tab preserves another tab’s newer board through pause and pagehide', async ({ page, context }) => {
+  const errors = watchErrors(page);
+  await loadPortal(page);
+  const seed = { version: 1, board: [[2, 2, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+    score: 0, moves: 0, won: false, keepPlaying: false, over: false };
+  await page.evaluate(value => localStorage.setItem('np_2048_state_v1', JSON.stringify(value)), seed);
+  await openGame(page, 'tro-choi-2048');
+  const second = await context.newPage();
+  const secondErrors = watchErrors(second);
+  await second.goto('/');
+  await second.evaluate(() => window.openGameById('tro-choi-2048'));
+  await expect(second.locator('#gameModal')).toHaveCSS('display', 'flex');
+  await expect(second.locator('#modalGameContainer #g2048Grid')).toBeVisible();
+
+  await page.locator('#modalGameContainer #g2048Grid').focus();
+  await page.keyboard.press('ArrowLeft');
+  const newerSave = await page.evaluate(() => localStorage.getItem('np_2048_state_v1'));
+  await expect.poll(() => second.evaluate(() => localStorage.getItem('np_2048_state_v1'))).toBe(newerSave);
+  await expect(second.locator('#g2048Status')).toContainText('Ván trong tab khác vừa thay đổi');
+
+  await second.evaluate(() => window.dispatchEvent(new Event('blur')));
+  expect(await second.evaluate(() => localStorage.getItem('np_2048_state_v1'))).toBe(newerSave);
+  await second.evaluate(() => window.dispatchEvent(new Event('pagehide')));
+  expect(await page.evaluate(() => localStorage.getItem('np_2048_state_v1'))).toBe(newerSave);
+  await second.close();
+  expect(await page.evaluate(() => localStorage.getItem('np_2048_state_v1'))).toBe(newerSave);
+  expect([...errors, ...secondErrors]).toEqual([]);
+});
+
+test('Hàng Rong’s saved four-seat upgrade remains fully inside the mobile stall', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 780 });
+  await loadPortal(page);
+  const saved = await page.evaluate(() => {
+    const profile = window.NP_HangRongModel.create().view().profile;
+    profile.upgrades.extraChair = true;
+    const model = window.NP_HangRongModel.create({ profile });
+    model.restock();
+    if (!model.begin().ok) throw new Error('could not seed the four-seat shift');
+    return JSON.stringify(model.serialize());
+  });
+  await page.evaluate(value => localStorage.setItem('np_hangrong_save_v3', value), saved);
+  await openGame(page, 'hang-rong');
+  await page.locator('#hr3Resume').click();
+  await expect(page.locator('#hr3Customers')).toHaveClass(/hr3-four-seats/);
+  const layout = await page.locator('#hr3Customers').evaluate(parent => {
+    const box = parent.getBoundingClientRect();
+    const cards = [...parent.querySelectorAll('.hr3-customer:not([hidden])')].map(card => {
+      const r = card.getBoundingClientRect();
+      return { left: r.left, right: r.right, width: r.width, height: r.height };
+    });
+    return { left: box.left, right: box.right, cards };
+  });
+  expect(layout.cards).toHaveLength(4);
+  for (const card of layout.cards) {
+    expect(card.width).toBeGreaterThanOrEqual(44);
+    expect(card.height).toBeGreaterThanOrEqual(44);
+    expect(card.left).toBeGreaterThanOrEqual(layout.left - 1);
+    expect(card.right).toBeLessThanOrEqual(layout.right + 1);
+  }
+  await closeGame(page);
+});
+
+test('Mọt Sách Nối Chữ works at 320px, uses its own cover and completes a real word turn', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 780 });
+  const errors = watchErrors(page);
+  await loadPortal(page);
+  const cover = page.locator('#gridAll .game-card[data-id="bookworm-sau-noi-chu"] img');
+  await expect(cover).toHaveAttribute('src', 'assets/mot-sach-noi-chu-original.svg');
+  await openGame(page, 'bookworm-sau-noi-chu');
+  await expect(page.locator('#modalGameTitle')).toHaveText('Mọt Sách Nối Chữ (Bookworm)');
+  await expect(page.locator('#modalGameContainer .bw-letter')).toHaveCount(36);
+  const layout = await page.locator('#bwBoard').evaluate(board => {
+    const box = board.getBoundingClientRect();
+    const cells = [...board.querySelectorAll('.bw-letter')].map(node => {
+      const r = node.getBoundingClientRect();
+      return { left: r.left, right: r.right, width: r.width, height: r.height };
+    });
+    return { left: box.left, right: box.right, cells };
+  });
+  expect(layout.cells).toHaveLength(36);
+  for (const cell of layout.cells) {
+    expect(cell.width).toBeGreaterThanOrEqual(44);
+    expect(cell.height).toBeGreaterThanOrEqual(44);
+    expect(cell.left).toBeGreaterThanOrEqual(layout.left - 1);
+    expect(cell.right).toBeLessThanOrEqual(layout.right + 1);
+  }
+  for (const index of [0, 1, 2, 3, 4]) await page.locator(`#bwTile${index}`).click();
+  await expect(page.locator('#bwWord')).toHaveText('SHELF');
+  await page.locator('#bwSubmit').click();
+  await expect(page.locator('#bwScore')).toHaveText('25 / 42');
+  await expect(page.locator('#bwTurns')).toHaveText('11');
+  await expect(page.locator('#bwStatus')).toContainText('+25');
+  await closeGame(page);
   expect(errors).toEqual([]);
 });
 
@@ -286,7 +382,7 @@ test('2048 completes a deterministic 2048 win, continue, and reload resume', asy
   await expect(page.locator('#g2048Overlay')).toBeHidden();
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('np_2048_state_v1')).keepPlaying)).toBe(true);
   await page.reload();
-  await expect(page.locator('#catalogAvailability')).toContainText('51');
+  await expect(page.locator('#catalogAvailability')).toContainText('52');
   await openGame(page, 'tro-choi-2048');
   await expect(page.locator('#g2048Overlay')).toBeHidden();
   await expect(page.locator('#g2048Score')).toHaveText('2048');
