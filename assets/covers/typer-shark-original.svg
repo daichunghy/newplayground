@@ -1,7 +1,26 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300" role="img" aria-label="Cá mập chữ giữa biển xanh">
-  <defs><linearGradient id="ocean" x2="0" y2="1"><stop stop-color="#12718a"/><stop offset="1" stop-color="#082f4a"/></linearGradient></defs>
-  <rect width="480" height="300" rx="28" fill="url(#ocean)"/>
-  <path d="M0 240q50-25 100 0t100 0 100 0 100 0 100 0v60H0Z" fill="#125d52"/>
-  <g transform="translate(220 122)" fill="#f2bd72"><path d="M-115 0q38-52 112-29l50-34 4 45q48 12 74 38-28 26-75 39l-3 47-52-43q-73 23-111-27l-42 27 7-43-7-41Z"/><circle cx="36" cy="-5" r="6" fill="#062e43"/><path d="M-69 17q58 25 109 7" fill="none" stroke="#f6efe0" stroke-width="6"/></g>
-  <g font-family="Calibri,Arial,sans-serif" font-weight="700" text-anchor="middle"><rect x="319" y="205" width="54" height="44" rx="8" fill="#104761" stroke="#8ed3ca" stroke-width="2"/><text x="346" y="235" font-size="24" fill="#fff">S</text><rect x="378" y="205" width="54" height="44" rx="8" fill="#104761" stroke="#8ed3ca" stroke-width="2"/><text x="405" y="235" font-size="24" fill="#fff">E</text><text x="99" y="66" font-size="29" fill="#fff3dc" letter-spacing="4">TYPE!</text></g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300" role="img" aria-label="Đốm Biển, sên biển phát sáng cùng chữ cái">
+  <defs>
+    <linearGradient id="water" x2="0" y2="1"><stop stop-color="#157b91"/><stop offset="1" stop-color="#082c48"/></linearGradient>
+    <linearGradient id="mantle" x2="0" y2="1"><stop stop-color="#dcffbd"/><stop offset="1" stop-color="#5bdcc5"/></linearGradient>
+    <radialGradient id="halo"><stop stop-color="#d6ffb9" stop-opacity=".48"/><stop offset="1" stop-color="#d6ffb9" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="480" height="300" rx="28" fill="url(#water)"/>
+  <circle cx="224" cy="150" r="126" fill="url(#halo)"/>
+  <path d="M0 241q45-23 90 0t90 0 90 0 90 0 90 0 90 0v59H0Z" fill="#125d52"/>
+  <g transform="translate(225 148)">
+    <path d="M-42 4Q-50-18-31-31Q-13-43 5-30Q19-22 27-7Q48-2 59 14Q49 32 27 34H-32Q-49 31-55 20Q-55 10-42 4Z" fill="url(#mantle)" stroke="#e9ffce" stroke-width="4"/>
+    <path d="M-28-26Q-34-45-25-56M-7-30Q-5-47 5-55" fill="none" stroke="#8ef1d5" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="-25" cy="-58" r="7" fill="#f5dc83"/><circle cx="7" cy="-57" r="7" fill="#f5dc83"/>
+    <path d="M-21-15Q-15-24-9-15M1-15Q7-24 13-15" fill="none" stroke="#327a78" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="-4" cy="3" r="5" fill="#164656"/><circle cx="20" cy="3" r="5" fill="#164656"/>
+    <circle cx="-2" cy="1" r="1.5" fill="#fff"/><circle cx="22" cy="1" r="1.5" fill="#fff"/>
+    <path d="M0 17Q8 24 16 17" fill="none" stroke="#164656" stroke-width="3" stroke-linecap="round"/>
+    <g fill="#f5dc83"><circle cx="-38" cy="7" r="4"/><circle cx="-25" cy="-2" r="3"/><circle cx="-38" cy="23" r="2.5"/><circle cx="-15" cy="21" r="2"/></g>
+  </g>
+  <g font-family="Calibri, Inter, -apple-system, sans-serif" font-weight="700" text-anchor="middle">
+    <text x="88" y="68" font-size="25" fill="#fff3dc" letter-spacing="2">ĐỐM BIỂN</text>
+    <rect x="320" y="206" width="50" height="48" rx="10" fill="#104761" stroke="#8ed3ca" stroke-width="2"/>
+    <rect x="376" y="206" width="50" height="48" rx="10" fill="#104761" stroke="#8ed3ca" stroke-width="2"/>
+    <text x="345" y="238" font-size="24" fill="#fff">S</text><text x="401" y="238" font-size="24" fill="#fff">E</text>
+  </g>
 </svg>

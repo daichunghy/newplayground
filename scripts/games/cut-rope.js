@@ -1,4 +1,4 @@
-/* Original touch-first rope puzzle presentation for Cắt Dây. */
+/* Original touch-first rope puzzle presentation for Mầm Măm. */
 (function (root) {
   'use strict';
 
@@ -6,29 +6,29 @@
     const M = root.NP_CutRopeModel;
     if (!container || !M || !session?.listen || !session?.requestAnimationFrame
       || !session?.cancelAnimationFrame || !session?.onCleanup) {
-      throw new TypeError('Cắt Dây needs its model, container, and an active game session');
+      throw new TypeError('Mầm Măm needs its model, container, and an active game session');
     }
 
     container.classList.add('ct-host');
     container.innerHTML = `
-      <section class="ct-game" id="ctGame" tabindex="0" aria-label="Cắt Dây, trò chơi giải đố vật lý">
+      <section class="ct-game" id="ctGame" tabindex="0" aria-label="Mầm Măm, trò chơi giải đố vật lý">
         <header class="ct-head">
-          <div class="ct-title"><span class="ct-kicker">TRÒ CHƠI VẬT LÝ · 3 MÀN</span><h2>Cắt Dây</h2></div>
+          <div class="ct-title"><span class="ct-kicker">VƯỜN HẠT · 3 MÀN</span><h2>Mầm Măm</h2></div>
           <div class="ct-score" aria-label="Điểm số"><span>Điểm <b id="ctScore">0</b></span><span>Màn <b id="ctStage">1 / 3</b></span></div>
           <div class="ct-actions">
             <button class="ct-icon" id="ctPause" type="button" aria-label="Tạm dừng" title="Tạm dừng · P">II</button>
             <button class="ct-icon" id="ctRestart" type="button" aria-label="Chơi lại màn" title="Chơi lại màn">↻</button>
           </div>
         </header>
-        <p class="ct-help" id="ctHelp">Vuốt qua dây để thả kẹo. Gom sao rồi đưa kẹo vào miệng ếch.</p>
+        <p class="ct-help" id="ctHelp">Vuốt qua dây, gom sao, đưa hạt vào miệng Mầm.</p>
         <div class="ct-arena-wrap">
-          <canvas class="ct-arena" id="ctArena" width="360" height="540" tabindex="0" role="img" aria-label="Dây treo một viên kẹo, ba ngôi sao và miệng ếch ở phía dưới" aria-describedby="ctHelp">Vuốt qua dây treo viên kẹo để cắt dây.</canvas>
+          <canvas class="ct-arena" id="ctArena" width="360" height="540" tabindex="0" role="img" aria-label="Hạt giống treo trên dây, ba ngôi sao và Mầm đang đón phía dưới" aria-describedby="ctHelp">Vuốt qua dây treo hạt để cắt dây.</canvas>
           <div class="ct-overlay" id="ctOverlay" hidden role="group" aria-labelledby="ctOverlayTitle" aria-describedby="ctOverlayCopy">
             <div class="ct-card"><span class="ct-card-mark" aria-hidden="true">✦</span><h3 id="ctOverlayTitle"></h3><p id="ctOverlayCopy"></p><button class="ct-primary" id="ctOverlayAction" type="button"></button><button class="ct-secondary" id="ctOverlayRestart" type="button">Chơi lại màn</button></div>
           </div>
         </div>
         <div class="ct-bottom-row">
-          <p class="ct-status" id="ctStatus" role="status" aria-live="polite" aria-atomic="true">Canh lúc kẹo đang đung đưa rồi vuốt qua dây.</p>
+          <p class="ct-status" id="ctStatus" role="status" aria-live="polite" aria-atomic="true">Canh nhịp đung đưa rồi vuốt qua dây.</p>
           <div class="ct-tools" role="group" aria-label="Điều khiển">
             <span class="ct-stars" id="ctStars" aria-label="Sao đã nhặt">☆ ☆ ☆</span>
             <button class="ct-cut" id="ctCut" type="button" aria-label="Cắt dây, phím cách">Cắt dây</button>
@@ -40,13 +40,13 @@
     const canvas = el('ctArena'), ctx = canvas?.getContext?.('2d');
     if (!ctx) {
       container.classList.remove('ct-host'); container.innerHTML = '';
-      throw new Error('Cắt Dây needs canvas support');
+      throw new Error('Mầm Măm needs canvas support');
     }
     canvas.width = M.WIDTH; canvas.height = M.HEIGHT;
 
     const { listen, requestAnimationFrame, cancelAnimationFrame, onCleanup } = session;
     let model = M.create(), alive = true, raf = null, lastFrame = null;
-    let dragStart = null, dragCurrent = null, message = 'Canh lúc kẹo đang đung đưa rồi vuốt qua dây.';
+    let dragStart = null, dragCurrent = null, activePointerId = null, message = 'Canh nhịp đung đưa rồi vuốt qua dây.';
     const W = M.WIDTH, H = M.HEIGHT;
 
     function stopLoop() {
@@ -70,29 +70,51 @@
       ctx.fill(); ctx.stroke(); ctx.restore();
     }
 
-    function drawCandy(candy) {
+    function drawSeed(candy) {
       ctx.save(); ctx.translate(candy.x, candy.y); ctx.rotate(Math.atan2(candy.vy, candy.vx) * 0.08);
-      ctx.fillStyle = 'rgba(38,54,49,.18)'; ctx.beginPath(); ctx.ellipse(0, 17, 15, 4, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#f27e63'; ctx.strokeStyle = '#a84548'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(-11, -4); ctx.lineTo(-19, -10); ctx.lineTo(-18, 1); ctx.lineTo(-12, 5);
-      ctx.lineTo(12, 5); ctx.lineTo(18, 1); ctx.lineTo(19, -10); ctx.lineTo(11, -4);
-      ctx.quadraticCurveTo(0, -14, -11, -4); ctx.fill(); ctx.stroke();
-      ctx.beginPath(); ctx.ellipse(0, -1, 12, 10, 0, 0, Math.PI * 2); ctx.fillStyle = '#ff9a75'; ctx.fill(); ctx.stroke();
-      ctx.fillStyle = '#fff0d2'; ctx.beginPath(); ctx.arc(-3, -4, 2.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(38,54,49,.18)'; ctx.beginPath(); ctx.ellipse(0, 17, 13, 4, 0, 0, Math.PI * 2); ctx.fill();
+      // A speckled seed pod with a two-leaf tail gives the moving object its own silhouette.
+      ctx.fillStyle = '#69a978'; ctx.strokeStyle = '#3b775f'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(-7, 5); ctx.quadraticCurveTo(-19, 8, -19, -2);
+      ctx.quadraticCurveTo(-10, -2, -5, 1); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-5, 3); ctx.quadraticCurveTo(-4, -10, 5, -10);
+      ctx.quadraticCurveTo(4, -2, -1, 5); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#e6a95d'; ctx.strokeStyle = '#a96e50'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(-9, 9); ctx.quadraticCurveTo(-20, -1, -7, -13);
+      ctx.quadraticCurveTo(0, -22, 8, -12); ctx.quadraticCurveTo(20, 0, 9, 10);
+      ctx.quadraticCurveTo(0, 16, -9, 9); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#fff1c9';
+      for (const [x, y] of [[-5, -8], [5, -5], [-7, 1], [3, 5]]) {
+        ctx.beginPath(); ctx.ellipse(x, y, 1.4, 2.3, -.3, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.fillStyle = 'rgba(255,245,207,.75)'; ctx.beginPath(); ctx.ellipse(-3, -10, 3, 2, -.5, 0, Math.PI * 2); ctx.fill();
       ctx.restore();
     }
 
     function drawReceiver(receiver) {
-      // A small original leaf frog, drawn as a clear catch target.
+      // Mầm is an upright pitcher-seed with a leafy stem, one eye, and a catch-bowl mouth.
       ctx.save(); ctx.translate(receiver.x, receiver.y + 2);
-      ctx.fillStyle = 'rgba(42,67,55,.16)'; ctx.beginPath(); ctx.ellipse(0, 24, 50, 9, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#7fc68a'; ctx.strokeStyle = '#367d5a'; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.ellipse(0, 9, 37, 24, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-      ctx.beginPath(); ctx.arc(-18, -7, 12, 0, Math.PI * 2); ctx.arc(18, -7, 12, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = '#f9f2da'; ctx.beginPath(); ctx.arc(-17, -7, 6, 0, Math.PI * 2); ctx.arc(17, -7, 6, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#234d48'; ctx.beginPath(); ctx.arc(-16, -6, 2.4, 0, Math.PI * 2); ctx.arc(18, -6, 2.4, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = '#285949'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 8, 18, 0.16, Math.PI - 0.16); ctx.stroke();
-      ctx.fillStyle = '#d7868a'; ctx.beginPath(); ctx.ellipse(0, 16, 9, 4, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(42,50,77,.18)'; ctx.beginPath(); ctx.ellipse(0, 25, 34, 7, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#436c65'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(0, -29); ctx.lineTo(1, -41); ctx.stroke();
+      ctx.fillStyle = '#8dc68e'; ctx.strokeStyle = '#436c65'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(1, -36); ctx.quadraticCurveTo(-23, -52, -23, -35); ctx.quadraticCurveTo(-13, -24, 1, -36); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(1, -38); ctx.quadraticCurveTo(20, -58, 23, -40); ctx.quadraticCurveTo(15, -28, 1, -38); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#786bb1'; ctx.strokeStyle = '#4f527e'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(-14, 22); ctx.quadraticCurveTo(-26, 4, -21, -19);
+      ctx.quadraticCurveTo(-16, -40, 1, -37); ctx.quadraticCurveTo(20, -34, 20, -12);
+      ctx.quadraticCurveTo(22, 9, 12, 25); ctx.quadraticCurveTo(0, 34, -14, 22);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      // The flared, dark opening reads as a catcher; one inset eye keeps the pod off a frog silhouette.
+      ctx.fillStyle = '#53618a'; ctx.beginPath(); ctx.ellipse(0, -12, 17, 8, -.04, Math.PI, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#35415f'; ctx.beginPath(); ctx.ellipse(0, -10, 14, 6.5, -.04, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#f0a1a0'; ctx.beginPath(); ctx.ellipse(1, -7, 6, 2, 0, 0, Math.PI); ctx.fill();
+      ctx.fillStyle = '#f4edcf'; ctx.beginPath(); ctx.ellipse(7, 5, 3.2, 4.2, -.1, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#303b61'; ctx.beginPath(); ctx.arc(8, 6, 1.3, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#c6a4d6'; ctx.beginPath(); ctx.arc(-9, 8, 1.7, 0, Math.PI * 2); ctx.arc(-4, 13, 1.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#a3d29a'; ctx.strokeStyle = '#547968'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(-9, 21); ctx.quadraticCurveTo(-28, 20, -29, 31); ctx.quadraticCurveTo(-16, 35, -8, 24); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(8, 22); ctx.quadraticCurveTo(24, 22, 29, 31); ctx.quadraticCurveTo(17, 36, 8, 25); ctx.closePath(); ctx.fill(); ctx.stroke();
       ctx.restore();
     }
 
@@ -132,11 +154,11 @@
         }
       }
       for (const star of v.stars) if (!star.collected) drawStar(star.x, star.y, 13, false);
-      // A faint ring marks the catch zone, with the frog itself below its center.
-      ctx.strokeStyle = 'rgba(44,125,82,.48)'; ctx.setLineDash([4, 5]); ctx.lineWidth = 2;
+      // A faint ring marks Mầm's catch zone.
+      ctx.strokeStyle = 'rgba(81,91,135,.5)'; ctx.setLineDash([4, 5]); ctx.lineWidth = 2;
       ctx.beginPath(); ctx.arc(v.receiver.x, v.receiver.y, v.receiver.radius, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
       drawReceiver(v.receiver);
-      drawCandy(v.candy);
+      drawSeed(v.candy);
       if (dragStart && dragCurrent) {
         ctx.strokeStyle = '#fff7da'; ctx.lineWidth = 8; ctx.lineCap = 'round'; ctx.globalAlpha = .8;
         ctx.beginPath(); ctx.moveTo(dragStart.x, dragStart.y); ctx.lineTo(dragCurrent.x, dragCurrent.y); ctx.stroke(); ctx.globalAlpha = 1;
@@ -152,15 +174,15 @@
         el('ctOverlayCopy').textContent = `${v.levelName} · ${v.starsCollected}/${v.starCount} sao · ${v.score} điểm`;
         el('ctOverlayAction').textContent = 'Tiếp tục'; el('ctOverlayRestart').hidden = false;
       } else if (v.status === 'lost') {
-        el('ctOverlayTitle').textContent = v.lossReason === 'hazard' ? 'Chạm gai mất rồi!' : 'Kẹo rơi mất rồi!';
+        el('ctOverlayTitle').textContent = v.lossReason === 'hazard' ? 'Chạm gai mất rồi!' : 'Hạt bay mất rồi!';
         el('ctOverlayCopy').textContent = `Đã nhặt ${v.starsCollected}/${v.starCount} sao · ${v.score} điểm. Thử canh nhịp cắt khác nhé.`;
         el('ctOverlayAction').textContent = 'Thử lại'; el('ctOverlayRestart').hidden = true;
       } else if (v.status === 'campaign-won') {
-        el('ctOverlayTitle').textContent = 'Ếch no bụng!';
+        el('ctOverlayTitle').textContent = 'Mầm nở hoa!';
         el('ctOverlayCopy').textContent = `Hoàn thành ba màn · ${v.score} điểm.`;
         el('ctOverlayAction').textContent = 'Chơi lại từ đầu'; el('ctOverlayRestart').hidden = true;
       } else {
-        el('ctOverlayTitle').textContent = 'Đã cho ếch ăn!';
+        el('ctOverlayTitle').textContent = 'Mầm bắt được hạt!';
         el('ctOverlayCopy').textContent = `${v.levelName} · ${v.starsCollected}/${v.starCount} sao · +${v.levelScore} điểm.`;
         el('ctOverlayAction').textContent = 'Màn kế →'; el('ctOverlayRestart').hidden = false;
       }
@@ -197,8 +219,8 @@
         model.step(elapsed / 1000);
         const v = model.view();
         if (v.starsCollected > oldStars) setMessage('Đã nhặt sao!');
-        if (v.status === 'won' || v.status === 'campaign-won') setMessage('Đưa kẹo vào miệng ếch thành công!');
-        else if (v.status === 'lost') setMessage(v.lossReason === 'hazard' ? 'Kẹo vướng gai. Thử cắt ở nhịp khác.' : 'Kẹo rơi khỏi vườn. Thử lại nhé.');
+        if (v.status === 'won' || v.status === 'campaign-won') setMessage('Mầm đã đón được hạt!');
+        else if (v.status === 'lost') setMessage(v.lossReason === 'hazard' ? 'Hạt vướng gai. Thử cắt ở nhịp khác.' : 'Hạt bay khỏi vườn. Thử lại nhé.');
       }
       lastFrame = timestamp;
       render();
@@ -208,14 +230,14 @@
 
     function interrupt() {
       if (model.pause()) {
-        stopLoop(); dragStart = null; dragCurrent = null;
+        stopLoop(); dragStart = null; dragCurrent = null; activePointerId = null;
         setMessage('Tự tạm dừng khi rời trò chơi.'); render();
       }
     }
 
     function togglePause() {
       if (model.pause()) {
-        stopLoop(); dragStart = null; dragCurrent = null; setMessage('Đã tạm dừng.'); render();
+        stopLoop(); dragStart = null; dragCurrent = null; activePointerId = null; setMessage('Đã tạm dừng.'); render();
       } else if (model.resume()) {
         setMessage('Tiếp tục đung đưa.'); render(); schedule();
       }
@@ -229,7 +251,7 @@
 
     function applyCut(start, end) {
       const result = model.cut(start, end);
-      if (result.cut) setMessage('Dây đã đứt! Kẹo đang bay…');
+      if (result.cut) setMessage('Dây đã đứt! Hạt đang bay…');
       else if (result.accepted && model.view().attached) setMessage('Vuốt ngang qua đoạn dây để cắt.');
       render();
       if (model.view().status === 'playing') schedule();
@@ -244,24 +266,28 @@
     }
 
     function restart() {
-      model.restart(); dragStart = null; dragCurrent = null;
-      setMessage('Màn mới. Chờ kẹo đung đưa rồi cắt dây.'); render(); schedule();
+      model.restart(); dragStart = null; dragCurrent = null; activePointerId = null;
+      setMessage('Màn mới. Canh nhịp đung đưa rồi cắt dây.'); render(); schedule();
     }
 
     listen(canvas, 'pointerdown', event => {
-      if (model.view().status !== 'playing' || !model.view().attached) return;
+      if (dragStart || model.view().status !== 'playing' || !model.view().attached) return;
       if (event.button !== undefined && event.button !== 0) return;
-      event.preventDefault?.(); dragStart = gamePoint(event); dragCurrent = dragStart; render();
+      event.preventDefault?.(); activePointerId = event.pointerId ?? null; dragStart = gamePoint(event); dragCurrent = dragStart; render();
     });
     listen(canvas, 'pointermove', event => {
-      if (!dragStart) return;
+      if (!dragStart || (activePointerId !== null && event.pointerId !== activePointerId)) return;
       dragCurrent = gamePoint(event); render();
     });
     listen(root.document, 'pointerup', event => {
-      if (!dragStart) return;
+      if (!dragStart || (activePointerId !== null && event.pointerId !== activePointerId)) return;
       const start = dragStart, end = gamePoint(event);
-      dragStart = null; dragCurrent = null;
+      dragStart = null; dragCurrent = null; activePointerId = null;
       applyCut(start, end);
+    });
+    listen(root.document, 'pointercancel', event => {
+      if (!dragStart || (activePointerId !== null && event.pointerId !== activePointerId)) return;
+      dragStart = null; dragCurrent = null; activePointerId = null; render();
     });
     listen(el('ctCut'), 'click', cutFromButton);
     listen(el('ctPause'), 'click', togglePause);
@@ -273,7 +299,7 @@
       if (v.status === 'lost' || v.status === 'won') {
         if (v.status === 'won') model.nextLevel(); else model.restart();
       } else if (v.status === 'campaign-won') model.newGame();
-      setMessage('Màn mới. Canh lúc kẹo đung đưa rồi cắt dây.'); render(); schedule();
+      setMessage('Màn mới. Canh nhịp đung đưa rồi cắt dây.'); render(); schedule();
     });
     listen(root.document, 'keydown', event => {
       if (!alive || event.altKey || event.ctrlKey || event.metaKey || event.repeat) return;
@@ -291,12 +317,12 @@
     listen(root, 'pagehide', interrupt);
     onCleanup(() => {
       if (!alive) return;
-      alive = false; stopLoop(); dragStart = null; dragCurrent = null;
+      alive = false; stopLoop(); dragStart = null; dragCurrent = null; activePointerId = null;
       container.classList.remove('ct-host'); container.innerHTML = '';
     });
 
     render(); schedule();
-    return { getModel: () => model, restart, togglePause, cut: cutFromButton, destroy: () => { alive = false; stopLoop(); container.classList.remove('ct-host'); container.innerHTML = ''; } };
+    return { getModel: () => model, restart, togglePause, cut: cutFromButton, destroy: () => { alive = false; stopLoop(); dragStart = null; dragCurrent = null; activePointerId = null; container.classList.remove('ct-host'); container.innerHTML = ''; } };
   }
 
   root.NP_CutRope = Object.freeze({ mount });

@@ -313,14 +313,14 @@ window.__NP_GAMES_CACHE__ = [
   },
   {
     "id": "typer-shark",
-    "title": "Typer Shark Luyện Gõ",
-    "tagline": "Gõ đúng chữ trên lưng cá mập trước khi bị cắn!",
+    "title": "Đốm Biển",
+    "tagline": "Gõ ký tự trên sinh vật biển phát sáng trước khi chúng chạm bờ.",
     "category": "Kỹ năng",
     "section": "all",
     "players": "1 người",
     "duration": "3-5 phút",
-    "mechanic": "Gõ phím theo ký tự bơi của đàn cá mập đại dương",
-    "badge": "PopCap",
+    "mechanic": "Gõ chín từ qua ba đợt sinh vật biển với thời hạn riêng cho từng mục tiêu",
+    "badge": "Bản thử",
     "color": "#3B82F6"
   },
   {
@@ -409,14 +409,14 @@ window.__NP_GAMES_CACHE__ = [
   },
   {
     "id": "cut-the-rope",
-    "title": "Cắt Dây Cho Ếch Om Nom",
-    "tagline": "Cắt dây đưa kẹo ngọt vào miệng chú ếch.",
+    "title": "Mầm Măm",
+    "tagline": "Cắt dây, gom sao và đón hạt vào miệng Mầm.",
     "category": "Giải đố",
     "section": "all",
     "players": "1 người",
     "duration": "2-5 phút",
-    "mechanic": "Cắt dây trọng lực kết hợp bong bóng bay ăn 3 ngôi sao",
-    "badge": "Kinh điển",
+    "mechanic": "Canh nhịp cắt dây để gom sao và đưa hạt qua các chặng có vật cản",
+    "badge": "Bản thử",
     "color": "#183D32"
   },
   {
@@ -517,14 +517,14 @@ window.__NP_GAMES_CACHE__ = [
   },
   {
     "id": "pinball-3d-space-cadet",
-    "title": "Pinball 3D Space Cadet",
-    "tagline": "Phóng quả bi sắt nảy ăn điểm trạm vũ trụ.",
+    "title": "Cú Sao Gác Đèn",
+    "tagline": "Lật cần giữ bi trên bàn và thắp sáu đèn mục tiêu.",
     "category": "Kỹ năng",
     "section": "all",
     "players": "1 người",
     "duration": "3-7 phút",
-    "mechanic": "Hai cần gạt hứng bóng sắt va đập còi hụ nhân điểm",
-    "badge": "Windows",
+    "mechanic": "Điều khiển hai cần gạt đưa bi qua sáu đèn trong tối đa ba lượt",
+    "badge": "Bản thử",
     "color": "#C8FF4A"
   },
   {
@@ -1621,14 +1621,14 @@ window.__NP_GAMES_CACHE__ = [
   },
   {
     "id": "qbert-nhay-khoi-lap-phuong",
-    "title": "Nhảy Bậc Kim Tự Tháp",
-    "tagline": "Nhảy đổi màu từng ô lập phương, chửi bới ngộ nghĩnh né rắn Coily!",
+    "title": "Sắc Bậc",
+    "tagline": "Nhảy chéo trên tháp pha lê, thắp mọi bậc và né luồng tuần tra.",
     "category": "Giải đố",
     "section": "classic",
     "players": "1 người",
     "duration": "3-6 phút",
-    "mechanic": "Nhảy chéo 4 hướng trên kim tự tháp khối lập phương Isometric 3D, đổi màu mặt trên của từng khối lập phương sang màu mục tiêu",
-    "badge": "Tuổi thơ",
+    "mechanic": "Bốn hướng nhảy chéo đổi màu các bậc, né tín hiệu tuần tra qua ba tầng",
+    "badge": "Bản thử",
     "color": "#F59E0B"
   },
   {

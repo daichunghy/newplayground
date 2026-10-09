@@ -61,6 +61,20 @@ test('each bumper and drop plate lights once, scores, and physically rebounds th
   }
 });
 
+test('a dead-center bumper hit chooses a stable outward normal instead of trapping the ball', () => {
+  const bumper = M.TARGETS.find(target => target.kind === 'bumper');
+  const state = M.initialState();
+  state.status = 'playing';
+  state.ball = { x: bumper.x, y: bumper.y, vx: 0, vy: -M.GRAVITY * M.STEP };
+  const model = M.makeModel(state);
+  const events = model.advance(M.STEP);
+  const view = model.view();
+  assert.ok(events.some(event => event.id === bumper.id));
+  assert.equal(view.targets[bumper.id], true);
+  assert.ok(view.ball.y < bumper.y, 'the degenerate center normal ejects the ball upward');
+  assert.ok(Number.isFinite(view.ball.vx) && Number.isFinite(view.ball.vy));
+});
+
 test('lighting the final remaining target wins with a visible score result', () => {
   const finalTarget = M.TARGETS.find(target => target.kind === 'plate');
   const model = M.makeModel(contactState(finalTarget, { litOtherTargets: true }));
@@ -118,6 +132,26 @@ test('pause freezes the simulation, resume continues, and restart clears score a
   assert.equal(model.view().score, 0);
   assert.equal(model.view().ballsLeft, M.BALLS);
   assert.equal(model.view().targetHits, 0);
+});
+
+test('state boundaries reject impossible terminal states and cap restored velocity', () => {
+  const impossiblePause = M.initialState();
+  impossiblePause.status = 'paused';
+  assert.throws(() => M.makeModel(impossiblePause), /inconsistent/i);
+
+  const impossibleLoss = M.initialState();
+  impossibleLoss.status = 'lost';
+  assert.throws(() => M.makeModel(impossibleLoss), /inconsistent/i);
+
+  const fast = M.initialState();
+  fast.ball.vx = M.MAX_SPEED * 2;
+  const model = M.makeModel(fast);
+  assert.ok(Math.hypot(model.view().ball.vx, model.view().ball.vy) <= M.MAX_SPEED);
+  fast.status = 'playing';
+  fast.ball = { x: 52, y: 80, vx: 0, vy: M.MAX_SPEED };
+  const falling = M.makeModel(fast);
+  falling.advance(M.MAX_FRAME);
+  assert.ok(Math.hypot(falling.view().ball.vx, falling.view().ball.vy) <= M.MAX_SPEED + 1e-8);
 });
 
 test('invalid time and flipper inputs leave the model unchanged', () => {

@@ -41,9 +41,10 @@ function nextUnlitMove(model) {
   return best?.[0] || null;
 }
 
-test('mounts 28 labeled pyramid cells, a score HUD, and four 48px touch directions', () => {
+test('mounts original Sắc Bậc identity, 28 labeled cells, and four 48px touch directions', () => {
   const h = setup();
-  assert.match(h.container.innerHTML, /Nhảy Bậc Kim Tự Tháp/);
+  assert.match(h.container.innerHTML, /Sắc Bậc/);
+  assert.doesNotMatch(h.container.innerHTML, /Nhảy Bậc Kim Tự Tháp|Q\*bert|Om Nom|Space Cadet|Typer Shark/i);
   assert.equal(h.container.querySelectorAll('.qbp-tile').length, 28);
   assert.equal(h.container.querySelectorAll('.qbp-control').length, 4);
   assert.equal(h.container.querySelector('#qbpLevel').textContent, '1 / 3');
@@ -51,6 +52,12 @@ test('mounts 28 labeled pyramid cells, a score HUD, and four 48px touch directio
   assert.equal(h.container.querySelector('#qbpScore').textContent, '100');
   assert.match(h.container.querySelector('#qbpDownLeft').getAttribute('aria-label'), /phím Z/);
   assert.match(read('scripts/games/qbert-pyramid.css'), /\.qbp-button\s*\{[^}]*min-width:\s*48px[^}]*min-height:\s*48px/s);
+  assert.match(read('scripts/games/qbert-pyramid.css'), /\.qbp-player\s*\{[^}]*clip-path:/s, 'the hero is a faceted prism');
+  assert.doesNotMatch(read('scripts/games/qbert-pyramid.css'), /box-shadow:\s*7px\s+0/, 'paired-eye styling is gone');
+  const cover = read('assets/covers/qbert-pyramid-original.svg');
+  assert.match(cover, /<title[^>]*>Sắc Bậc/);
+  assert.match(cover, /M0 -34 26 -19/);
+  assert.doesNotMatch(cover, /cx="-8"|Q\*bert|Om Nom|Space Cadet|Typer Shark/i);
   h.close();
 });
 
@@ -68,6 +75,25 @@ test('touch controls and diagonal keyboard keys update position, color, and scor
   h.close();
 });
 
+test('arrow keys match all four diagonal directions and ignore key repeat', () => {
+  const h = setup(1), model = h.game.getModel();
+  const press = key => h.window.dispatch('keydown', { key, target: h.container });
+  h.container.querySelector('#qbpDownRight').click(); // 1,1
+  h.container.querySelector('#qbpDownLeft').click(); // 2,1
+  press('ArrowUp');
+  assert.equal(model.view().player.id, '1,0');
+  press('ArrowDown');
+  assert.equal(model.view().player.id, '0,0');
+  press('ArrowLeft');
+  assert.equal(model.view().player.id, '1,0');
+  press('ArrowRight');
+  assert.equal(model.view().player.id, '2,1');
+  const snapshot = model.view();
+  h.window.dispatch('keydown', { key: 'ArrowLeft', repeat: true, target: h.container });
+  assert.deepEqual(model.view(), snapshot);
+  h.close();
+});
+
 test('pause, visibility and pagehide stop turns until explicit resume; restart resets the board', () => {
   const h = setup(), model = h.game.getModel();
   const originalTime = model.view().timeLeft;
@@ -77,6 +103,7 @@ test('pause, visibility and pagehide stop turns until explicit resume; restart r
   assert.equal(model.view().timeLeft, originalTime);
   h.container.querySelector('#qbpOverlayAction').click();
   assert.equal(model.view().status, 'playing');
+  assert.equal(h.container.querySelector('#qbpPause').focused, true, 'focus returns to the pause control after resume');
   h.document.hidden = true; h.document.dispatch('visibilitychange');
   assert.equal(model.view().status, 'paused');
   h.document.hidden = false; h.container.querySelector('#qbpOverlayAction').click();
@@ -129,4 +156,43 @@ test('terminal timer and life loss show retry states; direct destroy is idempote
   assert.equal(h.window.listenerCount(), 0);
   assert.equal(h.timers.size, 0);
   assert.deepEqual(h.errors, []);
+});
+
+test('six patrol collisions show the terminal state and block touch and keyboard moves', () => {
+  const h = setup(1), model = h.game.getModel();
+  for (let hit = 1; hit <= h.context.NP_QbertPyramidModel.MAX_LIVES; hit++) {
+    h.container.querySelector('#qbpDownLeft').click(); // first step also consumes respawn grace after a hit
+    h.container.querySelector('#qbpDownLeft').click();
+    h.container.querySelector('#qbpDownRight').click();
+  }
+  assert.equal(model.view().status, 'lost');
+  assert.equal(model.view().lossReason, 'enemy');
+  assert.equal(h.container.querySelector('#qbpOverlayTitle').textContent, 'Hết lượt sống');
+  assert.equal(h.container.querySelector('#qbpDownLeft').disabled, true);
+  const ended = model.view();
+  h.window.dispatch('keydown', { key: 'c', target: h.container });
+  assert.deepEqual(model.view(), ended);
+  h.close();
+});
+
+test('the final-tile patrol hit explains why one safe hop is still needed to clear the level', () => {
+  const h = setup(123), model = h.game.getModel();
+  const buttons = { upLeft: 'qbpUpLeft', upRight: 'qbpUpRight', downLeft: 'qbpDownLeft', downRight: 'qbpDownRight' };
+  const path = [
+    'downLeft', 'downRight', 'upRight', 'downRight', 'downRight', 'downRight', 'downRight', 'downRight',
+    'upLeft', 'downLeft', 'upLeft', 'downLeft', 'upLeft', 'upLeft', 'upRight', 'downRight', 'downLeft',
+    'downLeft', 'upLeft', 'downLeft', 'downLeft', 'downLeft', 'downLeft', 'downLeft', 'downLeft', 'upRight',
+    'downRight', 'upRight', 'downRight', 'upLeft', 'upRight'
+  ];
+  for (const direction of path) {
+    h.container.querySelector('#' + buttons[direction]).click();
+    assert.equal(model.view().status, 'playing');
+  }
+  assert.equal(model.view().goalsFound, 27);
+  h.container.querySelector('#' + buttons.upRight).click();
+  assert.equal(model.view().goalsFound, 28);
+  assert.equal(model.view().levelNumber, 1);
+  assert.match(h.container.querySelector('#qbpStatus').textContent, /Nhảy an toàn để sang tầng/);
+  assert.equal(h.container.querySelector('#qbpOverlay').hidden, true);
+  h.close();
 });

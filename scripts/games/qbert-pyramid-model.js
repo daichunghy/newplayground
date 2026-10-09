@@ -1,4 +1,4 @@
-/* Original turn-based pyramid hopping rules for Nhảy Bậc Kim Tự Tháp. */
+/* Turn-based pyramid hopping rules for Sắc Bậc. */
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -26,6 +26,7 @@
   const keyOf = (row, col) => `${row},${col}`;
 
   function seedValue(seed) {
+    if (seed === undefined || seed === null) return 1;
     if (Number.isFinite(seed)) return (seed >>> 0) || 1;
     let hash = 2166136261;
     for (const ch of String(seed ?? 1)) hash = Math.imul(hash ^ ch.charCodeAt(0), 16777619) >>> 0;
@@ -201,11 +202,13 @@
         }
 
         if (state.status === 'lost') return { accepted: true, status: state.status, event: state.lastEvent, lives: state.lives, level: state.level };
+        // A patrol collision resolves before tile completion. The player may
+        // light the last tile on a hit, but must survive the contact to clear it.
+        if (contacted) return { accepted: true, status: state.status, event: state.lastEvent, lives: state.lives, level: state.level };
         if (state.goalsFound === TILE_COUNT) {
           const event = finishLevel();
           return { accepted: true, status: state.status, event, lives: state.lives, level: state.level };
         }
-        if (contacted) return { accepted: true, status: state.status, event: state.lastEvent, lives: state.lives, level: state.level };
         state.lastEvent = collectedTile ? 'landed' : 'revisit';
         return { accepted: true, status: state.status, event: state.lastEvent, lives: state.lives, level: state.level };
       },

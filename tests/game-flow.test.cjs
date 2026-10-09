@@ -39,7 +39,21 @@ test('catalog routing uses one exact launcher for prototypes and none for planne
   assert.equal(h.context.openGameById('not-in-catalog'), false);
 });
 
-test('Cắt Dây, Pinball Quỹ Đạo, Gõ Chữ Nhanh and Nhảy Bậc Kim Tự Tháp use exact routes and clean up', () => {
+test('the four rebranded games keep their stable catalog IDs', () => {
+  const displayNames = new Map([
+    ['cut-the-rope', 'Mầm Măm'],
+    ['pinball-3d-space-cadet', 'Cú Sao Gác Đèn'],
+    ['typer-shark', 'Đốm Biển'],
+    ['qbert-nhay-khoi-lap-phuong', 'Sắc Bậc'],
+  ]);
+  for (const [id, title] of displayNames) {
+    const game = games.find(game => game.id === id);
+    assert.equal(game?.title, title, id);
+    assert.equal(game?.badge, 'Bản thử', id + ' has no legacy publisher/platform badge');
+  }
+});
+
+test('Mầm Măm, Cú Sao Gác Đèn, Đốm Biển and Sắc Bậc keep exact routes and clean up', () => {
   const h = harness();
   const cases = [
     ['cut-the-rope', '#ctGame', 'assets/covers/cut-rope-original.svg'],

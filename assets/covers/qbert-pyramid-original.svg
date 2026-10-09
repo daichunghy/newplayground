@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
-  <title id="title">Nhảy Bậc Kim Tự Tháp — original cover</title>
-  <desc id="desc">An original geometric crystal pyramid with a small mint jumper and coral patrol shapes.</desc>
+  <title id="title">Sắc Bậc — NewPlayground original cover</title>
+  <desc id="desc">A faceted mint prism hops across a geometric crystal staircase while coral zigzag markers patrol.</desc>
   <defs>
     <linearGradient id="sky" x1="0" y1="0" x2="0.9" y2="1">
       <stop offset="0" stop-color="#e9f5d8"/>
@@ -62,19 +62,21 @@
     <path d="M928 460 846 502 846 545 928 503Z" fill="url(#shadow)"/>
   </g>
 
-  <g transform="translate(600 218)">
-    <circle r="29" fill="#b2edbf" stroke="#fafff0" stroke-width="6"/>
-    <circle cx="-8" cy="-3" r="3.5" fill="#244e45"/><circle cx="8" cy="-3" r="3.5" fill="#244e45"/>
-    <path d="M-7 9 Q0 15 7 9" fill="none" stroke="#244e45" stroke-width="3" stroke-linecap="round"/>
+  <g transform="translate(600 218)" stroke-linejoin="round">
+    <path d="M0 -34 26 -19 22 10 2 34 -24 18 -29 -11Z" fill="#77c9a5" stroke="#fafff0" stroke-width="5"/>
+    <path d="M0 -27 1 4 -21 15 -25 -9Z" fill="#d4f1aa" opacity=".95"/>
+    <path d="M2 -24 22 -13 18 8 2 27Z" fill="#4a9b8d"/>
+    <path d="M-16 -13 -4 -22 -2 -8 -13 -2Z" fill="#fffbd0" stroke="none"/>
+    <path d="M-11 41 0 33 9 40 0 46Z" fill="#f9e69a" stroke="none" opacity=".8"/>
   </g>
-  <g fill="#dc7861" stroke="#fff3d7" stroke-width="5">
-    <path d="M311 421 332 432 311 443 290 432Z"/><path d="M879 379 900 390 879 401 858 390Z"/>
+  <g fill="#dc7861" stroke="#fff3d7" stroke-width="5" stroke-linejoin="round">
+    <path d="M311 416 322 427 339 425 332 438 338 450 321 445 308 454 309 438 297 428 313 427Z"/>
+    <path d="M879 374 890 385 907 383 900 396 906 408 889 403 876 412 877 396 865 386 881 385Z"/>
   </g>
 
   <g font-family="Calibri, Inter, -apple-system, sans-serif">
     <text x="68" y="104" fill="#28594f" font-size="22" font-weight="800" letter-spacing="5">NEWPLAYGROUND · ORIGINAL GAME</text>
-    <text x="68" y="174" fill="#173c38" font-size="47" font-weight="900">NHẢY BẬC</text>
-    <text x="68" y="232" fill="#173c38" font-size="47" font-weight="900">KIM TỰ THÁP</text>
-    <text x="70" y="278" fill="#476f63" font-size="22" font-weight="700">Sáng từng bậc · né đường tuần tra · chạm đỉnh</text>
+    <text x="68" y="174" fill="#173c38" font-size="55" font-weight="900">SẮC BẬC</text>
+    <text x="70" y="222" fill="#476f63" font-size="22" font-weight="700">Nhảy đổi màu · né tuần tra · sáng cả đỉnh</text>
   </g>
 </svg>

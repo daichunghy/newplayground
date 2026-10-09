@@ -20,7 +20,7 @@ function setup() {
   return h;
 }
 
-function swipeAcross(h, segment) {
+function swipeAcross(h, segment, pointerId = 1) {
   const mid = { x: (segment.start.x + segment.end.x) / 2, y: (segment.start.y + segment.end.y) / 2 };
   const dx = segment.end.x - segment.start.x, dy = segment.end.y - segment.start.y;
   const length = Math.hypot(dx, dy) || 1;
@@ -28,14 +28,14 @@ function swipeAcross(h, segment) {
   const start = { x: mid.x - half.x, y: mid.y - half.y };
   const end = { x: mid.x + half.x, y: mid.y + half.y };
   const canvas = el(h, 'ctArena');
-  canvas.dispatch('pointerdown', { clientX: start.x, clientY: start.y, button: 0, pointerType: 'touch' });
-  h.document.dispatch('pointerup', { clientX: end.x, clientY: end.y, pointerType: 'touch' });
+  canvas.dispatch('pointerdown', { clientX: start.x, clientY: start.y, button: 0, pointerType: 'touch', pointerId });
+  h.document.dispatch('pointerup', { clientX: end.x, clientY: end.y, pointerType: 'touch', pointerId });
 }
 
 test('mounts original scene, clear instructions, score, and accessible large controls', () => {
   const h = setup(), view = h.game.getModel().view();
-  assert.match(h.container.innerHTML, /<h2>Cắt Dây<\/h2>/);
-  assert.match(h.container.innerHTML, /Vuốt qua dây để thả kẹo/);
+  assert.match(h.container.innerHTML, /<h2>Mầm Măm<\/h2>/);
+  assert.match(h.container.innerHTML, /Vuốt qua dây, gom sao, đưa hạt vào miệng Mầm/);
   assert.equal(el(h, 'ctArena').width, 360);
   assert.equal(el(h, 'ctArena').height, 540);
   assert.equal(view.levelCount, 3);
@@ -63,6 +63,22 @@ test('touch pointer swipe severs a rope segment; action button and Space key are
   h.document.dispatch('keydown', { target: el(h, 'ctArena'), key: ' ', code: 'Space', preventDefault() { prevented = true; } });
   assert.equal(prevented, true);
   assert.equal(model.view().attached, false, 'Space uses the accessible cut action');
+  h.close();
+});
+
+test('a second finger cannot finish a cut; pointer cancellation clears the drag without severing', () => {
+  const h = setup(), model = h.game.getModel(), segment = model.view().rope[3];
+  const mid = { x: (segment.start.x + segment.end.x) / 2, y: (segment.start.y + segment.end.y) / 2 };
+  const canvas = el(h, 'ctArena');
+  canvas.dispatch('pointerdown', { clientX: mid.x, clientY: mid.y, button: 0, pointerType: 'touch', pointerId: 17 });
+  h.document.dispatch('pointerup', { clientX: mid.x, clientY: mid.y, pointerType: 'touch', pointerId: 18 });
+  assert.equal(model.view().attached, true, 'an unrelated pointer cannot complete the active gesture');
+  h.document.dispatch('pointercancel', { pointerType: 'touch', pointerId: 18 });
+  assert.equal(model.view().attached, true, 'cancelling another pointer leaves the drag intact');
+  h.document.dispatch('pointercancel', { pointerType: 'touch', pointerId: 17 });
+  assert.equal(model.view().attached, true, 'cancelling the active pointer never cuts');
+  swipeAcross(h, model.view().rope[3], 19);
+  assert.equal(model.view().attached, false, 'a fresh gesture still cuts after cancellation');
   h.close();
 });
 
@@ -100,7 +116,7 @@ test('player can finish a stage, advance, restart, and the session disposes its 
   for (let i = 0; i < 90 && model.view().status === 'playing'; i++) h.frame();
   assert.equal(model.view().status, 'won');
   assert.equal(el(h, 'ctOverlay').hidden, false);
-  assert.equal(el(h, 'ctOverlayTitle').textContent, 'Đã cho ếch ăn!');
+  assert.equal(el(h, 'ctOverlayTitle').textContent, 'Mầm bắt được hạt!');
   assert.match(el(h, 'ctOverlayCopy').textContent, /điểm/);
   el(h, 'ctOverlayAction').click();
   assert.equal(model.view().level, 1);

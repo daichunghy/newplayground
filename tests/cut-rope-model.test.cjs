@@ -37,6 +37,13 @@ test('three authored stages define distinct swing routes, targets, and hazards',
   assert.ok(M.LEVELS[1].hazards.length > 0 && M.LEVELS[2].hazards.length > 0);
 });
 
+test('swept circle contact catches a fast crossing but rejects a near miss', () => {
+  assert.equal(M.circleContactOnSegment({ x: -20, y: 0 }, { x: 20, y: 0 }, { x: 0, y: 0 }, 5), 0.375);
+  assert.equal(M.circleContactOnSegment({ x: -20, y: 6 }, { x: 20, y: 6 }, { x: 0, y: 0 }, 5), null);
+  assert.equal(M.circleContactOnSegment({ x: 2, y: 0 }, { x: 2, y: 0 }, { x: 0, y: 0 }, 3), 0);
+  assert.equal(M.circleContactOnSegment({ x: 4, y: 0 }, { x: 4, y: 0 }, { x: 0, y: 0 }, 3), null);
+});
+
 test('fixed-step gravity creates a pendulum swing while the tether keeps its authored length', () => {
   const game = M.create(), before = game.view();
   const initialDistance = Math.hypot(before.candy.x - before.anchor.x, before.candy.y - before.anchor.y);

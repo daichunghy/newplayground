@@ -1129,11 +1129,29 @@ test('four new games take real input, fit mobile and desktop, and release sessio
         } else if (id === 'pinball-3d-space-cadet') {
           await target.locator('#opLaunch').click();
           await expect(target.locator('#opLaunch')).toBeDisabled();
-          await target.locator('#opLeft').dispatchEvent('pointerdown', { button: 0, pointerId: 4, pointerType: 'touch' });
-          await expect(target.locator('.op-flipper-art.is-active')).toHaveCount(1);
-          await target.locator('#opLeft').dispatchEvent('pointerup', { button: 0, pointerId: 4, pointerType: 'touch' });
+          const leftFlipper = target.locator('#opLeft');
+          await leftFlipper.scrollIntoViewIfNeeded();
+          const flipperBox = await leftFlipper.boundingBox();
+          if (mobile) {
+            const cdp = await target.context().newCDPSession(target);
+            await cdp.send('Input.dispatchTouchEvent', {
+              type: 'touchStart',
+              touchPoints: [{ x: flipperBox.x + flipperBox.width / 2, y: flipperBox.y + flipperBox.height / 2, id: 4 }]
+            });
+            await expect(leftFlipper).toHaveAttribute('aria-pressed', 'true');
+            await expect(target.locator('.op-flipper-art.is-active')).toHaveCount(1);
+            await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+            await cdp.detach();
+          } else {
+            await target.mouse.move(flipperBox.x + flipperBox.width / 2, flipperBox.y + flipperBox.height / 2);
+            await target.mouse.down();
+            await expect(leftFlipper).toHaveAttribute('aria-pressed', 'true');
+            await expect(target.locator('.op-flipper-art.is-active')).toHaveCount(1);
+            await target.mouse.up();
+          }
+          await expect(leftFlipper).toHaveAttribute('aria-pressed', 'false');
           await target.locator('#opPause').click();
-          await expect(target.locator('#opOverlayTitle')).toHaveText('Field paused');
+          await expect(target.locator('#opOverlayTitle')).toHaveText('Tạm dừng');
           await target.locator('#opOverlayAction').click();
           await target.locator('#opRestart').click();
           await expect(target.locator('#opTargets')).toHaveText('0 / 6');

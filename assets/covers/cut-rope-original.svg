@@ -1,44 +1,55 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" role="img" aria-labelledby="title desc">
-  <title id="title">Cắt Dây</title>
-  <desc id="desc">Một viên kẹo treo trên dây phía trên chú ếch lá đang đợi, giữa những ngôi sao.</desc>
+  <title id="title">Mầm Măm</title>
+  <desc id="desc">Một hạt vàng đung đưa trên dây phía trên Mầm, cây hạt tím có một mắt và miệng bát hứng, giữa vườn sao.</desc>
   <defs>
-    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#a8d9dc"/><stop offset=".64" stop-color="#f3e9cf"/><stop offset="1" stop-color="#b9d4a2"/></linearGradient>
-    <linearGradient id="frog" x2="0" y2="1"><stop stop-color="#96d895"/><stop offset="1" stop-color="#56a976"/></linearGradient>
-    <linearGradient id="candy" x2="0" y2="1"><stop stop-color="#ffa27c"/><stop offset="1" stop-color="#e06f5d"/></linearGradient>
-    <filter id="soft" x="-.3" y="-.3" width="1.6" height="1.6"><feGaussianBlur stdDeviation="16"/></filter>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#b9e7e1"/><stop offset=".61" stop-color="#f4e9cf"/><stop offset="1" stop-color="#d2dfa9"/></linearGradient>
+    <linearGradient id="mound" x2="0" y2="1"><stop stop-color="#c9dfa7"/><stop offset="1" stop-color="#8dbb8d"/></linearGradient>
+    <linearGradient id="sprout" x2="0" y2="1"><stop stop-color="#a9d897"/><stop offset="1" stop-color="#68a982"/></linearGradient>
+    <linearGradient id="seed" x2="0" y2="1"><stop stop-color="#f6cf79"/><stop offset="1" stop-color="#d99957"/></linearGradient>
+    <linearGradient id="mamm" x2="0" y2="1"><stop stop-color="#9e8bc5"/><stop offset="1" stop-color="#675f9d"/></linearGradient>
+    <filter id="glow" x="-.5" y="-.5" width="2" height="2"><feGaussianBlur stdDeviation="20"/></filter>
   </defs>
   <rect width="600" height="800" rx="40" fill="url(#sky)"/>
-  <circle cx="468" cy="146" r="68" fill="#fff4bd" opacity=".72"/>
-  <circle cx="468" cy="146" r="97" fill="#fff4bd" opacity=".22" filter="url(#soft)"/>
-  <path d="M0 515c105-78 191-73 297-13s186 53 303-4v302H0z" fill="#c8dba9"/>
-  <path d="M0 595c129-59 222-36 329 14s191 56 271 8v183H0z" fill="#9fc98f"/>
-  <g fill="#fff2bf" stroke="#db9d50" stroke-width="4">
-    <path d="m133 278 14 29 32 5-23 23 5 32-28-16-28 16 6-32-24-23 33-5z"/>
-    <path d="m452 322 10 20 22 3-16 16 4 22-20-11-20 11 4-22-16-16 22-3z"/>
-    <path d="m363 445 8 16 18 3-13 13 3 18-16-9-16 9 3-18-13-13 18-3z"/>
+  <circle cx="475" cy="142" r="87" fill="#fff0bb" opacity=".18" filter="url(#glow)"/>
+  <circle cx="475" cy="142" r="56" fill="#fff5ce" opacity=".8"/>
+  <path d="M0 510c91-65 177-80 285-22 109 59 197 62 315-8v320H0z" fill="url(#mound)"/>
+  <path d="M0 610c113-53 221-35 329 15s187 45 271 4v171H0z" fill="#83b388" opacity=".82"/>
+  <g fill="#fff2c8" stroke="#d99b50" stroke-width="4">
+    <path d="m142 278 13 27 30 5-22 21 5 30-26-15-27 15 5-30-22-21 30-5z"/>
+    <path d="m448 298 9 18 20 3-14 14 3 20-18-9-18 9 3-20-14-14 20-3z"/>
+    <path d="m372 431 8 16 18 3-13 12 3 18-16-8-16 8 3-18-13-12 18-3z"/>
   </g>
-  <path d="M300 42v71" stroke="#6e5140" stroke-width="12" stroke-linecap="round"/>
-  <circle cx="300" cy="114" r="18" fill="#7b5745" stroke="#4f3d36" stroke-width="5"/>
-  <path d="M300 131 300 349" stroke="#986d4c" stroke-width="9" stroke-linecap="round"/>
-  <g fill="#c79a67" stroke="#855e43" stroke-width="3">
-    <circle cx="300" cy="168" r="6"/><circle cx="300" cy="207" r="6"/><circle cx="300" cy="246" r="6"/><circle cx="300" cy="285" r="6"/><circle cx="300" cy="324" r="6"/>
+  <g fill="#f6f2dc" opacity=".56">
+    <ellipse cx="96" cy="140" rx="40" ry="11"/><ellipse cx="121" cy="132" rx="25" ry="15"/><ellipse cx="145" cy="141" rx="31" ry="10"/>
+    <ellipse cx="384" cy="205" rx="30" ry="9"/><ellipse cx="403" cy="199" rx="18" ry="12"/><ellipse cx="421" cy="206" rx="25" ry="8"/>
   </g>
-  <g transform="translate(300 382)">
-    <path d="m-37-12-26-17 4 35 24 13h70l24-13 4-35-26 17q-37-34-74 0z" fill="url(#candy)" stroke="#a94e4c" stroke-width="6" stroke-linejoin="round"/>
-    <ellipse cy="-2" rx="39" ry="33" fill="#ff9875" stroke="#a94e4c" stroke-width="6"/>
-    <ellipse cx="-11" cy="-12" rx="8" ry="5" fill="#fff0d4" opacity=".9"/>
+  <path d="M300 48v64" stroke="#735a4b" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="300" cy="118" r="16" fill="#8b6852" stroke="#604a43" stroke-width="5"/>
+  <path d="M300 134v205" stroke="#987653" stroke-width="8" stroke-linecap="round"/>
+  <g fill="#c8a36e" stroke="#886747" stroke-width="3"><circle cx="300" cy="174" r="5"/><circle cx="300" cy="214" r="5"/><circle cx="300" cy="254" r="5"/><circle cx="300" cy="294" r="5"/></g>
+  <!-- Original seed-pod collectible: an oval with leaflets, not wrapped candy. -->
+  <g transform="translate(300 374) rotate(-8)">
+    <path d="M-7 10Q-33 16-34-3q18 0 30 7" fill="#79ae79" stroke="#49775f" stroke-width="4"/>
+    <path d="M-3 5Q-2-21 16-20q-1 18-12 29" fill="#9ccb83" stroke="#49775f" stroke-width="4"/>
+    <path d="M-18 14Q-39-4-17-29Q0-48 18-27Q41-4 19 17Q1 34-18 14z" fill="url(#seed)" stroke="#a66f51" stroke-width="5"/>
+    <g fill="#fff1cd"><ellipse cx="-8" cy="-19" rx="3" ry="5"/><ellipse cx="9" cy="-11" rx="3" ry="5"/><ellipse cx="-13" cy="1" rx="3" ry="5"/><ellipse cx="5" cy="11" rx="3" ry="5"/></g>
+    <ellipse cx="-7" cy="-23" rx="5" ry="3" fill="#fff6d6" opacity=".74"/>
   </g>
-  <g transform="translate(300 615)">
-    <ellipse cy="38" rx="142" ry="36" fill="#46775a" opacity=".2"/>
-    <ellipse cy="4" rx="116" ry="88" fill="url(#frog)" stroke="#367c5b" stroke-width="9"/>
-    <circle cx="-63" cy="-55" r="39" fill="#77c98a" stroke="#367c5b" stroke-width="8"/>
-    <circle cx="63" cy="-55" r="39" fill="#77c98a" stroke="#367c5b" stroke-width="8"/>
-    <circle cx="-60" cy="-54" r="20" fill="#fff2d6"/><circle cx="66" cy="-54" r="20" fill="#fff2d6"/>
-    <circle cx="-55" cy="-50" r="8" fill="#28534b"/><circle cx="70" cy="-50" r="8" fill="#28534b"/>
-    <path d="M-69 17q69 74 138 0" fill="none" stroke="#285c4c" stroke-width="12" stroke-linecap="round"/>
-    <ellipse cy="57" rx="30" ry="13" fill="#d67d82"/>
+  <g transform="translate(300 618)">
+    <ellipse cy="76" rx="72" ry="16" fill="#344c62" opacity=".18"/>
+    <!-- Mầm is an upright pitcher-seed: one eye, an open bowl, a stem, and root leaves. -->
+    <path d="M0-70v-29" stroke="#547968" stroke-width="8" stroke-linecap="round"/>
+    <path d="M0-92q-48-42-51-2 26 26 51 2z" fill="url(#sprout)" stroke="#436c65" stroke-width="6"/>
+    <path d="M2-94q43-45 54-8-21 31-54 8z" fill="url(#sprout)" stroke="#436c65" stroke-width="6"/>
+    <path d="M-33 47Q-57 10-43-34q9-37 40-39 36-1 48 36 15 44-4 81-22 36-51 19-14-8-23-16z" fill="url(#mamm)" stroke="#50537e" stroke-width="8"/>
+    <path d="M-36-21Q-26-46-7-46q27-4 48 16Q21-8 1-7q-24 0-37-14z" fill="#b7a8d3" stroke="#50537e" stroke-width="7" stroke-linejoin="round"/>
+    <ellipse cy="-25" rx="27" ry="12" fill="#343e5d"/>
+    <path d="M-15-25q15-13 30 0-15 13-30 0z" fill="#f0a1a0"/>
+    <ellipse cx="12" cy="3" rx="8" ry="11" fill="#f3edce"/><circle cx="14" cy="5" r="3.5" fill="#313b60"/>
+    <path d="M-18 1q6 5 12 0m-17 13q5 4 10 0" fill="none" stroke="#d4a6d1" stroke-width="5" stroke-linecap="round"/>
+    <path d="M-20 57q-18 23-39 14 9-23 39-14zM14 59q19 20 38 8-11-22-38-8z" fill="#9dcc91" stroke="#547968" stroke-width="4"/>
   </g>
-  <rect x="52" y="686" width="496" height="77" rx="22" fill="#fff8e5" opacity=".88"/>
-  <text x="300" y="722" text-anchor="middle" font-family="Calibri, Inter, sans-serif" font-size="24" font-weight="800" letter-spacing="2" fill="#6b8570">VUỐT DÂY · NHẶT SAO</text>
-  <text x="300" y="757" text-anchor="middle" font-family="Calibri, Inter, sans-serif" font-size="30" font-weight="900" fill="#315f5a">CẮT DÂY</text>
+  <rect x="48" y="708" width="504" height="64" rx="22" fill="#fff8e5" opacity=".9"/>
+  <text x="300" y="735" text-anchor="middle" font-family="Calibri, Inter, sans-serif" font-size="17" font-weight="800" letter-spacing="3" fill="#6a8470">VUỐT DÂY · NHẶT SAO</text>
+  <text x="300" y="763" text-anchor="middle" font-family="Calibri, Inter, sans-serif" font-size="29" font-weight="900" fill="#514f80">MẦM MĂM</text>
 </svg>

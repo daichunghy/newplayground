@@ -15,13 +15,16 @@ function open(options = {}) {
   return h;
 }
 
-test('mounts the original table, six target marks, score, three balls and accessible controls', () => {
+test('mounts Cú Sao Gác Đèn with its original owl art, six targets and accessible controls', () => {
   const h = open();
   for (const id of ['opTable', 'opScore', 'opBalls', 'opTargets', 'opLeft', 'opRight', 'opLaunch', 'opPause', 'opRestart', 'opOverlay']) assert.ok(el(h, id), id);
   assert.equal(h.game.getModel().view().status, 'ready');
   assert.equal(el(h, 'opBalls').textContent, '3');
   assert.equal(el(h, 'opTargets').textContent, '0 / 6');
+  assert.match(h.container.innerHTML, /Cú Sao Gác Đèn/);
+  assert.match(h.container.innerHTML, /op-mascot/);
   assert.match(el(h, 'opDynamic').innerHTML, /op-bumper/);
+  assert.doesNotMatch(h.container.innerHTML, /Space Cadet|Orbital Cadet|Orbit Field/i);
   assert.match(read('scripts/games/orbit-pinball.css'), /max-width: 360px/);
   assert.match(read('scripts/games/orbit-pinball.css'), /min-height: 50px/);
   assert.match(read('scripts/games/orbit-pinball.js'), /pagehide/);
@@ -36,8 +39,10 @@ test('launch, touch flippers, keyboard controls and pause/resume use one model a
 
   el(h, 'opLeft').dispatch('pointerdown', { pointerType: 'touch', preventDefault() {} });
   assert.equal(model.view().flippers.left, true);
+  assert.equal(el(h, 'opLeft').getAttribute('aria-pressed'), 'true');
   el(h, 'opLeft').dispatch('pointerup');
   assert.equal(model.view().flippers.left, false);
+  assert.equal(el(h, 'opLeft').getAttribute('aria-pressed'), 'false');
   el(h, 'opRight').dispatch('pointerdown', { pointerType: 'touch', preventDefault() {} });
   assert.equal(model.view().flippers.right, true);
   el(h, 'opRight').dispatch('pointercancel');
@@ -59,6 +64,7 @@ test('launch, touch flippers, keyboard controls and pause/resume use one model a
   assert.equal(el(h, 'opOverlay').hidden, false);
   el(h, 'opOverlayAction').click();
   assert.equal(model.view().status, 'playing');
+  assert.equal(el(h, 'opGame').focused, true, 'keyboard focus returns to the board when the pause overlay closes');
   assert.equal(h.frames.size, 1);
   h.container.dispatch('keydown', { key: 'r', repeat: false });
   assert.equal(model.view().status, 'ready');
@@ -75,8 +81,8 @@ test('a real final-target collision renders a win overlay and replay resets the 
   const h = open({ initialState: state }), model = h.game.getModel();
   h.frame(); h.frame();
   assert.equal(model.view().status, 'won');
-  assert.equal(el(h, 'opOverlayTitle').textContent, 'Orbit cleared!');
-  assert.match(el(h, 'opOverlayCopy').textContent, /all six targets/i);
+  assert.equal(el(h, 'opOverlayTitle').textContent, 'Sáng cả sáu đèn!');
+  assert.match(el(h, 'opOverlayCopy').textContent, /Cú Sao/);
   assert.equal(h.frames.size, 0);
   el(h, 'opOverlayAction').click();
   assert.equal(model.view().status, 'ready');
@@ -89,6 +95,7 @@ test('hidden tab and pagehide pause without auto-resuming; session stop releases
   el(h, 'opLaunch').click(); h.frame(); h.frame();
   h.document.hidden = true; h.document.dispatch('visibilitychange');
   assert.equal(model.view().status, 'paused');
+  assert.equal(model.view().flippers.left, false);
   assert.equal(h.frames.size, 0);
   h.document.hidden = false; h.document.dispatch('visibilitychange');
   assert.equal(model.view().status, 'paused');
@@ -100,4 +107,20 @@ test('hidden tab and pagehide pause without auto-resuming; session stop releases
   h.close();
   assert.equal(h.window.listenerCount(), 0);
   assert.equal(h.document.listenerCount(), h.baseDocumentListeners);
+});
+
+test('restart releases both held flippers and remains responsive after a held pointer is cancelled', () => {
+  const h = open(), model = h.game.getModel();
+  el(h, 'opLeft').dispatch('pointerdown', { pointerType: 'touch', pointerId: 8, preventDefault() {} });
+  el(h, 'opRight').dispatch('pointerdown', { pointerType: 'touch', pointerId: 9, preventDefault() {} });
+  assert.equal(model.view().flippers.left, true);
+  assert.equal(model.view().flippers.right, true);
+  el(h, 'opRight').dispatch('lostpointercapture');
+  assert.equal(model.view().flippers.right, false);
+  el(h, 'opRestart').click();
+  assert.equal(model.view().flippers.left, false);
+  assert.equal(model.view().flippers.right, false);
+  assert.equal(el(h, 'opLeft').classList.contains('is-pressed'), false);
+  assert.equal(el(h, 'opRight').classList.contains('is-pressed'), false);
+  h.close();
 });

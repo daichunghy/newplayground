@@ -19,6 +19,7 @@
 .op-table { display: block; width: min(100%, 392px); height: auto; max-height: 64vh; object-fit: contain; overflow: visible; filter: drop-shadow(0 8px 13px #060d224d); }
 .op-svg-title { fill: #a6e6dc; font: 800 11px Calibri, Inter, sans-serif; letter-spacing: 3px; text-anchor: middle; }
 .op-svg-label { fill: #8bdfe0; font: 800 7px Calibri, Inter, sans-serif; letter-spacing: 1.1px; }
+.op-mascot { filter: drop-shadow(0 3px 4px #09142c88); }
 .op-bumper-halo { fill: #f7c767; opacity: .08; transition: opacity .12s ease-out; }
 .op-bumper.is-lit .op-bumper-halo { fill: #8bf3dc; opacity: .42; }
 .op-bumper-core { fill: #f3e2a8; stroke: #a44e64; stroke-width: 3; }
@@ -49,13 +50,14 @@
 .op-overlay-card .op-button { width: 100%; }
 @media (max-width: 360px) {
   .op-game { padding: 8px; border-radius: 16px; }
-  .op-kicker { font-size: .59rem; }
+  .op-kicker { display: none; }
+  .op-head h2 { font-size: 1rem; white-space: nowrap; }
   .op-hud { gap: 5px; padding: 7px; }
-  .op-table { width: min(100%, 328px); max-height: 57vh; }
+  .op-table { width: min(100%, 328px); max-height: 40vh; }
   .op-controls { gap: 5px; }
   .op-flipper, .op-launch { min-height: 48px; padding: 5px; }
   .op-flipper span { font-size: .61rem; }
-  .op-help { font-size: .66rem; }
+  .op-help { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .op-bumper-halo { transition: none; }

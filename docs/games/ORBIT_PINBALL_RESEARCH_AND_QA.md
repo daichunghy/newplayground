@@ -1,29 +1,33 @@
-# Orbit pinball prototype: research and QA
+# Cú Sao Gác Đèn: research and QA
 
-## Scope and identity
+## Identity and artwork
 
-`pinball-3d-space-cadet` is the catalog locator for this original browser prototype. The historic title is used only to identify the requested catalog slot. The title treatment, table art, layout, field geometry, target arrangement, code, and soundless play loop here were authored for NewPlayground. Rights clearance and any claim of parity with the historic game remain unverified; no source assets, branded artwork, or copied table layout were used.
+The user-facing title is **Cú Sao Gác Đèn**. Its stable catalog locator remains `pinball-3d-space-cadet` so existing links and saved IDs continue to resolve; the locator is not shown in the game UI. Cú Sao is an original owl-like lamp keeper created for NewPlayground, shown in the inline game SVG and the cover.
 
-The play surface is a responsive SVG scene backed by a deterministic JavaScript model. It is deliberately two dimensional and lightweight so it can run without a graphics or physics dependency.
+The table and cover were authored as SVG paths, circles, gradients, and text in this repository. They contain no linked raster files, external image URLs, sprites, font downloads, or copied table image. The renderer draws the ball, bumpers, plates, rails, flippers, and mascot from code-native SVG. No third-party artwork or source imagery is used. This is an original two-dimensional design, not an attempt to recreate a named commercial table.
 
 ## Rules and physics
 
-- One launched ball is active at a time. The player has three balls; crossing the lower drain costs one and serves the next from the launcher lane.
-- Gravity, wall responses, bumpers, six one-time targets, and both flippers run in fixed 1/120-second steps. Frame deltas are capped before simulation.
-- Three upper bumpers and three lower relay plates light when contacted. Each unique target adds its authored score; bumpers can award a smaller repeat-hit score. Lighting all six targets wins immediately. Draining all three balls first loses.
-- Flippers are simplified line-segment contacts with a stronger upward impulse while held. They do not model coil timing, table tilt, 3D spin, material restitution, or calibrated real-machine geometry. That keeps the rules small and outcomes repeatable; it is not a real-world pinball simulation.
+- Launch one ball at a time. The player starts with three balls; crossing the lower drain costs one and serves the next from the launcher lane.
+- Gravity, wall responses, three upper bumpers, three lower relay plates, and both flippers run in fixed 1/120-second steps. Frame deltas and ball speed are capped.
+- Each of the six distinct lamps scores once. Bumpers can award a smaller repeat-hit score. Lighting every lamp wins; draining all three balls loses.
+- Flippers use authored line-segment contacts and a stronger upward impulse while held. The simplified model has no coil timing, table tilt, 3D spin, material calibration, or real-machine geometry.
+- Degenerate bumper-center contact uses a stable outward normal, and restored state velocities are limited to the same speed cap as live play.
 
 ## Controls and lifecycle
 
-- Launch: Launch button or Space.
-- Left flipper: hold the left touch button, Left Arrow, or A.
-- Right flipper: hold the right touch button, Right Arrow, or D.
-- Pause/resume: pause button or P. Restart: restart button or R.
-- Touch controls are at least 44 CSS pixels high. Keyboard, touch, and pointer input operate the same model.
-- The game owns its animation frame and listeners through `NP_GameSession`; hidden-tab, pagehide, and window blur interruptions pause play and require explicit resume.
+- Launch: **Phóng** or Space.
+- Left flipper: hold **Trái**, Left Arrow, or A.
+- Right flipper: hold **Phải**, Right Arrow, or D.
+- Pause/resume: **II / >** or P. Restart: **↻** or R.
+- Touch flippers release on pointer-up, pointer-cancel, pointer-leave, lost capture, blur, interruption, or restart. The touch buttons are at least 48 CSS pixels high.
+- At 320-pixel widths, the table and HUD compact so the controls fit on-screen; the touch buttons expose their held state to assistive technology.
+- The animation loop and event listeners belong to `NP_GameSession`. Hidden-tab, pagehide, and window-blur interruptions pause the game; returning requires an explicit resume.
 
 ## QA record
 
-Focused automated checks are `tests/orbit-pinball-model.test.cjs` and `tests/orbit-pinball-ui.test.cjs`. They cover deterministic launch and gravity, fixed-step chunking, bumper and plate scoring/rebound, target-based victory, flipper contacts, three-ball drain/loss, pause/restart, touch and keyboard controls, interruption behavior, and session cleanup. The focused Node run passed all 12 checks, and `node --check` passed for both game scripts. These DOM doubles do not verify browser rendering or physical device input.
+Focused automated checks are `tests/orbit-pinball-model.test.cjs` and `tests/orbit-pinball-ui.test.cjs`; the focused Node run passed **15/15**. They cover deterministic launch and gravity, fixed-step chunking, all bumper/plate contacts, center-overlap collision, target scoring and victory, flipper hit/release, three-ball drain/loss, inconsistent restored states, velocity limits, pause/restart, pointer and keyboard input, interruptions, and session cleanup. Both game scripts pass `node --check`.
 
-The standalone cover is `assets/covers/orbit-pinball-original.svg`. It was created for this prototype and does not establish rights or visual parity for the catalog locator.
+Chromium was also exercised against the integrated route in **320×800 mobile** and **1280×900 desktop** contexts. The page fit each viewport width; all five game buttons measured at least 46×46 CSS pixels. A held touch activated the flipper and touch-end released it. Space launch, arrow-key hold/release, pause/resume, keyboard restart, and closing the game session passed at both sizes. A seeded browser collision lit a bumper for 500 points and showed the rebound; seeded final-target and last-ball drain states displayed the win and loss overlays. The frame loop advanced 113 fixed simulation steps during a 1,004 ms desktop sample, with no browser page errors. Closing the game removed its session DOM; the UI harness also confirmed its listeners and animation frames were cleaned up.
+
+The art audit found only authored SVG primitives and no external images or linked artwork. Chromium and model simulations verify interaction and boundary behavior; physical devices, extended play sessions, and user testing remain unverified.

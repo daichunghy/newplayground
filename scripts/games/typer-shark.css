@@ -15,8 +15,9 @@
 .ts-hud strong { font-variant-numeric:tabular-nums; font-size:.98rem; }
 .ts-cue { margin:4px 0 7px; color:#c8e8df; text-align:center; }
 .ts-sea { display:block; width:100%; height:auto; max-height:210px; border-radius:14px; }
-.ts-shark { fill:#f0bd73; transition:transform .1s linear; }
-.ts-word { fill:#15344a; font:700 24px 'Calibri','Inter',sans-serif; letter-spacing:2px; }
+.ts-glow { transition:transform .1s linear; }
+.ts-spot { fill:#f7db86; filter:drop-shadow(0 0 4px #fff1ad); }
+.ts-word { fill:#f4fbf6; font:700 22px 'Calibri','Inter',sans-serif; letter-spacing:3px; paint-order:stroke; stroke:#092a40; stroke-width:5px; stroke-linejoin:round; }
 .ts-bank { fill:#ffe2a9; font:700 15px 'Calibri','Inter',sans-serif; }
 .ts-word-row { justify-content:center; min-height:38px; gap:6px; margin:4px auto; font-size:1.35rem; letter-spacing:.14em; }
 .ts-typed { color:#76d7ad; }
@@ -42,4 +43,4 @@
   .ts-keyboard { gap:3px; }
   .ts-key { height:44px; }
 }
-@media(prefers-reduced-motion:reduce) { .ts-shark,.ts-progress span { transition:none; } }
+@media(prefers-reduced-motion:reduce) { .ts-glow,.ts-progress span { transition:none; } }

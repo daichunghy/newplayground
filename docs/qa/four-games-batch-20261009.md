@@ -1,33 +1,36 @@
-# Batch-four game delivery — 2026-10-09
+# Four-game identity and gameplay review — 2026-10-09
 
-These additions are playable prototypes. The catalog titles are identifiers; none of the implementations claims parity with an unreviewed commercial release or is release-certified.
+The four playable prototypes now have original NewPlayground titles, characters, and art. Their historical catalog IDs, launch routes, and global mount APIs remain stable for saved links and migration compatibility. Former product marks do not appear as game titles, badges, or character art. These are original small-scope prototypes; the IDs do not imply license or release parity.
 
-## Playable additions
+## Current identities
 
-- **Cắt Dây Cho Ếch Om Nom** (`cut-the-rope`): three authored rope-and-candy stages with pendulum timing, swipe/button cuts, stars, hazards, receiver targets, score, win/loss, pause and replay.
-- **Pinball 3D Space Cadet** (`pinball-3d-space-cadet`): original orbit table, six scoring targets, three balls, held flippers, launch, pause and restart. Keyboard and touch controls share one fixed-step physics model.
-- **Typer Shark Luyện Gõ** (`typer-shark`): nine authored words over three waves, word and round deadlines, score, three misses, pause and replay. Supports physical letters and a 26-key on-screen keyboard with 44px minimum controls.
-- **Nhảy Bậc Kim Tự Tháp** (`qbert-nhay-khoi-lap-phuong`): three 28-tile levels, four diagonal hops, turn-based patrol hazards, lives, timer, score, pause and replay. Four 48px touch directions complement Q/E/Z/C and arrow-key input.
+- **Mầm Măm** (`cut-the-rope`): an upright one-eyed pitcher-seed catches the loose seed. The three authored rope-swing stages retain stars, hazards, receivers, score, win/loss, pause, restart, and keyboard/touch cuts.
+- **Cú Sao Gác Đèn** (`pinball-3d-space-cadet`): an original owl lamp keeper appears on a hand-drawn two-dimensional table. Light six targets with two held flippers and three balls; keyboard and held touch share the same fixed-step physics.
+- **Đốm Biển** (`typer-shark`): an original bioluminescent sea slug carries nine words through three short waves, with per-word and round deadlines, scoring, three misses, pause, and replay. A 26-key touch keyboard complements physical keys.
+- **Sắc Bậc** (`qbert-nhay-khoi-lap-phuong`): a faceted prism lights 28 steps across three color-shifted boards while avoiding abstract patrol signals. Four diagonal moves, six lives, a campaign clock, pause, and replay remain.
 
-Each game has separate model, view and scoped CSS files, an exact launcher, original cover art, focused model/UI tests and a research/QA dossier. Game sessions release their animation, timer and input handlers on close.
+Cover and in-game illustrations use local SVG, Canvas, CSS, and DOM geometry. The asset manifest and operations register record project-authored art; no external image, sprite, font, or game-runtime dependency is used by these four games.
 
-## Existing game improvements
+## Gameplay and edge-case corrections
 
-- **Dò Mìn:** the new hint analyzes visible clue constraints, including pairwise subset deductions. It highlights a square only when those clues prove it safe, never guesses and never opens the square automatically. The player still makes the move.
-- **2048:** one-step undo restores the prior board, score and move count and reuses the recorded random draws for an exact replay. Version 2 saves support undo; version 1 saves still restore. A move that creates a terminal result can be undone.
+- **Mầm Măm:** replaced the frog-and-wrapped-candy silhouettes with the seed-pod catcher and leafy seed. Added swept target checks so a fast seed cannot pass through a star, spike, or catch zone between simulation steps. Pointer IDs must match before a drag cuts a rope; pointer cancellation safely clears the gesture.
+- **Cú Sao Gác Đèn:** made dead-center bumper collisions resolve with a stable outward rebound, enforced the ball-speed cap when restoring state, and verified held-flipper release, pause focus, scoring, final-target win, and last-ball loss.
+- **Đốm Biển:** a long animation-frame gap now processes every elapsed word deadline; misses no longer count as completed words; a wrong key at a deadline no longer adds a phantom millisecond. Adjusted the shared clock to a playable 75-second window.
+- **Sắc Bậc:** default-seed patrol movement now matches explicit seed `1`. Patrol contact on tile 28 resolves before the level reward; a cue explains the safe hop after respawn. Added the missing visible cue for that final-tile hit.
 
-## Catalog and art records
-
-The exact registry now routes 69 prototypes; 81 of the 150 catalog entries remain informational planned entries. The four new covers have manifest and operations-register records. The operational inventory and research backlog were regenerated from the exact registry.
+Earlier in this batch, **Dò Mìn** gained a logic-only safe hint that waits for the player to open the cell, and **2048** gained deterministic one-step Undo with backwards-compatible v1 save restore.
 
 ## Verification
 
-- `node --test --test-concurrency=1 tests/*.test.cjs` — **1,354 passed, 0 failed**.
-- `playwright test --config=/tmp/newplayground-current-source.config.cjs` — **44 passed** against local Chromium. Coverage includes all 69 routes opening/closing; the four new games taking real mobile and desktop input at 320px and 1280px; pause, restart and session cleanup; Minesweeper hint-without-auto-open; and 2048 undo.
-- `node scripts/release-preflight.mjs --prepare` — static consistency passed with 150 catalog entries, 69 prototypes and 81 planned entries. This checks source syntax, exact launcher mappings, loaded files, asset manifest paths and the prepared static artifact; it does not certify game rules or asset title rights.
+- Full local Node suite: `node --test --test-concurrency=1 tests/*.test.cjs` — **1,372 passed, 0 failed**.
+- Full repository Playwright suite — **44/44 passed** in local Chromium (including all 69 registered routes and the four-game real-input regression at mobile and desktop widths). This runner used the installed `/usr/bin/chromium` through a temporary config because the workspace has no Playwright-managed browser binary.
+- Focused game suites: Mầm Măm **14/14**, Cú Sao Gác Đèn **15/15**, Đốm Biển **13/13**, Sắc Bậc **18/18**. Script syntax checks passed for all eight game model/view files and the exact-launcher file.
+- Real Chromium game checks used the actual app route at 320px mobile and 1280px desktop. Mầm Măm completed all three stages with three stars, recorded spike loss and a touch-pointer cut, and cleaned up its session. Cú Sao Gác Đèn verified held touch/mouse flippers, launch, bumper rebound, six-light win, last-ball loss, pause/resume/restart, and session cleanup; a 1,004ms desktop sample advanced 113 fixed ticks. Đốm Biển tested the on-screen keyboard and physical keys, win/loss, pause/resume/restart, viewport fit, and frame cleanup. Sắc Bậc completed all three levels in 98 mobile taps and also checked falls, patrol loss, pause, keyboard, and restart. All four reported no horizontal overflow or page errors, and visible controls met the 44px minimum.
+- `node scripts/release-preflight.mjs --prepare` — passed with **150 catalog entries, 69 prototype routes, 81 planned entries, and 150 declared assets**. This is static consistency/syntax validation, not game-rule or title-rights certification.
 - `git diff --check` — clean.
-- Local Chromium screenshots of the new mobile game panels were inspected at 320px after the responsive pass. This is an emulator check, not a physical-device or human playtest.
+- The current 320×800 app panels were captured and visually reviewed: [Mầm Măm](four-games-rebrand-20261009/mam-mam-mobile.png), [Cú Sao Gác Đèn](four-games-rebrand-20261009/cu-sao-mobile.png), [Đốm Biển](four-games-rebrand-20261009/dom-bien-mobile.png), and [Sắc Bậc](four-games-rebrand-20261009/sac-bac-mobile.png).
+- GitHub Actions on the new pushed SHA will be recorded after CI completes; deployment remains disabled for the draft PR.
 
-## Still open
+## Limits
 
-No physical touchscreen, novice comprehension, long-session performance or human difficulty study was run. Fixed-step determinism and browser lifecycle tests are evidence for correctness, not device performance measurements. The catalog's historical names and release rights still require their separate review; the new art is project-authored original SVG.
+Touch checks used Chromium emulation, not physical phones or tablets. Extended player balance, assistive-technology behavior, and distribution rights for display names remain unverified. Đốm Biển currently uses English ASCII target words and has no audio. Mầm Măm has no save data, sound, or level editor. Pinball is a simplified two-dimensional model, not calibrated to a physical machine.

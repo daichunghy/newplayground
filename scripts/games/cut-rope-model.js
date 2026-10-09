@@ -1,4 +1,4 @@
-/* Deterministic rope-and-candy puzzle rules for the original Cắt Dây prototype. */
+/* Deterministic rope-and-seed puzzle rules for the original Mầm Măm prototype. */
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -44,6 +44,24 @@
     if (!lengthSquared) return distanceSquared(point, a);
     const t = clamp(((point.x - a.x) * dx + (point.y - a.y) * dy) / lengthSquared, 0, 1);
     return (point.x - (a.x + t * dx)) ** 2 + (point.y - (a.y + t * dy)) ** 2;
+  }
+
+  // Return the first point at which a moving circle's center reaches a target
+  // circle. Checking the full step segment prevents fast drops from tunneling
+  // through stars, hazards, or the receiver between fixed simulation ticks.
+  function circleContactOnSegment(start, end, circle, radius) {
+    const dx = end.x - start.x, dy = end.y - start.y;
+    const fx = start.x - circle.x, fy = start.y - circle.y;
+    const combinedRadius = Math.max(0, Number(radius) || 0);
+    const c = fx * fx + fy * fy - combinedRadius * combinedRadius;
+    if (c <= 0) return 0;
+    const a = dx * dx + dy * dy;
+    if (a === 0) return null;
+    const b = 2 * (fx * dx + fy * dy);
+    const discriminant = b * b - 4 * a * c;
+    if (discriminant < 0) return null;
+    const t = (-b - Math.sqrt(discriminant)) / (2 * a);
+    return t >= 0 && t <= 1 ? t : null;
   }
 
   function orientation(a, b, c) {
@@ -108,6 +126,7 @@
 
     function update(h) {
       const definition = level(), candy = state.candy;
+      const previous = { x: candy.x, y: candy.y };
       state.elapsed += h;
       candy.vy += definition.gravity * h;
       candy.x += candy.vx * h;
@@ -124,21 +143,39 @@
         candy.vy -= uy * radialSpeed;
       }
 
+      const destination = { x: candy.x, y: candy.y };
+      const contacts = [];
       for (const hazard of definition.hazards) {
-        if (distanceSquared(candy, hazard) <= (hazard.radius + CANDY_RADIUS) ** 2) {
-          lose('hazard'); return;
-        }
+        const t = circleContactOnSegment(previous, candy, hazard, hazard.radius + CANDY_RADIUS);
+        if (t !== null) contacts.push({ t, kind: 'hazard' });
       }
       for (const star of state.stars) {
-        if (!star.collected && distanceSquared(candy, star) <= (star.radius + CANDY_RADIUS) ** 2) {
-          star.collected = true;
+        if (star.collected) continue;
+        const t = circleContactOnSegment(previous, candy, star, star.radius + CANDY_RADIUS);
+        if (t !== null) contacts.push({ t, kind: 'star', star });
+      }
+      const receiverT = circleContactOnSegment(previous, candy, definition.receiver, definition.receiver.radius + CANDY_RADIUS * 0.4);
+      if (receiverT !== null) contacts.push({ t: receiverT, kind: 'receiver' });
+      const contactPriority = { hazard: 0, star: 1, receiver: 2 };
+      contacts.sort((a, b) => a.t - b.t || contactPriority[a.kind] - contactPriority[b.kind]);
+      for (const contact of contacts) {
+        // Process contacts in travel order so a star behind a spike or a receiver
+        // cannot be awarded after the candy has already hit an earlier target.
+        if (contact.kind === 'hazard') {
+          candy.x = previous.x + (destination.x - previous.x) * contact.t;
+          candy.y = previous.y + (destination.y - previous.y) * contact.t;
+          lose('hazard'); return;
+        }
+        if (contact.kind === 'star') {
+          contact.star.collected = true;
           state.levelScore += 100;
           state.levelAward += 100;
           state.score += 100;
           state.lastEvent = 'star';
+          continue;
         }
-      }
-      if (distanceSquared(candy, definition.receiver) <= (definition.receiver.radius + CANDY_RADIUS * 0.4) ** 2) {
+        candy.x = previous.x + (destination.x - previous.x) * contact.t;
+        candy.y = previous.y + (destination.y - previous.y) * contact.t;
         // Star points were earned as they were collected; add only the finish value here.
         const finishBonus = level().basePoints + (state.stars.every(star => star.collected) ? 250 : 0);
         state.levelScore += finishBonus;
@@ -228,5 +265,5 @@
     });
   }
 
-  return Object.freeze({ WIDTH, HEIGHT, STEP, CANDY_RADIUS, CUT_TOLERANCE, LEVELS: Object.freeze(clone(RAW_LEVELS)), create });
+  return Object.freeze({ WIDTH, HEIGHT, STEP, CANDY_RADIUS, CUT_TOLERANCE, LEVELS: Object.freeze(clone(RAW_LEVELS)), circleContactOnSegment, create });
 });

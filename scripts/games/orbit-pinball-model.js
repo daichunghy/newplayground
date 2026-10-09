@@ -1,4 +1,4 @@
-/* Small deterministic physics model for the original Orbit Field pinball table. */
+/* Small deterministic physics model for the original Cú Sao Gác Đèn table. */
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -46,7 +46,16 @@
       || !Number.isFinite(state.accumulator ?? 0) || (state.accumulator ?? 0) < 0 || (state.accumulator ?? 0) >= STEP) {
       throw new TypeError('Pinball state is invalid.');
     }
-    return cloneState(state);
+    const next = cloneState(state);
+    if ((next.status === 'paused' && !['ready', 'playing'].includes(next.pausedFrom))
+      || (next.status !== 'paused' && next.pausedFrom !== null)
+      || (['ready', 'playing', 'paused', 'won'].includes(next.status) && next.ballsLeft === 0)
+      || (next.status === 'lost' && next.ballsLeft !== 0)
+      || (next.status === 'won' && !TARGETS.every(target => next.targets[target.id]))) {
+      throw new TypeError('Pinball state is inconsistent.');
+    }
+    clampSpeed(next.ball);
+    return next;
   }
   function clampSpeed(ball) {
     const speed = Math.hypot(ball.vx, ball.vy);
@@ -56,7 +65,15 @@
     const dx = ball.x - target.x, dy = ball.y - target.y;
     const minimum = BALL_RADIUS + target.radius, distance2 = dx * dx + dy * dy;
     if (distance2 >= minimum * minimum) return null;
-    const distance = Math.sqrt(distance2) || 1;
+    const distance = Math.sqrt(distance2);
+    if (distance < 1e-8) {
+      const incoming = Math.hypot(ball.vx, ball.vy);
+      return {
+        nx: incoming > 1e-8 ? -ball.vx / incoming : 0,
+        ny: incoming > 1e-8 ? -ball.vy / incoming : -1,
+        distance: 0, minimum
+      };
+    }
     return { nx: dx / distance, ny: dy / distance, distance, minimum };
   }
   function plateContact(ball, target) {
@@ -80,7 +97,7 @@
     const t = Math.max(0, Math.min(1, ((ball.x - a.x) * dx + (ball.y - a.y) * dy) / length2));
     const x = a.x + t * dx, y = a.y + t * dy;
     const nxRaw = ball.x - x, nyRaw = ball.y - y, distance = Math.hypot(nxRaw, nyRaw);
-    const clearance = BALL_RADIUS + 4;
+    const clearance = BALL_RADIUS + 6.5;
     if (distance >= clearance) return null;
     if (distance < 1e-8) return { nx: 0, ny: -1, t, distance, clearance };
     return { nx: nxRaw / distance, ny: nyRaw / distance, t, distance, clearance };
@@ -178,6 +195,7 @@
       if (state.status !== 'playing') return;
       collideFlippers();
       if (state.status === 'playing' && ball.y > DRAIN_Y) drainBall();
+      clampSpeed(state.ball);
     }
     return Object.freeze({
       view,

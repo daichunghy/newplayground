@@ -1,21 +1,21 @@
-/* Original DOM presentation for Nhảy Bậc Kim Tự Tháp. */
+/* Original DOM presentation for Sắc Bậc. */
 (function (root) {
   'use strict';
 
   function mount(container, session, options = {}) {
     const M = root.NP_QbertPyramidModel;
     if (!M || !container || !session || typeof session.listen !== 'function' || typeof session.setInterval !== 'function' || typeof session.clearInterval !== 'function' || typeof session.onCleanup !== 'function') {
-      throw new Error('Nhảy Bậc Kim Tự Tháp needs its model and an active game session');
+      throw new Error('Sắc Bậc needs its model and an active game session');
     }
 
     let model = M.create({ seed: options.seed }), alive = true, clock = null;
-    let announcement = 'Chạm mũi tên để nhảy. Kẻ đuổi tuần tra theo nhịp.';
+    let announcement = 'Chạm một hướng để nhảy. Theo dõi nhịp tuần tra.';
     container.classList.add('qbp-host');
     container.innerHTML = `
-      <section class="qbp-game" aria-label="Nhảy Bậc Kim Tự Tháp">
+      <section class="qbp-game" aria-label="Sắc Bậc">
         <header class="qbp-head">
-          <div><p class="qbp-kicker">BẬC THANG PHA LÊ</p><h2>Nhảy Bậc</h2>
-            <p class="qbp-cue">←/→ xuống · ↑/↓ lên · Q/E/Z/C · kẻ đuổi tuần tra</p></div>
+          <div class="qbp-brand"><span class="qbp-brand-mark" aria-hidden="true"></span><div><p class="qbp-kicker">BẬC THANG PHA LÊ</p><h2>Sắc Bậc</h2>
+            <p class="qbp-cue">Sáng mọi bậc · né đường tuần tra</p></div></div>
           <div class="qbp-tools"><button class="qbp-button qbp-tool" id="qbpPause" type="button" aria-label="Tạm dừng" title="Tạm dừng">II</button>
             <button class="qbp-button qbp-tool" id="qbpRestart" type="button" aria-label="Chơi lại" title="Chơi lại">↻</button></div>
         </header>
@@ -28,14 +28,14 @@
         </div>
         <div class="qbp-progress" role="progressbar" aria-label="Ô bậc đã sáng" aria-valuemin="0" aria-valuemax="28" aria-valuenow="1"><span id="qbpProgress"></span></div>
         <div class="qbp-board-wrap">
-          <div class="qbp-board" id="qbpBoard" role="grid" aria-label="Kim tự tháp gồm bảy hàng, hai mươi tám bậc"></div>
+          <div class="qbp-board" id="qbpBoard" role="grid" aria-label="Kim tự tháp pha lê gồm bảy hàng, hai mươi tám bậc"></div>
           <div class="qbp-overlay" id="qbpOverlay" hidden role="group" aria-label="Trạng thái ván">
             <div class="qbp-card"><span class="qbp-overlay-mark" id="qbpOverlayMark" aria-hidden="true">II</span>
               <h3 id="qbpOverlayTitle"></h3><p id="qbpOverlayCopy"></p>
               <button class="qbp-button qbp-primary" id="qbpOverlayAction" type="button"></button></div>
           </div>
         </div>
-        <div class="qbp-controls" role="group" aria-label="Phím nhảy chéo">
+        <div class="qbp-controls" role="group" aria-label="Chọn hướng nhảy chéo">
           <button class="qbp-button qbp-control" id="qbpUpLeft" data-move="upLeft" type="button" aria-label="Nhảy chéo lên trái, phím Q"><span class="qbp-arrow qbp-arrow-nw" aria-hidden="true">↑</span><small>Q</small></button>
           <button class="qbp-button qbp-control" id="qbpUpRight" data-move="upRight" type="button" aria-label="Nhảy chéo lên phải, phím E"><span class="qbp-arrow qbp-arrow-ne" aria-hidden="true">↑</span><small>E</small></button>
           <button class="qbp-button qbp-control" id="qbpDownLeft" data-move="downLeft" type="button" aria-label="Nhảy chéo xuống trái, phím Z"><span class="qbp-arrow qbp-arrow-sw" aria-hidden="true">↑</span><small>Z</small></button>
@@ -105,7 +105,7 @@
         node.querySelector('.qbp-player').hidden = !tile.player;
         node.querySelector('.qbp-enemy').hidden = tile.enemies.length === 0;
         node.querySelector('.qbp-enemy').textContent = tile.enemies.length > 1 ? String(tile.enemies.length) : '';
-        node.setAttribute('aria-label', `Hàng ${tile.row + 1}, bậc ${tile.col + 1}: ${tile.visited ? 'đã sáng' : 'chưa sáng'}${tile.player ? ', người nhảy đang đứng đây' : ''}${tile.enemies.length ? `, ${tile.enemies.length} kẻ đuổi` : ''}`);
+        node.setAttribute('aria-label', `Hàng ${tile.row + 1}, bậc ${tile.col + 1}: ${tile.visited ? 'đã sáng' : 'chưa sáng'}${tile.player ? ', tinh thể đang đứng đây' : ''}${tile.enemies.length ? `, ${tile.enemies.length} tín hiệu tuần tra` : ''}`);
       }
       for (const button of container.querySelectorAll('.qbp-control')) button.disabled = !playing;
       el('qbpPause').disabled = !playing && !paused;
@@ -133,7 +133,12 @@
     }
     function describeResult(result) {
       if (result.event === 'fall') return 'Trượt khỏi bậc · mất một lượt sống.';
-      if (result.event === 'enemy') return 'Kẻ đuổi chạm tới · mất một lượt sống.';
+      if (result.event === 'enemy') {
+        const view = model.view();
+        return view.goalsFound === view.goalsTotal
+          ? 'Va vào đường tuần tra · mất một lượt sống. Nhảy an toàn để sang tầng.'
+          : 'Va vào đường tuần tra · mất một lượt sống.';
+      }
       if (result.event === 'lost') return 'Hết lượt sống. Thử lại nhé.';
       if (result.event === 'level') return `Tầng ${result.level + 1} mở ra · tiếp tục sáng bậc!`;
       if (result.event === 'won') return 'Ba tầng đã sáng · kim tự tháp hoàn tất!';
@@ -154,13 +159,13 @@
         stopClock(); announcement = 'Đã tạm dừng.'; render(); el('qbpOverlayAction').focus(); return true;
       }
       if (model.resume()) {
-        announcement = 'Tiếp tục · giữ mắt ở các bậc đang sáng.'; render(); startClock(); return true;
+        announcement = 'Tiếp tục · để ý tín hiệu tuần tra.'; render(); startClock(); el('qbpPause').focus(); return true;
       }
       return false;
     }
     function restart() {
       stopClock(); model.restart();
-      announcement = 'Ván mới · sáng mọi bậc và né kẻ đuổi.';
+      announcement = 'Ván mới · sáng mọi bậc và né tuần tra.';
       render(); startClock();
     }
 

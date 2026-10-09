@@ -48,6 +48,12 @@ test('creates a seven-row, 28-tile pyramid with two legal hops from the apex', (
   assert.deepEqual(view.enemies, M.create({ seed: 41 }).view().enemies);
 });
 
+test('an omitted seed uses the documented numeric default so browser and model play the same patrol route', () => {
+  assert.deepEqual(M.create().view().enemies, M.create({ seed: 1 }).view().enemies);
+  assert.deepEqual(M.create({ seed: undefined }).view().enemies, M.create({ seed: 1 }).view().enemies);
+  assert.deepEqual(M.create({ seed: null }).view().enemies, M.create({ seed: 1 }).view().enemies);
+});
+
 test('diagonal landings recolor tiles and score once, revisits still cost a turn', () => {
   const model = M.create({ seed: 1 });
   const first = model.move('downLeft');
@@ -99,6 +105,52 @@ test('falling from the apex spends a life and returns the player to the apex', (
   assert.equal(model.view().player.id, '0,0');
   assert.equal(model.view().lives, M.MAX_LIVES - 1);
   assert.equal(model.view().goalsFound, 1);
+});
+
+test('the bottom rim is a fall, not a wrapped move; only the struck tile is left behind', () => {
+  const model = M.create({ seed: 19 });
+  for (let step = 0; step < 6; step++) assert.equal(model.move('downRight').accepted, true);
+  assert.equal(model.view().player.id, '6,6');
+  const litBeforeFall = model.view().goalsFound;
+  const result = model.move('downRight');
+  assert.equal(result.event, 'fall');
+  assert.equal(model.view().player.id, '0,0');
+  assert.equal(model.view().goalsFound, litBeforeFall);
+  assert.equal(model.view().lives, M.MAX_LIVES - 1);
+});
+
+test('repeated patrol hits exhaust lives exactly once each and terminal input is inert', () => {
+  const model = M.create({ seed: 1 });
+  for (let hit = 1; hit <= M.MAX_LIVES; hit++) {
+    model.move('downLeft'); // one-turn grace after a hit is consumed
+    model.move('downLeft');
+    const result = model.move('downRight');
+    assert.equal(result.event, hit === M.MAX_LIVES ? 'lost' : 'enemy');
+    assert.equal(model.view().lives, M.MAX_LIVES - hit);
+  }
+  const ended = model.view();
+  assert.equal(ended.lossReason, 'enemy');
+  assert.equal(model.move('downLeft').accepted, false);
+  assert.deepEqual(model.view(), ended);
+});
+
+test('a patrol collision on the 28th tile costs a life before any level bonus is awarded', () => {
+  const path = [
+    'downLeft', 'downRight', 'upRight', 'downRight', 'downRight', 'downRight', 'downRight', 'downRight',
+    'upLeft', 'downLeft', 'upLeft', 'downLeft', 'upLeft', 'upLeft', 'upRight', 'downRight', 'downLeft',
+    'downLeft', 'upLeft', 'downLeft', 'downLeft', 'downLeft', 'downLeft', 'downLeft', 'downLeft', 'upRight',
+    'downRight', 'upRight', 'downRight', 'upLeft', 'upRight'
+  ];
+  const model = M.create({ seed: 123 });
+  for (const direction of path) assert.equal(model.move(direction).status, 'playing');
+  assert.equal(model.view().goalsFound, M.TILE_COUNT - 1);
+  const livesBeforeContact = model.view().lives;
+  const result = model.move('upRight');
+  assert.equal(result.event, 'enemy');
+  assert.equal(model.view().goalsFound, M.TILE_COUNT);
+  assert.equal(model.view().levelNumber, 1, 'a hit prevents level transition');
+  assert.equal(model.view().lives, livesBeforeContact - 1);
+  assert.equal(model.view().player.id, '0,0');
 });
 
 test('a deterministic sweep can light every tile across all three levels and win', () => {
