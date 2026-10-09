@@ -542,11 +542,11 @@
   {
     "id": "dap-chuot-chui",
     "title": "Đập Chuột Chũi Whac-A-Mole",
-    "tagline": "Vừa thò đầu lên khỏi lỗ là gõ búa ngay!",
+    "tagline": "Bắt 12 mục tiêu trước ba lần sượt.",
     "category": "Kỹ năng",
     "section": "all",
     "players": "1 người",
-    "duration": "2-3 phút",
+    "duration": "1 phút",
     "mechanic": "Nhấp chuột cực nhanh khi chuột nhô đầu lên",
     "badge": "Arcade",
     "color": "#C75B3A"
@@ -818,11 +818,11 @@
   {
     "id": "tim-diem-khac-biet",
     "title": "Tìm Điểm Khác Biệt",
-    "tagline": "Soi 2 bức tranh tìm 5 điểm sai khác trước khi hết giờ.",
+    "tagline": "Soi hai ảnh, tìm 5 chỗ khác trước khi hết giờ.",
     "category": "Chill",
     "section": "all",
     "players": "1 người",
-    "duration": "3-5 phút",
+    "duration": "1-2 phút",
     "mechanic": "Quan sát chi tiết hình ảnh nhấp đúng vị trí khác biệt",
     "badge": "Chill",
     "color": "#F4A261"

@@ -1,0 +1,33 @@
+.mole-host { color: #27372f; font-family: Calibri, Inter, -apple-system, sans-serif; }
+.mole-game { --mole-ink: #27372f; --mole-green: #527a4a; --mole-mud: #806145; max-width: 470px; margin: 0 auto; padding: 14px; border: 1px solid #c9d2c1; border-radius: 20px; background: linear-gradient(150deg, #fffdf3, #e6eedc); box-shadow: 0 10px 24px #27372f18; position: relative; }
+.mole-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.mole-head h2 { margin: 0; color: #294d3a; font-size: clamp(1.25rem, 5vw, 1.65rem); }
+.mole-actions { display: flex; gap: 8px; }
+.mole-button { min-width: 46px; min-height: 46px; border: 1px solid #9cae97; border-radius: 14px; background: #fffdf5; color: #294d3a; font: 700 1.15rem Calibri, Inter, -apple-system, sans-serif; cursor: pointer; touch-action: manipulation; }
+.mole-button:focus-visible, .mole-hole:focus-visible { outline: 3px solid #e38a39; outline-offset: 3px; }
+.mole-button:disabled { opacity: .5; cursor: not-allowed; }
+.mole-hud { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 9px; border: 1px solid #d2dccb; border-radius: 13px; background: #fffdf6; }
+.mole-hud > div { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 56px; padding: 6px; }
+.mole-hud > div + div { border-left: 1px solid #d2dccb; }
+.mole-hud span { color: #6b7868; font-size: .8rem; }
+.mole-hud strong { font-size: 1.05rem; }
+.mole-hud #moleMisses { color: #d16946; letter-spacing: .16em; }
+.mole-clock { height: 5px; margin: 0 4px 12px; overflow: hidden; border-radius: 99px; background: #dce5d4; }
+.mole-clock span { display: block; height: 100%; border-radius: inherit; background: #e3a44b; transition: width .08s linear; }
+.mole-board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(8px, 3vw, 14px); width: min(100%, 350px); margin: 0 auto; padding: 10px; border-radius: 22px; background: radial-gradient(ellipse at 50% 20%, #b9d09b, #8cae76); }
+.mole-hole { position: relative; display: grid; min-width: 68px; min-height: 68px; aspect-ratio: 1; place-items: center; overflow: hidden; padding: 0; border: 2px solid #789462; border-radius: 50%; background: radial-gradient(ellipse at 50% 70%, #42372e 0 38%, #624a39 39% 46%, #9db984 48%); cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.mole-hole::after { position: absolute; right: 8%; bottom: 13%; left: 8%; height: 18%; border-radius: 50%; background: #765a3e; box-shadow: 0 -2px 0 #aa8252; content: ''; pointer-events: none; }
+.mole-critter { position: relative; z-index: 1; width: 58%; height: 57%; margin-top: 18%; border-radius: 48% 48% 40% 40%; background: linear-gradient(150deg, #e6bb85, #bd8050); box-shadow: inset 0 -5px 0 #945b3c55; opacity: 0; transform: translateY(75%); transition: transform .12s ease-out, opacity .12s ease-out; }
+.mole-critter::before { position: absolute; top: 37%; left: 28%; width: 7px; height: 7px; border-radius: 50%; background: #302820; box-shadow: 15px 0 #302820, 6px 14px 0 -1px #b7553e; content: ''; }
+.mole-hole.is-up .mole-critter { opacity: 1; transform: translateY(-8%); }
+.mole-hole.is-up { box-shadow: 0 0 0 3px #f5d374; }
+.mole-hole:active { transform: scale(.96); }
+.mole-status { min-height: 1.4em; margin: 9px 0 0; color: #53664e; text-align: center; font-size: .92rem; }
+.mole-overlay { position: absolute; z-index: 4; inset: 0; display: grid; place-items: center; padding: 16px; border-radius: inherit; background: #1c302ba8; }
+.mole-overlay[hidden] { display: none; }
+.mole-overlay-card { width: min(100%, 290px); padding: 18px; border: 1px solid #d1d7c4; border-radius: 18px; background: #fffdf5; text-align: center; box-shadow: 0 10px 28px #18261c30; }
+.mole-overlay-card strong { color: #294d3a; font-size: 1.35rem; }
+.mole-overlay-card p { margin: 6px 0 14px; color: #657362; }
+.mole-primary { min-width: 120px; border-color: #315d42; background: #315d42; color: white; }
+@media (max-width: 360px) { .mole-game { padding: 10px; } .mole-board { gap: 7px; padding: 7px; } .mole-hole { min-width: 62px; min-height: 62px; } }
+@media (prefers-reduced-motion: reduce) { .mole-critter, .mole-clock span { transition: none; } }

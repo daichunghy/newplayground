@@ -53,7 +53,9 @@
     'dr-mario-diet-khuan': 'launchOngNghiem',
     'peggle-pachinko': 'launchBatChot',
     'lemonade-tycoon': 'launchLemonadeStand',
-    'thap-ha-noi-tower': 'launchThapBaCoc'
+    'thap-ha-noi-tower': 'launchThapBaCoc',
+    'tim-diem-khac-biet': 'launchSpotDifference',
+    'dap-chuot-chui': 'launchMoleTap'
   });
   const engineFor = id => Object.prototype.hasOwnProperty.call(entries, id) ? entries[id] : null;
   const isPlayable = id => Boolean(engineFor(id) && window.NP_Engines &&

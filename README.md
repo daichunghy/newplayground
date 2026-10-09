@@ -78,14 +78,14 @@ Chỉ cần mở repository trên GitHub và nhấn **Codespaces -> Create codes
 
 ## 5. Chiến lược và chuẩn bị vận hành
 
-Hiện có **150 mục catalog, 52 launcher riêng và 98 mục chưa có launcher riêng**. Các launcher là bản thử nghiệm; chưa có chứng nhận replica hoàn chỉnh hoặc số đo FPS/input latency. Mục tiêu dài hạn là 500 game hoàn chỉnh theo phiên bản tham chiếu đã chốt.
+Hiện có **150 mục catalog, 54 launcher riêng và 96 mục chưa có launcher riêng**. Các launcher là bản thử nghiệm; chưa có chứng nhận replica hoàn chỉnh hoặc số đo FPS/input latency. Mục tiêu dài hạn là 500 game hoàn chỉnh theo phiên bản tham chiếu đã chốt.
 
 - [Chiến lược sản xuất/vận hành](./docs/GAME_OPERATING_STRATEGY.md): thứ tự P1A → P1B → P1C → danh mục còn lại → 500.
 - [Runbook](./docs/GAME_OPERATIONS_RUNBOOK.md): nguồn dữ liệu, chuẩn bị release, sự cố và rollback.
 - [Bàn giao và mức sẵn sàng hiện tại](./docs/OPERATIONAL_READINESS.md).
 - [Inventory 150 game](./data/game-operations.json) và [backlog có thứ tự](./docs/GAME_RESEARCH_BACKLOG.csv).
 - [12 hồ sơ pilot](./docs/game-profiles/) và [template nghiệm thu](./docs/GAME_PROFILE_TEMPLATE.md).
-- [Asset register 181 file](./docs/ASSET_OPERATIONS_REGISTER.csv): 135 có manifest, 46 còn thiếu hồ sơ.
+- [Asset register 183 file](./docs/ASSET_OPERATIONS_REGISTER.csv): 137 có manifest, 46 còn thiếu hồ sơ.
 - [Kiến trúc trong mã](./docs/ARCHITECTURE.md) và [hợp đồng telemetry đề xuất](./docs/TELEMETRY_CONTRACT.md).
 
 ```bash

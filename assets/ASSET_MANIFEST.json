@@ -1108,5 +1108,25 @@
     "size_bytes": 3507,
     "license": "MIT (project-authored original artwork; see LICENSE)",
     "source": "Created for NewPlayground Mọt Sách Nối Chữ; original connected word tiles and ember motif, no branded assets copied"
+  },
+  {
+    "category": "original-game-art",
+    "file": "spot-the-difference-a.svg",
+    "local_path": "assets/spot-the-difference-a.svg",
+    "size_bytes": 2627,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Created in this repository for NewPlayground; original coastal scene geometry, no third-party artwork copied or used",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-09"
+  },
+  {
+    "category": "original-game-art",
+    "file": "spot-the-difference-b.svg",
+    "local_path": "assets/spot-the-difference-b.svg",
+    "size_bytes": 2239,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Created in this repository for NewPlayground; original coastal scene geometry, no third-party artwork copied or used",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-09"
   }
 ]

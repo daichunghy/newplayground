@@ -34,13 +34,13 @@ async function closeGame(page) {
 
 async function loadPortal(page) {
   await page.goto('/');
-  await expect(page.locator('#catalogAvailability')).toContainText('52');
+  await expect(page.locator('#catalogAvailability')).toContainText('54');
 }
 
 test('the default grid is playable-only; explicit catalog browsing keeps planned entries informational', async ({ page }) => {
   await loadPortal(page);
-  await expect(page.locator('#allSectionTitle')).toHaveText('Bản thử nghiệm có thể chơi (52)');
-  await expect(page.locator('#gridAll .game-card')).toHaveCount(52);
+  await expect(page.locator('#allSectionTitle')).toHaveText('Bản thử nghiệm có thể chơi (54)');
+  await expect(page.locator('#gridAll .game-card')).toHaveCount(54);
   await expect(page.locator('.filter-pill[data-category="playable"]')).toHaveClass(/active/);
 
   await page.locator('.filter-pill[data-category="all"]').click();
@@ -52,7 +52,7 @@ test('the default grid is playable-only; explicit catalog browsing keeps planned
   await expect(page.locator('#gameModal')).toHaveCSS('display', 'none');
 });
 
-test('all 52 registered games open, render, close and release their session', async ({ page }) => {
+test('all 54 registered games open, render, close and release their session', async ({ page }) => {
   test.setTimeout(120_000);
   const errors = watchErrors(page);
   await loadPortal(page);
@@ -62,7 +62,7 @@ test('all 52 registered games open, render, close and release their session', as
       id, engine, title: byId.get(id)?.title || id
     }));
   });
-  expect(routes).toHaveLength(52);
+  expect(routes).toHaveLength(54);
 
   for (const route of routes) {
     await openGame(page, route.id);
@@ -251,6 +251,103 @@ test('mobile Xiangqi accepts a legal tap move, CPU reply, and keeps focus in the
   }
 });
 
+test('mobile Tìm Điểm Khác Biệt resolves vector hot spots by keyboard and touch, then reflows wide', async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
+  const page = await context.newPage();
+  const errors = watchErrors(page);
+  try {
+    await loadPortal(page);
+    await openGame(page, 'tim-diem-khac-biet');
+    await expect(page.locator('#sdImageA img')).toHaveAttribute('src', 'assets/spot-the-difference-a.svg');
+    await expect(page.locator('#sdImageB img')).toHaveAttribute('src', 'assets/spot-the-difference-b.svg');
+    await expect(page.locator('#sdImages')).toHaveCSS('grid-template-columns', /\d+px/);
+    await page.locator('#sdImageA').focus();
+    for (let i = 0; i < 6; i++) await page.keyboard.press('ArrowLeft');
+    for (let i = 0; i < 6; i++) await page.keyboard.press('ArrowUp');
+    await page.keyboard.press('Enter');
+    await expect(page.locator('#sdFound')).toHaveText('1 / 5');
+    await page.locator('#sdPause').tap();
+    await expect(page.locator('#sdOverlayTitle')).toHaveText('Tạm dừng');
+    await page.locator('#sdOverlayAction').tap();
+    await expect(page.locator('#sdOverlay')).toBeHidden();
+    for (let index = 1; index < 5; index++) {
+      const point = await page.evaluate(i => window.NP_SpotDifferenceModel.TARGETS[i].b, index);
+      const box = await page.locator('#sdImageB').boundingBox();
+      await page.locator('#sdImageB').tap({ position: { x: point[0] * box.width, y: point[1] * box.height } });
+      await expect(page.locator('#sdFound')).toHaveText(`${index + 1} / 5`);
+    }
+    await expect(page.locator('#sdOverlayTitle')).toHaveText('Tìm đủ 5!');
+    await page.locator('#sdOverlayAction').tap();
+    await expect(page.locator('#sdFound')).toHaveText('0 / 5');
+    for (let i = 0; i < 3; i++) await page.locator('#sdImageA').tap({ position: { x: 3, y: 3 } });
+    await expect(page.locator('#sdOverlayTitle')).toHaveText('Hết lượt');
+    await page.locator('#sdOverlayAction').tap();
+    await closeGame(page);
+
+    await page.setViewportSize({ width: 1024, height: 900 });
+    await openGame(page, 'tim-diem-khac-biet');
+    const a = await page.locator('#sdImageA').boundingBox(), b = await page.locator('#sdImageB').boundingBox();
+    expect(a.x + a.width).toBeLessThan(b.x);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await closeGame(page);
+    expect(errors).toEqual([]);
+  } finally {
+    await context.close();
+  }
+});
+
+test('mobile Đập Chuột Chũi scores with direct keyboard/touch input, pauses, wins and replays', async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
+  const page = await context.newPage();
+  const errors = watchErrors(page);
+  try {
+    await loadPortal(page);
+    await openGame(page, 'dap-chuot-chui');
+    await expect(page.locator('.mole-hole')).toHaveCount(9);
+    const gameStyle = await page.locator('.mole-game').evaluate(node => ({
+      background: getComputedStyle(node).backgroundImage,
+      pauseGlyph: node.querySelector('#molePause').textContent
+    }));
+    expect(gameStyle.background).toContain('255, 253, 243');
+    expect(gameStyle.pauseGlyph).toBe('||');
+    const activeHole = async () => Number(await page.locator('.mole-hole.is-up').getAttribute('data-hole'));
+    const first = await activeHole();
+    await page.keyboard.press(String(first + 1));
+    await expect(page.locator('#moleHits')).toHaveText('1 / 12');
+    await page.locator(`#moleHole${await activeHole()}`).focus();
+    await page.keyboard.press('Space');
+    await expect(page.locator('#moleHits')).toHaveText('2 / 12');
+    await page.locator('#molePause').tap();
+    await expect(page.locator('#moleOverlayTitle')).toHaveText('Tạm dừng');
+    await page.locator('#moleOverlayAction').tap();
+    await expect(page.locator('#moleOverlay')).toBeHidden();
+    for (let hits = 2; hits < 12; hits++) {
+      const index = await activeHole();
+      await page.locator(`#moleHole${index}`).tap();
+      await expect(page.locator('#moleHits')).toHaveText(`${hits + 1} / 12`);
+    }
+    await expect(page.locator('#moleOverlayTitle')).toHaveText('Bắt đủ 12!');
+    await expect(page.locator('#moleScore')).toHaveText('1200');
+    await page.locator('#moleOverlayAction').tap();
+    await expect(page.locator('#moleHits')).toHaveText('0 / 12');
+    await expect(page.locator('#moleOverlay')).toBeHidden();
+    const board = await page.locator('#moleBoard').boundingBox();
+    expect(board.width).toBeLessThanOrEqual(350);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await closeGame(page);
+
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await openGame(page, 'dap-chuot-chui');
+    const hole = await page.locator('#moleHole0').boundingBox();
+    expect(hole.width).toBeGreaterThanOrEqual(68);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await closeGame(page);
+    expect(errors).toEqual([]);
+  } finally {
+    await context.close();
+  }
+});
+
 test('P1A games accept a real browser input and update their visible state', async ({ page }) => {
   test.setTimeout(60_000);
   const errors = watchErrors(page);
@@ -405,7 +502,7 @@ test('2048 completes a deterministic 2048 win, continue, and reload resume', asy
   await expect(page.locator('#g2048Overlay')).toBeHidden();
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('np_2048_state_v1')).keepPlaying)).toBe(true);
   await page.reload();
-  await expect(page.locator('#catalogAvailability')).toContainText('52');
+  await expect(page.locator('#catalogAvailability')).toContainText('54');
   await openGame(page, 'tro-choi-2048');
   await expect(page.locator('#g2048Overlay')).toBeHidden();
   await expect(page.locator('#g2048Score')).toHaveText('2048');

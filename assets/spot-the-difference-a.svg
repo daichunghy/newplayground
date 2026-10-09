@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="360" viewBox="0 0 600 360" role="img" aria-label="Bờ biển, hải đăng, thuyền và đàn cá">
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#a9dbe2"/><stop offset="1" stop-color="#eaf2d5"/></linearGradient>
+    <linearGradient id="sea" x2="0" y2="1"><stop stop-color="#4eabb0"/><stop offset="1" stop-color="#276574"/></linearGradient>
+  </defs>
+  <rect width="600" height="235" fill="url(#sky)"/>
+  <rect y="216" width="600" height="144" fill="url(#sea)"/>
+  <path d="M0 234Q72 211 145 233t142 0t147 1t166-2v24H0Z" fill="#79c0b5"/>
+  <path d="M0 286q80-13 155 0t151 0t151 0t143 0v74H0Z" fill="#36868d" opacity=".72"/>
+  <circle cx="110" cy="72" r="22" fill="#f7c75e"/>
+  <g stroke="#ed9e55" stroke-width="5" stroke-linecap="round">
+    <path d="M110 35v-9M110 118v-9M73 72h-9M156 72h-9M84 46l-7-7M143 105l-7-7M136 46l7-7M77 105l7-7"/>
+  </g>
+  <path d="M217 94c8-16 29-16 37 0 15-7 30 3 29 15h-81c0-8 6-14 15-15Z" fill="#fffdf2"/>
+  <path d="M344 91q12-14 24 0q12-12 25 0q14-16 27 0" fill="none" stroke="#fffdf2" stroke-width="8" stroke-linecap="round"/>
+  <g fill="none" stroke="#41797b" stroke-width="3" stroke-linecap="round">
+    <path d="M78 170q14-12 28 0q14-12 28 0"/><path d="M170 190q11-9 22 0q11-9 22 0"/>
+  </g>
+  <path d="M417 218V132l43-19 43 19v86Z" fill="#e6d4ad" stroke="#816d50" stroke-width="4"/>
+  <path d="M408 134h104l-12-23h-80Z" fill="#c76d50" stroke="#805947" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M425 219v-54h70v54" fill="#f6e9c8" stroke="#816d50" stroke-width="3"/>
+  <path d="M453 218v-46q8-15 16 0v46" fill="#69aab0" stroke="#816d50" stroke-width="3"/>
+  <path d="M417 194h-16v-18h16M504 194h18v-18h-18" fill="#e9c47e" stroke="#816d50" stroke-width="3"/>
+  <path d="M325 258q48-17 97 0l-12 20h-76Z" fill="#e9c18a" stroke="#5c6255" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M370 215v42m2-37 20 22h-20Z" fill="#fff9df" stroke="#8a6b4b" stroke-width="3" stroke-linejoin="round"/>
+  <path d="m371 216 12 3-12 8Z" fill="#d85843" stroke="#8a6b4b" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M334 281q18-7 35 0m23 0q19-7 37 0" fill="none" stroke="#afe2d2" stroke-width="4" stroke-linecap="round"/>
+  <g transform="translate(168 284)" fill="#f2c96d" stroke="#1c5f6d" stroke-width="3" stroke-linejoin="round">
+    <path d="M-21 0q21-23 42 0Q0 23-21 0Zm-1 0-13-10v20Zm43 0 13-9v18Z"/>
+    <circle cx="8" cy="-3" r="2.5" fill="#1c5f6d" stroke="none"/>
+  </g>
+  <path d="M251 324h57m30 0h32m37 0h70" stroke="#bce3d6" stroke-width="4" stroke-linecap="round" opacity=".82"/>
+</svg>

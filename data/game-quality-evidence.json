@@ -2090,6 +2090,142 @@
           "https://www.scribd.com/document/358205637/Bookworm-for-DS-Game-Manual"
         ]
       }
+    },
+    "tim-diem-khac-biet": {
+      "scope": "original-candidate-not-reference-parity",
+      "reference_version": "Generic visual-search round; historic catalog build unknown and not used as an asset source.",
+      "candidate_build": "spot-difference-original-1",
+      "accepted_build": null,
+      "owner": null,
+      "accepted_at": null,
+      "implementation_status": "implemented-awaiting-human-device-qa",
+      "automated_tests": {
+        "command": "node --test tests/spot-difference-model.test.cjs tests/spot-difference-ui.test.cjs",
+        "passed": 9,
+        "failed": 0,
+        "date": "2026-10-09",
+        "evidence": "docs/games/SPOT_DIFFERENCE_RESEARCH_AND_SCOPE.md and docs/qa/p3-discovery-playtest-20261009.md",
+        "limitation": "Model/DOM tests plus local Chromium pointer/keyboard and responsive-layout checks; no physical-device, human comprehension, assistive-technology or title-rights acceptance."
+      },
+      "gates": {
+        "reference_parity": {
+          "status": "pending",
+          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+        },
+        "content": {
+          "status": "pending",
+          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+        },
+        "controls": {
+          "status": "pending",
+          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+        },
+        "visual_audio": {
+          "status": "pending",
+          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+        },
+        "device_qa": {
+          "status": "pending",
+          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+        },
+        "save_recovery": {
+          "status": "pending",
+          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+        },
+        "playtest": {
+          "status": "pending",
+          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+        },
+        "distribution_rights": {
+          "status": "pending",
+          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+        }
+      },
+      "research": {
+        "status": "original-playable-candidate",
+        "evidence_date": "2026-10-09",
+        "reference_version": "Generic spot-the-difference loop; the catalog edition/build is unidentified.",
+        "current_mechanic": "Compare two authored vector views; tap five distinct changes before 90 seconds, with up to three misses.",
+        "first_delivery": "One original coastal scene pair, five authored differences, 90-second timer, three-miss limit, pause and restart.",
+        "rules_task": "Generic candidate mechanics only; confirm round length, miss limit and hotspot forgiveness with novice playtests. No historical edition parity is claimed.",
+        "content_task": "One project-authored coastal comparison pair with five discrete changes; no copied scene, photo, icon, clue or text.",
+        "progression_and_items_to_research": "One bounded round with five targets; no collection, shop, upgrade, account or campaign progression.",
+        "controls_task": "Touch/click either picture; keyboard-focus a picture, move visible search cursor with arrows and choose with Enter. Check stacked mobile and side-by-side wide layouts.",
+        "visual_assets_and_license_to_resolve": "Both SVG scenes are project-authored geometric art under the repository MIT license and listed in assets/ASSET_MANIFEST.json. No third-party source asset is used.",
+        "feel_speed_and_performance_to_measure": "Check hot-spot accuracy after responsive resize, recognition of all five changes, timer pressure and tap latency on real devices; none measured.",
+        "rights_status": "No third-party art/audio/code. Historical catalog route/title rights and generic candidate clearance are not reviewed.",
+        "source_urls": [],
+        "backlog_status": "Original five-difference round implemented with original SVG pair; local browser touch/keyboard and resize checks passed. Physical-device, human clarity, accessibility and title-rights review remain pending."
+      },
+      "player_ui": "Two original coastal pictures; find five changes in 90 seconds, with three misses. Tap/click or keyboard cursor. Pause and replay available; local browser responsive checks passed."
+    },
+    "dap-chuot-chui": {
+      "scope": "original-candidate-not-reference-parity",
+      "reference_version": "Generic timed-target reflex round; historic branded edition unknown and not used as an asset source.",
+      "candidate_build": "mole-tap-original-1",
+      "accepted_build": null,
+      "owner": null,
+      "accepted_at": null,
+      "implementation_status": "implemented-awaiting-human-device-qa",
+      "automated_tests": {
+        "command": "node --test tests/mole-tap-model.test.cjs tests/mole-tap-ui.test.cjs",
+        "passed": 9,
+        "failed": 0,
+        "date": "2026-10-09",
+        "evidence": "docs/games/MOLE_TAP_RESEARCH_AND_SCOPE.md and docs/qa/p3-discovery-playtest-20261009.md",
+        "limitation": "Model/DOM tests plus local Chromium touch/keyboard, resize and lifecycle checks; no physical-device latency, balance, assistive-technology or title-rights acceptance."
+      },
+      "gates": {
+        "reference_parity": {
+          "status": "pending",
+          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+        },
+        "content": {
+          "status": "pending",
+          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+        },
+        "controls": {
+          "status": "pending",
+          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+        },
+        "visual_audio": {
+          "status": "pending",
+          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+        },
+        "device_qa": {
+          "status": "pending",
+          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+        },
+        "save_recovery": {
+          "status": "pending",
+          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+        },
+        "playtest": {
+          "status": "pending",
+          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+        },
+        "distribution_rights": {
+          "status": "pending",
+          "evidence": "Original P3 candidate with focused model/UI coverage and local browser playthrough documented in its scope dossier and docs/qa/p3-discovery-playtest-20261009.md. Physical-device, human, rights and accessibility acceptance remain pending."
+        }
+      },
+      "research": {
+        "status": "original-playable-candidate",
+        "evidence_date": "2026-10-09",
+        "reference_version": "Generic reflex-target mechanic; the catalog edition/build is unidentified.",
+        "current_mechanic": "Tap one rising target among nine holes; catch twelve to win, or lose after three misses. Target windows ramp from 1150 to 980 then 820 ms.",
+        "first_delivery": "One immediately playable round with twelve targets, bounded score, three misses, escalating response windows, pause and replay.",
+        "rules_task": "Generic candidate mechanics only; measure a comfortable response window and clear loss condition in novice/device playtests. No historical edition parity is claimed.",
+        "content_task": "Nine authored CSS-drawn holes and one original abstract critter silhouette; twelve target turns. No copied characters, levels or sound.",
+        "progression_and_items_to_research": "One short score round; no item shop, currency, unlocks, accounts or retained leaderboard.",
+        "controls_task": "Tap/click target; arrows move focus and Enter/Space activate; number keys 1–9 select a hole. Pause, restart and hidden-page interruption are implemented.",
+        "visual_assets_and_license_to_resolve": "Original mound, soil, hole and critter drawing is CSS in scripts/games/mole-tap.css under the repository MIT license; no third-party asset is used.",
+        "feel_speed_and_performance_to_measure": "Measure target acquisition, missed-target comprehension, input latency, target-window fairness and frame pacing on physical phones/tablets; none measured.",
+        "rights_status": "No third-party art/audio/code. The catalog suffix uses a known historical game name; trademark/route/title and distribution rights require review.",
+        "source_urls": [],
+        "backlog_status": "Original 3x3 reflex round implemented with touch, keyboard, pause and replay; local browser checks passed. Physical-device, balance, accessibility and title-rights review remain pending."
+      },
+      "player_ui": "One tap-ready 3×3 board; catch twelve rising targets before three misses. Each catch is 100 points. Pause, restart and keyboard selection are available; no sound starts automatically."
     }
   }
 }
