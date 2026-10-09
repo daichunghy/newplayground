@@ -177,6 +177,9 @@
     listen(root, 'pointercancel', finishDrag);
     listen(root.document, 'pointermove', event => {
       if (!dragging || (dragPointerId !== null && event.pointerId !== undefined && event.pointerId !== dragPointerId)) return;
+      // A mouse released outside the page may not deliver pointerup back here.
+      // Do not let later hover movement keep extending the old word.
+      if (event.buttons === 0) { finishDrag(event); return; }
       if (!dragStarted) {
         if (Math.hypot(event.clientX - dragStartX, event.clientY - dragStartY) < 8) return;
         path = [dragStartIndex]; dragStarted = true; render();
@@ -193,6 +196,11 @@
         if (path.length !== before || path.at(-1) === index) dragged = true;
       }
     });
+    listen(root, 'blur', finishDrag);
+    listen(root.document, 'visibilitychange', () => {
+      if (root.document.hidden) finishDrag();
+    });
+    listen(root, 'pagehide', finishDrag);
     listen(wordButton, 'click', submit);
     listen(el('bwClear'), 'click', clearPath);
     listen(el('bwReplay'), 'click', replay);

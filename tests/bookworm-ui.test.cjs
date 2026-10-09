@@ -134,6 +134,27 @@ test('pointercancel ends a drag and leaves its visible route editable and cleara
   h.close();
 });
 
+test('blur, hidden tab, pagehide, and a released mouse stop the active drag', () => {
+  for (const interruptedBy of ['blur', 'hidden', 'pagehide', 'buttons-zero']) {
+    const h = setup();
+    const original = h.document.elementFromPoint;
+    h.document.elementFromPoint = x => el(h, `bwTile${Math.max(0, Math.min(35, Math.floor(x / 50)))}`);
+    el(h, 'bwTile0').dispatch('pointerdown', { button: 0, isPrimary: true, pointerId: 11, pointerType: 'mouse', clientX: 0, clientY: 0 });
+    h.document.dispatch('pointermove', { pointerId: 11, pointerType: 'mouse', buttons: 1, clientX: 50, clientY: 0 });
+    assert.equal(el(h, 'bwWord').textContent, 'SH');
+
+    if (interruptedBy === 'blur') h.window.dispatch('blur');
+    if (interruptedBy === 'hidden') { h.document.hidden = true; h.document.dispatch('visibilitychange'); }
+    if (interruptedBy === 'pagehide') h.window.dispatch('pagehide');
+    const buttons = interruptedBy === 'buttons-zero' ? 0 : 1;
+    h.document.dispatch('pointermove', { pointerId: 11, pointerType: 'mouse', buttons, clientX: 100, clientY: 0 });
+    assert.equal(el(h, 'bwWord').textContent, 'SH', `${interruptedBy} must not extend the old route`);
+    assert.equal(el(h, 'bwClear').disabled, false, 'the partial route remains editable');
+    h.document.elementFromPoint = original;
+    h.close();
+  }
+});
+
 test('three shelves resolve to a win; replay starts a fresh campaign and closing releases listeners', () => {
   const h = setup(3);
   let actions = 0;
