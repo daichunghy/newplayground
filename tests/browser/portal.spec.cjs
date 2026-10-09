@@ -556,6 +556,73 @@ test('Hàng Rong’s saved four-seat upgrade remains fully inside the mobile sta
   await closeGame(page);
 });
 
+test('Hàng Rong completes a touch-played shift and clean replay at 320px', async ({ browser }) => {
+  test.setTimeout(180_000);
+  const { context, page } = await newMobilePage(browser, 320, 800);
+  const errors = watchErrors(page);
+  try {
+    await openGame(page, 'hang-rong');
+    await expect(page.locator('#hr3Stage')).toContainText('Gánh tre');
+    await expect(page.locator('#hr3Goal')).toContainText('cần 5');
+    await expect(page.locator('#hr3TipRule')).toContainText('còn nửa thanh mới có bo');
+    await expectViewportFits(page);
+    const controls = await page.locator('#modalGameContainer button:visible').evaluateAll(nodes => nodes.map(node => {
+      const rect = node.getBoundingClientRect();
+      return { width: rect.width, height: rect.height, name: node.getAttribute('aria-label') || node.textContent.trim() };
+    }));
+    expect(controls.every(control => control.width >= 44 && control.height >= 44), JSON.stringify(controls)).toBe(true);
+
+    // A scripted touch player prioritizes the most impatient ready customer and fills
+    // both burners with currently demanded dishes. This exercises the control loop,
+    // not human comprehension or difficulty balance.
+    let served = 0, steps = 0;
+    while (steps++ < 1800 && !(await page.locator('#hr3Result').isVisible())) {
+      const action = await page.evaluate(() => {
+        const data = JSON.parse(localStorage.getItem('np_hangrong_save_v3') || 'null');
+        if (!data || data.phase !== 'playing' || !data.shift) return { type: 'wait' };
+        const shift = data.shift;
+        const ready = shift.customers
+          .filter(customer => shift.tray.some(dish => dish.recipe === customer.recipe))
+          .sort((a, b) => a.remaining - b.remaining)[0];
+        if (ready) return { type: 'serve', seat: ready.seat };
+        if (shift.jobs.some(job => job === null)) {
+          const pending = shift.jobs.concat(shift.tray).filter(Boolean).map(dish => dish.recipe);
+          const customer = shift.customers
+            .filter(item => !pending.includes(item.recipe))
+            .sort((a, b) => a.remaining - b.remaining)[0];
+          if (customer) return { type: 'cook', index: data.profile.menu.indexOf(customer.recipe) };
+        }
+        return { type: 'wait' };
+      });
+      if (action.type === 'serve') {
+        await page.locator(`#hr3Customer${action.seat}`).tap();
+        served++;
+        if (served < 8) await expect(page.locator('#hr3Status')).toContainText('xu', { timeout: 5_000 });
+      } else if (action.type === 'cook' && action.index >= 0) {
+        await page.locator(`#hr3Cook${action.index}`).tap();
+      } else {
+        await page.waitForTimeout(100);
+      }
+    }
+
+    await expect(page.locator('#hr3Result')).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator('#hr3ResultTitle')).toHaveText('Xong ca!');
+    await expect(page.locator('#hr3ResultSummary')).toContainText('8/8 đơn');
+    await expect(page.locator('#hr3ResultSummary')).toContainText('chuỗi tốt nhất');
+    expect(served).toBe(8);
+    await expectViewportFits(page);
+
+    await page.locator('#hr3Next').tap();
+    await expect(page.locator('#hr3Goal')).toHaveText('Giao 0/8 · cần 5');
+    await expect(page.locator('#hr3Combo')).toHaveText('Chuỗi · bắt đầu');
+    await expect(page.locator('#hr3TipBank')).toHaveText('Tiền bo +0 xu');
+    await closeGame(page);
+    expect(errors).toEqual([]);
+  } finally {
+    await context.close();
+  }
+});
+
 test('Mọt Sách Nối Chữ works at 320px, uses its own cover and completes a real word turn', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 780 });
   const errors = watchErrors(page);

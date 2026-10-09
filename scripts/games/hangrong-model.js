@@ -138,7 +138,7 @@
       p.reputation = Math.max(0, Math.min(100, p.reputation + (won ? stars : -2)));
       p.best[shift.plan.stage] = Math.max(p.best[shift.plan.stage], stars);
       result = { won, stars, reason, served: shift.served, total: count, missed: shift.missed, revenue: shift.revenue,
-        tips: shift.tips, ingredientCost: shift.usedCost, waste: shift.waste, bonus, levelBonus,
+        tips: shift.tips, bestCombo: shift.bestCombo ?? shift.combo, ingredientCost: shift.usedCost, waste: shift.waste, bonus, levelBonus,
         profit: shift.revenue + shift.tips - shift.usedCost, earnedXP, previousLevel, level: p.level,
         unlocked: STAGES.filter(s => s.level > previousLevel && s.level <= p.level).map(s => s.name) };
       p.lastResult = clone(result); phase = 'result'; carry = 0; emit('result', { won, stars });
@@ -203,7 +203,7 @@
         if (phase !== 'prep') return fail('phase');
         if (supply().cost > 0) return fail('stock');
         shift = { plan: makePlan(p), stock: clone(p.inventory), elapsed: 0, next: 0, customers: [], jobs: [null, null], tray: [],
-          serial: 1, served: 0, missed: 0, combo: 0, revenue: 0, tips: 0, xp: 0, usedCost: 0, waste: 0, rainNotified: false };
+          serial: 1, served: 0, missed: 0, combo: 0, bestCombo: 0, revenue: 0, tips: 0, xp: 0, usedCost: 0, waste: 0, rainNotified: false };
         phase = 'playing'; result = null; carry = 0; spawn(); emit('start'); return success();
       },
       ensureIngredients(id) {
@@ -242,9 +242,10 @@
         if (dish.recipe !== customer.recipe) return fail('wrong');
         shift.tray = shift.tray.filter(d => d !== dish); shift.customers = shift.customers.filter(c => c !== customer);
         shift.served++; shift.combo++;
+        shift.bestCombo = Math.max(shift.bestCombo ?? 0, shift.combo);
         const r = RECIPES[dish.recipe], tip = customer.remaining > customer.max / 2 ? Math.min(5, Math.floor(shift.combo / 3) + 1) : 0;
         shift.revenue += r.price; shift.tips += tip; shift.xp += r.xp;
-        emit('serve', { recipe: dish.recipe, amount: r.price + tip, combo: shift.combo });
+        emit('serve', { recipe: dish.recipe, amount: r.price + tip, tip, combo: shift.combo });
         if (shift.next === shift.plan.orders.length && shift.customers.length === 0) finish('orders-complete');
         return success({ tip });
       },
@@ -276,6 +277,7 @@
       !Array.isArray(s.tray) || s.tray.length > 4 || !Array.isArray(s.customers) || s.customers.length > (p.upgrades.extraChair ? 4 : 2)) return false;
     if (!['served', 'missed', 'combo', 'revenue', 'tips', 'xp', 'usedCost', 'waste'].every(k => int(s[k], 0, MAX_COINS)) ||
       s.served + s.missed + s.customers.length !== s.next || s.served > s.plan.orders.length || s.combo > s.served || typeof s.rainNotified !== 'boolean') return false;
+    if (s.bestCombo !== undefined && (!int(s.bestCombo, s.combo, s.served) || s.bestCombo > s.served)) return false;
     const ids = new Set(), seats = new Set();
     for (const c of s.customers) {
       if (!c || typeof c !== 'object') return false;
@@ -305,7 +307,10 @@
     const model = create({ profile: data.profile });
     if (['playing', 'paused'].includes(data.phase)) {
       if (!validShift(data.shift, data.profile) || !Number.isFinite(data.carry) || data.carry < 0 || data.carry >= TICK) return null;
-      model._restore({ phase: 'paused', shift: data.shift, result: null, carry: data.carry });
+      const shift = clone(data.shift);
+      // Older v3 saves did not record the best streak; the current streak is the safe known floor.
+      if (shift.bestCombo === undefined) shift.bestCombo = shift.combo;
+      model._restore({ phase: 'paused', shift, result: null, carry: data.carry });
     }
     // Settled results never replay rewards on reload. Return to prep with the persistent receipt.
     return model;

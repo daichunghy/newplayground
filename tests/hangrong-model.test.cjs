@@ -146,6 +146,32 @@ test('customer types, seat caps and published rain/umbrella effect are determini
   assert.equal(four.view().shift.customers.length, 4);
 });
 
+test('fast-service tips reward streak milestones and preserve the best combo through an old v3 save', () => {
+  const p = profile(); p.menu = ['tra_da'];
+  const m = ready(p), tips = [];
+  for (let n = 0; n < 4; n++) {
+    cookServe(m, 'tra_da');
+    const served = m.drainEvents().reverse().find(event => event.type === 'serve');
+    assert.ok(served); tips.push(served.tip);
+    if (n < 3) m.step(m.view().plan.interval);
+  }
+  assert.deepEqual(tips, [1, 1, 2, 2]);
+  assert.equal(m.view().shift.combo, 4);
+  assert.equal(m.view().shift.bestCombo, 4);
+
+  const oldV3 = m.serialize(); delete oldV3.shift.bestCombo;
+  const restored = M.restore(oldV3); assert.ok(restored); assert.equal(restored.view().phase, 'paused');
+  assert.equal(restored.view().shift.bestCombo, 4);
+  const damaged = m.serialize(); damaged.shift.bestCombo = 99;
+  assert.equal(M.restore(damaged), null);
+
+  const nearMiss = m.serialize(); nearMiss.shift.customers[0].remaining = 50;
+  const interrupted = M.restore(nearMiss); assert.ok(interrupted); interrupted.resume(); interrupted.step(50);
+  assert.equal(interrupted.view().shift.combo, 0);
+  assert.equal(interrupted.view().shift.bestCombo, 4);
+  assert.ok(interrupted.drainEvents().some(event => event.type === 'miss' && event.reason === 'patience'));
+});
+
 test('all five upgrades affect their documented mechanics and cannot be bought twice', () => {
   const p = profile(25, { coins: 5000 }); const m = M.create({ profile: p }); const before = m.view().plan.orders.length;
   for (const id of Object.keys(M.UPGRADES)) { assert.ok(m.buy(id).ok); assert.equal(m.buy(id).reason, 'owned'); }
@@ -157,6 +183,7 @@ test('all five upgrades affect their documented mechanics and cannot be bought t
 test('perfect shift settles cost/profit, rewards, XP and result exactly once', () => {
   const m = ready(), startCoins = m.view().profile.coins; const r = play(m);
   assert.equal(r.stars, 3); assert.equal(r.waste, 0); assert.equal(r.profit, r.revenue + r.tips - r.ingredientCost);
+  assert.ok(r.bestCombo >= 3, 'result carries the highest consecutive-service streak');
   assert.equal(m.view().profile.coins, startCoins + r.revenue + r.tips + r.bonus + r.levelBonus);
   assert.equal(m.view().profile.shifts, 1); assert.equal(m.view().profile.wins, 1);
   const saved = m.serialize(); m.end(); m.step(99999); assert.deepEqual(m.serialize(), saved);

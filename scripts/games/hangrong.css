@@ -13,6 +13,14 @@
 .hr3-button { background: #fffdf7; border: 1px solid #88948b; border-radius: 9px; padding: 9px 13px; font-weight: 700 !important; }
 .hr3-primary { background: #1d3557; color: #fffdf4 !important; border-color: #1d3557; min-width: 150px !important; }
 .hr3-hud { display: flex; justify-content: space-between; gap: 12px; padding: 9px 14px; background: #1d3557; color: #fff7e6; border-radius: 9px 9px 0 0; font-variant-numeric: tabular-nums; }
+.hr3-hud > div { min-width: 0; }
+.hr3-hud #hr3Clock { flex: 0 0 auto; align-self: center; font-size: 18px; font-weight: 800; }
+.hr3-stage { display: block; margin-top: 2px; color: #e5eadc; font-size: 12px; overflow-wrap: anywhere; }
+.hr3-scorebar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; padding: 7px 10px; border: 1px solid #b8c8b4; background: #e4ecdf; color: #29493b; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.hr3-scorebar > span { min-height: 20px; }
+.hr3-scorebar .hr3-streak-hot { padding: 1px 7px; border-radius: 8px; background: #f3d98f; color: #49320c; }
+.hr3-scorebar #hr3Weather { padding: 1px 7px; border-radius: 8px; background: #963d30; color: #fff; }
+.hr3-tip-rule { padding: 5px 3px 8px; color: #43584c; font-size: 12px; text-align: center; }
 .hr3-play-wrap { position: relative; }
 .hr3-scene { border: 1px solid #b8b4a5; border-top: 0; border-radius: 0 0 11px 11px; overflow: hidden; background: #e7e5d8; }
 .hr3-awning { height: 26px; background: repeating-linear-gradient(90deg, #305e5c 0 40px, #e7ecdc 40px 80px); border-bottom: 4px solid #204846; }
@@ -37,6 +45,14 @@
 .hr3-customer progress { margin-top: auto; }
 .hr3-urgent progress::-webkit-progress-value { background: #b5442e; }
 .hr3-urgent progress::-moz-progress-bar { background: #b5442e; }
+.hr3-customer.hr3-tip-ready progress::-webkit-progress-value { background: #357b63; }
+.hr3-customer.hr3-tip-ready progress::-moz-progress-bar { background: #357b63; }
+.hr3-customer.hr3-no-tip:not(.hr3-urgent) progress::-webkit-progress-value { background: #bd8423; }
+.hr3-customer.hr3-no-tip:not(.hr3-urgent) progress::-moz-progress-bar { background: #bd8423; }
+.hr3-customer.hr3-urgent progress::-webkit-progress-value { background: #b5442e; }
+.hr3-customer.hr3-urgent progress::-moz-progress-bar { background: #b5442e; }
+.hr3-tip-ready .hr3-customer-hint { color: #1e6349; }
+.hr3-no-tip:not(.hr3-urgent) .hr3-customer-hint { color: #80551a; }
 .hr3-rain .hr3-customers { background: repeating-linear-gradient(110deg, transparent 0 25px, #cadbd766 25px 27px, transparent 27px 52px), #d2dad6; }
 .hr3-counter { padding: 14px; border-top: 6px solid #a77c4e; background: #efe5d2; }
 .hr3-recipes { display: grid; grid-template-columns: repeat(var(--hr3-dishes, 2), minmax(0, 1fr)); gap: 10px; }
@@ -59,6 +75,11 @@
 .hr3-pause-cover h4 { font-size: 26px; }
 .hr3-result { text-align: center; padding: 65px 20px; border-radius: 12px; background: #fffdf5; border: 1px solid #b7c4af; }
 .hr3-result h4 { font-size: 28px; margin: 8px 0 22px; }
+.hr3-result-summary { max-width: 440px; margin: 0 auto 12px !important; color: #29493b; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.hr3-level-progress { margin: 12px 0 5px !important; color: #43584c; font-size: 13px; font-weight: 700; }
+.hr3-xp { display: block; width: min(100%, 420px) !important; height: 11px !important; margin: 0 auto 18px; color: #357b63 !important; }
+.hr3-xp::-webkit-progress-value { background: #357b63; }
+.hr3-xp::-moz-progress-bar { background: #357b63; }
 .hr3-unlock { max-width: 520px; margin: -10px auto 18px !important; padding: 10px 12px; border-radius: 8px; background: #e8ecdf; color: #285448; font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
 .hr3-stars { color: #a46d21; font-size: 47px; letter-spacing: 5px; }
 .hr3-status { min-height: 34px; padding: 10px 0 0; font-size: 14px; color: #285448; text-align: center; }
@@ -70,6 +91,10 @@
   .hr3-game { padding: 10px; }
   .hr3-header { margin-bottom: 8px; }
   .hr3-header h3 { font-size: 24px; }
+  .hr3-hud { padding: 8px 10px; gap: 8px; }
+  .hr3-stage { font-size: 11px; }
+  .hr3-scorebar { gap: 5px 8px; padding: 6px 8px; font-size: 12px; }
+  .hr3-tip-rule { font-size: 11px; }
   .hr3-customers { padding: 12px 9px 10px; gap: 10px; min-height: 164px; }
   .hr3-customer { min-height: 143px; }
   .hr3-counter { padding: 10px; }

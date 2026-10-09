@@ -43,10 +43,10 @@
         "implementation_status": "implemented-awaiting-browser-device-qa",
         "automated_tests": {
           "command": "node --test tests/hangrong-*.test.cjs",
-          "passed": 35,
+          "passed": 40,
           "failed": 0,
-          "date": "2026-10-07",
-          "limitation": "Deterministic economy simulation and DOM/audio doubles; perfect bot is not a human time/difficulty estimate"
+          "date": "2026-10-09",
+          "limitation": "Deterministic model and DOM/audio doubles; scripted CI touch run is not a human fun/difficulty, assistive-tech, physical-device or latency acceptance"
         },
         "gates": {
           "reference_parity": {
@@ -82,7 +82,7 @@
             "evidence": "Implementation/rule/asset/test dossier: docs/games/HANGRONG_RESEARCH_AND_QA.md. Browser/device/playtest/release approval pending."
           }
         },
-        "player_ui": "Instant cook-and-tap-customer play; preparation, stock, collection and matching automated; no setup/market/equipment/statistics panels."
+        "player_ui": "Instant cook-and-serve queue play; cooking seconds, patience urgency, tip threshold, combo/tip bank, rain cue and shift XP are visible. Preparation, stock, collection and matching stay automated; no setup/market/equipment/statistics panels."
       },
       "release_gates": {
         "reference_parity": "pending",

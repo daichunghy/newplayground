@@ -32,8 +32,11 @@ test('opens directly into two-dish gameplay without setup, market, equipment or 
   const h = setup(); open(h);
   assert.equal(saved(h).phase, 'playing'); assert.equal(saved(h).shift.customers.length, 1); assert.equal(h.frames.size, 1);
   assert.equal(saved(h).profile.menu.length, 2); assert.equal(el(h, 'Cook2').hidden, true); assert.equal(el(h, 'HelpText').hidden, true);
-  for (const removed of ['Start', 'Prep', 'Menu', 'Restock', 'Shop', 'Coins', 'XP', 'Receipt', 'Confirm', 'Discard', 'End']) assert.equal(el(h, removed), null, removed);
+  for (const removed of ['Start', 'Prep', 'Menu', 'Restock', 'Shop', 'Coins', 'Receipt', 'Confirm', 'Discard', 'End']) assert.equal(el(h, removed), null, removed);
   assert.match(el(h, 'Goal').textContent, /Giao 0\/8 · cần 5/); assert.equal(h.container.querySelectorAll('details').length, 0);
+  assert.equal(el(h, 'Stage').textContent, 'Gánh tre · Góc ngõ buổi sớm');
+  assert.match(el(h, 'TipRule').textContent, /Khách đỏ sắp đi/);
+  assert.equal(el(h, 'Combo').textContent, 'Chuỗi · bắt đầu');
   close(h);
 });
 
@@ -41,7 +44,7 @@ test('only cook then customer tap is required; collection and dish matching are 
   const h = setup(); open(h); click(h, 'Cook0'); click(h, 'Cook0'); assert.equal(saved(h).shift.jobs.filter(Boolean).length, 1);
   const artwork = el(h, 'CookArt0').children[0]; run(h, 4600);
   assert.equal(el(h, 'CookArt0').children[0], artwork); assert.equal(saved(h).shift.jobs.filter(Boolean).length, 0);
-  assert.equal(saved(h).shift.tray.length, 1); assert.equal(el(h, 'CustomerHint0').textContent, 'Giao');
+  assert.equal(saved(h).shift.tray.length, 1); assert.equal(el(h, 'CustomerHint0').textContent, 'Giao +1');
   assert.equal(el(h, 'Customer0').classList.contains('hr3-match'), true);
   click(h, 'Customer0'); assert.equal(saved(h).shift.served, 1); assert.equal(saved(h).shift.tray.length, 0);
   click(h, 'Customer0'); assert.equal(saved(h).shift.served, 1); close(h);
@@ -53,6 +56,34 @@ test('prevents unnecessary dishes and repeated cooks; premature customer taps ar
   click(h, 'Customer0'); assert.equal(saved(h).shift.served, 0); assert.match(el(h, 'Status').textContent, /nấu/);
   click(h, 'Cook0'); run(h, 500); click(h, 'Cook0'); assert.equal(saved(h).shift.jobs.filter(Boolean).length, 1);
   click(h, 'Customer0'); assert.match(el(h, 'Status').textContent, /Đợi/); close(h);
+});
+
+test('cook time and tip threshold make queue priority legible; serving celebrates its real reward', () => {
+  const h = setup(); open(h);
+  assert.match(el(h, 'Cook0').getAttribute('aria-label'), /mất khoảng 5 giây/);
+  click(h, 'Cook0'); run(h, 4600);
+  assert.equal(el(h, 'CustomerHint0').textContent, 'Giao +1');
+  assert.match(el(h, 'Customer0').getAttribute('aria-label'), /nhận 1 xu tiền bo/);
+  click(h, 'Customer0');
+  assert.equal(el(h, 'Combo').textContent, 'Chuỗi ×1');
+  assert.equal(el(h, 'TipBank').textContent, 'Bo +1');
+  assert.match(el(h, 'Status').textContent, /\+16 xu · bo \+1 · chuỗi ×1/);
+  close(h);
+});
+
+test('rain rush is announced with a countdown and the active district stays visible', () => {
+  const p = M.create().view().profile; p.level = 4; p.shifts = 2; p.tutorial = true;
+  const m = M.create({ profile: p }); m.restock(); m.begin();
+  const rainAt = m.view().plan.rainAt; assert.ok(rainAt); m.step(rainAt - M.TICK);
+  const savedShift = m.serialize(); savedShift.shift.rainNotified = false;
+  const h = setup({ storage: new Map([[KEY, JSON.stringify(savedShift)]]) }); open(h);
+  assert.equal(saved(h).phase, 'paused'); assert.equal(el(h, 'Stage').textContent, 'Xe đẩy · Con phố tan tầm');
+  click(h, 'Resume'); run(h, 1000);
+  assert.equal(el(h, 'Weather').hidden, false);
+  assert.match(el(h, 'Weather').textContent, /^Mưa \d+s$/);
+  assert.match(el(h, 'Status').textContent, /Mưa rồi · ưu tiên khách sắp đi/);
+  assert.equal(el(h, 'Scene').classList.contains('hr3-rain'), true);
+  close(h);
 });
 
 test('keyboard is just 1–3 to cook, Q/W/E/R to serve and P to pause; repeats/editable inputs ignored', () => {
@@ -82,9 +113,13 @@ test('blur, hidden tab and pagehide preserve paused progress; reopening requires
 test('winning and next shift take one button, no receipt/setup; no duplicate rewards on repeated taps', () => {
   const h = setup(); open(h); playUI(h);
   assert.equal(saved(h).result.won, true); assert.equal(el(h, 'ResultTitle').textContent, 'Xong ca!'); assert.equal(el(h, 'ResultTitle').focused, true);
+  assert.match(el(h, 'ResultSummary').textContent, /8\/8 giao · lỡ 0 · bo \+\d+ · chuỗi ×\d+/);
+  assert.match(el(h, 'LevelProgress').textContent, /Cấp \d+ · \d+\/\d+ XP/);
+  assert.ok(el(h, 'XP').value > 0);
   assert.equal(el(h, 'Unlock').hidden, true, 'ordinary level gains do not add unrelated progression text');
   assert.equal(el(h, 'Receipt'), null); assert.equal(saved(h).profile.shifts, 1); assert.equal(h.frames.size, 0);
   click(h, 'Next'); assert.equal(saved(h).phase, 'playing'); assert.equal(saved(h).profile.shifts, 1); assert.equal(saved(h).shift.customers.length, 1);
+  assert.equal(el(h, 'Combo').textContent, 'Chuỗi · bắt đầu'); assert.equal(el(h, 'TipBank').textContent, 'Bo +0');
   const second = saved(h); click(h, 'Next'); assert.deepEqual(saved(h), second); close(h);
 });
 
@@ -139,7 +174,7 @@ test('corrupt/future saves remain untouched; backup recovery and denied storage 
     click(h, 'Cook0'); run(h, 4600); assert.equal(h.stored.get(KEY), bad); assert.equal(h.frames.size, 1); assert.equal(el(h, 'Storage').hidden, false); close(h);
   }
   const h = setup(); h.context.localStorage.getItem = () => { throw Error('denied'); }; h.context.localStorage.setItem = () => { throw Error('quota'); };
-  open(h); click(h, 'Cook0'); run(h, 4600); assert.equal(el(h, 'CustomerHint0').textContent, 'Giao'); close(h);
+  open(h); click(h, 'Cook0'); run(h, 4600); assert.equal(el(h, 'CustomerHint0').textContent, 'Giao +1'); close(h);
   const q = setup(); q.context.localStorage.setItem = () => { throw Error('quota'); }; open(q); assert.equal(el(q, 'Storage').hidden, false); close(q);
 });
 
