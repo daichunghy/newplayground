@@ -154,3 +154,40 @@ test('undo, restart, and new seeded deal preserve deterministic state', () => {
   assert.deepEqual(game.view().freeCells, [null, null, null, null]);
   assert.equal(game.view().moves, 0);
 });
+
+test('a stuck position rejects moves, then undo and restart recover the deal', () => {
+  const game = M.create({ seed: 2 });
+  const sequence = [
+    [{ zone: 'tableau', pile: 4, index: 5 }, { zone: 'cell', cell: 1 }],
+    [{ zone: 'tableau', pile: 3, index: 6 }, { zone: 'cell', cell: 2 }],
+    [{ zone: 'tableau', pile: 7, index: 5 }, { zone: 'cell', cell: 3 }],
+    [{ zone: 'tableau', pile: 5, index: 5 }, { zone: 'cell', cell: 0 }],
+    [{ zone: 'cell', cell: 1 }, { zone: 'tableau', pile: 1 }],
+    [{ zone: 'tableau', pile: 4, index: 4 }, { zone: 'cell', cell: 1 }],
+    [{ zone: 'tableau', pile: 2, index: 6 }, { zone: 'tableau', pile: 3 }],
+    [{ zone: 'tableau', pile: 5, index: 4 }, { zone: 'tableau', pile: 6 }],
+    [{ zone: 'tableau', pile: 5, index: 3 }, { zone: 'foundation', suit: 'spades' }],
+    [{ zone: 'tableau', pile: 4, index: 3 }, { zone: 'tableau', pile: 7 }]
+  ];
+  for (const [source, target] of sequence) assert.equal(game.move(source, target), true);
+
+  const stuck = game.view();
+  assert.equal(stuck.status, 'stuck');
+  assert.equal(stuck.hasLegalMove, false);
+  assert.equal(stuck.canUndo, true);
+  assert.equal(game.move({ zone: 'tableau', pile: 0, index: 0 }, { zone: 'tableau', pile: 1 }), false);
+  assert.deepEqual(game.view(), stuck, 'a terminal board cannot be changed by a rejected move');
+
+  assert.equal(game.undo(), true);
+  assert.equal(game.view().status, 'playing');
+  assert.equal(game.view().hasLegalMove, true);
+  assert.equal(game.view().moves, 9);
+  assert.equal(game.restart(), true);
+  const restarted = game.view();
+  const original = M.create({ seed: 2 }).view();
+  assert.deepEqual(restarted.tableaus, original.tableaus);
+  assert.deepEqual(restarted.freeCells, original.freeCells);
+  assert.deepEqual(restarted.foundations, original.foundations);
+  assert.equal(restarted.moves, 0);
+  assert.equal(restarted.status, 'playing');
+});

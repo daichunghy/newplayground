@@ -147,11 +147,27 @@ test('hint suggests the stock when no tableau move is available', () => {
   assert.equal(game.view().stockCount, 50);
 });
 
-test('hint is unavailable after a terminal stuck position', () => {
+test('an exhausted stuck position rejects hints and recovers through undo or restart', () => {
   const game = M.create({ seed: 526 });
+  const start = game.view();
   for (let row = 0; row < 5; row++) assert.equal(game.dealStock(), true);
   assert.equal(game.view().status, 'stuck');
   assert.equal(game.findHint(), null);
+  assert.equal(game.view().canUndo, true);
+
+  assert.equal(game.undo(), true);
+  assert.equal(game.view().status, 'playing');
+  assert.equal(game.view().stockCount, 10);
+  assert.equal(game.view().moves, 4);
+  assert.equal(game.dealStock(), true, 'the restored deal can continue');
+  assert.equal(game.view().status, 'stuck');
+
+  assert.equal(game.restart(), true);
+  const restarted = game.view();
+  assert.equal(restarted.status, 'playing');
+  assert.equal(restarted.stockCount, 50);
+  assert.equal(restarted.moves, 0);
+  assert.deepEqual(restarted.tableaus, start.tableaus);
 });
 
 test('a completed run auto-removes and undo or restart restores the position', () => {
