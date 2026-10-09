@@ -60,6 +60,7 @@
             <button class="dm-button dm-mode" id="dmFlagMode" type="button" aria-pressed="false">${ICONS.flag} Cờ</button>
             <button class="dm-button dm-mode" id="dmQuestionMode" type="button" aria-pressed="false" aria-label="Đánh dấu chưa chắc" title="Dấu hỏi · Q">?</button>
           </div>
+          <button class="dm-button" id="dmPan" type="button" aria-label="Cuộn ngang sang phải" hidden>→</button>
           <button class="dm-button" id="dmPause" type="button" aria-label="Tạm dừng">Ⅱ</button>
         </div>
         <p class="np-game-sr" id="dmScrollHint">Có thể cuộn bàn ngang / dọc. Chọn “Bỏ túi” để dễ chơi trên điện thoại.</p>
@@ -78,6 +79,16 @@
     const grid = el('dmGrid'), scroll = el('dmScroll'), select = el('dmDifficulty');
 
     function announce(text) { el('dmStatus').textContent = text; }
+    function updatePanButton() {
+      const pan = el('dmPan');
+      const maxScroll = Math.max(0, (scroll.scrollWidth || 0) - (scroll.clientWidth || 0));
+      pan.hidden = maxScroll <= 1;
+      if (pan.hidden) return;
+      const atRight = scroll.scrollLeft >= maxScroll - 2;
+      pan.textContent = atRight ? '←' : '→';
+      pan.setAttribute('aria-label', atRight ? 'Cuộn ngang sang trái' : 'Cuộn ngang sang phải');
+      pan.disabled = paused || terminal();
+    }
     function save() {
       if (!alive) return;
       try {
@@ -178,6 +189,7 @@
       el('dmPause').disabled = v.status !== 'playing';
       el('dmPause').textContent = paused ? '▶' : 'Ⅱ';
       el('dmPause').setAttribute('aria-label', paused ? 'Chơi tiếp' : 'Tạm dừng');
+      updatePanButton();
       el('dmPauseCover').hidden = !paused; grid.setAttribute('aria-hidden', paused ? 'true' : 'false');
       grid.inert = paused; scroll.classList.toggle('dm-is-paused', paused);
       el('dmResult').hidden = !ended;
@@ -309,6 +321,15 @@
     listen(el('dmRevealMode'), 'click', () => setMode('reveal'));
     listen(el('dmFlagMode'), 'click', () => setMode('flag'));
     listen(el('dmQuestionMode'), 'click', () => setMode('question'));
+    listen(el('dmPan'), 'click', () => {
+      const maxScroll = Math.max(0, scroll.scrollWidth - scroll.clientWidth);
+      if (maxScroll <= 1) return;
+      const target = scroll.scrollLeft >= maxScroll - 2 ? 0 : maxScroll;
+      const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      scroll.scrollTo({ left: target, behavior: reduced ? 'auto' : 'smooth' });
+    });
+    listen(scroll, 'scroll', updatePanButton, { passive: true });
+    listen(window, 'resize', updatePanButton);
     listen(el('dmPause'), 'click', () => { if (el('dmConfirm').hidden) setPaused(!paused); });
     listen(el('dmResume'), 'click', () => { if (el('dmConfirm').hidden) setPaused(false); else el('dmConfirmYes').focus(); });
     listen(el('dmRestart'), 'click', () => requestNew(board.view().presetId));

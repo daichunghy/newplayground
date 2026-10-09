@@ -38,3 +38,9 @@ tests/browser/portal.spec.cjs now supplements the route and responsive smoke che
 - Hàng Rong: cook the deterministic first order, wait for automatic tray collection, then serve its customer.
 
 The fixture logic was checked against the pure game models. The browser scenarios themselves are not yet run; no screenshots or runtime acceptance are claimed.
+
+## Local Chromium update — 2026-10-09
+
+This update supersedes the earlier “unrun” status for the covered browser scenarios above. Against the prepared static site, Playwright 1.63.0 with Chromium 151 passed all 21 browser tests: every one of the 51 registered routes opened and closed, the four P1A play loops ran, viewport and mobile-emulation checks passed, and the error/request monitors stayed clear. A new 320px scenario confirms Dò Mìn's larger board and Line 98 both expose a 44px pan button only when the board overflows; it scrolls between both edges and disappears when the content fits. Node regression passed 1,146/1,146 tests, and release preflight still reports 150 catalog IDs, 51 prototypes and 99 planned.
+
+This is local Chromium and emulated touch evidence. Physical iOS/Android, screen-reader output, novice-player comprehension, performance on target hardware, reference parity, and rights review remain pending. GitHub Actions will re-run checks after the PR update is pushed.

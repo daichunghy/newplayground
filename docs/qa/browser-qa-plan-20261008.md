@@ -25,3 +25,7 @@ The tool versions and commands follow primary docs:
 ## Remaining acceptance
 
 Playwright Chromium and touch emulation are real browser tests, but they do not establish physical iOS/Android behavior, VoiceOver/NVDA support, input latency on target hardware, battery/performance behavior or novice-player comprehension. Those remain separate. No browser tests have run yet. A bounded attempt to open the owned local preview in managed Chromium returned `net::ERR_BLOCKED_BY_CLIENT`; the server logged no request. The PR-only workflow remains local and will run only after a pull request is authorized.
+
+## Local execution update — 2026-10-09
+
+The branch's prepared static site was tested in this cloud workspace with Playwright 1.63.0 and Chromium 151. All 21 browser tests passed, including the 51-route lifecycle loop, the four priority game flows, responsive and mobile-emulation cases, plus the new 320px Dò Mìn/Line 98 board-pan check. The pan check verifies 44px controls, edge-to-edge scrolling and automatic hiding when the board fits. This supersedes the previous local-run status; it does not replace physical-device, assistive-technology, performance or human playtesting. The PR workflow will provide a separate GitHub runner result after the branch update.

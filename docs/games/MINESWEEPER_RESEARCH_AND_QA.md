@@ -58,7 +58,7 @@ Các nguồn chỉ dùng đối chiếu hành vi và hướng dẫn kỹ thuật
 | Reveal feedback | CSS opacity | 150 ms, không thay thời gian xử lý lượt; reduced-motion tắt | Chưa đo dropped frames |
 | Đồng hồ | `performance.now()` | HUD refresh 250 ms, hiển thị giây; pause không tính giờ | Chưa đo background/mobile |
 
-Sự kiện dùng delegation trên grid nên restart không tăng số listener. Không có game loop RAF khi đứng yên. Bàn lớn cuộn trong viewport riêng; preset pocket mặc định khi lần đầu mở trên viewport <=520px. Tất cả nút/ô giữ tối thiểu 44px theo repo. Không hứa “60 FPS” khi chưa đo thiết bị.
+Sự kiện dùng delegation trên grid nên restart không tăng số listener. Không có game loop RAF khi đứng yên. Bàn lớn cuộn trong viewport riêng; preset pocket mặc định khi lần đầu mở trên viewport <=520px. Khi một bàn thực sự tràn ngang, nút mũi tên 44px xuất hiện để chuyển nhanh sang mép còn lại; bàn pocket vừa màn hình không hiện nút này. Tất cả nút/ô giữ tối thiểu 44px theo repo. Không hứa “60 FPS” khi chưa đo thiết bị.
 
 ## 5. Art, audio và quyền tài sản
 

@@ -63,7 +63,7 @@ Nếu parse/schema thất bại, lưu chuỗi gốc vào `np_line98_v1_recovery`
 - DOM 81 nút ổn định, chấm ô có thể đi, preview đường khi hover/focus, trạng thái chọn và không có đường. Không dựng lại toàn bàn sau mỗi thao tác.
 - Mũi tên, Home/End, Ctrl+Home/End; Enter/Space chọn/đi, U Undo, B bỏ chọn. Key repeat không kích hoạt nước đi. Không lấy phím toàn trang. Escape được để cho modal của portal.
 - Chạm/nhấp là hai bước chọn bóng rồi chọn đích. Down không commit; di chuyển >10 CSS px, scroll, release ngoài ô, cancel, leave, blur hay chạm nhiều ngón hủy click tương ứng. Không khóa thao tác pinch zoom.
-- Ô 48px desktop, 44px trên layout hẹp; board cuộn ngang thay vì co ô quá nhỏ. Có hướng dẫn vuốt. Điều này cần nghiệm thu thực trên điện thoại: không tuyên bố rằng cả 9 cột đều vừa màn 320px.
+- Ô 48px desktop, 44px trên layout hẹp; board cuộn ngang thay vì co ô quá nhỏ. Khi tràn ngang, nút mũi tên 44px hiện ở thanh công cụ để chuyển nhanh sang mép còn lại; bàn vừa màn hình không hiện nút này. Điều này cần nghiệm thu thực trên điện thoại: không tuyên bố rằng cả 9 cột đều vừa màn 320px.
 - Pause ẩn và inert bàn; tab ẩn/pagehide tự pause. Reopen ván đang chơi hiện nút Chơi tiếp. Restart ván đang chơi hỏi trước, hủy giữ đúng trạng thái pause cũ.
 - Đường đi Web Animations tối đa 320ms, sinh 140ms, xóa 170ms. Đây là giá trị thiết kế NP, không phải số đo reference. Undo/pause/scroll/resize/close hủy hiệu ứng và dựng kết quả model đã commit; không có luật trong animation callback.
 - Chuyển động tắt được trong UI, tôn trọng `prefers-reduced-motion`; không có WAAPI thì dựng kết quả ngay. CSS forced-colors giữ ký hiệu, border/focus. Những hợp đồng này được kiểm thử nguồn/DOM, chưa thử screen reader.

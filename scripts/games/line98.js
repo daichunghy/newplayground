@@ -36,9 +36,9 @@
       <section class="l98-game" aria-label="Line 98">
         <div class="l98-hud"><div><span>Điểm</span><strong id="l98Score">0</strong></div><div><span>Kỷ lục</span><strong id="l98Best">0</strong></div><div hidden><span>Ô trống</span><strong id="l98Free">78<span> / 81</span></strong></div></div>
         <div class="l98-next-row"><div><span class="l98-next-label">Tiếp</span><div class="l98-next" id="l98Next" aria-label="Ba bóng tiếp theo"></div></div><p id="l98MoveCount" hidden>Lượt 0</p></div>
-        <div class="l98-toolbar"><button class="l98-button" id="l98Undo" type="button" aria-label="Đi lại một nước">↶</button><button class="l98-button" id="l98Deselect" type="button" aria-label="Bỏ chọn">×</button><button class="l98-button" id="l98Pause" type="button" aria-label="Tạm dừng">Ⅱ</button><button class="l98-button l98-primary" id="l98New" type="button" aria-label="Ván mới">↻</button></div>
+        <div class="l98-toolbar"><button class="l98-button" id="l98Undo" type="button" aria-label="Đi lại một nước">↶</button><button class="l98-button" id="l98Deselect" type="button" aria-label="Bỏ chọn">×</button><button class="l98-button" id="l98Pause" type="button" aria-label="Tạm dừng">Ⅱ</button><button class="l98-button l98-pan" id="l98Pan" type="button" aria-label="Cuộn ngang sang phải" hidden>→</button><button class="l98-button l98-primary" id="l98New" type="button" aria-label="Ván mới">↻</button></div>
         <div class="l98-confirm" id="l98Confirm" hidden role="group" aria-label="Xác nhận ván mới"><p>Chơi lại?</p><button class="l98-button l98-primary" id="l98ConfirmYes" type="button">Bắt đầu</button><button class="l98-button" id="l98ConfirmNo" type="button">Chơi tiếp</button></div>
-        <p class="np-game-sr">Trên màn hình nhỏ, vuốt bàn để xem các cột. Mỗi ô vẫn đủ lớn để chạm.</p>
+        <p class="np-game-sr">Trên màn hình nhỏ, vuốt bàn hoặc dùng nút mũi tên để xem các cột. Mỗi ô vẫn đủ lớn để chạm.</p>
         <div class="l98-board-shell"><div class="l98-scroll" id="l98Scroll"><div class="l98-grid" id="l98Grid" role="grid" aria-label="Bàn Line 98, 9 hàng 9 cột" aria-rowcount="9" aria-colcount="9" aria-describedby="l98KeyboardHelp"></div></div><div class="l98-cover" id="l98Cover" hidden><span class="l98-cover-symbol" aria-hidden="true">Ⅱ</span><strong>Tạm dừng</strong><button class="l98-button l98-primary" id="l98Resume" type="button">Chơi tiếp</button></div></div>
         <p class="np-game-sr" id="l98Status" role="status" aria-live="polite" aria-atomic="true">Chọn một bóng, rồi chọn ô trống. Ghép từ 5 bóng cùng màu để mở đường.</p>
         <div class="l98-result" id="l98Result" hidden><h4 id="l98ResultTitle"></h4><p id="l98ResultText" class="np-game-sr"></p><button class="l98-button l98-primary" id="l98Again" type="button">Chơi lại</button></div>
@@ -50,6 +50,16 @@
     const el = id => container.querySelector('#' + id);
     const grid = el('l98Grid'), scroll = el('l98Scroll');
     const announce = text => { el('l98Status').textContent = text; };
+    function updatePanButton() {
+      const pan = el('l98Pan');
+      const maxScroll = Math.max(0, (scroll.scrollWidth || 0) - (scroll.clientWidth || 0));
+      pan.hidden = maxScroll <= 1;
+      if (pan.hidden) return;
+      const atRight = scroll.scrollLeft >= maxScroll - 2;
+      pan.textContent = atRight ? '←' : '→';
+      pan.setAttribute('aria-label', atRight ? 'Cuộn ngang sang trái' : 'Cuộn ngang sang phải');
+      pan.disabled = paused || confirming;
+    }
     function storageNotice(message) { el('l98StorageNote').hidden = false; el('l98StorageNote').textContent = message; }
     if (!storageOK) storageNotice('Chưa đọc được dữ liệu đã lưu. Bạn vẫn có thể chơi; việc lưu có thể không khả dụng.');
     if (legacy) { el('l98Legacy').hidden = false; el('l98Legacy').textContent = `Kỷ lục bản cũ: ${legacy}. Giữ riêng vì cách tính điểm đã thay đổi.`; }
@@ -119,6 +129,7 @@
       el('l98Motion').setAttribute('aria-pressed', motion() ? 'true' : 'false');
       el('l98Motion').textContent = reduced?.matches ? 'Chuyển động: giảm theo thiết bị' : `Chuyển động: ${motionEnabled ? 'bật' : 'tắt'}`;
       grid.classList.toggle('l98-no-motion', !motion());
+      updatePanButton();
     }
     function clearEffects() {
       clearTimeout(phaseTimer); clearTimeout(effectTimer); phaseTimer = null; effectTimer = null;
@@ -263,8 +274,14 @@
     listen(window, 'pointerup', e => { if (pointer?.id === e.pointerId) cancelPointer(); });
     listen(window, 'pointercancel', e => { if (pointer?.id === e.pointerId) cancelPointer(); });
     listen(window, 'blur', () => { cancelPointer(); finishMotion(); });
-    listen(window, 'resize', () => finishMotion());
-    listen(scroll, 'scroll', () => { if (pointer) pointer.cancelled = true; if (busy) finishMotion(); }, { passive: true });
+    listen(window, 'resize', () => { finishMotion(); updatePanButton(); });
+    listen(scroll, 'scroll', () => { if (pointer) pointer.cancelled = true; if (busy) finishMotion(); updatePanButton(); }, { passive: true });
+    listen(el('l98Pan'), 'click', () => {
+      const maxScroll = Math.max(0, scroll.scrollWidth - scroll.clientWidth);
+      if (maxScroll <= 1) return;
+      const target = scroll.scrollLeft >= maxScroll - 2 ? 0 : maxScroll;
+      scroll.scrollTo({ left: target, behavior: motion() ? 'smooth' : 'auto' });
+    });
     listen(el('l98Undo'), 'click', undo);
     listen(el('l98Deselect'), 'click', () => { if (paused || busy || confirming) return; selected = null; showPath(focusIndex); render(); announce('Đã bỏ chọn.'); });
     listen(el('l98Pause'), 'click', () => pause(!paused));

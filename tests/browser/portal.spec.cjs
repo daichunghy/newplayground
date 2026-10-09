@@ -190,6 +190,44 @@ test('P1A games accept a real browser input and update their visible state', asy
   expect(errors).toEqual([]);
 });
 
+test('large puzzle boards expose a touch-sized pan control only when the board overflows', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 780 });
+  await loadPortal(page);
+
+  await openGame(page, 'do-min-minesweeper');
+  const mineScroll = page.locator('#dmScroll');
+  const minePan = page.locator('#dmPan');
+  await expect(minePan).toBeHidden();
+  await page.locator('#dmDifficulty').selectOption('beginner');
+  if (await page.locator('#dmConfirm').isVisible()) await page.locator('#dmConfirmYes').click();
+  await expect(minePan).toBeVisible();
+  const mineBounds = await minePan.boundingBox();
+  expect(mineBounds.width).toBeGreaterThanOrEqual(44);
+  expect(mineBounds.height).toBeGreaterThanOrEqual(44);
+  await minePan.click();
+  await expect.poll(() => mineScroll.evaluate(node => node.scrollLeft)).toBeGreaterThan(0);
+  await expect(minePan).toHaveAttribute('aria-label', 'Cuộn ngang sang trái');
+  await minePan.click();
+  await expect.poll(() => mineScroll.evaluate(node => node.scrollLeft)).toBe(0);
+  await closeGame(page);
+
+  await openGame(page, 'line-98');
+  const lineScroll = page.locator('#l98Scroll');
+  const linePan = page.locator('#l98Pan');
+  await expect(linePan).toBeVisible();
+  const lineBounds = await linePan.boundingBox();
+  expect(lineBounds.width).toBeGreaterThanOrEqual(44);
+  expect(lineBounds.height).toBeGreaterThanOrEqual(44);
+  await linePan.click();
+  await expect.poll(() => lineScroll.evaluate(node => node.scrollLeft)).toBeGreaterThan(0);
+  await expect(linePan).toHaveAttribute('aria-label', 'Cuộn ngang sang trái');
+  await linePan.click();
+  await expect.poll(() => lineScroll.evaluate(node => node.scrollLeft)).toBe(0);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await expect(linePan).toBeHidden();
+  await closeGame(page);
+});
+
 test('Minesweeper restores an active pocket board, wins the last safe reveal, and restarts cleanly', async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem('np_minesweeper_v1', JSON.stringify({
