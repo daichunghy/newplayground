@@ -57,6 +57,28 @@ test('all five dogs can be saved before the timer and produce a scored win', () 
   assert.ok(result.score >= M.DOGS * 100);
 });
 
+test('a first-time pace can wait for green, recover one red mistake, and still win with a useful buffer', () => {
+  const game = M.create(); game.start();
+  game.advance(0.8); // Take time to read the first signal.
+  game.cross(); game.advance(M.CROSS_SECONDS);
+  game.advance(0.23); // Miss the next green and make one recoverable red tap.
+  assert.equal(game.view().signal, 'red');
+  game.cross();
+  const crossOnNextGreen = () => {
+    while (game.view().signal === 'green' && game.view().status === 'playing') game.advance(1 / 120);
+    while (game.view().signal !== 'green' && game.view().status === 'playing') game.advance(1 / 120);
+    game.advance(0.7); // Deliberate reaction time before each crossing.
+    assert.equal(game.view().signal, 'green');
+    game.cross(); game.advance(M.CROSS_SECONDS);
+  };
+  while (game.view().dogsSaved < M.DOGS && game.view().status === 'playing') crossOnNextGreen();
+  const result = game.view();
+  assert.equal(result.status, 'won');
+  assert.equal(result.misses, 1);
+  assert.ok(Math.abs(result.elapsed - 14.92) < 0.04, `modeled novice pace: ${result.elapsed.toFixed(2)}s`);
+  assert.ok(Math.abs(result.roundTime - 5.08) < 0.04, `remaining buffer: ${result.roundTime.toFixed(2)}s`);
+});
+
 test('timeout, pause, resume and restart have terminal-safe transitions', () => {
   const game = M.create(); game.start();
   assert.equal(game.pause(), true);

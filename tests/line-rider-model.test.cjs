@@ -39,6 +39,21 @@ test('rider follows a hand-drawn slope, collects three rings and reaches the fla
   assert.ok(result.distance >= result.trackLength - 0.001);
 });
 
+test('a steep uphill line that sends the rider backward ends as a rollback, not a stall', () => {
+  const game = M.create();
+  assert.equal(makeTrack(game, [
+    { x: 200, y: 270 }, { x: 350, y: 210 }, { x: 500, y: 145 },
+    { x: 620, y: 180 }, M.GOAL
+  ]), true);
+  game.start();
+  for (let i = 0; i < 120 * 8 && game.view().status === 'playing'; i++) game.advance(1 / 120);
+  const result = game.view();
+  assert.equal(result.status, 'lost');
+  assert.equal(result.result, 'rolled-back');
+  assert.ok(result.elapsed < 8);
+  assert.ok(result.distance < result.trackLength);
+});
+
 test('pause freezes the run; resume preserves the rider and restart clears the drawing', () => {
   const game = M.create(); makeTrack(game, [M.RINGS[1], M.GOAL]); game.start();
   game.advance(.25); const before = game.view();

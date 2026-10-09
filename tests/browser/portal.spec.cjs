@@ -34,7 +34,7 @@ async function closeGame(page) {
 
 async function loadPortal(page) {
   await page.goto('/');
-  await expect(page.locator('#catalogAvailability')).toContainText('62');
+  await expect(page.locator('#catalogAvailability')).toContainText('63');
 }
 
 async function newMobilePage(browser, width = 320, height = 800) {
@@ -53,8 +53,8 @@ async function expectViewportFits(page) {
 
 test('the default grid is playable-only; explicit catalog browsing keeps planned entries informational', async ({ page }) => {
   await loadPortal(page);
-  await expect(page.locator('#allSectionTitle')).toHaveText('Bản thử nghiệm có thể chơi (62)');
-  await expect(page.locator('#gridAll .game-card')).toHaveCount(62);
+  await expect(page.locator('#allSectionTitle')).toHaveText('Bản thử nghiệm có thể chơi (63)');
+  await expect(page.locator('#gridAll .game-card')).toHaveCount(63);
   await expect(page.locator('.filter-pill[data-category="playable"]')).toHaveClass(/active/);
 
   await page.locator('.filter-pill[data-category="all"]').click();
@@ -66,7 +66,7 @@ test('the default grid is playable-only; explicit catalog browsing keeps planned
   await expect(page.locator('#gameModal')).toHaveCSS('display', 'none');
 });
 
-test('all 62 registered games open, render, close and release their session', async ({ page }) => {
+test('all 63 registered games open, render, close and release their session', async ({ page }) => {
   test.setTimeout(120_000);
   const errors = watchErrors(page);
   await loadPortal(page);
@@ -76,7 +76,7 @@ test('all 62 registered games open, render, close and release their session', as
       id, engine, title: byId.get(id)?.title || id
     }));
   });
-  expect(routes).toHaveLength(62);
+  expect(routes).toHaveLength(63);
 
   for (const route of routes) {
     await openGame(page, route.id);
@@ -152,6 +152,154 @@ test('Dắt Cún and Bút Vẽ Trượt Ván play on 320px touch and desktop Chr
     await expect(page.locator('#lrOverlay')).toBeHidden();
     await expect(page.locator('#lrOverlayTitle')).toHaveText('Tới đích!', { timeout: 8_000 });
     await expect(page.locator('#lrScore')).not.toHaveText('0');
+    await closeGame(page);
+    await expectViewportFits(page);
+    expect(errors, `${mobile ? 'mobile' : 'desktop'} browser errors`).toEqual([]);
+    await context.close();
+  }
+});
+
+async function drawCustomTrack(context, page, canvas, logicalPoints) {
+  const box = await canvas.boundingBox();
+  const points = logicalPoints.map(p => ({ x: box.x + box.width * p.x / 800, y: box.y + box.height * p.y / 440 }));
+  if (await page.evaluate(() => matchMedia('(pointer: coarse)').matches)) {
+    const cdp = await context.newCDPSession(page);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ ...points[0], id: 1 }] });
+    for (const point of points.slice(1)) {
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ ...point, id: 1 }] });
+      await page.waitForTimeout(30);
+    }
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await cdp.detach();
+  } else {
+    await page.mouse.move(points[0].x, points[0].y); await page.mouse.down();
+    for (const point of points.slice(1)) await page.mouse.move(point.x, point.y, { steps: 4 });
+    await page.mouse.up();
+  }
+}
+
+test('Dắt Cún explains a red-light loss and Bút Vẽ reports an uphill rollback on mobile', async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 320, height: 800 }, isMobile: true, hasTouch: true });
+  const page = await context.newPage(), errors = watchErrors(page);
+  await loadPortal(page);
+  await openGame(page, 'gap-chu-cho-qua-duong');
+  await expect(page.locator('#dcStatus')).toHaveText(/Đèn đỏ/, { timeout: 5_000 });
+  for (let miss = 1; miss <= 3; miss++) await page.locator('#dcCross').click();
+  await expect(page.locator('#dcOverlayTitle')).toHaveText('Hẹn chuyến sau');
+  await expect(page.locator('#dcStatus')).toContainText('Hết lượt');
+  await closeGame(page);
+
+  await openGame(page, 'line-rider-truot-tuyet-vat-ly');
+  const canvas = page.locator('#lrCanvas');
+  await drawCustomTrack(context, page, canvas, [
+    { x: 64, y: 322 }, { x: 200, y: 270 }, { x: 350, y: 210 },
+    { x: 500, y: 145 }, { x: 620, y: 180 }, { x: 736, y: 322 }
+  ]);
+  await expect(page.locator('#lrStart')).toBeEnabled();
+  await page.locator('#lrStart').click();
+  await expect(page.locator('#lrOverlayTitle')).toHaveText('Thử dốc khác', { timeout: 8_000 });
+  await expect(page.locator('#lrStatus')).toContainText('Ván trượt ngược');
+  await closeGame(page);
+  await expectViewportFits(page);
+  expect(errors).toEqual([]);
+  await context.close();
+});
+
+async function playSoapBubbleCourse(page, context, mobile) {
+  let cdp = null, pressed = new Set();
+  const keys = { left: 'ArrowLeft', right: 'ArrowRight', inflate: 'Space' };
+  const positions = {};
+  if (mobile) {
+    cdp = await context.newCDPSession(page);
+    for (const name of Object.keys(keys)) {
+      const selector = name === 'inflate' ? '#sbgBlow' : name === 'left' ? '#sbgLeft' : '#sbgRight';
+      const box = await page.locator(selector).boundingBox();
+      positions[name] = { x: box.x + box.width / 2, y: box.y + box.height / 2, id: name === 'left' ? 10 : name === 'inflate' ? 11 : 12 };
+    }
+  }
+  async function updateInput(wanted) {
+    const next = new Set(Object.entries(wanted).filter(([, value]) => value).map(([name]) => name));
+    if (mobile) {
+      if ([...next].some(name => !pressed.has(name)) || [...pressed].some(name => !next.has(name))) {
+        if (pressed.size) await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+        if (next.size) await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [...next].map(name => positions[name]) });
+      }
+    } else {
+      for (const name of pressed) if (!next.has(name)) await page.keyboard.up(keys[name]);
+      for (const name of next) if (!pressed.has(name)) await page.keyboard.down(keys[name]);
+    }
+    pressed = next;
+  }
+  const deadline = Date.now() + 18_000;
+  let finalView, inflate = false;
+  while (Date.now() < deadline) {
+    finalView = await page.evaluate(() => window.__npSoapMounted?.getModel().view() || null);
+    if (!finalView) throw new Error('Soap Bubble mount model was not captured by the browser test');
+    if (finalView.status === 'won' || finalView.status === 'lost') break;
+    const gate = finalView.gates[finalView.gatesPassed];
+    const targetX = gate ? gate.center : finalView.x;
+    const horizontal = Math.abs(finalView.x - targetX) < 18 ? null : finalView.x < targetX ? 'right' : 'left';
+    if (!inflate && finalView.charge <= .22) inflate = true;
+    else if (inflate && finalView.charge >= .40) inflate = false;
+    await updateInput({ inflate, left: horizontal === 'left', right: horizontal === 'right' });
+    await page.waitForTimeout(80);
+  }
+  await updateInput({});
+  if (cdp) await cdp.detach();
+  expect(finalView?.status, `course ended with ${finalView?.result} after ${finalView?.gatesPassed}/3 openings`).toBe('won');
+}
+
+test('Thổi Bong Bóng Xà Phòng launches from the catalog, fits and completes on touch and desktop', async ({ browser }) => {
+  test.setTimeout(60_000);
+  for (const mobile of [true, false]) {
+    const context = await browser.newContext({
+      viewport: mobile ? { width: 320, height: 800 } : { width: 1280, height: 900 },
+      isMobile: mobile, hasTouch: mobile, deviceScaleFactor: 1
+    });
+    const page = await context.newPage(), errors = watchErrors(page);
+    await loadPortal(page);
+    await page.evaluate(() => {
+      const api = window.NP_SoapBubbleGarden;
+      window.NP_SoapBubbleGarden = Object.freeze({ ...api, mount(container, session) {
+        const mounted = api.mount(container, session); window.__npSoapMounted = mounted; return mounted;
+      } });
+    });
+    await openGame(page, 'thoi-bong-xa-phong');
+    await expect(page.locator('#modalGameTitle')).toHaveText('Thổi Bong Bóng Xà Phòng');
+    await expectViewportFits(page);
+    const blow = page.locator('#sbgBlow');
+    const initialBlowBox = await blow.boundingBox();
+    expect(initialBlowBox.width).toBeGreaterThanOrEqual(44); expect(initialBlowBox.height).toBeGreaterThanOrEqual(44);
+    await blow.scrollIntoViewIfNeeded();
+    const blowBox = await blow.boundingBox();
+    if (mobile) {
+      const cdp = await context.newCDPSession(page), box = await blow.boundingBox();
+      const point = { x: box.x + box.width / 2, y: box.y + box.height / 2, id: 7 };
+      const initialCharge = await page.evaluate(() => window.__npSoapMounted.getModel().view().charge);
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point] });
+      await page.waitForTimeout(220);
+      const held = await page.evaluate(() => window.__npSoapMounted.getModel().view());
+      expect(held.input.inflate).toBe(true); expect(held.charge).toBeGreaterThan(initialCharge);
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      await cdp.detach();
+    } else {
+      const initialCharge = await page.evaluate(() => window.__npSoapMounted.getModel().view().charge);
+      await page.keyboard.down('Space');
+      await expect.poll(() => page.evaluate(() => window.__npSoapMounted.getModel().view().input.inflate)).toBe(true);
+      await page.waitForTimeout(220);
+      expect(await page.evaluate(() => window.__npSoapMounted.getModel().view().charge)).toBeGreaterThan(initialCharge);
+      await page.keyboard.up('Space');
+    }
+    await page.locator('#sbgPause').click();
+    await expect(page.locator('#sbgTitle')).toHaveText('Tạm dừng');
+    await page.locator('#sbgOverlayAction').click();
+    await expect(page.locator('#sbgOverlay')).toBeHidden();
+    await page.locator('#sbgRestart').click();
+    await playSoapBubbleCourse(page, context, mobile);
+    await expect(page.locator('#sbgTitle')).toHaveText('Đến hiên rồi!');
+    await page.locator('#sbgOverlayAction').click();
+    await expect(page.locator('#sbgOverlay')).toBeHidden();
+    await expect(page.locator('#sbgGates')).toHaveText('0 / 3');
     await closeGame(page);
     await expectViewportFits(page);
     expect(errors, `${mobile ? 'mobile' : 'desktop'} browser errors`).toEqual([]);
@@ -968,7 +1116,7 @@ test('2048 completes a deterministic 2048 win, continue, and reload resume', asy
   await expect(page.locator('#g2048Overlay')).toBeHidden();
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('np_2048_state_v1')).keepPlaying)).toBe(true);
   await page.reload();
-  await expect(page.locator('#catalogAvailability')).toContainText('62');
+  await expect(page.locator('#catalogAvailability')).toContainText('63');
   await openGame(page, 'tro-choi-2048');
   await expect(page.locator('#g2048Overlay')).toBeHidden();
   await expect(page.locator('#g2048Score')).toHaveText('2048');

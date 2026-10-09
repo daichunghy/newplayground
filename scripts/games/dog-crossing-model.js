@@ -8,7 +8,7 @@
 
   const DOGS = 5;
   const MAX_MISSES = 3;
-  const ROUND_SECONDS = 28;
+  const ROUND_SECONDS = 20;
   const GREEN_SECONDS = 1.55;
   const RED_SECONDS = 1.85;
   const CROSS_SECONDS = 0.62;

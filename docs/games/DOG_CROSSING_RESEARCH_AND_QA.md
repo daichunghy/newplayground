@@ -11,9 +11,10 @@ The catalog title was planned without an engine. A registry review found no acti
 
 ## Round and controls
 
-- Five dogs wait on a safe sidewalk. The round begins immediately with a 28-second clock and a green pedestrian signal.
+- Five dogs wait on a safe sidewalk. The round begins immediately with a 20-second clock and a green pedestrian signal.
 - Tap **Dẫn cún qua** or press Space once to send the next dog. A dog that enters on green reaches safety even if the light changes during the crossing animation.
 - Pressing while red costs one of three mistakes and breaks the score combo. Three red attempts or the timer ending is a loss; saving all five is a win.
+- A paced-first-play walkthrough (0.8s to read, one red mistake, then 0.7s reaction per green) wins in about 14.92s and leaves about 5.08s. The timer was shortened from 28s to 20s to keep the round finite without making a cautious first run fail.
 - Each safe crossing awards 100 points. Consecutive safe entries add 25 points each, capped at a +100 combo bonus; the final crossing adds the remaining-time bonus.
 - Tap **Ⅱ** or press P to pause. The round also pauses when the window loses focus or the document becomes hidden. Restart resets dogs, score, clock, and misses.
 
@@ -21,8 +22,8 @@ The scene is a single fixed crosswalk with original Canvas dogs, traffic, signal
 
 ## Verification
 
-- `node --test tests/dog-crossing-model.test.cjs` — 5 model tests cover start, safe crossing, signal cadence during crossing, red-light loss, full-round win/scoring, pause/resume, timeout and restart.
-- `tests/browser/portal.spec.cjs` — full browser suite: 38/38 passed. Its new case opens both games, exercises one safe crossing, P pause/resume, restart, touch-sized controls, responsive overflow, and session teardown at 320px touch Chromium and desktop Chromium.
+- `node --test tests/dog-crossing-model.test.cjs` — 6 model tests cover start, safe crossing, signal cadence during crossing, red-light loss, full-round win/scoring, pause/resume, timeout and restart.
+- `tests/browser/portal.spec.cjs` — full browser suite: 40/40 passed, including every registered route. It includes a 320px touch regression where three red attempts show the loss state and a cross-device play case exercising safe crossing, pause/resume, restart, touch-sized controls, overflow and session teardown.
 - Automated browser coverage is not physical iOS/Android testing, assistive-technology acceptance, or a novice playtest. Motion feel, color contrast in sunlight, sound, and the catalog title's distribution rights remain unaccepted.
 
 ## Release gates

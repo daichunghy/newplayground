@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 270" role="img" aria-labelledby="title desc">
+  <title id="title">Thổi Bong Bóng Xà Phòng</title>
+  <desc id="desc">Một bong bóng ánh ngọc bay qua khe lá xanh trong khu vườn màu nắng.</desc>
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#c6eaeb"/><stop offset=".68" stop-color="#e5f1dd"/><stop offset="1" stop-color="#fff0d5"/></linearGradient>
+    <radialGradient id="glass" cx="34%" cy="28%" r="70%"><stop stop-color="#fff" stop-opacity=".88"/><stop offset=".36" stop-color="#a8e8e7" stop-opacity=".34"/><stop offset=".75" stop-color="#efa4cf" stop-opacity=".25"/><stop offset="1" stop-color="#70c7d0" stop-opacity=".62"/></radialGradient>
+    <linearGradient id="horizon" x2="0" y2="1"><stop stop-color="#a6d2a0"/><stop offset="1" stop-color="#709d73"/></linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="8"/></filter>
+  </defs>
+  <rect width="480" height="270" rx="24" fill="url(#sky)"/>
+  <g fill="#fff" opacity=".48"><ellipse cx="93" cy="50" rx="37" ry="15"/><ellipse cx="118" cy="44" rx="25" ry="19"/><ellipse cx="139" cy="52" rx="28" ry="13"/><ellipse cx="369" cy="74" rx="34" ry="13"/><ellipse cx="393" cy="65" rx="23" ry="18"/><ellipse cx="415" cy="73" rx="27" ry="13"/></g>
+  <path d="M0 212Q100 177 190 209T360 209T480 189V270H0Z" fill="url(#horizon)"/>
+  <path d="M0 238Q124 211 235 236T480 222V270H0Z" fill="#67966f" opacity=".7"/>
+  <g fill="#6ea980"><path d="M58 219q-15-43 4-67 18 20 8 51 25-39 48-34-4 30-42 48z"/><path d="M392 217q-12-48 9-72 16 23 5 54 20-36 43-29-7 28-41 44z"/></g>
+  <g stroke="#668f71" stroke-width="4" stroke-linecap="round"><path d="M85 223v-26m0 16-13-12m13 6 13-15M415 218v-30m0 20-14-14m14 6 14-17"/></g>
+  <circle cx="245" cy="126" r="74" fill="#91e7df" opacity=".25" filter="url(#glow)"/>
+  <circle cx="245" cy="126" r="62" fill="url(#glass)" stroke="#efffff" stroke-width="4"/>
+  <path d="M209 104a43 43 0 0 1 35-22" fill="none" stroke="#f7aad5" stroke-width="6" stroke-linecap="round"/>
+  <path d="M249 185a52 52 0 0 1-42-24" fill="none" stroke="#7fdbce" stroke-width="5" stroke-linecap="round"/>
+  <ellipse cx="224" cy="96" rx="12" ry="5" transform="rotate(-35 224 96)" fill="#fff" opacity=".94"/>
+  <g fill="#fff4ce"><circle cx="310" cy="84" r="5"/><circle cx="175" cy="150" r="4"/><circle cx="286" cy="174" r="3"/></g>
+  <rect x="24" y="22" width="141" height="28" rx="14" fill="#fff" opacity=".8"/>
+  <text x="94" y="41" text-anchor="middle" fill="#52786c" font-family="Calibri,Arial,sans-serif" font-size="13" font-weight="700" letter-spacing="1.5">VƯỜN BONG BÓNG</text>
+</svg>

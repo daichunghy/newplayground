@@ -1148,5 +1148,15 @@
     "source": "Original project-authored cover art for a user-drawn slope-riding challenge; no third-party artwork copied or used",
     "author": "NewPlayground project contributors",
     "created_at": "2026-10-09"
+  },
+  {
+    "category": "original-game-art",
+    "file": "thoi-bong-xa-phong.svg",
+    "local_path": "assets/covers/thoi-bong-xa-phong.svg",
+    "size_bytes": 2653,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Created in this repository for NewPlayground; original soap-bubble garden cover art, no third-party artwork copied or used",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-09"
   }
 ]

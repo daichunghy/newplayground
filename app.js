@@ -142,6 +142,7 @@
     'kim-cuong': 'assets/mosaic-window-original.svg',
     'kim-cuong-bejeweled': 'assets/mosaic-window-original.svg',
     'line-98': 'assets/line98-original.svg',
+    'thoi-bong-xa-phong': 'assets/covers/thoi-bong-xa-phong.svg',
     'mario': 'assets/cloud-canopy-original.svg',
     'pac-man': 'assets/maze-chase-original.svg',
     'zuma': 'assets/marble-trail-original.svg',

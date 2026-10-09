@@ -63,7 +63,8 @@
     'keo-co-doi-khang': 'launchKeoNhip',
     'tiem-sach-cu-pho-co': 'launchKeSachKyUc',
     'gap-chu-cho-qua-duong': 'launchDogCrossing',
-    'line-rider-truot-tuyet-vat-ly': 'launchLineRider'
+    'line-rider-truot-tuyet-vat-ly': 'launchLineRider',
+    'thoi-bong-xa-phong': 'launchSoapBubbleGarden'
   });
   const engineFor = id => Object.prototype.hasOwnProperty.call(entries, id) ? entries[id] : null;
   const isPlayable = id => Boolean(engineFor(id) && window.NP_Engines &&

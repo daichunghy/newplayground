@@ -2366,11 +2366,11 @@
     "gap-chu-cho-qua-duong": {
       "scope": "prototype",
       "reference_version": "Original fixed single-crosswalk timing round; genre research uses the Hasbro Frogger Game.com manual and Apple Crossy Road listing; no parity claim",
-      "candidate_build": "dog-crossing-1",
+      "candidate_build": "dog-crossing-2",
       "accepted_build": null,
       "owner": null,
       "accepted_at": null,
-      "implementation_status": "implemented-awaiting-browser-device-qa",
+      "implementation_status": "implemented-awaiting-human-device-qa",
       "research": {
         "status": "desk-research-partial",
         "evidence_date": "2026-10-09",
@@ -2379,19 +2379,19 @@
           "https://www.hasbro.com/common/instruct/FROGGER.PDF",
           "https://apps.apple.com/us/app/crossy-road/id924373886"
         ],
-        "rules_task": "Original one-crosswalk round: send five dogs only on pedestrian green; three red attempts or a 28-second timer loses; saving all five wins.",
+        "rules_task": "Original one-crosswalk round: send five dogs only on pedestrian green; three red attempts or a 20-second timer loses; saving all five wins. A modeled cautious first-play route with one red mistake completes in 14.92 seconds and leaves a 5.08-second buffer.",
         "content_task": "One fixed crossing, five queued dogs, three misses, score/combo/time bonus; no grids, rivers, unlocks or endless hazards.",
         "controls_task": "One 54px touch action, Space, pause via P/button; verify light timing, interrupt behavior and 320px touch input.",
         "visual_assets_and_license_to_resolve": "Original Canvas traffic/dogs and original SVG cover; check contrast and feel on device and review catalog title rights.",
-        "backlog_status": "Prototype riêng; nghiên cứu luật thể loại từ nguồn chính thức, không tuyên bố parity"
+        "backlog_status": "Prototype riêng; timer cân bằng 20 giây theo lượt chơi thận trọng có một lỗi đèn đỏ; nghiên cứu luật thể loại, không tuyên bố parity."
       },
       "automated_tests": {
         "command": "node --test tests/dog-crossing-model.test.cjs",
-        "passed": 5,
+        "passed": 6,
         "failed": 0,
         "date": "2026-10-09",
         "evidence": "docs/games/DOG_CROSSING_RESEARCH_AND_QA.md",
-        "limitation": "Pure model tests; browser/device evidence is reported separately and no human playtest has been performed."
+        "limitation": "Six deterministic model tests, including a cautious first-play time budget; human reaction-time and physical-device balance remain unaccepted."
       },
       "gates": {
         "reference_parity": {
@@ -2429,24 +2429,24 @@
       },
       "player_ui": "One visible crossing action, four compact counters, short status, large replay/pause targets, visual and live-region feedback; no long tutorial.",
       "browser_tests": {
-        "command": "NODE_PATH=/tmp/newplayground-playwright/node_modules playwright test --config=/tmp/newplayground-system-chromium-reuse.config.cjs",
-        "passed": 38,
+        "command": "NODE_PATH=/tmp/newplayground-playwright/node_modules /tmp/newplayground-playwright/node_modules/.bin/playwright test --config=/tmp/newplayground-current-source.config.cjs",
+        "passed": 40,
         "failed": 0,
         "date": "2026-10-09",
-        "focused_test": "Dắt Cún and Bút Vẽ Trượt Ván play on 320px touch and desktop Chromium",
-        "focused_test_result": "1/1 passed; both games opened, accepted game input, paused/resumed/restarted or completed, and closed with session cleanup.",
+        "focused_test": "Dắt Cún explains a red-light loss and Bút Vẽ reports an uphill rollback on mobile",
+        "focused_test_result": "1/1 passed; on 320px touch Chromium, the red-light loss is announced and the overlay is actionable; both game sessions close cleanly.",
         "evidence": "docs/qa/new-games-local-checks-20261009.md",
-        "limitation": "Chromium at a 320px touch viewport and desktop; no physical-device or human-playtest acceptance."
+        "limitation": "Chromium 320px touch emulation and 1280px desktop; no physical-device, assistive-technology or human-playtest acceptance."
       }
     },
     "line-rider-truot-tuyet-vat-ly": {
       "scope": "prototype",
       "reference_version": "Official Line Rider draw-a-track/ride mechanic as genre reference; original finite start-to-flag micro challenge with slope follower, rings and scoring; no parity claim",
-      "candidate_build": "line-rider-1",
+      "candidate_build": "line-rider-2",
       "accepted_build": null,
       "owner": null,
       "accepted_at": null,
-      "implementation_status": "implemented-awaiting-browser-device-qa",
+      "implementation_status": "implemented-awaiting-human-device-qa",
       "research": {
         "status": "desk-research-partial",
         "evidence_date": "2026-10-09",
@@ -2462,11 +2462,11 @@
       },
       "automated_tests": {
         "command": "node --test tests/line-rider-model.test.cjs",
-        "passed": 4,
+        "passed": 5,
         "failed": 0,
         "date": "2026-10-09",
         "evidence": "docs/games/LINE_RIDER_RESEARCH_AND_QA.md",
-        "limitation": "The pure model uses a short timer configuration to deterministically exercise timeout; Chromium/device feel and human acceptance remain pending."
+        "limitation": "Five deterministic model tests separate reverse rollback from low-speed stall; Chromium/device feel and human acceptance remain pending."
       },
       "gates": {
         "reference_parity": {
@@ -2504,14 +2504,90 @@
       },
       "player_ui": "Draw once from green dot to flag, then ride; compact score/time/ring HUD, clear/pause/replay controls and short live status; no long tutorial.",
       "browser_tests": {
-        "command": "NODE_PATH=/tmp/newplayground-playwright/node_modules playwright test --config=/tmp/newplayground-system-chromium-reuse.config.cjs",
-        "passed": 38,
+        "command": "NODE_PATH=/tmp/newplayground-playwright/node_modules /tmp/newplayground-playwright/node_modules/.bin/playwright test --config=/tmp/newplayground-current-source.config.cjs",
+        "passed": 40,
         "failed": 0,
         "date": "2026-10-09",
-        "focused_test": "Dắt Cún and Bút Vẽ Trượt Ván play on 320px touch and desktop Chromium",
-        "focused_test_result": "1/1 passed; both games opened, accepted game input, paused/resumed/restarted or completed, and closed with session cleanup.",
+        "focused_test": "Dắt Cún explains a red-light loss and Bút Vẽ reports an uphill rollback on mobile",
+        "focused_test_result": "1/1 passed; at 320px touch Chromium, the rider rolls backward on the steep test track and the view announces Ván trượt ngược.",
         "evidence": "docs/qa/new-games-local-checks-20261009.md",
-        "limitation": "Chromium at a 320px touch viewport and desktop; no physical-device or human-playtest acceptance."
+        "limitation": "Chromium 320px touch emulation and 1280px desktop; no physical-device, assistive-technology or human-playtest acceptance."
+      }
+    },
+    "thoi-bong-xa-phong": {
+      "scope": "prototype",
+      "reference_version": "Original continuous breath-charge ascent puzzle; MIT BLOSSOMS informs bubble visual context only; no parity or quantitative physics claim",
+      "candidate_build": "soap-bubble-garden-1",
+      "accepted_build": null,
+      "owner": null,
+      "accepted_at": null,
+      "implementation_status": "implemented-awaiting-human-device-qa",
+      "research": {
+        "status": "desk-research-partial",
+        "evidence_date": "2026-10-09",
+        "reference_version": "Original fixed-window breath/steering course; MIT BLOSSOMS is a visual/educational context source only, not a gameplay specification.",
+        "source_urls": [
+          "https://web.mit.edu/blossoms/videos/lessons/science_soap_bubbles/"
+        ],
+        "rules_task": "Hold to raise pressure, bubble size and lift; release to leak pressure; steer through three fixed windows. Thorn collision, sustained overpressure and timer end the attempt; reaching the porch wins.",
+        "content_task": "One 24-second ascent course, three fixed windows, 150 points per safe crossing and a small time/pressure finish bonus; no shop, unlocks, enemies or collection meta.",
+        "controls_task": "Hold Thổi for continuous pressure; left/right touch targets or arrows/A-D steer; Space and P are keyboard options; verify simultaneous mobile input and pause cleanup.",
+        "visual_assets_and_license_to_resolve": "Original Canvas bubble/garden and original SVG cover under project MIT; no third-party runtime, sound or images. Catalog title distribution rights remain pending.",
+        "rights_status": "No third-party game art/code/audio used. MIT lesson supports visual context only; title and historical catalog route distribution review remain open.",
+        "backlog_status": "Prototype riêng; điều khiển hơi liên tục và lái bong bóng qua ba khe cố định; nghiên cứu hình ảnh từ MIT BLOSSOMS, luật gameplay là thiết kế gốc."
+      },
+      "automated_tests": {
+        "command": "node --test tests/soap-bubble-garden-model.test.cjs",
+        "passed": 5,
+        "failed": 0,
+        "date": "2026-10-09",
+        "evidence": "docs/games/SOAP_BUBBLE_GARDEN_RESEARCH_AND_QA.md",
+        "limitation": "Pure-model coverage includes win, each loss, pause/resume, restart and invalid time steps; human readability and device feel remain unaccepted."
+      },
+      "gates": {
+        "reference_parity": {
+          "status": "pending",
+          "evidence": "Original prototype evidence is recorded in docs/games/SOAP_BUBBLE_GARDEN_RESEARCH_AND_QA.md. Physical-device, human clarity/balance, accessibility, title-rights, and release acceptance remain pending."
+        },
+        "content": {
+          "status": "pending",
+          "evidence": "Original prototype evidence is recorded in docs/games/SOAP_BUBBLE_GARDEN_RESEARCH_AND_QA.md. Physical-device, human clarity/balance, accessibility, title-rights, and release acceptance remain pending."
+        },
+        "controls": {
+          "status": "pending",
+          "evidence": "Original prototype evidence is recorded in docs/games/SOAP_BUBBLE_GARDEN_RESEARCH_AND_QA.md. Physical-device, human clarity/balance, accessibility, title-rights, and release acceptance remain pending."
+        },
+        "visual_audio": {
+          "status": "pending",
+          "evidence": "Original prototype evidence is recorded in docs/games/SOAP_BUBBLE_GARDEN_RESEARCH_AND_QA.md. Physical-device, human clarity/balance, accessibility, title-rights, and release acceptance remain pending."
+        },
+        "device_qa": {
+          "status": "pending",
+          "evidence": "Original prototype evidence is recorded in docs/games/SOAP_BUBBLE_GARDEN_RESEARCH_AND_QA.md. Physical-device, human clarity/balance, accessibility, title-rights, and release acceptance remain pending."
+        },
+        "save_recovery": {
+          "status": "pending",
+          "evidence": "Original prototype evidence is recorded in docs/games/SOAP_BUBBLE_GARDEN_RESEARCH_AND_QA.md. Physical-device, human clarity/balance, accessibility, title-rights, and release acceptance remain pending."
+        },
+        "playtest": {
+          "status": "pending",
+          "evidence": "Original prototype evidence is recorded in docs/games/SOAP_BUBBLE_GARDEN_RESEARCH_AND_QA.md. Physical-device, human clarity/balance, accessibility, title-rights, and release acceptance remain pending."
+        },
+        "distribution_rights": {
+          "status": "pending",
+          "evidence": "Original prototype evidence is recorded in docs/games/SOAP_BUBBLE_GARDEN_RESEARCH_AND_QA.md. Physical-device, human clarity/balance, accessibility, title-rights, and release acceptance remain pending."
+        }
+      },
+      "player_ui": "Immediate ascent with one large hold-to-blow button and left/right steering; charge, gate count, score and timer remain visible; short status and large pause/replay controls; no long tutorial.",
+      "browser_tests": {
+        "command": "NODE_PATH=/tmp/newplayground-playwright/node_modules /tmp/newplayground-playwright/node_modules/.bin/playwright test --config=/tmp/newplayground-current-source.config.cjs",
+        "passed": 40,
+        "failed": 0,
+        "date": "2026-10-09",
+        "focused_test": "Thổi Bong Bóng Xà Phòng launches from the catalog, fits and completes on touch and desktop",
+        "focused_test_result": "1/1 passed; touch holds complete and win the three-gate course at 320px, keyboard completes it at 1280px, pause/resume/restart work, and session cleanup reports no browser errors.",
+        "evidence": "docs/qa/new-games-local-checks-20261009.md",
+        "limitation": "Chromium touch emulation and desktop only; no physical-device, human clarity/balance, screen-reader or title-rights acceptance."
       }
     }
   }

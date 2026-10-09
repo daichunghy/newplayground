@@ -12,13 +12,13 @@ This build is a short, fixed start-to-flag challenge rather than an open-ended t
 
 - Drag from the green start dot to the flag on mouse or touch. The line must contain at least three points, span at least 440 logical units, end near the flag, and stay within the ink budget.
 - **Thả trượt** starts a 16-second ride. Gravity along each segment's slope changes speed; friction reduces it. Touch the three fixed gold rings for 80 points apiece.
-- Reaching the flag wins and adds 100 points plus a time bonus. Rolling back, stalling, or exhausting the timer loses. **Xóa nét** clears a draft; **↻** resets the round; **Ⅱ** / P pauses. Focus loss and hidden-page events pause the simulation.
+- Reverse velocity is classified by its magnitude, so a fast rollback does not get mislabeled as a low-speed stall; the uphill regression now ends with **Ván trượt ngược**. Reaching the flag wins and adds 100 points plus a time bonus. Rolling back, stalling, or exhausting the timer loses. **Xóa nét** clears a draft; **↻** resets the round; **Ⅱ** / P pauses. Focus loss and hidden-page events pause the simulation.
 - Model and art are project-authored. Canvas draws the original rider, landscape, track, rings, and flag; a separate original SVG supplies the catalog cover. No Line Rider marks, character designs, code, or external assets are included.
 
 ## Verification
 
-- `node --test tests/line-rider-model.test.cjs` — 4 model tests cover track validation, slope-driven movement, all three rings and finish scoring, pause/resume/restart, invalid elapsed time, and timeout. The short timer is configurable in the pure model solely to test the timeout branch deterministically; the player-facing round remains 16 seconds.
-- `tests/browser/portal.spec.cjs` — full browser suite: 38/38 passed. The new case draws with desktop mouse and Chromium touch emulation, rides to the finish, pauses/resumes with P, checks touch-action and overflow, and closes the session at 320px and desktop width.
+- `node --test tests/line-rider-model.test.cjs` — 5 model tests cover track validation, slope-driven movement, all three rings and finish scoring, pause/resume/restart, invalid elapsed time, and timeout. The short timer is configurable in the pure model solely to test the timeout branch deterministically; the player-facing round remains 16 seconds.
+- `tests/browser/portal.spec.cjs` — full browser suite: 40/40 passed, including every registered route. A 320px touch regression draws a steep hill, confirms rollback loss text, and closes the session; the cross-device play case also completes the flat track and confirms pause/resume, finish score, responsive fit and teardown.
 - Chromium is a browser simulation, not a physical device or novice playtest. Physics is intentionally a lightweight fixed-step segment follower; its behavior is not an emulation of Line Rider's bespoke engine. Accessibility, motion feel, performance on low-end phones, and catalog-title distribution rights remain unaccepted.
 
 ## Release gates

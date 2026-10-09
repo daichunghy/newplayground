@@ -94,7 +94,7 @@
         for (let i = 0; i < RINGS.length; i++) {
           if (!s.rings[i] && distance(next, RINGS[i]) <= 34) { s.rings[i] = true; s.score += 80; s.lastEvent = 'ring'; }
         }
-        if (s.speed < 28) s.slowTime += dt; else s.slowTime = 0;
+        if (Math.abs(s.speed) < 28) s.slowTime += dt; else s.slowTime = 0;
         if (s.slowTime >= 1.35) { s.status = 'lost'; s.result = 'stalled'; s.lastEvent = 'stalled'; break; }
         if (s.distance >= s.length - 0.001) {
           s.distance = s.length; s.status = 'won'; s.result = 'finish';
