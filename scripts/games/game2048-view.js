@@ -160,7 +160,9 @@
     listen(el('g2048Continue'), 'click', () => { if (!confirm && !paused && model.continueGame()) { cancelMotion(); drawStable(); persist(true); update(); announce('Tiếp tục ván đã thắng. Thử tiến tới 4096!'); stage.focus(); } });
     listen(el('g2048Pause'), 'click', () => pause(!paused)); listen(el('g2048Resume'), 'click', () => pause(false));
     listen(container, 'keydown', e => {
-      if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || e.target.closest?.('input, textarea, select, [contenteditable]')) return;
+      // Keep directional shortcuts scoped to the board. Bubbling from toolbar and
+      // help controls used to advance the game while the player was navigating UI.
+      if (e.target !== stage || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || e.target.closest?.('input, textarea, select, [contenteditable]')) return;
       const dir = { ArrowUp:'up', ArrowRight:'right', ArrowDown:'down', ArrowLeft:'left', w:'up', d:'right', s:'down', a:'left' }[e.key] || { W:'up',D:'right',S:'down',A:'left' }[e.key];
       if (dir) { e.preventDefault(); move(dir); }
     });

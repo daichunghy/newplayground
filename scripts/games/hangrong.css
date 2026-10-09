@@ -59,6 +59,7 @@
 .hr3-pause-cover h4 { font-size: 26px; }
 .hr3-result { text-align: center; padding: 65px 20px; border-radius: 12px; background: #fffdf5; border: 1px solid #b7c4af; }
 .hr3-result h4 { font-size: 28px; margin: 8px 0 22px; }
+.hr3-unlock { max-width: 520px; margin: -10px auto 18px !important; padding: 10px 12px; border-radius: 8px; background: #e8ecdf; color: #285448; font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
 .hr3-stars { color: #a46d21; font-size: 47px; letter-spacing: 5px; }
 .hr3-status { min-height: 34px; padding: 10px 0 0; font-size: 14px; color: #285448; text-align: center; }
 .hr3-help, .hr3-storage { font-size: 13px; padding: 10px 12px; background: #e8ecdf; border: 1px solid #acb69f; border-radius: 8px; margin-bottom: 12px !important; }

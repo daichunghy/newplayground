@@ -130,13 +130,22 @@
       clearTimeout(holdTimer); holdTimer = null;
       pointer.cancelled = true; pointer.held = false;
     }
-    function setPaused(value, message) {
-      if (board.view().status !== 'playing') return;
+    function setPaused(value, message, moveFocus = true) {
+      if (board.view().status !== 'playing') {
+        if (value) cancelPointer(Boolean(pointer));
+        return;
+      }
       cancelPointer(Boolean(pointer)); paused = value;
       if (paused) stopClock(); else startClock();
       render(); save();
       announce(message || (paused ? 'Đã tạm dừng. Bấm Chơi tiếp khi bạn sẵn sàng.' : 'Tiếp tục ván đang chơi.'));
-      if (paused) el('dmResume').focus(); else cellEls[focusIndex]?.focus({ preventScroll: true });
+      if (moveFocus) {
+        if (paused) el('dmResume').focus(); else cellEls[focusIndex]?.focus({ preventScroll: true });
+      }
+    }
+    function suspendForInterruption() {
+      if (board.view().status === 'playing') setPaused(true, undefined, false);
+      else { cancelPointer(Boolean(pointer)); save(); }
     }
     function updateRecords() {
       const s = stats[board.view().presetId];
@@ -340,8 +349,9 @@
     });
     listen(el('dmConfirmYes'), 'click', () => { if (pendingDifficulty) newBoard(pendingDifficulty); });
     listen(el('dmConfirmNo'), 'click', () => { el('dmConfirm').hidden = true; pendingDifficulty = null; setPaused(false); });
-    listen(document, 'visibilitychange', () => { if (document.hidden) { if (board.view().status === 'playing') setPaused(true); else save(); } });
-    listen(window, 'pagehide', () => { if (board.view().status === 'playing') setPaused(true); else save(); });
+    listen(window, 'blur', suspendForInterruption);
+    listen(document, 'visibilitychange', () => { if (document.hidden) suspendForInterruption(); });
+    listen(window, 'pagehide', suspendForInterruption);
     onCleanup(() => {
       stopClock(); cancelPointer(); save(); alive = false;
       container.classList.remove('dm-host');

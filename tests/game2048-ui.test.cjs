@@ -25,6 +25,16 @@ test('modifier shortcuts and editable controls never become game moves',()=>{
  h.container.dispatch('keydown',{target:{closest:()=>({})},key:'a'});assert.equal(h.stored.get(KEY),before);
  key(h,'a');assert.equal(saved(h).score,4);h.context.closeGameModal();assertStopped(h);
 });
+test('direction keys from toolbar and help controls do not unexpectedly move the board',()=>{
+ const h=launch(),before=h.stored.get(KEY);
+ for(const target of [el(h,'g2048NewBtn'),el(h,'g2048Pause'),h.container.querySelector('.g2048-help')]){
+  h.container.dispatch('keydown',{target,key:'ArrowLeft'});
+  h.container.dispatch('keydown',{target,key:'a'});
+ }
+ assert.equal(h.stored.get(KEY),before);assert.equal(saved(h).moves,0);
+ key(h,'ArrowLeft');assert.equal(saved(h).moves,1);
+ h.context.closeGameModal();assertStopped(h);
+});
 test('swipe starts at zero, has >10px threshold, vertical ties and one commit',()=>{
  const h=launch(),swipe=h.context.NP_2048.directionForSwipe;
  assert.equal(swipe(10,0),null);assert.equal(swipe(10.1,0),'right');assert.equal(swipe(15,15),'down');

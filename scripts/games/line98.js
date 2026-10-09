@@ -40,7 +40,7 @@
         <div class="l98-confirm" id="l98Confirm" hidden role="group" aria-label="Xác nhận ván mới"><p>Chơi lại?</p><button class="l98-button l98-primary" id="l98ConfirmYes" type="button">Bắt đầu</button><button class="l98-button" id="l98ConfirmNo" type="button">Chơi tiếp</button></div>
         <p class="np-game-sr">Trên màn hình nhỏ, vuốt bàn hoặc dùng nút mũi tên để xem các cột. Mỗi ô vẫn đủ lớn để chạm.</p>
         <div class="l98-board-shell"><div class="l98-scroll" id="l98Scroll"><div class="l98-grid" id="l98Grid" role="grid" aria-label="Bàn Line 98, 9 hàng 9 cột" aria-rowcount="9" aria-colcount="9" aria-describedby="l98KeyboardHelp"></div></div><div class="l98-cover" id="l98Cover" hidden><span class="l98-cover-symbol" aria-hidden="true">Ⅱ</span><strong>Tạm dừng</strong><button class="l98-button l98-primary" id="l98Resume" type="button">Chơi tiếp</button></div></div>
-        <p class="np-game-sr" id="l98Status" role="status" aria-live="polite" aria-atomic="true">Chọn một bóng, rồi chọn ô trống. Ghép từ 5 bóng cùng màu để mở đường.</p>
+        <p class="l98-status" id="l98Status" role="status" aria-live="polite" aria-atomic="true">Chọn bóng, rồi chạm ô trống. Ghép 5 bóng cùng màu.</p>
         <div class="l98-result" id="l98Result" hidden><h4 id="l98ResultTitle"></h4><p id="l98ResultText" class="np-game-sr"></p><button class="l98-button l98-primary" id="l98Again" type="button">Chơi lại</button></div>
         <div class="l98-footer" hidden><span id="l98Progress">0 bóng đã xóa</span><button class="l98-button l98-motion" id="l98Motion" type="button" aria-pressed="true">Chuyển động: bật</button></div>
         <details class="l98-help np-help"><summary aria-label="Cách chơi">?</summary><p>Chọn bóng, chọn ô. Ghép 5 bóng cùng màu.</p></details>
@@ -173,20 +173,20 @@
       warmAudio();
       if (model.view().board[index]) {
         selected = selected === index ? null : index; render();
-        announce(selected === null ? 'Đã bỏ chọn. Chọn một bóng khác để đi.' : `Đã chọn bóng ${label(model.view().board[index])}. Chọn ô trống có chấm để đi.`);
+        announce(selected === null ? 'Đã bỏ chọn.' : `Đã chọn bóng ${label(model.view().board[index])}. Chọn ô có chấm.`);
         sound('select'); return;
       }
-      if (selected === null) { announce('Chọn một bóng trước, rồi chọn ô trống bạn muốn đến.'); return; }
+      if (selected === null) { announce('Chọn một bóng trước.'); return; }
       const result = model.move(selected, index);
       if (result.kind === 'none') {
-        announce('Chưa có đường trống đến ô này. Bóng chỉ đi ngang hoặc dọc, không nhảy qua bóng khác.');
+        announce('Chưa có đường. Chọn ô có chấm.');
         cellEls[index].classList.add('l98-blocked'); clearTimeout(effectTimer); effectTimer = setTimeout(() => cellEls[index].classList.remove('l98-blocked'), 180); sound('blocked'); return;
       }
       selected = null; save(); animateTurn(result); sound(result.kind);
       const v = model.view();
-      if (v.status === 'lost') announce(`Bàn đã đầy. Bạn đạt ${v.score} điểm. Có thể đi lại nước cuối hoặc bắt đầu ván mới.`);
-      else if (result.removed.length) announce(`Xóa ${result.removed.length} bóng, cộng ${result.points} điểm. ${result.replenished.length ? 'Sạch bàn! Thêm ba bóng xem trước để tiếp tục.' : result.spawned.length ? 'Bóng mới vừa tạo đường.' : 'Được đi tiếp, không thêm bóng.'} Còn ${v.free} ô trống.`);
-      else announce(`Đã đi và thêm ${result.spawned.length} bóng. Còn ${v.free} ô trống. ${v.free <= 12 ? 'Bàn sắp đầy; hãy giữ đường đi mở.' : 'Chọn bóng cho lượt tiếp theo.'}`);
+      if (v.status === 'lost') announce(`Bàn đầy · ${v.score} điểm. Đi lại hoặc chơi ván mới.`);
+      else if (result.removed.length) announce(`+${result.points} điểm · xóa ${result.removed.length}. ${result.replenished.length ? 'Sạch bàn · thêm 3 bóng.' : result.spawned.length ? 'Bóng mới tạo đường.' : 'Không thêm bóng.'} Còn ${v.free} ô.`);
+      else announce(`Đã đi · thêm ${result.spawned.length} bóng. Còn ${v.free} ô.`);
     }
     function cancelPointer(block = true) {
       if (pointer && block) suppression.set(pointer.id, pointer.index);
@@ -195,7 +195,7 @@
     function pause(value) {
       if (!alive || confirming || model.view().status === 'lost') return;
       cancelPointer(); finishMotion(); paused = value; selected = null; render(); save();
-      announce(paused ? 'Đã tạm dừng. Ván sẽ tiếp tục khi bạn sẵn sàng.' : 'Tiếp tục. Chọn bóng rồi chọn ô trống.');
+      announce(paused ? 'Đã tạm dừng.' : 'Tiếp tục · chọn bóng, rồi chọn ô trống.');
       if (paused) el('l98Resume').focus(); else cellEls[focusIndex].focus({ preventScroll: true });
     }
     function undo() {
@@ -203,13 +203,13 @@
       clearEffects(); cancelPointer();
       if (!model.undo()) { render(); return; }
       selected = null; render(); save();
-      announce('Đã đi lại nước cuối. Bàn, điểm, bóng tiếp theo và chuỗi ngẫu nhiên được khôi phục.');
+      announce('Đã đi lại nước cuối.');
     }
     function newGame() {
       clearEffects(); cancelPointer(); bankedBest = Math.max(bankedBest, model.view().score);
       model = create(); paused = false; confirming = false; selected = null; focusIndex = 0;
       el('l98Confirm').hidden = true; render(); save(); cellEls[0].focus({ preventScroll: true });
-      announce('Ván mới. Ghép từ 5 bóng cùng màu; giữ lối trống để bóng đi qua.');
+      announce('Ván mới · ghép 5 bóng cùng màu.');
     }
     function requestNew() {
       if (confirming) return;

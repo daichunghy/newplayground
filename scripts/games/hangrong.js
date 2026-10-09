@@ -44,7 +44,7 @@
           </div>
         </div><div class="hr3-pause-cover" id="hr3PauseCover" hidden><h4>Tạm nghỉ</h4><button class="hr3-button hr3-primary" id="hr3Resume" type="button">Chơi tiếp</button></div></div>
       </div>
-      <div class="hr3-result" id="hr3Result" hidden><div class="hr3-stars" id="hr3Stars"></div><h4 id="hr3ResultTitle" tabindex="-1"></h4><button class="hr3-button hr3-primary" id="hr3Next" type="button">Chơi tiếp</button></div>
+      <div class="hr3-result" id="hr3Result" hidden><div class="hr3-stars" id="hr3Stars"></div><h4 id="hr3ResultTitle" tabindex="-1"></h4><p class="hr3-unlock" id="hr3Unlock" hidden></p><button class="hr3-button hr3-primary" id="hr3Next" type="button">Chơi tiếp</button></div>
       <p class="hr3-status" id="hr3Status" role="status" aria-live="polite" aria-atomic="true">Chạm món để nấu.</p>
     </section>`;
     const nodes = new Map(), artCache = new Map(), lastCook = new Map();
@@ -164,6 +164,13 @@
         el('Stars').textContent = '★'.repeat(v.result.stars) + '☆'.repeat(3 - v.result.stars);
         el('Stars').setAttribute('aria-label', `${v.result.stars} trên 3 sao`);
         el('ResultTitle').textContent = v.result.won ? 'Xong ca!' : 'Thử lại nhé';
+        const previousStage = M.stageFor(v.result.previousLevel), stage = M.stageFor(v.result.level);
+        const unlocks = [];
+        if (v.result.unlocked.length) unlocks.push(`Khu mới: ${v.result.unlocked.join(' · ')}`);
+        const newRecipes = MENUS[stage].filter(id => !MENUS[previousStage].includes(id));
+        if (newRecipes.length) unlocks.push(`Món mới: ${newRecipes.map(id => M.RECIPES[id].name).join(' · ')}`);
+        el('Unlock').textContent = unlocks.join(' — ');
+        el('Unlock').hidden = unlocks.length === 0;
         el('Next').textContent = v.result.won ? 'Chơi tiếp' : 'Thử lại';
         if (previousPhase !== 'result') el('ResultTitle').focus();
       }

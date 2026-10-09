@@ -82,9 +82,24 @@ test('blur, hidden tab and pagehide preserve paused progress; reopening requires
 test('winning and next shift take one button, no receipt/setup; no duplicate rewards on repeated taps', () => {
   const h = setup(); open(h); playUI(h);
   assert.equal(saved(h).result.won, true); assert.equal(el(h, 'ResultTitle').textContent, 'Xong ca!'); assert.equal(el(h, 'ResultTitle').focused, true);
+  assert.equal(el(h, 'Unlock').hidden, true, 'ordinary level gains do not add unrelated progression text');
   assert.equal(el(h, 'Receipt'), null); assert.equal(saved(h).profile.shifts, 1); assert.equal(h.frames.size, 0);
   click(h, 'Next'); assert.equal(saved(h).phase, 'playing'); assert.equal(saved(h).profile.shifts, 1); assert.equal(saved(h).shift.customers.length, 1);
   const second = saved(h); click(h, 'Next'); assert.deepEqual(saved(h), second); close(h);
+});
+
+test('stage and newly served recipe unlocks are announced on the result screen', () => {
+  const p = M.create().view().profile;
+  p.level = 3; p.xp = M.xpNeeded(p.level) - 1;
+  const seed = M.create({ profile: p }).serialize();
+  const h = setup({ storage: new Map([[KEY, JSON.stringify(seed)]]) }); open(h);
+  assert.equal(el(h, 'Unlock').hidden, true);
+  playUI(h);
+  assert.equal(saved(h).profile.level, 4);
+  assert.match(el(h, 'Unlock').textContent, /Khu mới: Xe đẩy/);
+  assert.match(el(h, 'Unlock').textContent, /Món mới: Cá viên chiên · Nước mía/);
+  assert.equal(el(h, 'Unlock').hidden, false);
+  close(h);
 });
 
 test('loss exposes only retry and starts a playable new shift automatically', () => {

@@ -106,6 +106,40 @@ test('active clock pauses and hides board, restores on reopen, handles pagehide'
   h.context.closeGameModal(); assertStopped(h);
 });
 
+test('blur, hidden tab, and pagehide cancel ready long-presses without acting', () => {
+  for (const interruption of ['blur', 'visibilitychange', 'pagehide']) {
+    const h = harness(); open(h); input(h, 'pointerdown', 3); h.flushTimeouts();
+    assert.equal(cells(h)[3].classList.contains('dm-holding'), true);
+    if (interruption === 'visibilitychange') { h.document.hidden = true; h.document.dispatch(interruption); }
+    else h.window.dispatch(interruption);
+    assert.equal(cells(h)[3].classList.contains('dm-holding'), false, interruption);
+    input(h, 'pointerup', 3); tap(h, 3);
+    assert.equal(saved(h).board.status, 'ready', interruption);
+    assert.deepEqual(saved(h).board.flags, [], interruption);
+    assert.equal(saved(h).stats.beginner.played, 0, interruption);
+    h.context.closeGameModal(); assertStopped(h);
+  }
+});
+
+test('blur, hidden tab, and pagehide pause active play without moving focus or auto-resuming', () => {
+  for (const interruption of ['blur', 'visibilitychange', 'pagehide']) {
+    const h = harness(); open(h); tap(h, 0); h.advance(2345);
+    if (interruption === 'visibilitychange') { h.document.hidden = true; h.document.dispatch(interruption); }
+    else h.window.dispatch(interruption);
+    assert.equal(el(h, 'dmPauseCover').hidden, false, interruption);
+    assert.equal([...h.timers.values()].filter(t => t.interval).length, 0, interruption);
+    const pausedAt = saved(h).elapsed;
+    assert.equal(pausedAt, 2345, interruption);
+    h.advance(5000); h.tickIntervals();
+    assert.equal(saved(h).elapsed, pausedAt, interruption);
+    h.window.dispatch('focus'); h.document.hidden = false; h.document.dispatch('visibilitychange');
+    assert.equal(el(h, 'dmPauseCover').hidden, false, interruption);
+    click(h, 'dmResume'); assert.equal(el(h, 'dmPauseCover').hidden, true, interruption);
+    assert.equal([...h.timers.values()].filter(t => t.interval).length, 1, interruption);
+    h.context.closeGameModal(); assertStopped(h);
+  }
+});
+
 test('difficulty changes confirm an active game; cancellation resumes the same board', () => {
   const h = harness(); open(h); tap(h, 0); const original = saved(h).board;
   el(h, 'dmDifficulty').value = 'expert'; el(h, 'dmDifficulty').dispatch('change');

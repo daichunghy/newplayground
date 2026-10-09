@@ -39,16 +39,44 @@ function enableAnimation(h) {
   h.document.createElement = tag => add(original(tag));
 }
 
+test('fresh start shows one visible line for the first move and match rule', () => {
+  const h = setup();
+  const status = el(h, 'l98Status');
+  assert.ok(status.classList.contains('l98-status'));
+  assert.match(h.container.innerHTML, /id="l98Status"[^>]*>Chọn bóng, rồi chạm ô trống\. Ghép 5 bóng cùng màu\.</);
+  h.close();
+});
+
 test('dedicated 81-cell grid has stable nodes, roving focus and color plus shape labels', () => {
   const h = setup({ board: snapshot({ 0: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 7 }) });
   assert.equal(cells(h).length, 81); assert.equal(el(h, 'l98Grid').getAttribute('aria-rowcount'), '9');
   assert.equal(cells(h).filter(c => c.tabIndex === 0).length, 1);
+  assert.ok(el(h, 'l98Status').classList.contains('l98-status'));
+  assert.doesNotMatch(el(h, 'l98Status').className, /np-game-sr/);
+  assert.match(el(h, 'l98Status').textContent, /chọn bóng.*chọn ô trống/);
   const before = cells(h); tap(h, 0); assert.deepEqual(cells(h), before);
   assert.equal(cells(h)[0].getAttribute('aria-selected'), 'true');
   assert.match(cells(h)[0].getAttribute('aria-label'), /đỏ, hình tròn/);
   assert.match(cells(h)[6].getAttribute('aria-label'), /xanh ngọc, hình hai vạch/);
   assert.match(el(h, 'l98Next').getAttribute('aria-label'), /lục.*lam.*vàng/);
   assert.equal(el(h, 'l98Status').getAttribute('aria-live'), 'polite'); h.close();
+});
+
+test('visible short feedback follows a scoring move, Undo, and exact replay', () => {
+  const initial = snapshot({ 0: 1, 1: 1, 2: 1, 3: 1, 13: 1, 80: 2 });
+  const h = setup({ board: initial });
+  tap(h, 13); tap(h, 4);
+  const after = saved(h).board;
+  assert.equal(after.score, 10);
+  assert.match(el(h, 'l98Status').textContent, /\+10 điểm · xóa 5/);
+  assert.ok(el(h, 'l98Status').classList.contains('l98-status'));
+  click(h, 'l98Undo');
+  assert.deepEqual(saved(h).board, initial);
+  assert.equal(el(h, 'l98Status').textContent, 'Đã đi lại nước cuối.');
+  tap(h, 13); tap(h, 4);
+  assert.deepEqual(saved(h).board, after);
+  assert.match(el(h, 'l98Status').textContent, /\+10 điểm · xóa 5/);
+  h.close();
 });
 
 test('empty click gives instruction; ball selection toggles and changes without advancing', () => {
@@ -131,6 +159,24 @@ test('pause blocks mouse and keyboard, removes grid tab stops and resumes saved 
   click(h, 'l98Resume'); assert.equal(el(h, 'l98Grid').inert, false); tap(h, 0); tap(h, 80);
   assert.equal(saved(h).board.moves, 1); const after = saved(h).board;
   h.close(); h.mount(); assert.equal(el(h, 'l98Cover').hidden, false); assert.deepEqual(saved(h).board, after); h.close();
+});
+
+test('repeated close and reopen cycles restore progress without growing game listeners', () => {
+  const h = setup({ board: snapshot({ 0: 1, 12: 2 }) });
+  const windowListeners = h.window.listenerCount(), documentListeners = h.document.listenerCount();
+  for (let cycle = 0; cycle < 25; cycle++) {
+    const before = saved(h).board;
+    h.close();
+    assert.equal(h.timers.size, 0);
+    h.mount();
+    assert.equal(h.window.listenerCount(), windowListeners);
+    assert.equal(h.document.listenerCount(), documentListeners);
+    assert.deepEqual(saved(h).board, before);
+    click(h, 'l98Resume');
+    tap(h, 0);
+    assert.equal(cells(h)[0].getAttribute('aria-selected'), 'true');
+  }
+  h.close();
 });
 
 test('visibilitychange and pagehide pause; game-over remains inspectable and undoable', () => {
