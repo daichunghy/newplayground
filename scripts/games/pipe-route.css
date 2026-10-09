@@ -1,0 +1,45 @@
+.pr-host { color: #234348; font-family: Calibri, Inter, -apple-system, sans-serif; }
+.pr-game { --pr-ink: #234348; --pr-water: #188a9a; max-width: 520px; margin: 0 auto; padding: 12px; position: relative; border: 1px solid #c2d7cb; border-radius: 20px; background: linear-gradient(150deg, #fffdf4, #e4efe5); box-shadow: 0 10px 24px #203a3d18; }
+.pr-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.pr-head h2 { margin: 0; color: #205a5b; font-size: clamp(1.3rem, 5vw, 1.7rem); }
+.pr-cue { margin: 2px 0 0; color: #61766b; font-size: .92rem; }
+.pr-cue strong { color: #277e83; }
+.pr-actions { display: flex; gap: 7px; }
+.pr-button { display: inline-grid; min-width: 46px; min-height: 46px; padding: 5px; place-items: center; border: 1px solid #9ab9ae; border-radius: 13px; background: #fffef6; color: #285254; font: 700 1.12rem Calibri, Inter, -apple-system, sans-serif; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.pr-button:focus-visible, .pr-tile:focus-visible { outline: 3px solid #e08a45; outline-offset: 2px; z-index: 3; }
+.pr-button:disabled { opacity: .45; cursor: not-allowed; }
+.pr-hud { display: flex; align-items: center; gap: clamp(6px, 2vw, 13px); margin: 10px 0 5px; color: #385e5d; font-size: clamp(.8rem, 3vw, .96rem); white-space: nowrap; }
+.pr-hud strong { margin-right: auto; }
+.pr-undo { min-width: 44px; min-height: 44px; }
+.pr-pressure { height: 7px; overflow: hidden; border: 1px solid #b7cec2; border-radius: 8px; background: #eff2e5; }
+.pr-pressure span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #27a8a4, #56bd89); transition: width .25s linear; }
+.pr-flow-labels { display: flex; justify-content: space-between; margin: 4px 3px 0; color: #53817a; font-size: .75rem; font-weight: 800; }
+.pr-board { display: grid; width: min(100%, 410px); aspect-ratio: 1; grid-template: repeat(5, minmax(44px, 1fr)) / repeat(5, minmax(44px, 1fr)); gap: 4px; margin: 1px auto 0; padding: 6px; border: 1px solid #bfd2c3; border-radius: 16px; background: #dfeadd; box-shadow: inset 0 2px 7px #48695a17; touch-action: manipulation; }
+.pr-tile { position: relative; display: grid; min-width: 0; min-height: 44px; padding: 0; place-items: center; overflow: hidden; border: 1px solid #cadaCB; border-radius: 11px; background: #f8f7e9; color: #426f65; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.pr-tile svg { width: 76%; height: 76%; overflow: visible; transition: transform .12s ease-out; }
+.pr-stroke { fill: none; stroke: #739b86; stroke-width: 17; stroke-linecap: round; stroke-linejoin: round; }
+.pr-hub { fill: #91ad8d; stroke: #668b79; stroke-width: 3; }
+.pr-tile.is-wet { border-color: #48a4a6; background: #e8f5e9; }
+.pr-tile.is-wet .pr-stroke { stroke: #39aabd; }
+.pr-tile.is-wet .pr-hub { fill: #8ce0d5; stroke: #319ca5; }
+.pr-tile.is-leak { border-color: #d78b4b; background: #fff0d3; box-shadow: inset 0 0 0 2px #ebb86970; }
+.pr-tile.is-leak .pr-stroke { stroke: #cd8a50; }
+.pr-tile.is-source, .pr-tile.is-exit { border-color: #6b9d91; background: #dfeddb; }
+.pr-endpoint { position: absolute; z-index: 1; top: 2px; left: 50%; padding: 1px 4px; border-radius: 5px; background: #f7fff3; color: #276b6e; font-size: clamp(7px, 1.9vw, 9px); font-weight: 900; line-height: 1.1; transform: translateX(-50%); }
+.pr-status { min-height: 1.35em; margin: 6px 0 0; color: #597469; text-align: center; font-size: .9rem; }
+.pr-overlay { position: absolute; z-index: 4; inset: 0; display: grid; place-items: center; padding: 16px; border-radius: inherit; background: #173a3caa; }
+.pr-overlay[hidden] { display: none; }
+.pr-card { width: min(100%, 300px); padding: 18px; border: 1px solid #d2dece; border-radius: 18px; background: #fffdf4; text-align: center; box-shadow: 0 10px 28px #172f3038; }
+.pr-card strong { color: #285653; font-size: 1.35rem; }
+.pr-card p { margin: 6px 0 12px; color: #65756a; }
+.pr-card .pr-button { width: 100%; margin-top: 7px; }
+.pr-primary { border-color: #277e83; background: #277e83; color: white; }
+.pr-secondary { background: #f5f5e9; }
+@media (max-width: 380px) {
+  #gameModal:has(.pr-host) { padding: 6px; }
+  #gameModal:has(.pr-host) .modal-body { padding: 7px; }
+  .pr-game { padding: 7px; }
+  .pr-board { grid-template: repeat(5, minmax(44px, 1fr)) / repeat(5, minmax(44px, 1fr)); gap: 3px; padding: 4px; }
+  .pr-hud { gap: 5px; }
+}
+@media (prefers-reduced-motion: reduce) { .pr-tile svg, .pr-pressure span { transition: none; } }

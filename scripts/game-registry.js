@@ -55,7 +55,9 @@
     'lemonade-tycoon': 'launchLemonadeStand',
     'thap-ha-noi-tower': 'launchThapBaCoc',
     'tim-diem-khac-biet': 'launchSpotDifference',
-    'dap-chuot-chui': 'launchMoleTap'
+    'dap-chuot-chui': 'launchMoleTap',
+    'atomix-ghep-phan-tu-hoa-hoc': 'launchAtomGlide',
+    'noi-ong-nuoc-pipemania': 'launchPipeRoute'
   });
   const engineFor = id => Object.prototype.hasOwnProperty.call(entries, id) ? entries[id] : null;
   const isPlayable = id => Boolean(engineFor(id) && window.NP_Engines &&

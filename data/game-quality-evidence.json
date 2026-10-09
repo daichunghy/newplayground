@@ -2226,6 +2226,142 @@
         "backlog_status": "Original 3x3 reflex round implemented with touch, keyboard, pause and replay; local browser checks passed. Physical-device, balance, accessibility and title-rights review remain pending."
       },
       "player_ui": "One tap-ready 3×3 board; catch twelve rising targets before three misses. Each catch is 100 points. Pause, restart and keyboard selection are available; no sound starts automatically."
+    },
+    "atomix-ghep-phan-tu-hoa-hoc": {
+      "scope": "original-candidate-not-reference-parity",
+      "reference_version": "Generic impulse-slide atom-assembly puzzle; no specific historical catalog edition is identified.",
+      "candidate_build": "molecule-glide-h2o-1",
+      "accepted_build": null,
+      "owner": null,
+      "accepted_at": null,
+      "implementation_status": "implemented-awaiting-human-device-qa",
+      "automated_tests": {
+        "command": "node --test tests/atom-glide-model.test.cjs tests/atom-glide-ui.test.cjs",
+        "passed": 9,
+        "failed": 0,
+        "date": "2026-10-09",
+        "evidence": "docs/games/MOLECULE_GLIDE_RESEARCH_AND_SCOPE.md and docs/qa/atom-glide-playtest-20261009.md",
+        "limitation": "Model/DOM checks and local touch-emulated browser walkthroughs; no physical-device, human comprehension, assistive-technology or distribution-rights acceptance."
+      },
+      "gates": {
+        "reference_parity": {
+          "status": "pending",
+          "evidence": "Original four-board H2O slide puzzle with BFS-certified witness paths; model/UI tests and local browser walkthrough are recorded in docs/games/MOLECULE_GLIDE_RESEARCH_AND_SCOPE.md and docs/qa/atom-glide-playtest-20261009.md. Physical-device, human, accessibility and rights acceptance remain pending."
+        },
+        "content": {
+          "status": "pending",
+          "evidence": "Original four-board H2O slide puzzle with BFS-certified witness paths; model/UI tests and local browser walkthrough are recorded in docs/games/MOLECULE_GLIDE_RESEARCH_AND_SCOPE.md and docs/qa/atom-glide-playtest-20261009.md. Physical-device, human, accessibility and rights acceptance remain pending."
+        },
+        "controls": {
+          "status": "pending",
+          "evidence": "Original four-board H2O slide puzzle with BFS-certified witness paths; model/UI tests and local browser walkthrough are recorded in docs/games/MOLECULE_GLIDE_RESEARCH_AND_SCOPE.md and docs/qa/atom-glide-playtest-20261009.md. Physical-device, human, accessibility and rights acceptance remain pending."
+        },
+        "visual_audio": {
+          "status": "pending",
+          "evidence": "Original four-board H2O slide puzzle with BFS-certified witness paths; model/UI tests and local browser walkthrough are recorded in docs/games/MOLECULE_GLIDE_RESEARCH_AND_SCOPE.md and docs/qa/atom-glide-playtest-20261009.md. Physical-device, human, accessibility and rights acceptance remain pending."
+        },
+        "device_qa": {
+          "status": "pending",
+          "evidence": "Original four-board H2O slide puzzle with BFS-certified witness paths; model/UI tests and local browser walkthrough are recorded in docs/games/MOLECULE_GLIDE_RESEARCH_AND_SCOPE.md and docs/qa/atom-glide-playtest-20261009.md. Physical-device, human, accessibility and rights acceptance remain pending."
+        },
+        "save_recovery": {
+          "status": "pending",
+          "evidence": "Original four-board H2O slide puzzle with BFS-certified witness paths; model/UI tests and local browser walkthrough are recorded in docs/games/MOLECULE_GLIDE_RESEARCH_AND_SCOPE.md and docs/qa/atom-glide-playtest-20261009.md. Physical-device, human, accessibility and rights acceptance remain pending."
+        },
+        "playtest": {
+          "status": "pending",
+          "evidence": "Original four-board H2O slide puzzle with BFS-certified witness paths; model/UI tests and local browser walkthrough are recorded in docs/games/MOLECULE_GLIDE_RESEARCH_AND_SCOPE.md and docs/qa/atom-glide-playtest-20261009.md. Physical-device, human, accessibility and rights acceptance remain pending."
+        },
+        "distribution_rights": {
+          "status": "pending",
+          "evidence": "Original four-board H2O slide puzzle with BFS-certified witness paths; model/UI tests and local browser walkthrough are recorded in docs/games/MOLECULE_GLIDE_RESEARCH_AND_SCOPE.md and docs/qa/atom-glide-playtest-20261009.md. Physical-device, human, accessibility and rights acceptance remain pending."
+        }
+      },
+      "research": {
+        "status": "original-playable-candidate",
+        "evidence_date": "2026-10-09",
+        "reference_version": "The catalog describes four-direction impulse sliding and assembly of the exact H2O formula; no specific build or full replica scope is given.",
+        "current_mechanic": "Select one of two H atoms or the O atom. It glides in a chosen orthogonal direction until the board edge, stone wall, or another atom stops it. Assemble the marked H2O cells.",
+        "first_delivery": "Four authored 6x6 H2O boards with verified shortest solutions of 6, 8, 10 and 12 glides; select/slide controls, undo, pause, stage progression and restart.",
+        "rules_task": "Preserve the planned impulse-slide atom puzzle and exact water formula. Validate edge/wall/atom stopping, hydrogen identity interchange, goal recognition, undo, restart and all stage witnesses. Do not claim parity with an unidentified release.",
+        "content_task": "Exactly two hydrogen atoms and one oxygen atom assemble into H2O across four original obstacle/start layouts. No chemistry campaign, other formula or copied historical content is added.",
+        "progression_and_items_to_research": "Four fixed authored stages increase from 6 to 12 certified minimum glides; no shop, item system, timer or arbitrary move-loss condition.",
+        "controls_task": "Touch selects an atom and taps one of four directional buttons. Keyboard selects a focused atom and arrows/WASD glide it. Undo, pause and restart are available; hidden-page/blur pauses the board.",
+        "visual_assets_and_license_to_resolve": "All playfield visuals are project-authored CSS geometry and H/O glyphs under repository MIT; no external art, image, font, sound or runtime dependency is used. The displayed Vietnamese title is descriptive.",
+        "feel_speed_and_performance_to_measure": "Measure label/goal comprehension, wall readability, atom-selection accuracy and glide feedback on physical phones/tablets; none measured.",
+        "rights_status": "No proper product/character name, logo or third-party asset is displayed. Historic catalog ID remains an internal route; no historic-edition parity or distribution-rights acceptance is claimed.",
+        "source_urls": [],
+        "backlog_status": "Four original H2O slide-puzzle boards, all with BFS-verified witness solutions; local model/UI and touch/keyboard browser coverage passed. Physical device, human comprehension, accessibility and rights remain pending."
+      },
+      "player_ui": "Four compact H2O boards. Select H or O, slide to marked cells, undo or restart. No tutorial, timer, score economy or copied art."
+    },
+    "noi-ong-nuoc-pipemania": {
+      "scope": "original-candidate-not-reference-parity",
+      "reference_version": "No specific historical catalog edition is identified; no reference parity is claimed.",
+      "candidate_build": "pipe-route-campaign-1",
+      "accepted_build": null,
+      "owner": null,
+      "accepted_at": null,
+      "implementation_status": "implemented-awaiting-human-device-qa",
+      "automated_tests": {
+        "command": "node --test tests/pipe-route-model.test.cjs tests/pipe-route-ui.test.cjs",
+        "passed": 9,
+        "failed": 0,
+        "date": "2026-10-09",
+        "evidence": "docs/games/PIPE_ROUTE_RESEARCH_AND_SCOPE.md and docs/qa/pipe-route-playtest-20261009.md",
+        "limitation": "Model/DOM unit coverage and local Chromium mouse/touch/keyboard and resize walkthrough; no physical-device, human difficulty, assistive-technology or rights acceptance."
+      },
+      "gates": {
+        "reference_parity": {
+          "status": "pending",
+          "evidence": "Original generic pipe-rotation candidate with model/UI coverage and a local-browser walkthrough recorded in docs/games/PIPE_ROUTE_RESEARCH_AND_SCOPE.md and docs/qa/pipe-route-playtest-20261009.md. Physical-device, human-comprehension, assistive-technology, trademark and distribution-rights acceptance remain pending."
+        },
+        "content": {
+          "status": "pending",
+          "evidence": "Original generic pipe-rotation candidate with model/UI coverage and a local-browser walkthrough recorded in docs/games/PIPE_ROUTE_RESEARCH_AND_SCOPE.md and docs/qa/pipe-route-playtest-20261009.md. Physical-device, human-comprehension, assistive-technology, trademark and distribution-rights acceptance remain pending."
+        },
+        "controls": {
+          "status": "pending",
+          "evidence": "Original generic pipe-rotation candidate with model/UI coverage and a local-browser walkthrough recorded in docs/games/PIPE_ROUTE_RESEARCH_AND_SCOPE.md and docs/qa/pipe-route-playtest-20261009.md. Physical-device, human-comprehension, assistive-technology, trademark and distribution-rights acceptance remain pending."
+        },
+        "visual_audio": {
+          "status": "pending",
+          "evidence": "Original generic pipe-rotation candidate with model/UI coverage and a local-browser walkthrough recorded in docs/games/PIPE_ROUTE_RESEARCH_AND_SCOPE.md and docs/qa/pipe-route-playtest-20261009.md. Physical-device, human-comprehension, assistive-technology, trademark and distribution-rights acceptance remain pending."
+        },
+        "device_qa": {
+          "status": "pending",
+          "evidence": "Original generic pipe-rotation candidate with model/UI coverage and a local-browser walkthrough recorded in docs/games/PIPE_ROUTE_RESEARCH_AND_SCOPE.md and docs/qa/pipe-route-playtest-20261009.md. Physical-device, human-comprehension, assistive-technology, trademark and distribution-rights acceptance remain pending."
+        },
+        "save_recovery": {
+          "status": "pending",
+          "evidence": "Original generic pipe-rotation candidate with model/UI coverage and a local-browser walkthrough recorded in docs/games/PIPE_ROUTE_RESEARCH_AND_SCOPE.md and docs/qa/pipe-route-playtest-20261009.md. Physical-device, human-comprehension, assistive-technology, trademark and distribution-rights acceptance remain pending."
+        },
+        "playtest": {
+          "status": "pending",
+          "evidence": "Original generic pipe-rotation candidate with model/UI coverage and a local-browser walkthrough recorded in docs/games/PIPE_ROUTE_RESEARCH_AND_SCOPE.md and docs/qa/pipe-route-playtest-20261009.md. Physical-device, human-comprehension, assistive-technology, trademark and distribution-rights acceptance remain pending."
+        },
+        "distribution_rights": {
+          "status": "pending",
+          "evidence": "Original generic pipe-rotation candidate with model/UI coverage and a local-browser walkthrough recorded in docs/games/PIPE_ROUTE_RESEARCH_AND_SCOPE.md and docs/qa/pipe-route-playtest-20261009.md. Physical-device, human-comprehension, assistive-technology, trademark and distribution-rights acceptance remain pending."
+        }
+      },
+      "research": {
+        "status": "original-playable-candidate",
+        "evidence_date": "2026-10-09",
+        "reference_version": "The historic route ID is retained internally; catalog names a pipe puzzle, but its exact edition/build is unidentified.",
+        "current_mechanic": "Rotate fixed straight/elbow segments on a 5x5 grid to connect the inlet to the outlet; water follows only reciprocal joins. An unconnected flow drains pressure; three authored layouts allow 60, 55 and 50 seconds.",
+        "first_delivery": "Three short authored route puzzles, 25 rotatable segments each, live water-path feedback, undo, pause, retry and replay.",
+        "rules_task": "Generic pipe-routing candidate only. Validate grid size, deadlines, leaking behavior and route legibility in novice playtests; do not claim historical edition parity.",
+        "content_task": "Three original route geometries on a 5x5 grid; original CSS/SVG-drawn straight and elbow pipes, no copied board, icon, sound, logo or reference art.",
+        "progression_and_items_to_research": "One three-stage short campaign with progressively less pressure time; no shop, items, accounts or collection progression.",
+        "controls_task": "Tap/click a pipe to rotate clockwise; focus a pipe and use Left/Right (or A/D) to rotate, Up/Down (or W/S) to move among rows; 44px minimum tiles, undo/pause/restart.",
+        "visual_assets_and_license_to_resolve": "All game-specific visual geometry is project-authored SVG markup and CSS under repository MIT; no third-party art/font/audio/runtime. No title or logo is shown in-game.",
+        "feel_speed_and_performance_to_measure": "Measure touch accuracy, countdown fairness, wet-path visibility and input latency on physical phones/tablets; not measured.",
+        "rights_status": "No third-party content used. Generic Vietnamese display title is descriptive. Historic catalog ID is kept only as an internal route; trademark/title/distribution rights for any corresponding historical edition remain unreviewed.",
+        "source_urls": [],
+        "backlog_status": "Three distinct original 5x5 routes with 25 rotatable pipe pieces, live flow tracing and timed pressure implemented; model/UI tests and local browser walkthrough documented. Physical-device, human-comprehension, assistive-technology, tuning and rights acceptance remain pending."
+      },
+      "player_ui": "One tap-ready 5×5 grid. Rotate pipe joints to carry water from Vòi to Bể before the pressure gauge empties. Three layouts; undo, pause and retry; no shop, copied art or external asset."
     }
   }
 }

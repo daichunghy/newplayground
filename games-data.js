@@ -457,13 +457,13 @@ window.__NP_GAMES_CACHE__ = [
   },
   {
     "id": "noi-ong-nuoc-pipemania",
-    "title": "Nối Ống Nước Pipemania",
-    "tagline": "Xoay khớp nối dẫn nước chảy thông suốt.",
+    "title": "Nối Ống Nước",
+    "tagline": "Xoay khớp nối, dẫn nước qua lưới trước khi cạn áp lực.",
     "category": "Giải đố",
     "section": "all",
     "players": "1 người",
     "duration": "3-6 phút",
-    "mechanic": "Xoay các đoạn ống trước khi dòng nước tràn ra ngoài",
+    "mechanic": "Xoay các đoạn ống vuông góc để dẫn nước từ vòi đến bể trước khi hết áp lực.",
     "badge": "Logic",
     "color": "#3B82F6"
   },

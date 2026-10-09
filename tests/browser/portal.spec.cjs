@@ -34,13 +34,13 @@ async function closeGame(page) {
 
 async function loadPortal(page) {
   await page.goto('/');
-  await expect(page.locator('#catalogAvailability')).toContainText('54');
+  await expect(page.locator('#catalogAvailability')).toContainText('56');
 }
 
 test('the default grid is playable-only; explicit catalog browsing keeps planned entries informational', async ({ page }) => {
   await loadPortal(page);
-  await expect(page.locator('#allSectionTitle')).toHaveText('Bản thử nghiệm có thể chơi (54)');
-  await expect(page.locator('#gridAll .game-card')).toHaveCount(54);
+  await expect(page.locator('#allSectionTitle')).toHaveText('Bản thử nghiệm có thể chơi (56)');
+  await expect(page.locator('#gridAll .game-card')).toHaveCount(56);
   await expect(page.locator('.filter-pill[data-category="playable"]')).toHaveClass(/active/);
 
   await page.locator('.filter-pill[data-category="all"]').click();
@@ -52,7 +52,7 @@ test('the default grid is playable-only; explicit catalog browsing keeps planned
   await expect(page.locator('#gameModal')).toHaveCSS('display', 'none');
 });
 
-test('all 54 registered games open, render, close and release their session', async ({ page }) => {
+test('all 56 registered games open, render, close and release their session', async ({ page }) => {
   test.setTimeout(120_000);
   const errors = watchErrors(page);
   await loadPortal(page);
@@ -62,7 +62,7 @@ test('all 54 registered games open, render, close and release their session', as
       id, engine, title: byId.get(id)?.title || id
     }));
   });
-  expect(routes).toHaveLength(54);
+  expect(routes).toHaveLength(56);
 
   for (const route of routes) {
     await openGame(page, route.id);
@@ -348,6 +348,169 @@ test('mobile Đập Chuột Chũi scores with direct keyboard/touch input, pause
   }
 });
 
+test('Ghép Phân Tử solves its four exact H2O boards with keyboard and touch at phone and desktop widths', async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
+  const page = await context.newPage();
+  const errors = watchErrors(page);
+  const solutions = [
+    [['h2', 'left'], ['h2', 'up'], ['o', 'right'], ['o', 'down'], ['h1', 'down'], ['h2', 'right']],
+    [['h2', 'left'], ['o', 'left'], ['h1', 'up'], ['h2', 'up'], ['h1', 'left'], ['h2', 'down'], ['o', 'down'], ['h1', 'down']],
+    [['h1', 'right'], ['h2', 'right'], ['h2', 'down'], ['o', 'right'], ['o', 'up'], ['h1', 'left'], ['o', 'left'], ['o', 'down'], ['h1', 'right'], ['h2', 'left']],
+    [['h1', 'down'], ['h1', 'left'], ['h2', 'up'], ['o', 'up'], ['o', 'left'], ['o', 'down'], ['o', 'left'], ['h2', 'down'], ['h2', 'right'], ['o', 'right'], ['h2', 'down'], ['h2', 'right']]
+  ];
+  try {
+    await loadPortal(page);
+    await openGame(page, 'atomix-ghep-phan-tu-hoa-hoc');
+    await expect(page.locator('.ag-atom')).toHaveCount(3);
+    await expect(page.locator('.ag-target')).toHaveCount(3);
+    await expect(page.locator('.ag-board')).toBeVisible();
+
+    await page.locator('.ag-atom[data-atom="h1"]').tap();
+    await page.keyboard.press('ArrowRight');
+    await expect(page.locator('#agMoves')).toHaveText('1 lượt');
+    await page.locator('#agRestart').tap();
+    await expect(page.locator('#agMoves')).toHaveText('0 lượt');
+    await page.locator('#agPause').tap();
+    await expect(page.locator('#agOverlayTitle')).toHaveText('Tạm dừng');
+    await page.locator('#agOverlayNext').tap();
+    await expect(page.locator('#agOverlay')).toBeHidden();
+
+    // Select H₂ with touch; arrow input then directional-pad taps share the same slide rules.
+    await page.locator('.ag-atom[data-atom="h2"]').tap();
+    await page.keyboard.press('ArrowLeft');
+    await expect(page.locator('#agMoves')).toHaveText('1 lượt');
+    for (const [atom, dir] of solutions[0].slice(1, 3)) {
+      await page.locator(`.ag-atom[data-atom="${atom}"]`).tap();
+      await page.locator(`.ag-pad [data-dir="${dir}"]`).tap();
+    }
+    await page.locator('#modalGameContainer').screenshot({ path: 'docs/qa/atom-glide-playtest-20261009/atom-glide-mobile.png' });
+    for (const [atom, dir] of solutions[0].slice(3)) {
+      await page.locator(`.ag-atom[data-atom="${atom}"]`).tap();
+      await page.locator(`.ag-pad [data-dir="${dir}"]`).tap();
+    }
+    await expect(page.locator('#agOverlayTitle')).toHaveText('Ghép đúng H₂O!');
+    for (let level = 1; level < solutions.length; level++) {
+      await page.locator('#agOverlayNext').tap();
+      await expect(page.locator('#agStage')).toHaveText(`Màn ${level + 1} / 4`);
+      for (const [atom, dir] of solutions[level]) {
+        await page.locator(`.ag-atom[data-atom="${atom}"]`).tap();
+        await page.locator(`.ag-pad [data-dir="${dir}"]`).tap();
+      }
+      await expect(page.locator('#agOverlayTitle')).toHaveText(level === 3 ? 'Đã ghép H₂O!' : 'Ghép đúng H₂O!');
+    }
+    await page.locator('#agOverlayNext').tap();
+    await expect(page.locator('#agStage')).toHaveText('Màn 1 / 4');
+    await expect(page.locator('#agMoves')).toHaveText('0 lượt');
+    const mobile = await page.locator('.ag-atom').first().boundingBox();
+    expect(mobile.width).toBeGreaterThanOrEqual(44);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await closeGame(page);
+
+    await page.setViewportSize({ width: 320, height: 720 });
+    await openGame(page, 'atomix-ghep-phan-tu-hoa-hoc');
+    expect((await page.locator('.ag-atom').first().boundingBox()).width).toBeGreaterThanOrEqual(44);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await closeGame(page);
+
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await openGame(page, 'atomix-ghep-phan-tu-hoa-hoc');
+    const desktop = await page.locator('.ag-board').boundingBox();
+    expect(desktop.width).toBeGreaterThan(300);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await closeGame(page);
+    expect(errors).toEqual([]);
+  } finally {
+    await context.close();
+  }
+});
+
+test('Nối Ống Nước routes all three live-flow puzzles on touch and keyboard without overflow', async ({ browser }) => {
+  test.setTimeout(60_000);
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
+  const page = await context.newPage();
+  const errors = watchErrors(page);
+  const dirNames = ['bắc', 'đông', 'nam', 'tây'];
+  try {
+    await loadPortal(page);
+    await openGame(page, 'noi-ong-nuoc-pipemania');
+    await expect(page.locator('#modalGameTitle')).toHaveText('Nối Ống Nước');
+    await expect(page.locator('.pr-tile')).toHaveCount(25);
+    await expect(page.locator('.pr-tile[data-pipe="0,2"]')).toContainText('Vòi');
+    await expect(page.locator('.pr-tile[data-pipe="4,2"]')).toContainText('Bể');
+
+    await page.locator('.pr-tile[data-pipe="0,0"]').focus();
+    await page.keyboard.press('ArrowRight');
+    expect(await page.evaluate(() => document.activeElement.dataset.pipe)).toBe('1,0');
+    await page.keyboard.press('d');
+    await expect(page.locator('#prMoves')).toHaveText('1 lượt xoay');
+    await page.locator('#prUndo').tap();
+    await expect(page.locator('#prMoves')).toHaveText('0 lượt xoay');
+    await page.locator('#prPause').tap();
+    await expect(page.locator('#prOverlayTitle')).toHaveText('Đã tạm dừng');
+    const pausedTime = await page.locator('#prTimer').textContent();
+    await page.waitForTimeout(1100);
+    await expect(page.locator('#prTimer')).toHaveText(pausedTime);
+    await page.locator('#prPrimary').tap();
+    await expect(page.locator('#prOverlay')).toBeHidden();
+    await page.locator('#prRestart').tap();
+    await expect(page.locator('#prMoves')).toHaveText('0 lượt xoay');
+    await page.locator('#modalGameContainer').screenshot({ path: 'docs/qa/pipe-route-playtest-20261009/pipe-route-mobile.png' });
+
+    const paths = await page.evaluate(() => window.NP_PipeRouteModel.PATHS.map(path => path.map(point => [...point])));
+    for (let level = 0; level < paths.length; level++) {
+      const pathPoints = paths[level];
+      for (let i = 0; i < pathPoints.length; i++) {
+        const [x, y] = pathPoints[i], target = [];
+        if (i === 0) target.push(3);
+        else {
+          const [px, py] = pathPoints[i - 1];
+          target.push(px < x ? 3 : px > x ? 1 : py < y ? 0 : 2);
+        }
+        if (i === pathPoints.length - 1) target.push(1);
+        else {
+          const [nx, ny] = pathPoints[i + 1];
+          target.push(nx > x ? 1 : nx < x ? 3 : ny > y ? 2 : 0);
+        }
+        const targetName = target.sort((a, b) => a - b).map(direction => dirNames[direction]).join(' và ');
+        const tile = page.locator(`.pr-tile[data-pipe="${x},${y}"]`);
+        for (let turn = 0; turn < 4; turn++) {
+          if (await page.locator('#prOverlay').evaluate(node => !node.hidden)) break;
+          const label = await tile.getAttribute('aria-label');
+          if (label.includes(`nối ${targetName}`)) break;
+          await tile.tap();
+        }
+        if (await page.locator('#prOverlay').evaluate(node => !node.hidden)) break;
+      }
+      await expect(page.locator('#prOverlayTitle')).toHaveText('Nước tới bể!');
+      if (level < paths.length - 1) {
+        await page.locator('#prPrimary').tap();
+        await expect(page.locator('#prStage')).toHaveText(`Màn ${level + 2} / 3`);
+      }
+    }
+    await page.locator('#prPrimary').tap();
+    await expect(page.locator('#prStage')).toHaveText('Màn 1 / 3');
+    await expect(page.locator('#prOverlay')).toBeHidden();
+    expect((await page.locator('.pr-tile').first().boundingBox()).width).toBeGreaterThanOrEqual(44);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await closeGame(page);
+
+    await page.setViewportSize({ width: 320, height: 720 });
+    await openGame(page, 'noi-ong-nuoc-pipemania');
+    expect((await page.locator('.pr-tile').first().boundingBox()).width).toBeGreaterThanOrEqual(44);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await closeGame(page);
+
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await openGame(page, 'noi-ong-nuoc-pipemania');
+    expect((await page.locator('.pr-board').boundingBox()).width).toBeGreaterThan(300);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await closeGame(page);
+    expect(errors).toEqual([]);
+  } finally {
+    await context.close();
+  }
+});
+
 test('P1A games accept a real browser input and update their visible state', async ({ page }) => {
   test.setTimeout(60_000);
   const errors = watchErrors(page);
@@ -502,7 +665,7 @@ test('2048 completes a deterministic 2048 win, continue, and reload resume', asy
   await expect(page.locator('#g2048Overlay')).toBeHidden();
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('np_2048_state_v1')).keepPlaying)).toBe(true);
   await page.reload();
-  await expect(page.locator('#catalogAvailability')).toContainText('54');
+  await expect(page.locator('#catalogAvailability')).toContainText('56');
   await openGame(page, 'tro-choi-2048');
   await expect(page.locator('#g2048Overlay')).toBeHidden();
   await expect(page.locator('#g2048Score')).toHaveText('2048');
