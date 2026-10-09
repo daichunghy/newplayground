@@ -564,7 +564,7 @@ test('Hàng Rong completes a touch-played shift and clean replay at 320px', asyn
     await openGame(page, 'hang-rong');
     await expect(page.locator('#hr3Stage')).toContainText('Gánh tre');
     await expect(page.locator('#hr3Goal')).toContainText('cần 5');
-    await expect(page.locator('#hr3TipRule')).toContainText('còn nửa thanh mới có bo');
+    await expect(page.locator('#hr3TipRule')).toContainText('>½ thanh có bo');
     await expectViewportFits(page);
     const controls = await page.locator('#modalGameContainer button:visible').evaluateAll(nodes => nodes.map(node => {
       const rect = node.getBoundingClientRect();
@@ -607,15 +607,15 @@ test('Hàng Rong completes a touch-played shift and clean replay at 320px', asyn
 
     await expect(page.locator('#hr3Result')).toBeVisible({ timeout: 5_000 });
     await expect(page.locator('#hr3ResultTitle')).toHaveText('Xong ca!');
-    await expect(page.locator('#hr3ResultSummary')).toContainText('8/8 đơn');
-    await expect(page.locator('#hr3ResultSummary')).toContainText('chuỗi tốt nhất');
+    await expect(page.locator('#hr3ResultSummary')).toContainText('8/8 giao');
+    await expect(page.locator('#hr3ResultSummary')).toContainText('chuỗi ×8');
     expect(served).toBe(8);
     await expectViewportFits(page);
 
     await page.locator('#hr3Next').tap();
     await expect(page.locator('#hr3Goal')).toHaveText('Giao 0/8 · cần 5');
     await expect(page.locator('#hr3Combo')).toHaveText('Chuỗi · bắt đầu');
-    await expect(page.locator('#hr3TipBank')).toHaveText('Tiền bo +0 xu');
+    await expect(page.locator('#hr3TipBank')).toHaveText('Bo +0');
     await closeGame(page);
     expect(errors).toEqual([]);
   } finally {
