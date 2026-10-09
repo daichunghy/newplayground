@@ -1128,5 +1128,25 @@
     "source": "Created in this repository for NewPlayground; original coastal scene geometry, no third-party artwork copied or used",
     "author": "NewPlayground project contributors",
     "created_at": "2026-10-09"
+  },
+  {
+    "category": "original-game-art",
+    "file": "dog-crossing-original.svg",
+    "local_path": "assets/dog-crossing-original.svg",
+    "size_bytes": 1576,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Original project-authored cover art for a traffic-light dog crossing game; no third-party artwork copied or used",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-09"
+  },
+  {
+    "category": "original-game-art",
+    "file": "line-rider-original.svg",
+    "local_path": "assets/line-rider-original.svg",
+    "size_bytes": 1784,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Original project-authored cover art for a user-drawn slope-riding challenge; no third-party artwork copied or used",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-09"
   }
 ]

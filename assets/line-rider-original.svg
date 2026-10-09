@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-labelledby="title desc">
+  <title id="title">Bút Vẽ Trượt Ván</title><desc id="desc">Một người trượt ván đi theo đường dốc vẽ tay, qua vòng vàng tới lá cờ.</desc>
+  <defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#c9edf0"/><stop offset=".7" stop-color="#edf1d8"/><stop offset="1" stop-color="#e1ecc4"/></linearGradient></defs>
+  <rect width="640" height="400" rx="32" fill="url(#sky)"/><path fill="#b1d29d" d="M0 250q150-105 300-5t340-43v198H0z"/><path fill="#d2dfaa" d="M0 322q180-75 350 8t290-44v114H0z"/>
+  <circle cx="190" cy="278" r="13" fill="#ffcf5c" stroke="#fff8d7" stroke-width="7"/><circle cx="340" cy="286" r="13" fill="#ffcf5c" stroke="#fff8d7" stroke-width="7"/><circle cx="487" cy="270" r="13" fill="#ffcf5c" stroke="#fff8d7" stroke-width="7"/>
+  <path d="M52 324q65-42 118-18t100-4q48-28 100 2t92-20q55-23 107-24" fill="none" stroke="#795943" stroke-width="14" stroke-linecap="round"/><path d="M52 324q65-42 118-18t100-4q48-28 100 2t92-20q55-23 107-24" fill="none" stroke="#c38f62" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="48" cy="320" r="12" fill="#c8ff4a"/><path d="M590 241v40" stroke="#315a48" stroke-width="6"/><path d="m593 242 35 10-35 10" fill="#f36e5b"/>
+  <g transform="translate(235 268) rotate(-12)" stroke="#293f42" stroke-width="7" stroke-linecap="round" fill="none"><path d="M-22 16h48" stroke="#273e3a"/><circle cx="-13" cy="19" r="5" fill="#f4a568" stroke="none"/><circle cx="18" cy="19" r="5" fill="#f4a568" stroke="none"/><path d="M-2 12 2-6 13-13M2-5-10 2l-6 10M2-5l13 6 2 11" stroke="#326b77"/></g>
+  <circle cx="250" cy="247" r="8" fill="#ffcf83"/><path d="M242 247a8 8 0 0 1 16 0" fill="#355c65"/>
+</svg>

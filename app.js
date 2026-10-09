@@ -176,6 +176,8 @@
     'raft-wars-ban-sung-phao': 'assets/dau-phao-original.svg',
     'street-fighter-2-doi-khang': 'assets/nay-lua-original.svg',
     'bubble-bobble-khung-long-bong-bong': 'assets/mam-gio-original.svg',
+    'gap-chu-cho-qua-duong': 'assets/dog-crossing-original.svg',
+    'line-rider-truot-tuyet-vat-ly': 'assets/line-rider-original.svg',
   };
 
   function escapeXml(unsafe) {

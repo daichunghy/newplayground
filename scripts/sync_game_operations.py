@@ -74,7 +74,7 @@ for game in games:
     })
 
 (ROOT / 'data/game-operations.json').write_text(json.dumps({
-    'schema_version': 1, 'updated_at': '2026-10-08',
+    'schema_version': 1, 'updated_at': '2026-10-09',
     'baseline': {'catalog': len(games), 'prototype_engines': len(registry),
                  'planned': len(games) - len(registry),
                  'certified_complete': sum(item['release_ready'] and item['accepted_scope'] == 'reference-complete'

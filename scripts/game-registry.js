@@ -61,7 +61,9 @@
     'nem-lon-truong-lang': 'launchSanBui',
     'khoi-rubik-mini': 'launchKhoiSac',
     'keo-co-doi-khang': 'launchKeoNhip',
-    'tiem-sach-cu-pho-co': 'launchKeSachKyUc'
+    'tiem-sach-cu-pho-co': 'launchKeSachKyUc',
+    'gap-chu-cho-qua-duong': 'launchDogCrossing',
+    'line-rider-truot-tuyet-vat-ly': 'launchLineRider'
   });
   const engineFor = id => Object.prototype.hasOwnProperty.call(entries, id) ? entries[id] : null;
   const isPlayable = id => Boolean(engineFor(id) && window.NP_Engines &&

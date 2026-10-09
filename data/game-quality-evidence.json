@@ -2362,6 +2362,157 @@
         "backlog_status": "Three distinct original 5x5 routes with 25 rotatable pipe pieces, live flow tracing and timed pressure implemented; model/UI tests and local browser walkthrough documented. Physical-device, human-comprehension, assistive-technology, tuning and rights acceptance remain pending."
       },
       "player_ui": "One tap-ready 5×5 grid. Rotate pipe joints to carry water from Vòi to Bể before the pressure gauge empties. Three layouts; undo, pause and retry; no shop, copied art or external asset."
+    },
+    "gap-chu-cho-qua-duong": {
+      "scope": "prototype",
+      "reference_version": "Original fixed single-crosswalk timing round; genre research uses the Hasbro Frogger Game.com manual and Apple Crossy Road listing; no parity claim",
+      "candidate_build": "dog-crossing-1",
+      "accepted_build": null,
+      "owner": null,
+      "accepted_at": null,
+      "implementation_status": "implemented-awaiting-browser-device-qa",
+      "research": {
+        "status": "desk-research-partial",
+        "evidence_date": "2026-10-09",
+        "reference_version": "Hasbro Frogger Game.com manual and Apple Crossy Road listing; original finite one-crosswalk variant",
+        "source_urls": [
+          "https://www.hasbro.com/common/instruct/FROGGER.PDF",
+          "https://apps.apple.com/us/app/crossy-road/id924373886"
+        ],
+        "rules_task": "Original one-crosswalk round: send five dogs only on pedestrian green; three red attempts or a 28-second timer loses; saving all five wins.",
+        "content_task": "One fixed crossing, five queued dogs, three misses, score/combo/time bonus; no grids, rivers, unlocks or endless hazards.",
+        "controls_task": "One 54px touch action, Space, pause via P/button; verify light timing, interrupt behavior and 320px touch input.",
+        "visual_assets_and_license_to_resolve": "Original Canvas traffic/dogs and original SVG cover; check contrast and feel on device and review catalog title rights.",
+        "backlog_status": "Prototype riêng; nghiên cứu luật thể loại từ nguồn chính thức, không tuyên bố parity"
+      },
+      "automated_tests": {
+        "command": "node --test tests/dog-crossing-model.test.cjs",
+        "passed": 5,
+        "failed": 0,
+        "date": "2026-10-09",
+        "evidence": "docs/games/DOG_CROSSING_RESEARCH_AND_QA.md",
+        "limitation": "Pure model tests; browser/device evidence is reported separately and no human playtest has been performed."
+      },
+      "gates": {
+        "reference_parity": {
+          "status": "pending",
+          "evidence": "Prototype dossier and deterministic model evidence are recorded; physical-device, human, title-rights, and release acceptance remain pending."
+        },
+        "content": {
+          "status": "pending",
+          "evidence": "Prototype dossier and deterministic model evidence are recorded; physical-device, human, title-rights, and release acceptance remain pending."
+        },
+        "controls": {
+          "status": "pending",
+          "evidence": "Prototype dossier and deterministic model evidence are recorded; physical-device, human, title-rights, and release acceptance remain pending."
+        },
+        "visual_audio": {
+          "status": "pending",
+          "evidence": "Prototype dossier and deterministic model evidence are recorded; physical-device, human, title-rights, and release acceptance remain pending."
+        },
+        "device_qa": {
+          "status": "pending",
+          "evidence": "Prototype dossier and deterministic model evidence are recorded; physical-device, human, title-rights, and release acceptance remain pending."
+        },
+        "save_recovery": {
+          "status": "pending",
+          "evidence": "Prototype dossier and deterministic model evidence are recorded; physical-device, human, title-rights, and release acceptance remain pending."
+        },
+        "playtest": {
+          "status": "pending",
+          "evidence": "Prototype dossier and deterministic model evidence are recorded; physical-device, human, title-rights, and release acceptance remain pending."
+        },
+        "distribution_rights": {
+          "status": "pending",
+          "evidence": "Prototype dossier and deterministic model evidence are recorded; physical-device, human, title-rights, and release acceptance remain pending."
+        }
+      },
+      "player_ui": "One visible crossing action, four compact counters, short status, large replay/pause targets, visual and live-region feedback; no long tutorial.",
+      "browser_tests": {
+        "command": "NODE_PATH=/tmp/newplayground-playwright/node_modules playwright test --config=/tmp/newplayground-system-chromium-reuse.config.cjs",
+        "passed": 38,
+        "failed": 0,
+        "date": "2026-10-09",
+        "focused_test": "Dắt Cún and Bút Vẽ Trượt Ván play on 320px touch and desktop Chromium",
+        "focused_test_result": "1/1 passed; both games opened, accepted game input, paused/resumed/restarted or completed, and closed with session cleanup.",
+        "evidence": "docs/qa/new-games-local-checks-20261009.md",
+        "limitation": "Chromium at a 320px touch viewport and desktop; no physical-device or human-playtest acceptance."
+      }
+    },
+    "line-rider-truot-tuyet-vat-ly": {
+      "scope": "prototype",
+      "reference_version": "Official Line Rider draw-a-track/ride mechanic as genre reference; original finite start-to-flag micro challenge with slope follower, rings and scoring; no parity claim",
+      "candidate_build": "line-rider-1",
+      "accepted_build": null,
+      "owner": null,
+      "accepted_at": null,
+      "implementation_status": "implemented-awaiting-browser-device-qa",
+      "research": {
+        "status": "desk-research-partial",
+        "evidence_date": "2026-10-09",
+        "reference_version": "Official Line Rider browser site; original finite start-to-flag challenge variant",
+        "source_urls": [
+          "https://www.linerider.com/"
+        ],
+        "rules_task": "Draw one continuous connected path between fixed start and flag; gravity/friction alter rider speed; finish, stall, roll-back and time-limit outcomes are explicit.",
+        "content_task": "Single 16-second course with three 80-point rings and a finish/time bonus; no sandbox editing, jumps, sharing, music sync or multiple tracks.",
+        "controls_task": "Pointer Events draw a connected line on desktop and touch; ride, clear, restart and pause controls; verify input and overflow at 320px.",
+        "visual_assets_and_license_to_resolve": "Original Canvas rider/landscape/rings and original SVG cover; physics is a lightweight project-authored segment follower; review title rights and device feel.",
+        "backlog_status": "Prototype riêng; nghiên cứu cơ chế Line Rider từ trang chính thức, không tuyên bố parity"
+      },
+      "automated_tests": {
+        "command": "node --test tests/line-rider-model.test.cjs",
+        "passed": 4,
+        "failed": 0,
+        "date": "2026-10-09",
+        "evidence": "docs/games/LINE_RIDER_RESEARCH_AND_QA.md",
+        "limitation": "The pure model uses a short timer configuration to deterministically exercise timeout; Chromium/device feel and human acceptance remain pending."
+      },
+      "gates": {
+        "reference_parity": {
+          "status": "pending",
+          "evidence": "Prototype dossier and deterministic model evidence are recorded; physical-device, human, title-rights, and release acceptance remain pending."
+        },
+        "content": {
+          "status": "pending",
+          "evidence": "Prototype dossier and deterministic model evidence are recorded; physical-device, human, title-rights, and release acceptance remain pending."
+        },
+        "controls": {
+          "status": "pending",
+          "evidence": "Prototype dossier and deterministic model evidence are recorded; physical-device, human, title-rights, and release acceptance remain pending."
+        },
+        "visual_audio": {
+          "status": "pending",
+          "evidence": "Prototype dossier and deterministic model evidence are recorded; physical-device, human, title-rights, and release acceptance remain pending."
+        },
+        "device_qa": {
+          "status": "pending",
+          "evidence": "Prototype dossier and deterministic model evidence are recorded; physical-device, human, title-rights, and release acceptance remain pending."
+        },
+        "save_recovery": {
+          "status": "pending",
+          "evidence": "Prototype dossier and deterministic model evidence are recorded; physical-device, human, title-rights, and release acceptance remain pending."
+        },
+        "playtest": {
+          "status": "pending",
+          "evidence": "Prototype dossier and deterministic model evidence are recorded; physical-device, human, title-rights, and release acceptance remain pending."
+        },
+        "distribution_rights": {
+          "status": "pending",
+          "evidence": "Prototype dossier and deterministic model evidence are recorded; physical-device, human, title-rights, and release acceptance remain pending."
+        }
+      },
+      "player_ui": "Draw once from green dot to flag, then ride; compact score/time/ring HUD, clear/pause/replay controls and short live status; no long tutorial.",
+      "browser_tests": {
+        "command": "NODE_PATH=/tmp/newplayground-playwright/node_modules playwright test --config=/tmp/newplayground-system-chromium-reuse.config.cjs",
+        "passed": 38,
+        "failed": 0,
+        "date": "2026-10-09",
+        "focused_test": "Dắt Cún and Bút Vẽ Trượt Ván play on 320px touch and desktop Chromium",
+        "focused_test_result": "1/1 passed; both games opened, accepted game input, paused/resumed/restarted or completed, and closed with session cleanup.",
+        "evidence": "docs/qa/new-games-local-checks-20261009.md",
+        "limitation": "Chromium at a 320px touch viewport and desktop; no physical-device or human-playtest acceptance."
+      }
     }
   }
 }

@@ -34,7 +34,7 @@ async function closeGame(page) {
 
 async function loadPortal(page) {
   await page.goto('/');
-  await expect(page.locator('#catalogAvailability')).toContainText('60');
+  await expect(page.locator('#catalogAvailability')).toContainText('62');
 }
 
 async function newMobilePage(browser, width = 320, height = 800) {
@@ -53,8 +53,8 @@ async function expectViewportFits(page) {
 
 test('the default grid is playable-only; explicit catalog browsing keeps planned entries informational', async ({ page }) => {
   await loadPortal(page);
-  await expect(page.locator('#allSectionTitle')).toHaveText('Bản thử nghiệm có thể chơi (60)');
-  await expect(page.locator('#gridAll .game-card')).toHaveCount(60);
+  await expect(page.locator('#allSectionTitle')).toHaveText('Bản thử nghiệm có thể chơi (62)');
+  await expect(page.locator('#gridAll .game-card')).toHaveCount(62);
   await expect(page.locator('.filter-pill[data-category="playable"]')).toHaveClass(/active/);
 
   await page.locator('.filter-pill[data-category="all"]').click();
@@ -66,7 +66,7 @@ test('the default grid is playable-only; explicit catalog browsing keeps planned
   await expect(page.locator('#gameModal')).toHaveCSS('display', 'none');
 });
 
-test('all 60 registered games open, render, close and release their session', async ({ page }) => {
+test('all 62 registered games open, render, close and release their session', async ({ page }) => {
   test.setTimeout(120_000);
   const errors = watchErrors(page);
   await loadPortal(page);
@@ -76,7 +76,7 @@ test('all 60 registered games open, render, close and release their session', as
       id, engine, title: byId.get(id)?.title || id
     }));
   });
-  expect(routes).toHaveLength(60);
+  expect(routes).toHaveLength(62);
 
   for (const route of routes) {
     await openGame(page, route.id);
@@ -86,6 +86,77 @@ test('all 60 registered games open, render, close and release their session', as
     await closeGame(page);
   }
   expect(errors).toEqual([]);
+});
+
+async function drawLineOnCanvas(context, page, canvas) {
+  const box = await canvas.boundingBox();
+  const from = { x: box.x + box.width * 64 / 800, y: box.y + box.height * 322 / 440 };
+  const to = { x: box.x + box.width * 736 / 800, y: box.y + box.height * 322 / 440 };
+  const points = [0, .25, .5, .75, 1].map(t => ({ x: from.x + (to.x - from.x) * t, y: from.y + (to.y - from.y) * t }));
+  if (context.pages()[0] === page && await page.evaluate(() => matchMedia('(pointer: coarse)').matches)) {
+    const cdp = await context.newCDPSession(page);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ ...points[0], id: 1 }] });
+    for (const point of points.slice(1)) {
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ ...point, id: 1 }] });
+      await page.waitForTimeout(20);
+    }
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await cdp.detach();
+  } else {
+    await page.mouse.move(points[0].x, points[0].y);
+    await page.mouse.down();
+    for (const point of points.slice(1)) await page.mouse.move(point.x, point.y, { steps: 3 });
+    await page.mouse.up();
+  }
+}
+
+test('Dắt Cún and Bút Vẽ Trượt Ván play on 320px touch and desktop Chromium', async ({ browser }) => {
+  test.setTimeout(60_000);
+  for (const mobile of [true, false]) {
+    const context = await browser.newContext({
+      viewport: mobile ? { width: 320, height: 800 } : { width: 1280, height: 900 },
+      isMobile: mobile, hasTouch: mobile, deviceScaleFactor: 1
+    });
+    const page = await context.newPage(), errors = watchErrors(page);
+    await loadPortal(page);
+    await openGame(page, 'gap-chu-cho-qua-duong');
+    await expect(page.locator('#modalGameTitle')).toHaveText('Dắt Cún Qua Đường');
+    await expectViewportFits(page);
+    const cross = page.locator('#dcCross');
+    const crossBox = await cross.boundingBox();
+    expect(crossBox.width).toBeGreaterThanOrEqual(44);
+    expect(crossBox.height).toBeGreaterThanOrEqual(44);
+    await cross.click();
+    await expect(page.locator('#dcDogs')).toHaveText('4');
+    await page.keyboard.press('p');
+    await expect(page.locator('#dcOverlayTitle')).toHaveText('Tạm dừng');
+    await page.locator('#dcOverlayAction').click();
+    await expect(page.locator('#dcOverlay')).toBeHidden();
+    await page.locator('#dcRestart').click();
+    await expect(page.locator('#dcDogs')).toHaveText('5');
+    await closeGame(page);
+
+    await openGame(page, 'line-rider-truot-tuyet-vat-ly');
+    await expect(page.locator('#modalGameTitle')).toHaveText('Bút Vẽ Trượt Ván (Line Rider)');
+    await expectViewportFits(page);
+    const canvas = page.locator('#lrCanvas');
+    await canvas.scrollIntoViewIfNeeded();
+    expect(await canvas.evaluate(node => getComputedStyle(node).touchAction)).toBe('none');
+    await drawLineOnCanvas(context, page, canvas);
+    await expect(page.locator('#lrStart')).toBeEnabled();
+    await page.locator('#lrStart').click();
+    await page.waitForTimeout(180);
+    await page.keyboard.press('p');
+    await expect(page.locator('#lrOverlayTitle')).toHaveText('Tạm dừng');
+    await page.locator('#lrOverlayAction').click();
+    await expect(page.locator('#lrOverlay')).toBeHidden();
+    await expect(page.locator('#lrOverlayTitle')).toHaveText('Tới đích!', { timeout: 8_000 });
+    await expect(page.locator('#lrScore')).not.toHaveText('0');
+    await closeGame(page);
+    await expectViewportFits(page);
+    expect(errors, `${mobile ? 'mobile' : 'desktop'} browser errors`).toEqual([]);
+    await context.close();
+  }
 });
 
 test('Khối Sắc stays touch-sized on a narrow mobile screen and accepts a real face turn and pause', async ({ page }) => {
@@ -897,7 +968,7 @@ test('2048 completes a deterministic 2048 win, continue, and reload resume', asy
   await expect(page.locator('#g2048Overlay')).toBeHidden();
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('np_2048_state_v1')).keepPlaying)).toBe(true);
   await page.reload();
-  await expect(page.locator('#catalogAvailability')).toContainText('60');
+  await expect(page.locator('#catalogAvailability')).toContainText('62');
   await openGame(page, 'tro-choi-2048');
   await expect(page.locator('#g2048Overlay')).toBeHidden();
   await expect(page.locator('#g2048Score')).toHaveText('2048');
