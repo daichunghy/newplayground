@@ -1282,7 +1282,9 @@ test('2048 Undo rolls back the visible move and disables after one use', async (
   await page.addInitScript(() => {
     localStorage.setItem('np_2048_state_v1', JSON.stringify({
       version: 1,
-      board: [[2, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+      // Saves need at least two tiles to be valid. Place them so a right move
+      // always changes the board regardless of the random spawn.
+      board: [[2, 0, 0, 2], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
       score: 0, moves: 0, won: false, keepPlaying: false, over: false
     }));
   });
@@ -1290,6 +1292,7 @@ test('2048 Undo rolls back the visible move and disables after one use', async (
   await loadPortal(page);
   await openGame(page, 'tro-choi-2048');
   const before = await page.evaluate(() => JSON.parse(localStorage.getItem('np_2048_state_v1')));
+  expect(before.board).toEqual([[2, 0, 0, 2], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]);
   const undo = page.locator('#g2048Undo');
   await expect(undo).toBeDisabled();
   await page.locator('#g2048Right').click();
