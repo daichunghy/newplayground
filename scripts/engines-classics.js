@@ -4407,7 +4407,9 @@
       if (sEl) sEl.textContent = score;
     }
 
-    let highScore = parseInt(localStorage.getItem('np_2048_high') || '0');
+    let highScore = parseInt(localStorage.getItem('np_2048_high') || '0') || 0;
+    let hasWon = false;
+    let gameOver = false;
 
     function slide(row, rIdx, isHorizontal) {
       let arr = row.filter(x => x > 0);
@@ -4455,6 +4457,7 @@
     }
 
     function move(dir) {
+      if (gameOver) return;
       const old = JSON.stringify(board);
 
       if (dir === 'left') {
@@ -4480,8 +4483,15 @@
         if (window.NP_Juice) NP_Juice.vibrate.light();
         spawnTile();
         render();
+        if (!hasWon && board.some(row => row.some(value => value >= 2048))) {
+          hasWon = true;
+          if (typeof window.showToastNotification === 'function') {
+            window.showToastNotification('Đạt 2048! Bạn có thể tiếp tục để lập kỷ lục mới.');
+          }
+        }
 
         if (checkGameOver()) {
+          gameOver = true;
           setTimeout(() => {
             if (window.NP_Audio) window.NP_Audio.alarm();
             const grid = container.querySelector('#g2048Grid');
@@ -4494,6 +4504,8 @@
               overEl.querySelector('#g2048OverReset')?.addEventListener('click', () => {
                 board = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
                 score = 0;
+                gameOver = false;
+                hasWon = false;
                 spawnTile(); spawnTile();
                 render();
               });
@@ -4545,6 +4557,8 @@
     container.querySelector('#g2048NewBtn')?.addEventListener('click', () => {
       board = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
       score = 0;
+      gameOver = false;
+      hasWon = false;
       spawnTile();
       spawnTile();
       render();

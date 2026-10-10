@@ -6149,12 +6149,17 @@ function launchSnake(container, game) {
   let isBonusFood = false;
 
   function spawnFood() {
-    let fx, fy;
-    do {
-      fx = Math.floor(Math.random() * COLS);
-      fy = Math.floor(Math.random() * ROWS);
-    } while (snake.some(s => s.x === fx && s.y === fy));
-    food = { x: fx, y: fy };
+    const available = [];
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        if (!snake.some(segment => segment.x === x && segment.y === y)) available.push({ x, y });
+      }
+    }
+    if (!available.length) {
+      gameOver = true;
+      return;
+    }
+    food = available[Math.floor(Math.random() * available.length)];
     isBonusFood = Math.random() < 0.25; // 25% chance of Golden Apple
   }
 
@@ -6267,7 +6272,10 @@ function launchSnake(container, game) {
     }
 
     // Self collision
-    if (snake.some(s => s.x === head.x && s.y === head.y)) {
+    const eating = head.x === food.x && head.y === food.y;
+    // Moving into the tail's old square is legal unless the snake is growing.
+    const occupied = eating ? snake : snake.slice(0, -1);
+    if (occupied.some(s => s.x === head.x && s.y === head.y)) {
       gameOver = true;
       screenShake = 12;
       if (window.NP_Juice) NP_Juice.vibrate.heavy();
@@ -6278,7 +6286,7 @@ function launchSnake(container, game) {
     snake.unshift(head);
 
     // Food collision
-    if (head.x === food.x && head.y === food.y) {
+    if (eating) {
       const pts = (isBonusFood ? 100 : 50) * speedLevel;
       score += pts;
       foodEaten++;

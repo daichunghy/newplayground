@@ -1,6 +1,6 @@
 /**
  * NEWPLAYGROUND PORTAL & RUNTIME ENGINE
- * 100 Curated Games, Responsive UI, Live Search, Audio Unlock & Playable Ca Pho
+ * 150 Curated Games, Responsive UI, Live Search, Audio Unlock & Playable Ca Pho
  */
 
 (function () {
@@ -8,7 +8,14 @@
 
   // --- STATE ---
   let allGames = [];
-  let favorites = JSON.parse(localStorage.getItem('np_favorites') || '[]');
+  let favorites = [];
+  try {
+    const saved = JSON.parse(localStorage.getItem('np_favorites') || '[]');
+    favorites = Array.isArray(saved) ? [...new Set(saved.filter(id => typeof id === 'string'))] : [];
+  } catch (error) {
+    // A corrupted or blocked localStorage value must never prevent the portal from loading.
+    favorites = [];
+  }
   let currentFilter = 'all';
   let searchQuery = '';
 
@@ -77,6 +84,7 @@
       // In case of local file:// restriction
       allGames = window.__NP_GAMES_CACHE__ || [];
     }
+    if (!Array.isArray(allGames)) allGames = [];
     initPortal();
   }
 
@@ -417,11 +425,14 @@
     card.className = 'game-card';
     card.setAttribute('data-id', game.id);
     card.setAttribute('data-category', game.category);
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-label', `Mở trò chơi ${game.title}`);
 
     card.innerHTML = `
       <div class="game-card-thumb">
         <img src="${getThumbArt(game)}" alt="${game.title}" class="game-thumb-art" loading="lazy">
-        <button class="game-card-heart-btn ${isLiked ? 'liked' : ''}" title="${isLiked ? 'Bỏ thích' : 'Yêu thích'}" data-heart-id="${game.id}">
+        <button class="game-card-heart-btn ${isLiked ? 'liked' : ''}" title="${isLiked ? 'Bỏ thích' : 'Yêu thích'}" aria-label="${isLiked ? 'Bỏ khỏi yêu thích' : 'Thêm vào yêu thích'}" aria-pressed="${isLiked}" data-heart-id="${game.id}">
           ${isLiked ? '❤️' : '🤍'}
         </button>
         <span class="game-card-badge">${game.badge || game.category}</span>
@@ -445,6 +456,11 @@
 
     // Card click -> Open Game Modal
     card.addEventListener('click', () => {
+      openGameModal(game);
+    });
+    card.addEventListener('keydown', (event) => {
+      if (event.target !== card || (event.key !== 'Enter' && event.key !== ' ')) return;
+      event.preventDefault();
       openGameModal(game);
     });
 
@@ -474,6 +490,13 @@
     renderFilteredAll();
   }
 
+  function normalizeSearchText(value) {
+    return String(value || '').normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd').replace(/Đ/g, 'D')
+      .toLowerCase();
+  }
+
   function renderFilteredAll() {
     const gridAll = document.getElementById('gridAll');
     const noResultsBlock = document.getElementById('noResultsBlock');
@@ -487,12 +510,10 @@
 
     // Search query filter
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      filtered = filtered.filter(g => 
-        g.title.toLowerCase().includes(q) ||
-        g.tagline.toLowerCase().includes(q) ||
-        g.category.toLowerCase().includes(q) ||
-        (g.mechanic && g.mechanic.toLowerCase().includes(q))
+      const q = normalizeSearchText(searchQuery.trim());
+      filtered = filtered.filter(g =>
+        [g.title, g.tagline, g.category, g.mechanic, g.players]
+          .some(value => normalizeSearchText(value).includes(q))
       );
     }
 
@@ -525,7 +546,7 @@
       } else if (currentFilter !== 'all') {
         allSectionTitle.textContent = `Danh mục: ${currentFilter} (${filtered.length})`;
       } else {
-        allSectionTitle.textContent = `Tất cả trò chơi (100)`;
+        allSectionTitle.textContent = `Tất cả trò chơi (${allGames.length})`;
       }
     }
   }
@@ -540,7 +561,9 @@
       favorites.push(id);
       showToast('Đã lưu vào danh sách yêu thích ❤️');
     }
-    localStorage.setItem('np_favorites', JSON.stringify(favorites));
+    try { localStorage.setItem('np_favorites', JSON.stringify(favorites)); } catch (error) {
+      console.warn('Cannot save favorites in this browser', error);
+    }
     updateFavCount();
     renderSections();
   }
@@ -595,6 +618,7 @@
     if (resetSearchBtn) {
       resetSearchBtn.addEventListener('click', () => {
         if (searchInput) searchInput.value = '';
+        if (clearSearchBtn) clearSearchBtn.style.display = 'none';
         searchQuery = '';
         currentFilter = 'all';
         updateFilterPillsUI('all');
@@ -630,6 +654,10 @@
     const randomGameBtn = document.getElementById('randomGameBtn');
     if (randomGameBtn) {
       randomGameBtn.addEventListener('click', () => {
+        if (!allGames.length) {
+          showToast('Danh sách trò chơi chưa sẵn sàng.');
+          return;
+        }
         playSuccessSound();
         const randomIndex = Math.floor(Math.random() * allGames.length);
         const randomGame = allGames[randomIndex];
@@ -703,24 +731,29 @@
         playClickSound();
         const modalWin = document.querySelector('.modal-window');
         if (!modalWin) return;
-        if (!document.fullscreenElement) {
-          modalWin.requestFullscreen?.().catch(() => {
+        (async () => {
+          try {
+            if (!document.fullscreenElement && typeof modalWin.requestFullscreen === 'function') {
+              await modalWin.requestFullscreen();
+            } else if (document.fullscreenElement && typeof document.exitFullscreen === 'function') {
+              await document.exitFullscreen();
+            } else {
+              throw new Error('Fullscreen API unavailable');
+            }
+          } catch (error) {
             showToast('Trình duyệt không hỗ trợ toàn màn hình.');
-          });
-          fsBtn.textContent = '🗗';
-          fsBtn.title = 'Thu nhỏ (Thoát toàn màn hình)';
-        } else {
-          document.exitFullscreen?.();
-          fsBtn.textContent = '⛶';
-          fsBtn.title = 'Toàn màn hình';
-        }
+          }
+          updateFullscreenButton();
+        })();
       });
-      document.addEventListener('fullscreenchange', () => {
-        if (!document.fullscreenElement && fsBtn) {
-          fsBtn.textContent = '⛶';
-          fsBtn.title = 'Toàn màn hình';
-        }
-      });
+      document.addEventListener('fullscreenchange', updateFullscreenButton);
+      function updateFullscreenButton() {
+        const active = Boolean(document.fullscreenElement);
+        fsBtn.textContent = active ? '🗗' : '⛶';
+        fsBtn.title = active ? 'Thu nhỏ (Thoát toàn màn hình)' : 'Toàn màn hình';
+        fsBtn.setAttribute('aria-label', fsBtn.title);
+      }
+      updateFullscreenButton();
     }
 
     // CRT Scanlines toggle
@@ -839,6 +872,8 @@
 
   // --- GAME MODAL & RUNTIME ---
   let gameInterval = null;
+  let focusBeforeGame = null;
+  let overflowBeforeGame = '';
 
   function openGameModal(game) {
     playClickSound();
@@ -847,6 +882,10 @@
     const badge = document.getElementById('modalGameBadge');
     const container = document.getElementById('modalGameContainer');
 
+    if (modal.style.display !== 'flex') {
+      focusBeforeGame = document.activeElement || null;
+      overflowBeforeGame = document.body.style.overflow;
+    }
     title.textContent = game.title;
     badge.textContent = game.category;
     modal.style.display = 'flex';
@@ -944,13 +983,21 @@
     if (isVectorGame) {
       container.querySelectorAll('canvas').forEach(c => c.classList.add('canvas-vector-mode'));
     }
+    document.getElementById('closeModalBtn')?.focus();
   }
 
   function closeGameModal() {
     const modal = document.getElementById('gameModal');
     if (modal) modal.style.display = 'none';
-    document.body.style.overflow = '';
+    document.body.style.overflow = overflowBeforeGame;
     cleanupGameRuntime();
+    if (document.fullscreenElement && typeof document.exitFullscreen === 'function') {
+      document.exitFullscreen().catch(() => {});
+    }
+    if (focusBeforeGame && focusBeforeGame.isConnected !== false) {
+      focusBeforeGame.focus?.();
+    }
+    focusBeforeGame = null;
   }
 
   function cleanupGameRuntime() {

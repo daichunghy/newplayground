@@ -713,6 +713,12 @@ body.dark-theme .filter-pill.active {
   box-shadow: 3px 3px 0px var(--border-dark);
 }
 
+.game-card:focus-visible,
+.game-card-heart-btn:focus-visible {
+  outline: 3px solid var(--accent-terracotta);
+  outline-offset: 3px;
+}
+
 .game-card-thumb {
   position: relative;
   width: 100%;
@@ -739,8 +745,8 @@ body.dark-theme .filter-pill.active {
   position: absolute;
   top: 8px;
   right: 8px;
-  width: 28px;
-  height: 28px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--radius-full);
   background-color: rgba(21, 24, 22, 0.6);
   color: #FFFFFF;

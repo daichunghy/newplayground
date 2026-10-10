@@ -16,7 +16,26 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax
+        run: |
+          for file in app.js games-data.js scripts/*.js; do node --check "$file"; done
+      - name: Run game regression suite
+        run: node --test tests/game-flow.test.cjs
+      - name: Validate game catalog
+        run: |
+          node -e 'const data = require("./data/games.json"); if (!Array.isArray(data) || data.length !== 150 || new Set(data.map(g => g.id)).size !== data.length) process.exit(1);'
+
   deploy:
+    needs: test
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
