@@ -43,9 +43,9 @@
       }));
     }
     const bottleX = bottle => bottle.x + Math.sin(s.time*1.3 + bottle.phase)*bottle.drift;
-    function point(x,y) { if(s.phase==='playing'){s.aimX=clamp(x,52,668);s.aimY=clamp(y,192,285);} }
+    function point(x,y) { if(s.phase==='playing'&&!s.paused){s.aimX=clamp(x,52,668);s.aimY=clamp(y,192,285);} }
     function throwRing(){
-      if(s.phase!=='playing'||s.projectile||s.throws>=s.limit)return false;
+      if(s.phase!=='playing'||s.paused||s.projectile||s.throws>=s.limit)return false;
       s.throws++;
       s.projectile={elapsed:0,duration:.66,x:s.aimX,y:s.aimY,wind:s.wind};
       s.phase='flight'; s.event++;return true;
@@ -116,9 +116,9 @@
       s.result='';s.effects=[];s.spawnIn=.3;s.aimX=360;s.aimY=210;
       for(let i=0;i<5;i++)spawn();s.event++;
     }
-    function aim(x,y){if(s.phase==='playing'){s.aimX=clamp(x,28,692);s.aimY=clamp(y,42,400);}}
+    function aim(x,y){if(s.phase==='playing'&&!s.paused){s.aimX=clamp(x,28,692);s.aimY=clamp(y,42,400);}}
     function fire(x=s.aimX,y=s.aimY,scale=1){
-      if(s.phase!=='playing'||s.dart||s.shots>=s.ammo)return false;
+      if(s.phase!=='playing'||s.paused||s.dart||s.shots>=s.ammo)return false;
       aim(x,y);s.shots++;
       s.dart={x:s.aimX,y:s.aimY,elapsed:0,duration:.18,scale:Math.max(1,scale),from:{x:360,y:433}};
       s.event++;return true;
