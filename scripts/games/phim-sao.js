@@ -68,7 +68,7 @@
   }
   function mount(container, session) {
     if (!container || !session?.listen || !session?.requestAnimationFrame) throw Error('Phím Sao needs a managed session');
-    const doc = container.ownerDocument, w = doc.defaultView || window;
+    const doc = container.ownerDocument || window.document, w = doc.defaultView || window;
     container.innerHTML = '<section class="n6-game n6-rhythm" aria-label="Phím Sao"><header class="n6-head"><div><small>ĐƯỜNG PHÍM ÁNH SÁNG</small><h2>Phím Sao</h2></div><div class="n6-tools"><button data-act="pause" aria-label="Tạm dừng">Ⅱ</button><button data-act="restart" aria-label="Chơi lại">↻</button><details class="n6-help"><summary aria-label="Luật chơi">?</summary><p>Chạm đúng cột khi phím đến vạch sáng; lỡ hoặc sai quá ba lần sẽ thua. A S D F trên máy tính.</p></details></div></header><div class="n6-stats"><span>Điểm <b data-stat="score">0</b></span><span>Chuỗi <b data-stat="combo">0</b></span><span>Tim <b data-stat="lives">3</b></span><span data-stat="progress">0 / 36</span></div><div class="n6-stage"><canvas width="600" height="600" aria-label="Bốn cột phím đang rơi, vạch bắt nhịp"></canvas><div class="n6-screen" data-screen><div class="n6-card"><h3 data-screen-title>Phím Sao</h3><p data-screen-text>Chạm phím khi đến vạch sáng.</p><button class="n6-primary" data-act="play">Bắt đầu</button></div></div></div><div class="n6-lanes" aria-label="Bốn phím chơi"><button data-lane="0">A</button><button data-lane="1">S</button><button data-lane="2">D</button><button data-lane="3">F</button></div><p class="n6-feedback" data-feedback role="status" aria-live="polite">36 phím · 3 chặng</p></section>';
     const query = s => container.querySelector(s);
     const canvas = query('canvas'), ctx = canvas.getContext('2d');
