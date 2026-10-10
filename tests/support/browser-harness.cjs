@@ -136,6 +136,10 @@ function harness({ loadEngines = true, loadApp = true, storage = new Map(), comp
       'scripts/engines-p3-games.js']) run(file);
   }
   if (loadEngines) run('scripts/engines-batch4-games.js');
+  if (loadEngines) {
+    for (const file of ['scripts/games/phim-sao.js', 'scripts/games/moc-qua.js', 'scripts/games/dao-ngoc.js',
+      'scripts/engines-batch6-games.js']) run(file);
+  }
   run('scripts/game-registry.js'); run('scripts/modal-accessibility.js');
   if (loadApp) vm.runInContext(read('app.js').replace('let allGames = [];', 'let allGames = globalThis.__testGames;'), context, { filename: 'app.js' });
   return {
