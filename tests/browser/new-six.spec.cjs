@@ -7,8 +7,10 @@ async function prepare(page,name,id){
   page.on('response',e=>{if(e.status()>=400&&new URL(e.url()).origin===new URL(page.url()).origin)errors.push('resource: '+e.url());});
   await page.goto(URL);
   await page.evaluate(gameName=>{
-    const original=window[gameName].mount;
-    window[gameName].mount=function(...args){
+    const key={NP_PhimSao:'launchPhimSao',NP_MocQua:'launchMocQua',NP_DaoNgoc:'launchDaoNgoc'}[gameName];
+    const original=window.NP_Engines[key];
+    if(typeof original!=='function')throw Error('Missing launcher '+key);
+    window.NP_Engines[key]=function(...args){
       window.__newSixGame=original(...args);
       return window.__newSixGame;
     };
@@ -100,7 +102,18 @@ test('Đào Ngọc has real swipe input, victory, failure, restart and clean rou
   await page.locator('.n6-dig [data-act="play"]').click();
   await page.locator('.n6-dig [data-act="restart"]').click();
   expect(await page.evaluate(()=>window.__newSixGame.view().player)).toEqual({x:1,y:1});
-  // Current model's actual three maps are tested for move/collision determinism by the Node suite.
+  await page.evaluate(()=>{
+    const model=window.__newSixGame;
+    const paths=['RDDUURRRRRRDDDDDDDLLRRRRUUUUUUU','RRRRDDDDDRRDDRRRUUUUUUU','RRDDLDDDRRRRDDRRURRDLUUUUURUU'];
+    const moves={R:'right',D:'down',L:'left',U:'up'};
+    for(let level=0;level<paths.length;level++){
+      for(const letter of paths[level])if(!model.move(moves[letter]))throw Error('Rejected cave move '+letter+' at stage '+level);
+      const state=model.view();
+      if(level<paths.length-1 && (state.level!==level+1 || state.status!=='playing'))throw Error('Stage '+level+' incomplete');
+    }
+    if(model.view().status!=='won')throw Error('Three caves did not clear');
+  });
+  await expect(page.locator('.n6-dig [data-screen-title]')).toHaveText('Đã tìm được lối ra!');
   await close(page);
   await prepare(page,'NP_MocQua','gap-thu-bong-dien-tu');
   await close(page);
