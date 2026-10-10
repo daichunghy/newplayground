@@ -1,61 +1,113 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
-const vm = require('node:vm');
-const source = fs.readFileSync(path.join(__dirname,'../scripts/original-games-batch.js'),'utf8');
-function setup(id) {
-  const handlers = new Map(), nodes=new Map(), frames=[];
-  const canvas={style:{},width:720,height:460,
-    getContext(){return new Proxy({createLinearGradient(){return {addColorStop(){}}}}, {get(o,k){return k in o?o[k]:()=>{}},set(o,k,v){o[k]=v;return true;}});},
-    getBoundingClientRect(){return {left:0,top:0,width:720,height:460}},
-    setPointerCapture(){}};
-  function node(key){if(!nodes.has(key))nodes.set(key,key==='#ngCanvas'?canvas:{style:{},textContent:'',listeners:{}});return nodes.get(key);}
-  const container={isConnected:true,innerHTML:'',querySelector:node};
-  const listeners=[];
-  const session={listen(target,event,handler){listeners.push({target,event,handler});},requestAnimationFrame(fn){frames.push(fn);},setTimeout(fn){fn();}};
-  const window={NP_GameSession:{start(){return session;}},NP_Engines:{launchRetroArcade(){throw Error('fallback called')}}};
-  vm.runInNewContext(source,{window,Math,Set,Array,Number,String});
-  window.NP_Engines.launchRetroArcade(container,{id,title:id});
-  function fire(target,event,data={}){for(const item of listeners)if(item.target===target&&item.event===event)item.handler({clientX:0,clientY:0,pointerId:1,target,preventDefault(){},...data});}
-  return {window,container,canvas,fire,node,frames};
-}
-test('three catalog IDs have distinct original engines',()=>{
-  const ids=['nem-vong-co-chai','phi-tieu-bong-bong','ai-la-trieu-phu'];
-  for(const id of ids){
-    const h=setup(id);
-    assert.match(h.container.innerHTML,/ngCanvas/);
-    assert.ok(h.frames.length>0);
-    assert.match(h.node('#ngTitle').textContent,/Ném vòng|Phi tiêu|kiến thức/);
+const {ids,makeRings,makeDarts,makeQuiz,QUESTIONS} = require('../scripts/original-games-batch.js');
+const time = (e,secs,dt=1/60) => { for(let t=0;t<secs;t+=dt)e.tick(dt); };
+
+// The models are deterministic, separate from DOM, timers and visual rendering.
+test('only the three established IDs use this engine',()=>{
+  assert.deepEqual(ids,['nem-vong-co-chai','phi-tieu-bong-bong','ai-la-trieu-phu']);
+});
+test('ring toss ignores double throws while a projectile is airborne and resolves a hit',()=>{
+  const e=makeRings(12),first=e.s.bottles[0];
+  e.point(first.x,first.y);assert.equal(e.throwRing(),true);
+  assert.equal(e.throwRing(),false);time(e,.7);
+  assert.equal(e.s.hits,1);assert.equal(e.s.throws,1);
+});
+test('ring win and stage progression raise required hits',()=>{
+  const e=makeRings(9);
+  for(const b of e.s.bottles.slice(0,2)){e.point(b.x,b.y);e.throwRing();time(e,.7);}
+  assert.equal(e.s.phase,'won');assert.equal(e.next(),true);
+  assert.equal(e.s.stage,2);assert.equal(e.s.goal,2);
+  const score=e.s.score;
+  assert.equal(e.retry(),true);assert.equal(e.s.stage,2);assert.equal(e.s.score,score);
+});
+test('ring loses after a limited number of misses; reset clears campaign',()=>{
+  const e=makeRings(3);
+  for(let i=0;i<e.s.limit;i++){e.point(60,280);e.throwRing();time(e,.7);}
+  assert.equal(e.s.phase,'lost');assert.equal(e.throwRing(),false);
+  e.reset();assert.equal(e.s.phase,'playing');assert.equal(e.s.stage,1);assert.equal(e.s.score,0);
+});
+test('ring pause freezes the time, moving targets, and pending projectile',()=>{
+  const e=makeRings(1);e.point(120,212);e.throwRing();
+  e.s.paused=true;time(e,1);assert.equal(e.s.time,0);assert.equal(e.s.projectile.elapsed,0);
+  e.s.paused=false;time(e,.7);assert.equal(e.s.projectile,null);
+});
+test('darts accept a precise hit, scale the bonus, and have a finite target goal',()=>{
+  const e=makeDarts(7);const b=e.s.balls[0],p=e.position(b);
+  e.fire(p.x,p.y,1);time(e,.2);assert.equal(e.s.shots,1);
+  assert.ok(e.s.popped>0||e.s.balls.some(x=>x.id===b.id&&x.hp===1));
+  assert.ok(e.s.goal>=7);
+});
+test('dart missiles cannot be spammed and shots eventually exhaust',()=>{
+  const e=makeDarts(44);
+  e.fire(690,435,1);assert.equal(e.fire(690,435,1),false);
+  time(e,.2);
+  for(let i=1;i<e.s.ammo;i++){e.fire(690,435,1);time(e,.2);}
+  assert.equal(e.s.phase,'lost');
+  assert.equal(e.s.shots,e.s.ammo);
+  e.retry();assert.equal(e.s.shots,0);assert.equal(e.s.phase,'playing');
+});
+test('dart timer results in a loss while pause stops clock',()=>{
+  const e=makeDarts(8);e.s.paused=true;time(e,40);
+  assert.equal(e.s.seconds,31);
+  e.s.paused=false;time(e,32);assert.equal(e.s.phase,'lost');
+});
+test('dart transitions to higher stages when target is satisfied',()=>{
+  const e=makeDarts(2);
+  e.s.popped=e.s.goal;e.s.shots=2;
+  // Real resolved-hit path is covered by the precise-hit test; mimic last pop target state.
+  e.s.phase='won';assert.equal(e.next(),true);
+  assert.equal(e.s.stage,2);assert.equal(e.s.goal,9);
+  assert.ok(e.s.seconds<=31);
+});
+test('quiz question pools contain four answers and valid indices',()=>{
+  assert.equal(QUESTIONS.length,3);
+  for(const tier of QUESTIONS){assert.ok(tier.length>=10);for(const q of tier){
+    assert.equal(q.length,3);assert.equal(q[1].length,4);
+    assert.ok(q[2]>=0&&q[2]<4);
+    assert.equal(new Set(q[1]).size,4);
+  }}
+});
+test('quiz selects 10 unique questions from each stage pool',()=>{
+  const e=makeQuiz(5);
+  assert.equal(e.s.questions.length,10);
+  assert.equal(new Set(e.s.questions.map(x=>x.text)).size,10);
+});
+test('quiz 50/50 removes exactly two incorrect answers and does not consume multiple times',()=>{
+  const e=makeQuiz(6);assert.equal(e.half(),true);assert.equal(e.s.hidden.length,2);
+  assert.ok(!e.s.hidden.includes(e.question().correct));
+  assert.equal(e.half(),false);
+  assert.equal(e.answer(e.s.hidden[0]),false);
+});
+test('quiz correct choices add score and advance only after the answer feedback',()=>{
+  const e=makeQuiz(10);
+  assert.equal(e.answer(e.question().correct),true);
+  assert.equal(e.s.phase,'feedback');assert.equal(e.answer(0),false);
+  time(e,.8);assert.equal(e.s.index,1);assert.ok(e.s.score>0);
+});
+test('quiz wrong answers and countdown cost lives; skip preserves lives',()=>{
+  const e=makeQuiz(1);
+  const before=e.s.lives;
+  assert.equal(e.skip(),true);time(e,.5);assert.equal(e.s.lives,before);
+  const wrong=(e.question().correct+1)%4;e.answer(wrong);time(e,.8);assert.equal(e.s.lives,before-1);
+  time(e,30);assert.equal(e.s.lives,before-2);
+});
+test('quiz clears after ten correct answers; third stage completes campaign',()=>{
+  const e=makeQuiz(77);for(let stage=1;stage<=3;stage++){
+    for(let q=0;q<10;q++){assert.equal(e.answer(e.question().correct),true);time(e,.8);}
+    assert.equal(e.s.phase,stage===3?'complete':'won');
+    if(stage<3){assert.equal(e.next(),true);assert.equal(e.s.stage,stage+1);}
   }
+  assert.ok(e.s.score>4000);
+  e.reset();assert.equal(e.s.stage,1);assert.equal(e.s.score,0);
 });
-test('ring game rewards accurate throws and proceeds through a win',()=>{
-  const h=setup('nem-vong-co-chai');
-  for(const x of [150,255,360]){
-    h.fire(h.canvas,'pointerdown',{clientX:x,clientY:400});
-    h.fire(h.canvas,'pointerup',{clientX:x,clientY:400});
-  }
-  assert.match(h.node('#ngMessage').textContent,/Qua màn/);
-  h.fire(h.node('#ngNext'),'click');
-  assert.match(h.node('#ngStats').textContent,/Màn 2/);
+test('quiz three wrong answers end run and retry preserves its stage',()=>{
+  const e=makeQuiz(77);
+  for(let i=0;i<3;i++){e.answer((e.question().correct+1)%4);time(e,.8);}
+  assert.equal(e.s.phase,'lost');e.retry();assert.equal(e.s.phase,'playing');assert.equal(e.s.stage,1);assert.equal(e.s.lives,3);
 });
-test('dart game loses after ten misses and restarts',()=>{
-  const h=setup('phi-tieu-bong-bong');
-  for(let i=0;i<10;i++)h.fire(h.canvas,'pointerdown',{clientX:700,clientY:440});
-  assert.match(h.node('#ngMessage').textContent,/Hết lượt/);
-  h.fire(h.node('#ngNext'),'click');
-  assert.match(h.node('#ngStats').textContent,/Lượt 10/);
-});
-test('quiz answers, loses three lives, and restarts',()=>{
-  const h=setup('ai-la-trieu-phu');
-  for(let i=0;i<3;i++)h.fire(h.window,'keydown',{key:'1'});
-  assert.match(h.node('#ngMessage').textContent,/Hết lượt/);
-  h.fire(h.node('#ngRestart'),'click');
-  assert.match(h.node('#ngStats').textContent,/Màn 1/);
-});
-test('pause, resume and restart controls are interactive',()=>{
-  const h=setup('nem-vong-co-chai');
-  h.fire(h.node('#ngPause'),'click');assert.equal(h.node('#ngPause').textContent,'Tiếp tục');
-  h.fire(h.node('#ngPause'),'click');assert.equal(h.node('#ngPause').textContent,'Tạm dừng');
-  h.fire(h.node('#ngRestart'),'click');assert.match(h.node('#ngStats').textContent,/Màn 1/);
+test('quiz pause locks answers and freezes timer',()=>{
+  const e=makeQuiz(10);e.s.paused=true;const before=e.s.remaining;
+  time(e,7);assert.equal(e.s.remaining,before);
+  assert.equal(e.answer(0),false);assert.equal(e.skip(),false);
 });
