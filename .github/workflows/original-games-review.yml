@@ -1,0 +1,33 @@
+name: Original mini-games review checks
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/original-games-batch.js'
+      - 'tests/original-games-*.test.cjs'
+      - 'index.html'
+      - '.github/workflows/original-games-review.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  node-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax
+        run: |
+          for file in app.js games-data.js scripts/*.js; do node --check "$file"; done
+      - name: Deep mini-game models, session interaction and cleanup
+        run: node --test tests/original-games-*.test.cjs
+      - name: Existing site regression
+        run: node --test tests/game-flow.test.cjs
+      - name: Check integration is scoped
+        run: |
+          node -e 'const fs=require("fs");const x=fs.readFileSync("index.html","utf8");const tag="scripts/original-games-batch.js";if(!x.includes(tag))process.exit(1);'
