@@ -66,3 +66,16 @@ test('Đào Ngọc treats walls as impassable and cannot escape before collectin
   m.move('right');assert.equal(m.move('right'),false);
   assert.equal(m.view().status,'playing');
 });
+
+test('Đào Ngọc all three shipped maps have a legal, deterministic completion route',()=>{
+  const model=dig.create();model.start();
+  const paths=['RDDUURRRRRRDDDDDDDLLRRRRUUUUUUU','RRRRDDDDDRRDDRRRUUUUUUU','RRDDLDDDRRRRDDRRURRDLUUUUURUU'];
+  const moves={R:'right',D:'down',L:'left',U:'up'};
+  for(let level=0;level<3;level++){
+    for(const ch of paths[level])assert.equal(model.move(moves[ch]),true,
+      'cave '+(level+1)+' must accept '+ch+' at step '+model.view().steps+' state '+model.view().last);
+    assert.equal(model.view().level,level===2?2:level+1,'cave advances correctly');
+    assert.equal(model.view().status,level===2?'won':'playing');
+  }
+  assert.ok(model.view().score>500);
+});
