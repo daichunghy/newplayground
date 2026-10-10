@@ -436,3 +436,79 @@ test('Minesweeper has progressive boards, Street Fighter rematch and Raft Wars p
   assert.equal(h.errors.length, 0);
   h.context.closeGameModal(); assertStopped(h);
 });
+
+
+test('Minesweeper clears a safe board and advances with increasing mine count', () => {
+  const h = harness();
+  const seed = 123456;
+  vm.runInContext('Math.random = (() => { let s = 123456; return () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; }; })();', h.context);
+  let state = seed;
+  const random = () => { state = (Math.imul(state, 1664525) + 1013904223) >>> 0; return state / 4294967296; };
+  const mines = new Set();
+  while (mines.size < 10) {
+    const row = Math.floor(random() * 9);
+    const col = Math.floor(random() * 9);
+    if (row > 1 || col > 1) mines.add(row + ',' + col);
+  }
+  h.context.openGameById('do-min-minesweeper');
+  const grid = h.container.querySelector('#dmGrid');
+  grid.children[0].dispatch('click');
+  for (let row = 0; row < 9; row++) {
+    for (let col = 0; col < 9; col++) {
+      if (!mines.has(row + ',' + col)) grid.children[row * 9 + col].dispatch('click');
+    }
+  }
+  const next = h.container.querySelector('#dmNextBtn');
+  assert.equal(next.style.display, 'inline-flex', 'the first board can be won');
+  next.dispatch('click');
+  assert.equal(h.container.querySelector('#dmStage').textContent, 2);
+  assert.equal(h.container.querySelector('#dmMineCount').textContent, '012');
+  assert.equal(h.errors.length, 0);
+  h.context.closeGameModal(); assertStopped(h);
+});
+
+test('Street Fighter can finish the three-match tournament', () => {
+  const h = harness();
+  h.context.openGameById('street-fighter-2-doi-khang');
+  const status = h.container.querySelector('#sfStatus');
+  for (let shot = 0; shot < 25 && !String(status.textContent).includes('Vô địch'); shot++) {
+    h.window.dispatch('keydown', { code: 'KeyL', key: 'l' });
+    for (let f = 0; f < 45; f++) h.frame();
+    h.window.dispatch('keyup', { code: 'KeyL', key: 'l' });
+  }
+  assert.match(status.textContent, /Vô địch/, 'boss victory terminates the campaign');
+  assert.match(h.container.querySelector('#sfMatch').textContent, /3\/3/);
+  assert.equal(h.errors.length, 0);
+  h.context.closeGameModal(); assertStopped(h);
+});
+
+test('Raft Wars can finish all battles using gold for cannon upgrades and repairs', () => {
+  const h = harness();
+  vm.runInContext('Math.random = () => 0.5;', h.context);
+  h.context.openGameById('raft-wars-ban-sung-phao');
+  const canvas = h.container.querySelector('#rwCanvas');
+  const status = h.container.querySelector('#rwStatus');
+  const get = id => h.container.querySelector('#' + id);
+  let repairCount = 0, upgradeCount = 0;
+  for (let shot = 0; shot < 30 && !/Hoàn thành|Thất bại/.test(status.textContent); shot++) {
+    if (parseInt(get('rwSimonHp').textContent, 10) < 70 &&
+        parseInt(get('rwGold').textContent, 10) >= 200) {
+      get('rwRepair').dispatch('click'); repairCount++;
+    }
+    if (parseInt(get('rwGold').textContent, 10) >= 300 &&
+        Number(get('rwCannon').textContent) < 5) {
+      get('rwUpgrade').dispatch('click'); upgradeCount++;
+    }
+    canvas.dispatch('pointerdown', { clientX: 340, clientY: 265 });
+    canvas.dispatch('pointermove', { clientX: 350, clientY: 259 });
+    canvas.dispatch('pointerup', { clientX: 350, clientY: 259 });
+    for (let f = 0; f < 60; f++) h.frame();
+    h.flushTimeouts();
+    for (let f = 0; f < 90; f++) h.frame();
+  }
+  assert.match(status.textContent, /Hoàn thành cả 4 trận/);
+  assert.ok(upgradeCount > 0, 'cannon upgrades are purchasable');
+  assert.ok(repairCount > 0, 'repair items are purchasable');
+  assert.equal(h.errors.length, 0);
+  h.context.closeGameModal(); assertStopped(h);
+});

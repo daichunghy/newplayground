@@ -2929,6 +2929,9 @@
           <div class="hud-pill" style="font-family: Calibri, sans-serif;">Máu Simon: <span id="rwSimonHp" style="color: #10B981; font-weight: bold;">100%</span></div>
           <div class="hud-pill" style="font-family: Calibri, sans-serif;">Địch: <span id="rwEnemyHp" style="color: #EF4444; font-weight: bold;">100%</span></div>
           <div class="hud-pill" style="font-family: Calibri, sans-serif;">Vàng: <span id="rwGold" style="color: #FBBF24; font-weight: bold;">0g</span></div>
+          <div class="hud-pill">Pháo: Cấp <span id="rwCannon">1</span></div>
+          <button id="rwRepair" class="btn-canvas-action">Sửa thuyền 200g</button>
+          <button id="rwUpgrade" class="btn-canvas-action">Nâng cấp pháo 300g</button>
           <button id="rwRestart" class="btn-canvas-action">Chơi lại từ trận 1</button>
         </div>
 
@@ -2960,6 +2963,7 @@
 
     let battleIdx = 0;
     let gold = 0;
+    let cannonLevel = 1;
     let simonHp = 100;
     let enemyHp = 60;
     let turn = 'player'; // player, enemy, won, lost
@@ -2998,9 +3002,28 @@
     });
     listen(canvas, 'pointercancel', () => { isAiming = false; });
     listen(window, 'blur', () => { isAiming = false; });
+    listen(container.querySelector('#rwRepair'), 'click', () => {
+      if (turn !== 'player' || gold < 200 || simonHp >= 100) return;
+      gold -= 200;
+      simonHp = Math.min(100, simonHp + 40);
+      playSfx('win');
+      const status = container.querySelector('#rwStatus');
+      if (status) status.textContent = 'Đã sửa thuyền, hồi 40 máu.';
+      updateHUD();
+    });
+    listen(container.querySelector('#rwUpgrade'), 'click', () => {
+      if (turn !== 'player' || gold < 300 || cannonLevel >= 5) return;
+      gold -= 300;
+      cannonLevel++;
+      playSfx('win');
+      const status = container.querySelector('#rwStatus');
+      if (status) status.textContent = 'Nâng cấp pháo lên cấp ' + cannonLevel + '!';
+      updateHUD();
+    });
     listen(container.querySelector('#rwRestart'), 'click', () => {
       battleIdx = 0;
       gold = 0;
+      cannonLevel = 1;
       simonHp = 100;
       enemyHp = BATTLES[0].enemyHp;
       projectile = null;
@@ -3038,14 +3061,19 @@
     }
 
     function updateHUD() {
-      const bEl = container.querySelector('#rwBattle');
-      if (bEl) bEl.textContent = BATTLES[battleIdx].name;
-      const sHp = container.querySelector('#rwSimonHp');
-      if (sHp) sHp.textContent = `${Math.max(0, simonHp)}%`;
-      const eHp = container.querySelector('#rwEnemyHp');
-      if (eHp) eHp.textContent = `${Math.max(0, enemyHp)}%`;
-      const gEl = container.querySelector('#rwGold');
-      if (gEl) gEl.textContent = `${gold}g`;
+      const setText = (selector, value) => {
+        const el = container.querySelector(selector);
+        if (el && el.textContent !== value) el.textContent = value;
+      };
+      setText('#rwBattle', BATTLES[battleIdx].name);
+      setText('#rwSimonHp', Math.max(0, simonHp) + '%');
+      setText('#rwEnemyHp', Math.max(0, enemyHp) + '%');
+      setText('#rwGold', gold + 'g');
+      setText('#rwCannon', String(cannonLevel));
+      const repair = container.querySelector('#rwRepair');
+      if (repair) repair.disabled = gold < 200 || simonHp >= 100 || turn !== 'player';
+      const upgrade = container.querySelector('#rwUpgrade');
+      if (upgrade) upgrade.disabled = gold < 300 || cannonLevel >= 5 || turn !== 'player';
     }
 
     let animId = null;
@@ -3069,7 +3097,7 @@
         } else {
           // Hit checks
           if (!projectile.isEnemy && projectile.x > W - 160 && projectile.y > 250) {
-            enemyHp -= 40;
+            enemyHp -= 40 + (cannonLevel - 1) * 10;
             gold += 150;
             cameraShake.addTrauma(0.7);
             Juice.triggerHitstop(50);

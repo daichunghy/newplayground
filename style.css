@@ -1861,6 +1861,7 @@ body.dark-theme .filter-pill.active {
 }
 
 .btn-canvas-action {
+  min-height: 44px;
   background-color: var(--accent-lime);
   color: var(--text-dark);
   border: 1.5px solid var(--border-dark);
@@ -2466,3 +2467,6 @@ body.dark-theme .filter-pill.active {
 @media (prefers-reduced-motion: reduce) {
   .np-arc-box * { scroll-behavior: auto; }
 }
+
+/* Make Raft Wars economy controls legible when gold is insufficient. */
+#rwRepair:disabled, #rwUpgrade:disabled { opacity: 0.52; cursor: not-allowed; }
