@@ -2470,3 +2470,257 @@ body.dark-theme .filter-pill.active {
 
 /* Make Raft Wars economy controls legible when gold is insufficient. */
 #rwRepair:disabled, #rwUpgrade:disabled { opacity: 0.52; cursor: not-allowed; }
+
+
+/* ===============================================================
+   Authored game surfaces. Art-first composition, not stacked badges.
+   Only the three audited games are affected by these selectors.
+   =============================================================== */
+.np-farm-game, .np-link-game, .np-stall-game {
+  font-family: Calibri, Inter, -apple-system, sans-serif;
+}
+.np-farm-game {
+  width: min(100%,680px);
+  margin: 0 auto;
+  padding: 0 0 10px;
+  background: #f5f3e9;
+  color: #284b3b;
+  border: 1px solid #c2c9a9;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 12px 28px rgba(45,69,37,.13);
+}
+.np-farm-header {
+  display:flex; gap:12px; justify-content:space-between; align-items:center;
+  padding:12px 15px 9px;
+  background:#f9f6eb;
+  border-bottom:1px solid #e1dfcb;
+}
+.np-farm-brand {display:grid;gap:2px;line-height:1.15;white-space:nowrap}
+.np-farm-brand strong {font-size:1.03rem;letter-spacing:.14em;color:#355f42}
+.np-farm-brand small {font-size:.75rem;color:#70866d}
+.np-farm-stats {display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.np-farm-stats > span,.np-farm-bone {
+  min-width:56px;min-height:44px;padding:4px 9px;
+  border:1px solid #e1e2d2;border-radius:10px;background:#fffef8;
+  color:#2c513e;display:grid;align-content:center;justify-items:center;
+}
+.np-farm-stats small {font-size:.64rem;color:#81927d;line-height:1.25}
+.np-farm-stats b {font-size:.94rem;font-variant-numeric:tabular-nums}
+.np-farm-bone {font:700 .78rem Calibri, sans-serif;cursor:pointer;background:#e8efe0}
+.np-farm-bone b {margin-left:4px;color:#a57335}
+.np-farm-tabs {
+  display:flex;justify-content:center;gap:7px;padding:9px 13px;
+  background:#f9f6eb;
+}
+.np-farm-tab {
+  border:1px solid transparent;border-radius:99px;padding:8px 18px;
+  min-height:44px;background:transparent;color:#64816b;cursor:pointer;
+  font:800 .86rem Calibri,sans-serif;transition:background .15s ease;
+}
+.np-farm-tab.active {background:#365e46;color:#fff;}
+.np-farm-view {position:relative;}
+.np-farm-landscape {
+  height:125px;overflow:hidden;position:relative;
+  background:linear-gradient(#add8c1,#d6e8b5 57%,#89b778 58%,#8fbf7c);
+}
+.np-farm-sun {position:absolute;width:52px;height:52px;top:15px;right:77px;background:#f6df8a;border-radius:50%;box-shadow:0 0 0 11px rgba(255,241,178,.16)}
+.np-farm-hill {position:absolute;left:-10%;bottom:-75px;width:80%;height:135px;border-radius:50%;background:#7ba76c;box-shadow:240px 14px 0 #709a62}
+.np-farm-barn {position:absolute;left:47px;bottom:15px;width:77px;height:56px;background:#d28c6d;border:3px solid #6f7852;border-radius:3px;box-shadow:inset 0 0 0 2px #eab293}
+.np-farm-barn::before {content:"";position:absolute;left:-13px;top:-28px;border-left:48px solid transparent;border-right:48px solid transparent;border-bottom:30px solid #93584f}
+.np-farm-barn::after {content:"";position:absolute;width:30px;height:40px;left:20px;bottom:0;background:#668778;border-radius:12px 12px 0 0;box-shadow:inset 0 0 0 4px #d9a787}
+.np-farm-fence {position:absolute;right:0;bottom:11px;width:245px;height:26px;border-top:5px solid #f6e8ca;border-bottom:5px solid #f6e8ca;background:repeating-linear-gradient(90deg,transparent 0 27px,#f6e8ca 28px 34px,transparent 35px 54px);filter:drop-shadow(0 2px 1px rgba(0,0,0,.14))}
+.np-farm-workspace {position:relative;margin:-12px 12px 0;background:#f0eddf;border:1px solid #d7d8ba;border-radius:15px;padding:12px;box-shadow:0 5px 18px rgba(53,81,53,.12)}
+.np-farm-tools {display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;margin-bottom:11px}
+.np-farm-tool {
+  display:grid;justify-items:center;align-content:center;gap:2px;
+  min-height:62px;padding:4px 2px;background:#fbfbf4;border:1px solid #d3dbc7;
+  border-radius:11px;color:#66806b;cursor:pointer;
+  font:800 .78rem Calibri,sans-serif;
+  touch-action:manipulation;transition:background .14s ease,transform .14s ease;
+}
+.np-farm-tool.active {background:#dceac8;border-color:#528860;color:#2b5d3c;box-shadow:inset 0 0 0 1px #82a97e}
+.np-farm-tool:active,.np-farm-seed:active,.np-farm-plot:active{transform:scale(.965)}
+.np-farm-tool-art {width:29px;height:29px;display:block}
+.np-farm-seeds {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:13px}
+.np-farm-seed {
+  min-height:84px;padding:5px 2px;border:1px solid #d4d4bb;border-radius:10px;
+  background:#fefcf4;color:#4a614d;display:grid;justify-items:center;align-content:center;gap:1px;
+  font:700 .73rem Calibri,sans-serif;cursor:pointer;touch-action:manipulation;
+  transition:background .14s ease,transform .14s ease;
+}
+.np-farm-seed.active {background:#e4ebd0;border-color:#50805a;box-shadow:inset 0 0 0 1px #6b9f71}
+.np-farm-seed small{color:#986f43;font-weight:700;font-size:.69rem}
+.np-farm-seed-art{width:39px;height:39px}
+.np-farm-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.np-farm-plot{
+  height:116px;position:relative;overflow:hidden;isolation:isolate;
+  display:flex;align-items:flex-end;justify-content:center;
+  border:3px solid #e5cd9c;border-radius:13px;
+  background:linear-gradient(#b78557 0%,#926244 70%,#80543d 100%);
+  box-shadow:inset 0 4px 9px rgba(74,45,28,.24),0 3px 0 #b78d62;
+  cursor:pointer;color:#fff7de;padding:0 4px 5px;
+  font:700 .75rem Calibri,sans-serif;touch-action:manipulation;
+  transition:transform .12s ease,box-shadow .12s ease;
+}
+.np-farm-plot:hover{box-shadow:inset 0 4px 9px rgba(74,45,28,.22),0 3px 0 #b78d62,0 0 0 2px #a4c985}
+.np-farm-plot.ripe{border-color:#e0c16f}
+.np-farm-plot.locked{background:linear-gradient(125deg,#a5a89e,#878b84);border:3px solid #c5c9bf;box-shadow:inset 0 4px 9px #666b6728;color:#f5f3e4}
+.np-farm-soil{position:absolute;inset:9px 9px 20px;border-radius:50%;
+  background:repeating-linear-gradient(0deg,transparent 0 15px,rgba(81,50,34,.24) 16px 20px,transparent 21px 29px);
+  pointer-events:none;transform:scaleY(.7);
+}
+.np-farm-grass{position:absolute;width:65px;height:41px;top:19px;
+  background:repeating-linear-gradient(110deg,transparent 0 10px,#83b669 11px 14px,transparent 15px 21px);clip-path:polygon(0 100%,9% 34%,22% 87%,34% 17%,49% 89%,62% 21%,76% 91%,87% 42%,100% 100%);
+}
+.np-farm-tilled{position:absolute;top:34px;width:76px;height:30px;border-radius:50%;border-top:3px solid #d3a06d;border-bottom:3px solid #70472f}
+.np-farm-plant {position:absolute;top:5px;height:83px;width:83px;filter:drop-shadow(0 4px 1px rgba(46,38,24,.18))}
+.np-farm-plant.young{transform:scale(.69);transform-origin:50% 85%;opacity:.88}
+.np-farm-crop-art{width:100%;height:100%;display:block}
+.np-farm-plot-caption{z-index:1;position:relative;background:rgba(58,54,37,.65);border-radius:5px;padding:3px 7px;color:#fff;font-size:.74rem;line-height:1.12}
+.np-farm-grow-track{height:5px;left:8px;right:8px;position:absolute;bottom:24px;background:#4e4734;border-radius:7px;overflow:hidden;z-index:1}
+.np-farm-grow-track span{display:block;height:100%;background:#a5d18f}
+.np-farm-ready{position:absolute;right:6px;top:6px;background:#f5df93;color:#5b502c;font-size:.67rem;line-height:1;padding:5px 6px;border-radius:5px;font-weight:900;z-index:1}
+.np-farm-trouble{position:absolute;top:5px;left:6px;width:23px;height:23px;border-radius:50%;background:#ae594d;color:#fff;font-weight:bold;display:grid;place-items:center;z-index:2}
+.np-farm-plot-lock{position:absolute;top:31px;width:33px;height:29px;border:4px solid #e9e8dd;border-radius:5px;background:#c0c6bc}
+.np-farm-plot-lock::before{content:"";position:absolute;left:5px;top:-19px;width:14px;height:19px;border:4px solid #e9e8dd;border-radius:12px 12px 0 0;border-bottom:0}
+.np-farm-footer {display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px 2px;font-size:.78rem;line-height:1.35;color:#75856d}
+.np-farm-footer button{flex-shrink:0}
+.np-farm-message {margin:4px 12px;border-radius:8px;padding:7px 10px;font-size:.82rem;background:#e4f1dc;color:#f8fbf5;border:1px solid #a6c99f;text-align:center}
+.np-farm-neighbors{background:#eef0dd;margin:0 12px;border-radius:12px;padding:10px}
+.np-farm-neighbor-tabs{display:flex;overflow-x:auto;gap:6px;margin-bottom:12px;padding-bottom:5px}
+.np-farm-neighbor-tabs button{white-space:nowrap;min-height:44px}
+.np-farm-neighbor-avatar{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#bed4b0;color:#355b3a;font-weight:900}
+.np-farm-neighbor-crop{display:flex;justify-content:center}
+.np-farm-neighbor-crop svg{width:58px;height:58px}
+
+.np-link-game {max-width:680px;margin:0 auto;background:#f4f0e8;color:#313f35;padding:13px;border-radius:16px;border:1px solid #d9d5c7}
+.np-link-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.np-link-label{display:grid;gap:3px}
+.np-link-label strong{letter-spacing:.14em;font-size:1rem;color:#546455}
+.np-link-label small{font-size:.75rem;color:#8a8f80}
+.np-link-stats{display:flex;gap:6px}
+.np-link-stats span{display:grid;justify-items:center;align-content:center;min-width:57px;min-height:46px;background:#fffaf2;border:1px solid #e2ded4;border-radius:9px;padding:4px 7px}
+.np-link-stats small{font-size:.68rem;color:#8e968d}
+.np-link-stats b{font-size:1.04rem;color:#52624f;font-variant-numeric:tabular-nums}
+.np-link-toolbar{display:flex;justify-content:space-between;align-items:center;gap:9px;flex-wrap:wrap;margin:11px 0 8px}
+.np-link-rule{font-size:.75rem;color:#71846d;background:#e5eadc;border-radius:12px;padding:6px 11px;white-space:nowrap}
+.np-link-tools{display:flex;gap:5px;flex-wrap:wrap}
+.np-link-secondary{background:#fffaf2;border:1px solid #d9d2c1;border-radius:9px;min-height:44px;padding:7px 10px;color:#617364;font:700 .78rem Calibri,sans-serif;cursor:pointer;touch-action:manipulation}
+.np-link-secondary b{font-size:.8rem;margin-left:4px;color:#9a713e}
+.np-link-board-wrap{position:relative;width:100%;max-width:600px;margin:0 auto;background:#42524d;border:5px solid #42524d;border-radius:13px;box-shadow:0 7px 0 #bfc3b4,0 14px 26px rgba(50,61,55,.16)}
+.np-link-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:repeat(8,minmax(0,1fr));gap:3px;width:100%;aspect-ratio:3/2}
+.np-link-tile{appearance:none;-webkit-appearance:none;min-width:0;min-height:0;border:2px solid rgba(38,69,48,.26);border-bottom-width:4px;border-radius:7px;padding:1px;display:grid;place-items:center;position:relative;cursor:pointer;touch-action:manipulation;transition:transform .11s ease,filter .11s ease,box-shadow .11s ease}
+.np-link-tile.active:hover{filter:brightness(1.06);transform:translateY(-1px)}
+.np-link-tile.selected{outline:3px solid #f3ca6e;outline-offset:-1px;box-shadow:0 0 0 2px #9e6e35;z-index:1;transform:translateY(-2px)}
+.np-link-tile:active{transform:scale(.94)}
+.np-link-tile.empty{visibility:hidden;pointer-events:none}
+.np-link-creature{width:94%;height:94%;max-width:48px;max-height:48px;filter:drop-shadow(0 1px 0 rgba(255,255,255,.32))}
+.np-link-lightning{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.np-link-banner{position:absolute;z-index:5;top:42%;left:50%;transform:translate(-50%,-50%);border-radius:10px;background:rgba(45,64,52,.94);color:#fff;padding:12px 18px;text-align:center;font-weight:800;border:2px solid #f1ce8c;pointer-events:none;width:max-content;max-width:82%}
+.np-link-instruction{font-size:.8rem;color:#7b8777;margin:12px 2px 2px;text-align:center;line-height:1.4}
+.np-link-tile:focus-visible,.np-farm-game button:focus-visible,.np-link-game button:focus-visible {outline:3px solid #e3a842;outline-offset:2px}
+.np-link-tile:focus-visible{z-index:2}
+.np-stall-game .engine-tab-nav {display:flex;gap:4px;flex-wrap:wrap;padding:7px;background:#f5efe1;border-radius:11px;margin-bottom:9px}
+.np-stall-game .engine-tab-btn{min-height:44px;flex:1;white-space:nowrap;border-radius:9px;font-weight:800;font-size:.81rem;padding:8px 9px}
+.np-stall-game .engine-tab-btn.active{background:#375d4c;color:white}
+.np-stall-game .stage-progress-card{border-radius:12px;background:#f7f2e6;border-color:#d9ccae}
+.np-stall-game .stage-info-title{font-size:.89rem;line-height:1.4}
+.np-stall-game .stage-subtext{font-size:.73rem;line-height:1.4}
+.np-stall-game #hrCustomerRow{gap:8px}
+.np-stall-game .customer-slot{min-width:136px;flex:0 0 136px;border-radius:11px!important;background:#f9f4e8!important}
+.np-stall-game .customer-slot .np-stall-portrait{height:38px;display:grid;place-items:center}
+.np-stall-avatar{position:relative;display:block;width:26px;height:26px;border-radius:50%;background:#e0b58e;border:2px solid #915e4e;box-shadow:0 10px 0 -4px #638a71}
+.np-stall-avatar::before{content:"";position:absolute;left:0;right:0;top:-3px;height:10px;background:#504238;border-radius:13px 13px 3px 3px}
+.np-stall-avatar::after{content:"";position:absolute;left:7px;top:12px;width:3px;height:3px;background:#584331;border-radius:50%;box-shadow:8px 0 0 #584331}
+.np-stall-dish-art{width:48px;height:48px;display:block;flex-shrink:0}
+.np-stall-order-art{width:25px;height:25px;display:block;flex-shrink:0}
+.np-stall-tray-art{width:35px;height:35px;display:block}
+.np-stall-ingredient-art,.np-stall-upgrade-art{width:46px;height:46px;display:block}
+.np-stall-game .customer-slot div:has(> .np-stall-order-art){display:flex;align-items:center;justify-content:center;gap:4px;line-height:1.1}
+.np-stall-game #hrRecipeBtns{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))!important;gap:8px!important}
+.np-stall-game #hrRecipeBtns .btn-cook-action{min-height:115px;border-radius:13px;background:#f9f0da;box-shadow:0 3px 0 #c5af87;border:1px solid #c8b68e;transition:transform .13s ease}
+.np-stall-game #hrRecipeBtns .btn-cook-action:active{transform:translateY(2px);box-shadow:0 1px 0 #c5af87}
+.np-stall-recipe-name{font-size:.77rem;font-weight:800;line-height:1.15;color:#4b533d;text-align:center}
+.np-stall-recipe-price{font-size:.71rem;font-weight:800;color:#a26b39}
+.np-stall-burner{min-height:137px;padding:9px;border-radius:12px;background:#f5eee1;border:1px solid #d7c9af;display:flex;flex-direction:column;justify-content:center;gap:5px}
+.np-stall-burner.empty{opacity:.68;align-items:center;border:1px dashed #bfbba8}
+.np-stall-empty-burner{display:block;width:44px;height:44px;border:6px solid #909791;border-radius:50%;box-shadow:inset 0 0 0 5px #f5eee1, inset 0 0 0 11px #b6bcb3,0 2px 2px #eee0c9}
+.np-stall-burner-top{display:flex;gap:5px;align-items:center}
+.np-stall-burner-top strong{display:block;color:#465144;font-size:.8rem;line-height:1.15}
+.np-stall-burner-top small{display:block;color:#78907c;font-size:.73rem;margin-top:4px}
+.np-stall-cook-meta{display:flex;justify-content:space-between;align-items:center;font-size:.76rem;font-weight:700;color:#6e766e}
+.np-stall-cook-meta small{font-size:.67rem;color:#718579}
+.np-stall-cook-track{height:13px;position:relative;margin:2px 0 5px;border-radius:99px;overflow:hidden;background:#d7d2c6}
+.np-stall-sweet-spot{position:absolute;left:65%;width:27%;height:100%;background:#b1d8b3;border-left:2px solid #5d9d77;border-right:2px solid #5d9d77}
+.np-stall-cook-track .cook-progress-bar{display:block;position:relative;height:100%;width:0;transition:width .1s linear;z-index:1;border-radius:99px}
+.np-stall-burner .btn-pickup-stove{width:100%;min-height:44px;border-radius:8px;border:0;color:#fff;font:800 .8rem Calibri,sans-serif}
+.np-stall-burner[data-cook-phase="perfect"]{background:#e8f2dd;border-color:#7fae84}
+.np-stall-burner[data-cook-phase="burnt"]{background:#f7e3da;border-color:#ce9b8c}
+.np-stall-quality{position:absolute;top:2px;right:2px;background:#55875d;color:#fff;font-size:.7rem;padding:2px 4px;border-radius:5px}
+.np-stall-quality.under{background:#bd8055}
+
+@media (max-width:600px) {
+  .np-farm-header{align-items:flex-start;flex-wrap:wrap}
+  .np-farm-stats{justify-content:space-between;width:100%}
+  .np-farm-stats>span,.np-farm-bone{flex:1}
+  .np-farm-workspace{margin-left:7px;margin-right:7px;padding:7px}
+  .np-farm-tools{gap:3px}.np-farm-tool{min-height:57px;font-size:.72rem}
+  .np-farm-tool-art{width:27px;height:27px}
+  .np-farm-seeds{gap:3px}.np-farm-seed{min-height:75px;font-size:.63rem}.np-farm-seed-art{width:32px;height:32px}
+  .np-farm-plot{height:103px}.np-farm-plant{width:69px;height:69px}
+  .np-link-game{padding:8px}
+  .np-link-top{flex-wrap:wrap}
+  .np-link-stats{flex:1;justify-content:flex-end}
+  .np-link-stats span{min-width:48px;padding:4px 5px}
+  .np-link-toolbar{gap:6px}
+  .np-link-secondary{font-size:.74rem;padding:6px 8px}
+  .np-link-grid{gap:2px}
+  .np-link-tile{border-width:1px 1px 3px;border-radius:4px;padding:0}
+  .np-stall-game .engine-tab-btn{font-size:.73rem}
+  .np-stall-game .stage-progress-card{gap:6px}
+  .np-stall-game #hrRecipeBtns{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .np-stall-game .cooking-station-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  .np-stall-burner{min-height:132px}
+}
+@media (prefers-reduced-motion:reduce) {
+  .np-farm-game *,.np-link-game *,.np-stall-game *{transition:none!important;animation:none!important}
+}
+
+/* Optional legibility mode for twelve-column link puzzles on touch devices. */
+.np-link-viewport {width:100%;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-color:#a9b6a3 #e1e8dc;scrollbar-width:thin}
+.np-link-board-wrap.zoomed {width:600px;max-width:none;min-width:600px;}
+.np-link-board-wrap.zoomed .np-link-grid {gap:4px;}
+.np-link-board-wrap.zoomed .np-link-tile {border-radius:7px;}
+@media (max-width:600px) {
+  .np-link-viewport:has(.zoomed) {box-shadow:inset -8px 0 11px -12px #3d5e46}
+  .np-link-board-wrap.zoomed {width:576px;min-width:576px}
+  .np-link-instruction {font-size:.74rem}
+}
+
+/* Diner Dash: short first-time flow, muted floors, and contextual status dots. */
+.np-diner-game .intro-modal-card {max-width:470px;border-radius:15px;overflow:hidden}
+.np-diner-game .intro-hero-wrapper{max-height:165px}
+.np-diner-game .intro-title{text-transform:none;letter-spacing:.01em}
+.np-diner-game .intro-content{padding:14px 16px 16px;gap:10px}
+.np-diner-game .intro-desc{font-size:.91rem;line-height:1.45;margin:0}
+.np-diner-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.np-diner-steps>div{display:flex;flex-direction:column;gap:5px;background:#f4eee0;border:1px solid #ddcdb8;border-radius:11px;padding:10px 9px}
+.np-diner-steps>div>span{width:31px;height:31px;display:grid;place-items:center;border-radius:8px;background:#e4c6a4;color:#815b41;font:900 .78rem Calibri,sans-serif}
+.np-diner-steps strong{font-size:.82rem;color:#5d5944;line-height:1.25}
+.np-diner-steps small{font-size:.75rem;color:#827c6f;line-height:1.3}
+.np-diner-bonus{font-size:.75rem;color:#728b6f;margin:0;text-align:center;line-height:1.35}
+.np-diner-game .intro-content .btn-intro-start{min-height:48px}
+.np-diner-game .stage-clear-card{padding:21px 18px}
+.np-diner-medal,.np-diner-clock{width:53px;height:53px;margin:0 auto 12px;border-radius:50%;background:#d3bd84;border:7px solid #f7df9f;box-shadow:0 3px 0 #a78b57}
+.np-diner-medal::after{content:"";display:block;width:12px;height:19px;margin:10px auto 0;border:solid #fff6df;border-width:0 5px 5px 0;transform:rotate(45deg)}
+.np-diner-clock{background:#79998e;border-color:#d1e2cf;position:relative}
+.np-diner-clock::before{content:"";position:absolute;left:18px;top:8px;height:19px;border-left:4px solid #eef4e3;transform:rotate(10deg);transform-origin:bottom}
+.np-diner-clock::after{content:"";position:absolute;left:20px;top:24px;width:15px;border-top:4px solid #eef4e3;transform:rotate(-25deg);transform-origin:left}
+@media (max-width:480px){
+ .np-diner-steps{gap:5px}
+ .np-diner-steps>div{padding:8px 6px}
+ .np-diner-steps strong{font-size:.73rem}
+ .np-diner-steps small{font-size:.68rem}
+ .np-diner-game .intro-hero-wrapper{max-height:125px}
+}

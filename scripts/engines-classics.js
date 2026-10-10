@@ -1845,69 +1845,55 @@
       }
     ];
 
+
+    const art = (type,id,cls='') => window.NP_GameArt?.svg(type,id,cls) || '';
+    const CROP_SHORT = { radish:'Củ cải',corn:'Ngô',tomato:'Cà chua',watermelon:'Dưa hấu',sunflower:'Hướng dương' };
     container.innerHTML = `
-      <div class="canvas-game-box" style="max-width: 620px; font-family: Calibri, 'Segoe UI', sans-serif;">
-        <!-- Top HUD -->
-        <div class="canvas-game-hud" style="flex-wrap: wrap; gap: 6px; padding: 6px 10px;">
-          <div class="hud-pill">Cấp: <span id="nfLevel" style="color: #38BDF8; font-weight: bold;">1</span></div>
-          <div class="hud-pill">Xu: <span id="nfCoins" style="color: #FBBF24; font-weight: bold;">150</span></div>
-          <div class="hud-pill">EXP: <span id="nfExp" style="color: #10B981;">0/60</span></div>
-          <div class="hud-pill">Khúc xương: <span id="nfBones" style="color: #F43F5E; font-weight: bold;">1</span></div>
-          <button class="btn btn-secondary" id="nfBuyBoneBtn" style="padding: 2px 8px; font-size: 0.78rem; font-family: Calibri, sans-serif;">🦴 Mua xương (30 xu)</button>
-        </div>
-
-        <!-- Navigation Tabs: My Farm vs Neighbors -->
-        <div style="display: flex; gap: 8px; justify-content: center; margin: 6px auto;">
-          <button class="btn ${currentTab === 'myFarm' ? 'btn-primary' : 'btn-secondary'}" id="nfTabMyFarm" style="padding: 4px 14px; font-size: 0.82rem; font-family: Calibri, sans-serif;">
-            🏡 Vườn Của Tôi
-          </button>
-          <button class="btn ${currentTab === 'neighbors' ? 'btn-primary' : 'btn-secondary'}" id="nfTabNeighbors" style="padding: 4px 14px; font-size: 0.82rem; font-family: Calibri, sans-serif;">
-            🏃 Vườn Hàng Xóm (Trộm Nông Sản!)
-          </button>
-        </div>
-
-        <!-- Notification Toast -->
-        <div id="nfToast" style="display: none; background: #064E3B; color: #ECFDF5; padding: 4px 12px; border-radius: 6px; text-align: center; font-size: 0.82rem; font-weight: bold; margin: 4px auto; max-width: 520px; border: 1px solid #10B981; font-family: Calibri, sans-serif;"></div>
-
-        <!-- MAIN VIEW: MY FARM -->
-        <div id="nfMyFarmView" style="background: #14532D; padding: 10px; border-radius: 8px; margin: 4px auto; max-width: 580px; border: 2px solid #22C55E; box-shadow: inset 0 2px 8px rgba(0,0,0,0.4);">
-          <!-- Tools Bar -->
-          <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-bottom: 8px;">
-            <button class="v-btn tool-btn active" data-tool="plow" style="font-family: Calibri, sans-serif; font-size: 0.78rem; padding: 4px 8px;">⛏️ Cuốc đất</button>
-            <button class="v-btn tool-btn" data-tool="seed" style="font-family: Calibri, sans-serif; font-size: 0.78rem; padding: 4px 8px;">🌰 Gieo hạt</button>
-            <button class="v-btn tool-btn" data-tool="water" style="font-family: Calibri, sans-serif; font-size: 0.78rem; padding: 4px 8px;">💧 Tưới nước</button>
-            <button class="v-btn tool-btn" data-tool="care" style="font-family: Calibri, sans-serif; font-size: 0.78rem; padding: 4px 8px;">🐛 Bắt sâu / Cỏ</button>
-            <button class="v-btn tool-btn" data-tool="fertilizer" style="font-family: Calibri, sans-serif; font-size: 0.78rem; padding: 4px 8px;">🧪 Bón phân (20đ)</button>
-            <button class="v-btn tool-btn" data-tool="harvest" style="font-family: Calibri, sans-serif; font-size: 0.78rem; padding: 4px 8px; background: #E11D48; color: #FFF;">🧺 Thu hoạch</button>
+      <div class="canvas-game-box np-farm-game">
+        <header class="np-farm-header">
+          <div class="np-farm-brand"><strong>NÔNG TRẠI</strong><small>Một ngày bình yên</small></div>
+          <div class="np-farm-stats">
+            <span><small>Cấp</small><b id="nfLevel">1</b></span>
+            <span><small>Xu</small><b id="nfCoins">150</b></span>
+            <span><small>Tiến độ</small><b id="nfExp">0/60</b></span>
+            <button id="nfBuyBoneBtn" class="np-farm-bone" type="button" title="Mua xương, giá 30 xu">Xương <b id="nfBones">1</b></button>
           </div>
-
-          <!-- Seeds Selector -->
-          <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-bottom: 10px; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 6px;">
-            <button class="seed-btn active" data-seed="radish" style="font-size: 0.75rem; padding: 3px 6px; border-radius: 4px; border: none; cursor: pointer; font-family: Calibri, sans-serif;">🥕 Củ Cải (5đ)</button>
-            <button class="seed-btn" data-seed="corn" style="font-size: 0.75rem; padding: 3px 6px; border-radius: 4px; border: none; cursor: pointer; font-family: Calibri, sans-serif;">🌽 Bắp (12đ)</button>
-            <button class="seed-btn" data-seed="tomato" style="font-size: 0.75rem; padding: 3px 6px; border-radius: 4px; border: none; cursor: pointer; font-family: Calibri, sans-serif;">🍅 Cà Chua (20đ)</button>
-            <button class="seed-btn" data-seed="watermelon" style="font-size: 0.75rem; padding: 3px 6px; border-radius: 4px; border: none; cursor: pointer; font-family: Calibri, sans-serif;">🍉 Dưa Hấu (35đ)</button>
-            <button class="seed-btn" data-seed="sunflower" style="font-size: 0.75rem; padding: 3px 6px; border-radius: 4px; border: none; cursor: pointer; font-family: Calibri, sans-serif;">🌻 Hướng Dương (50đ)</button>
+        </header>
+        <nav class="np-farm-tabs" aria-label="Khu vườn">
+          <button id="nfTabMyFarm" type="button" class="np-farm-tab active" aria-pressed="true">Vườn của tôi</button>
+          <button id="nfTabNeighbors" type="button" class="np-farm-tab" aria-pressed="false">Hàng xóm</button>
+        </nav>
+        <div id="nfToast" class="np-farm-message" role="status" aria-live="polite" style="display:none"></div>
+        <section id="nfMyFarmView" class="np-farm-view">
+          <div class="np-farm-landscape" aria-hidden="true">
+            <span class="np-farm-sun"></span><span class="np-farm-hill"></span>
+            <span class="np-farm-barn"></span><span class="np-farm-fence"></span>
           </div>
-
-          <!-- 9 Plots Grid -->
-          <div id="nfPlotsGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;"></div>
-        </div>
-
-        <!-- MAIN VIEW: NEIGHBORS (ZING ME) -->
-        <div id="nfNeighborsView" style="display: none; background: #0F172A; padding: 10px; border-radius: 8px; margin: 4px auto; max-width: 580px; border: 2px solid #38BDF8;">
-          <!-- Neighbor list selector -->
-          <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 8px;" id="nfNeighborList"></div>
-
-          <!-- Active Neighbor Farm Display -->
-          <div id="nfNeighborFarmBox" style="background: #1E293B; padding: 10px; border-radius: 6px; border: 1px solid #475569;"></div>
-        </div>
-
-        <!-- Controls footer -->
-        <div class="canvas-controls-bar" style="font-family: Calibri, sans-serif;">
-          <small style="color: #E2E8F0; font-size: 0.78rem;">💡 Chăm sóc cây trồng, bắt sâu, nhổ cỏ • Sang vườn bạn bè ăn trộm nông sản chín • Cẩn thận chó canh vườn cắn rớt tiền!</small>
-          <button class="btn-canvas-action" id="nfRestartBtn" style="font-family: Calibri, sans-serif;">🔄 Làm mới</button>
-        </div>
+          <div class="np-farm-workspace">
+            <div class="np-farm-tools" role="group" aria-label="Dụng cụ">
+              ${[['plow','Xới'],['seed','Gieo'],['water','Tưới'],['care','Chăm'],['fertilizer','Bón'],['harvest','Gặt']].map(([id,label])=>`
+                <button type="button" class="tool-btn np-farm-tool ${selectedTool===id?'active':''}" data-tool="${id}"
+                  aria-label="${label}" aria-pressed="${selectedTool===id}">
+                  ${art('tool',id,'np-farm-tool-art')}<span>${label}</span>
+                </button>`).join('')}
+            </div>
+            <div class="np-farm-seeds" role="group" aria-label="Hạt giống">
+              ${Object.entries(CROPS).map(([id,crop])=>`
+                <button type="button" class="seed-btn np-farm-seed ${selectedSeed===id?'active':''}" data-seed="${id}"
+                  aria-pressed="${selectedSeed===id}" title="${crop.name}, giá ${crop.cost} xu">
+                  ${art('crop',id,'np-farm-seed-art')}<span>${CROP_SHORT[id]}</span><small>${crop.cost} xu</small>
+                </button>`).join('')}
+            </div>
+            <div id="nfPlotsGrid" class="np-farm-grid" aria-label="Chín luống đất"></div>
+          </div>
+        </section>
+        <section id="nfNeighborsView" class="np-farm-view np-farm-neighbors" style="display:none">
+          <div id="nfNeighborList" class="np-farm-neighbor-tabs"></div>
+          <div id="nfNeighborFarmBox"></div>
+        </section>
+        <footer class="np-farm-footer"><span>Chọn dụng cụ rồi chạm luống đất. Cây chín có thể thu hoạch.</span>
+          <button type="button" id="nfRestartBtn" class="btn-canvas-action">Chơi lại</button>
+        </footer>
       </div>
     `;
 
@@ -1936,59 +1922,44 @@
       if (bEl) bEl.textContent = bones;
     }
 
+
     function renderPlots() {
       const grid = container.querySelector('#nfPlotsGrid');
       if (!grid) return;
-
-      grid.innerHTML = myPlots.map(p => {
-        if (p.locked) {
-          return `
-            <div class="farm-plot" data-plot-id="${p.id}" style="background: #374151; height: 85px; border-radius: 8px; border: 2px dashed #6B7280; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #9CA3AF; font-size: 0.8rem; cursor: not-allowed;">
-              <span>🔒 Cần Cấp 3</span>
-              <small style="font-size: 0.65rem;">Khai hoang đất</small>
-            </div>
-          `;
-        }
-
-        let content = '🌿 Cỏ dại';
-        let bg = '#166534';
-        let progress = 0;
-        let subBadges = '';
-
-        if (p.state === 'plowed') {
-          content = '🟤 Đất xới';
-          bg = '#78350F';
-        } else if (p.state === 'growing') {
-          const crop = CROPS[p.crop];
-          const elapsed = (Date.now() - p.plantTime) / 1000;
-          progress = Math.min(100, Math.floor((elapsed / p.growTime) * 100));
-          content = `🌱 ${crop.name} (${progress}%)`;
-          bg = p.watered ? '#451A03' : '#78350F';
-
-          if (p.hasPest) subBadges += `<span style="background: #DC2626; padding: 1px 4px; border-radius: 3px; font-size: 0.65rem; margin-top: 2px;">🐛 Sâu hại</span>`;
-          if (p.hasWeed) subBadges += `<span style="background: #D97706; padding: 1px 4px; border-radius: 3px; font-size: 0.65rem; margin-top: 2px;">🌿 Cỏ dại</span>`;
-        } else if (p.state === 'ripe') {
-          const crop = CROPS[p.crop];
-          content = `${crop.icon} ${crop.name}!`;
-          bg = '#CA8A04';
-          subBadges = `<span style="background: #16A34A; padding: 1px 5px; border-radius: 3px; font-size: 0.68rem; margin-top: 2px; color: #FFF;">✨ Đã chín!</span>`;
-        }
-
+      const focused = document.activeElement?.getAttribute?.('data-plot-id');
+      grid.innerHTML = myPlots.map(plot => {
+        if (plot.locked) return `
+          <button type="button" class="np-farm-plot locked" data-plot-id="${plot.id}"
+            title="Đạt cấp 3 để mở luống đất" aria-label="Luống ${plot.id+1} bị khóa, cần cấp 3">
+            <span class="np-farm-plot-lock" aria-hidden="true"></span>
+            <small class="np-farm-plot-caption">Cấp 3</small>
+          </button>`;
+        const growing = plot.state==='growing';
+        const ripe = plot.state==='ripe';
+        const progress = growing ? Math.max(0,Math.min(100,Math.floor((Date.now()-plot.plantTime)/1000/plot.growTime*100))) : 0;
+        const title = plot.state==='grass'?'Đất trống':plot.state==='plowed'?'Đã xới':CROP_SHORT[plot.crop];
+        const label = `Luống ${plot.id+1}, ${title}`+(growing?`, ${progress}% phát triển`:ripe?', đã chín':'')+
+          (plot.hasPest?', bị sâu':'')+(plot.hasWeed?', có cỏ dại':'');
+        const drawing = plot.state==='grass'?'<span class="np-farm-grass"></span>':
+          plot.state==='plowed'?'<span class="np-farm-tilled"></span>':
+          `<span class="np-farm-plant ${growing?'young':'ready'}" aria-hidden="true">${art('crop',plot.crop,'np-farm-crop-art')}</span>`;
         return `
-          <div class="farm-plot" data-plot-id="${p.id}" style="background: ${bg}; height: 85px; border-radius: 8px; border: 2px solid #FEF08A; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; color: #FFF; font-weight: bold; font-size: 0.82rem; text-shadow: 1px 1px 2px #000; position: relative; padding: 4px; text-align: center;">
-            <span>${content}</span>
-            ${subBadges}
-            ${p.state === 'growing' ? `<div style="width: 80%; height: 5px; background: #374151; border-radius: 3px; margin-top: 4px; overflow: hidden;"><div style="width: ${progress}%; height: 100%; background: ${p.hasPest || p.hasWeed ? '#EF4444' : '#10B981'};"></div></div>` : ''}
-          </div>
-        `;
+          <button type="button" class="np-farm-plot ${plot.state} ${plot.watered?'watered':''}"
+            data-plot-id="${plot.id}" title="${label}" aria-label="${label}">
+            <span class="np-farm-soil" aria-hidden="true"></span>
+            ${drawing}
+            ${plot.hasPest || plot.hasWeed ? '<span class="np-farm-trouble" aria-label="Cần chăm sóc">!</span>':''}
+            ${growing ? `<span class="np-farm-grow-track" aria-hidden="true"><span style="width:${progress}%"></span></span>`:''}
+            ${ripe?'<span class="np-farm-ready">Thu hoạch</span>':''}
+            <small class="np-farm-plot-caption">${title}</small>
+          </button>`;
       }).join('');
-
-      grid.querySelectorAll('.farm-plot').forEach(el => {
-        el.addEventListener('click', () => {
-          const pid = parseInt(el.getAttribute('data-plot-id'));
-          handlePlotClick(pid);
-        });
-      });
+      grid.querySelectorAll('.np-farm-plot').forEach(button => button.addEventListener('click', () =>
+        handlePlotClick(Number(button.getAttribute('data-plot-id')))
+      ));
+      if (focused !== null && focused !== undefined) {
+        grid.querySelector('[data-plot-id="'+focused+'"]')?.focus?.({preventScroll:true});
+      }
     }
 
     function handlePlotClick(pid) {
@@ -2083,7 +2054,7 @@
         }
         if (window.NP_Audio?.win) NP_Audio.win();
         else AudioEngine.win();
-        showToast(`🎉 CHÚC MỪNG LÊN CẤP ${level}! MỞ KHÓA NÔNG SẢN MỚI!`);
+        showToast(`Đạt cấp ${level}! Đã mở thêm luống đất.`);
       }
     }
 
@@ -2094,7 +2065,7 @@
 
       listEl.innerHTML = neighbors.map((nb, idx) => `
         <button class="btn ${idx === selectedNeighborIdx ? 'btn-primary' : 'btn-secondary'}" data-nb-idx="${idx}" style="font-size: 0.78rem; padding: 4px 10px; white-space: nowrap; font-family: Calibri, sans-serif;">
-          ${nb.avatar} ${nb.name} (Cấp ${nb.level})
+          <span class="np-farm-neighbor-avatar" aria-hidden="true">${nb.name.charAt(0)}</span> ${nb.name.replace(' (Zing Me)','')}
         </button>
       `).join('');
 
@@ -2109,12 +2080,12 @@
       farmBox.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px;">
           <div>
-            <h4 style="margin: 0; color: #38BDF8; font-size: 0.95rem;">${nb.avatar} Vườn của: ${nb.name}</h4>
-            <small style="color: #94A3B8;">Cấp bậc nông dân: Cấp ${nb.level}</small>
+            <h4 style="margin: 0; color: #38BDF8; font-size: 0.95rem;">${nb.name.replace(' (Zing Me)','')}</h4>
+            <small style="color: #94A3B8;">Cấp ${nb.level}</small>
           </div>
           <div style="text-align: right;">
             <span style="background: ${nb.dog.awake ? '#EF4444' : '#10B981'}; color: #FFF; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: bold;">
-              ${nb.dog.icon} ${nb.dog.name}: ${nb.dog.awake ? 'Đang thức (Dữ!)' : 'Đang ngủ khò'}
+              Chó canh ${nb.dog.awake ? 'đang thức' : 'đang ngủ'}
             </span>
           </div>
         </div>
@@ -2122,31 +2093,31 @@
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
           ${nb.plots.map((p, pIdx) => {
             const crop = CROPS[p.crop];
-            let statusText = p.stolen ? 'Đã bị vặt sạch' : p.state === 'ripe' ? '🌾 Đã chín mọng!' : '🌱 Đang lớn';
+            let statusText = p.stolen ? 'Đã thu hoạch' : p.state === 'ripe' ? 'Đã chín' : 'Đang lớn';
             let bg = p.stolen ? '#374151' : p.state === 'ripe' ? '#CA8A04' : '#166534';
 
             return `
               <div style="background: ${bg}; padding: 8px; border-radius: 6px; text-align: center; border: 1.5px solid #FEF08A; color: #FFF; font-weight: bold;">
-                <div style="font-size: 1.3rem;">${crop.icon}</div>
+                <div class="np-farm-neighbor-crop">${art('crop',p.crop,'np-farm-crop-art')}</div>
                 <div style="font-size: 0.8rem; margin: 2px 0;">${crop.name}</div>
                 <div style="font-size: 0.7rem; color: #FEF08A;">${statusText}</div>
 
                 <div style="margin-top: 6px; display: flex; flex-direction: column; gap: 4px;">
                   ${p.state === 'ripe' && !p.stolen ? `
                     <button class="btn btn-primary nb-steal-btn" data-pidx="${pIdx}" style="background: #E11D48; border: none; font-size: 0.72rem; padding: 3px 6px; font-family: Calibri, sans-serif;">
-                      🥷 Ăn trộm
+                      Thu hoạch
                     </button>
                   ` : ''}
 
                   ${p.canWater ? `
                     <button class="btn btn-secondary nb-water-btn" data-pidx="${pIdx}" style="font-size: 0.7rem; padding: 2px 4px; font-family: Calibri, sans-serif;">
-                      💧 Tưới hộ (+15 XP)
+                      Tưới hộ
                     </button>
                   ` : ''}
 
                   ${p.hasPest ? `
                     <button class="btn btn-secondary nb-pest-btn" data-pidx="${pIdx}" style="font-size: 0.7rem; padding: 2px 4px; font-family: Calibri, sans-serif;">
-                      🐛 Bắt sâu hộ (+20 XP)
+                      Bắt sâu
                     </button>
                   ` : ''}
                 </div>
@@ -2242,7 +2213,7 @@
         if (window.NP_Audio?.coin) NP_Audio.coin();
         else AudioEngine.coin();
         updateHUD();
-        showToast('Đã mua 1 khúc xương dụ chó hàng xóm! 🦴');
+        showToast('Đã mua một khúc xương để đánh lạc hướng chó canh.');
       } else {
         showToast('Không đủ 30 xu mua khúc xương!', true);
       }
@@ -2256,8 +2227,10 @@
 
     tabMyFarm?.addEventListener('click', () => {
       currentTab = 'myFarm';
-      tabMyFarm.className = 'btn btn-primary';
-      tabNeighbors.className = 'btn btn-secondary';
+      tabMyFarm.className = 'np-farm-tab active';
+      tabNeighbors.className = 'np-farm-tab';
+      tabMyFarm.setAttribute('aria-pressed','true');
+      tabNeighbors.setAttribute('aria-pressed','false');
       viewMyFarm.style.display = 'block';
       viewNeighbors.style.display = 'none';
       renderPlots();
@@ -2265,8 +2238,10 @@
 
     tabNeighbors?.addEventListener('click', () => {
       currentTab = 'neighbors';
-      tabMyFarm.className = 'btn btn-secondary';
-      tabNeighbors.className = 'btn btn-primary';
+      tabMyFarm.className = 'np-farm-tab';
+      tabNeighbors.className = 'np-farm-tab active';
+      tabMyFarm.setAttribute('aria-pressed','false');
+      tabNeighbors.setAttribute('aria-pressed','true');
       viewMyFarm.style.display = 'none';
       viewNeighbors.style.display = 'block';
       renderNeighbors();
@@ -2275,8 +2250,8 @@
     // Tool buttons
     container.querySelectorAll('.tool-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        container.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+        container.querySelectorAll('.tool-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
+        btn.classList.add('active'); btn.setAttribute('aria-pressed','true');
         selectedTool = btn.getAttribute('data-tool');
       });
     });
@@ -2284,8 +2259,8 @@
     // Seed buttons
     container.querySelectorAll('.seed-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        container.querySelectorAll('.seed-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+        container.querySelectorAll('.seed-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
+        btn.classList.add('active'); btn.setAttribute('aria-pressed','true');
         selectedSeed = btn.getAttribute('data-seed');
       });
     });

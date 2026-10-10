@@ -795,12 +795,12 @@
     }
 
     container.innerHTML = `
-      <div class="canvas-game-box" style="font-family: ${FONT_BASE};">
+      <div class="canvas-game-box np-diner-game" style="font-family: ${FONT_BASE};">
         <div class="canvas-game-hud">
-          <div class="hud-pill">Cà phê Flo: <span id="ddShift">Ca 1</span>/3</div>
-          <div class="hud-pill">Tiền tip: <span id="ddScore" style="color: #10B981; font-weight: 900;">$0</span> / $<span id="ddTarget">600</span></div>
-          <div class="hud-pill">Thời gian: <span id="ddTimer" style="color: #F59E0B; font-weight: 900;">120s</span></div>
-          <div class="hud-pill">Tay Flo: <span id="ddHands" style="color: #60A5FA; font-weight: 700;">(Trống)</span></div>
+          <div class="hud-pill"><span id="ddShift">Ca 1</span>/3</div>
+          <div class="hud-pill">Doanh thu <span id="ddScore" style="color: #10B981; font-weight: 900;">$0</span> / $<span id="ddTarget">600</span></div>
+          <div class="hud-pill">Còn <span id="ddTimer" style="color: #F59E0B; font-weight: 900;">120s</span></div>
+          <div class="hud-pill">Đang mang <span id="ddHands" style="color: #60A5FA; font-weight: 700;">(Trống)</span></div>
         </div>
 
         <div style="position: relative; display: flex; justify-content: center;">
@@ -812,32 +812,21 @@
               <div class="intro-hero-wrapper">
                 <img src="assets/diner_intro.jpg" alt="Diner Dash" class="intro-hero-img">
                 <div class="intro-hero-overlay">
-                  <span class="intro-badge">PlayFirst 2004</span>
-                  <h3 class="intro-title">Diner Dash - Tiệm Ăn Của Flo</h3>
+                  <span class="intro-badge">Quản lý nhà hàng</span>
+                  <h3 class="intro-title">Một ca làm ở tiệm Flo</h3>
                 </div>
               </div>
               <div class="intro-content">
-                <p class="intro-desc">Chào mừng bạn đến với nhà hàng phong cách retro của Flo! Hãy phục vụ thực khách nhanh nhẹn, khéo léo xếp trùng màu ghế để nhận thêm tiền tip kỷ lục và hoàn thành ca làm việc!</p>
-                <div class="intro-controls-box">
-                  <div class="intro-control-row">
-                    <span class="intro-key">1. Xếp Bàn</span>
-                    <span>Bấm khách ở cửa -> Bấm bàn trống (Trùng màu ghế = +$100 TIP!)</span>
-                  </div>
-                  <div class="intro-control-row">
-                    <span class="intro-key">2. Lấy Order</span>
-                    <span>Khách nghĩ xong hiện [!] -> Bấm lấy order đưa ra bếp nấu</span>
-                  </div>
-                  <div class="intro-control-row">
-                    <span class="intro-key">3. Bưng Món</span>
-                    <span>Bếp nấu xong kêu DING! -> Bấm nhận đĩa mang ra cho khách</span>
-                  </div>
-                  <div class="intro-control-row">
-                    <span class="intro-key">4. Dọn Đĩa</span>
-                    <span>Khách ăn xong hiện [$] -> Nhấp tính tiền & bưng đĩa bẩn về bồn rửa</span>
-                  </div>
+
+                <p class="intro-desc">Hãy phục vụ trước khi khách mất kiên nhẫn.</p>
+                <div class="np-diner-steps" aria-label="Ba bước chơi">
+                  <div><span>01</span><strong>Xếp bàn</strong><small>Khách → bàn trống</small></div>
+                  <div><span>02</span><strong>Nhận món</strong><small>Bàn → bếp nấu</small></div>
+                  <div><span>03</span><strong>Phục vụ</strong><small>Bưng món → tính tiền</small></div>
                 </div>
+                <p class="np-diner-bonus">Khách trùng màu ghế được thêm tiền tip.</p>
                 <div class="intro-actions">
-                  <button class="btn-intro-start" id="ddStartGameBtn">Bắt đầu ca làm việc (Ca 1)</button>
+                  <button class="btn-intro-start" id="ddStartGameBtn">Bắt đầu phục vụ</button>
                 </div>
               </div>
             </div>
@@ -846,15 +835,15 @@
           <!-- 2. STAGE CLEAR OVERLAY -->
           <div class="game-stage-overlay" id="ddClearOverlay" style="display: none;">
             <div class="intro-modal-card stage-clear-card">
-              <div class="stage-clear-stars">⭐⭐⭐</div>
-              <h3 class="intro-title" style="color: #10B981; font-size: 1.5rem;">HOÀN THÀNH CA LÀM XUẤT SẮC!</h3>
-              <p class="intro-desc">Flo đã phục vụ chu đáo tất cả thực khách và kiếm đủ tiền tip mục tiêu!</p>
+              <div class="np-diner-medal" aria-hidden="true"></div>
+              <h3 class="intro-title" style="color: #10B981; font-size: 1.5rem;">Ca hoàn thành</h3>
+              <p class="intro-desc">Bạn đã đạt mục tiêu.</p>
               <div style="background: rgba(255,255,255,0.05); padding: 14px; border-radius: 8px; margin: 12px 0;">
-                <div style="font-size: 1.15rem; color: #10B981; font-weight: 900;">Tổng tiền tip kiếm được: $<span id="ddClearScore">0</span></div>
+                <div style="font-size: 1.15rem; color: #10B981; font-weight: 900;">Doanh thu $<span id="ddClearScore">0</span></div>
                 <div style="font-size: 0.9rem; color: #9CA3AF; margin-top: 4px;" id="ddNextShiftTip">Chuẩn bị bước sang Ca tiếp theo với lượng khách đông hơn!</div>
               </div>
               <div class="intro-actions">
-                <button class="btn-intro-start" id="ddNextShiftBtn">➔ BẮT ĐẦU CA KẾ TIẾP</button>
+                <button class="btn-intro-start" id="ddNextShiftBtn">Ca tiếp theo</button>
               </div>
             </div>
           </div>
@@ -862,11 +851,11 @@
           <!-- 3. GAMEOVER OVERLAY -->
           <div class="game-stage-overlay" id="ddGameOverOverlay" style="display: none;">
             <div class="intro-modal-card stage-clear-card">
-              <div style="font-size: 2.5rem; margin-bottom: 6px;">⏱️</div>
-              <h3 class="intro-title" style="color: #EF4444; font-size: 1.5rem;">HẾT GIỜ LÀM VIỆC!</h3>
-              <p class="intro-desc">Bạn chưa đạt chỉ tiêu tiền tip trong ca này. Hãy thử lại để đạt kết quả tốt hơn!</p>
+              <div class="np-diner-clock" aria-hidden="true"></div>
+              <h3 class="intro-title" style="color: #EF4444; font-size: 1.5rem;">Hết giờ</h3>
+              <p class="intro-desc">Chưa đạt doanh thu. Bạn có thể chơi lại ca này.</p>
               <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin: 12px 0;">
-                <div style="font-size: 1.1rem; color: #F3F4F6; font-weight: 800;">Tiền tip đạt được: $<span id="ddFinalScore">0</span></div>
+                <div style="font-size: 1.1rem; color: #F3F4F6; font-weight: 800;">Doanh thu $<span id="ddFinalScore">0</span></div>
               </div>
               <div class="intro-actions">
                 <button class="btn-intro-start" id="ddRetryBtn" style="background: linear-gradient(135deg, #EF4444, #B91C1C); color: #FFF;">Thử lại ca này</button>
@@ -876,8 +865,8 @@
         </div>
 
         <div class="canvas-controls-bar">
-          <small style="color: #E2E8F0;">Nhấp khách ở cửa để xếp bàn (Xếp trùng màu ghế nhận thêm +100 tip) • Lấy order • Đưa bếp nấu • Bưng món • Dọn dẹp đĩa!</small>
-          <button class="btn-canvas-action" id="ddCoffeeBtn" style="background: #92400E; color: #FFF; font-weight: 700;">Uống cà phê (Tăng tốc)</button>
+          <small style="color: #E2E8F0;">Khách → bàn → gọi món → bếp → phục vụ → thu tiền</small>
+          <button class="btn-canvas-action" id="ddCoffeeBtn" style="background: #92400E; color: #FFF; font-weight: 700;">Tăng tốc</button>
         </div>
       </div>
     `;
@@ -1205,7 +1194,7 @@
             const ready = kitchenOrders.splice(i, 1)[0];
             readyFoodPlates.push(ready);
             if (window.NP_Audio) window.NP_Audio.dinerBell();
-            if (popups) popups.spawn(kitchenCounter.x, kitchenCounter.y - 10, '🔔 XONG MÓN! DING!', '#F59E0B', 18);
+            if (popups) popups.spawn(kitchenCounter.x, kitchenCounter.y - 10, 'MÓN ĐÃ XONG', '#F59E0B', 18);
           }
         }
 
@@ -1241,7 +1230,7 @@
       for (let y = 0; y < canvas.height; y += tileSize) {
         for (let x = 0; x < canvas.width; x += tileSize) {
           const isCheck = (Math.floor(x / tileSize) + Math.floor(y / tileSize)) % 2 === 0;
-          ctx.fillStyle = isCheck ? '#FEF3C7' : '#FDE68A';
+          ctx.fillStyle = isCheck ? '#efe8db' : '#e8dfd3';
           ctx.fillRect(x, y, tileSize, tileSize);
         }
       }
@@ -1254,7 +1243,7 @@
       ctx.fillStyle = '#FFF';
       ctx.font = `bold 14px ${FONT_BASE}`;
       ctx.textAlign = 'center';
-      ctx.fillText('👨‍🍳 BẾP NẤU (KITCHEN PASS)', 320, 42);
+      ctx.fillText('BẾP', 320, 42);
 
       readyFoodPlates.forEach((fp, idx) => {
         ctx.fillStyle = '#EF4444';
@@ -1269,16 +1258,17 @@
       ctx.fillRect(20, 160, 70, 100);
       ctx.fillStyle = '#FEF08A';
       ctx.font = `bold 12px ${FONT_BASE}`;
-      ctx.fillText('🚪 CỬA VÀO', 55, 180);
+      ctx.fillText('CỬA', 55, 180);
 
       waitingQueue.forEach((g, idx) => {
         const qy = 210 + idx * 24;
         ctx.fillStyle = g.color;
         ctx.beginPath(); ctx.arc(55, qy, 8, 0, Math.PI * 2); ctx.fill();
 
-        ctx.fillStyle = '#EF4444';
-        ctx.font = '8px sans-serif';
-        ctx.fillText('❤️'.repeat(g.hearts), 55, qy - 9);
+        for (let dot = 0; dot < 5; dot++) {
+          ctx.fillStyle = dot < g.hearts ? '#d67860' : '#b7aea0';
+          ctx.beginPath(); ctx.arc(42 + dot * 6, qy - 13, 2.3, 0, Math.PI * 2); ctx.fill();
+        }
       });
 
       // 3. Coffee Machine
@@ -1286,14 +1276,14 @@
       ctx.fillRect(30, 340, 60, 70);
       ctx.fillStyle = '#FDE68A';
       ctx.font = `bold 11px ${FONT_BASE}`;
-      ctx.fillText('☕ CÀ PHÊ', 60, 380);
+      ctx.fillText('CAFE', 60, 380);
 
       // 4. Dirty Dish Bus Bin at Right
       ctx.fillStyle = '#334155';
       ctx.fillRect(550, 190, 70, 80);
       ctx.fillStyle = '#94A3B8';
       ctx.font = `bold 11px ${FONT_BASE}`;
-      ctx.fillText('🍽️ BỒN ĐĨA', 585, 235);
+      ctx.fillText('DỌN', 585, 235);
 
       // 5. Dining Tables & Booth Chairs
       tables.forEach(tbl => {
@@ -1314,27 +1304,38 @@
         if (tbl.state !== 'EMPTY' && tbl.guestColor) {
           ctx.fillStyle = tbl.guestColor;
           ctx.beginPath(); ctx.arc(tbl.x, tbl.y - 12, 9, 0, Math.PI * 2); ctx.fill();
-          ctx.fillStyle = '#EF4444';
-          ctx.font = '8px sans-serif';
-          ctx.fillText('❤️'.repeat(tbl.hearts), tbl.x, tbl.y - 26);
+          for (let dot = 0; dot < 5; dot++) {
+            ctx.fillStyle = dot < tbl.hearts ? '#d67860' : '#b7aea0';
+            ctx.beginPath(); ctx.arc(tbl.x - 12 + dot * 6, tbl.y - 29, 2.6, 0, Math.PI * 2); ctx.fill();
+          }
         }
 
         // Status bubble
         if (tbl.state === 'SEATED_THINKING') {
           ctx.fillStyle = '#FFFFFF';
           ctx.beginPath(); ctx.arc(tbl.x + 26, tbl.y - 18, 11, 0, Math.PI * 2); ctx.fill();
-          ctx.fillText('📖', tbl.x + 26, tbl.y - 14);
+          ctx.fillStyle = '#66887c';
+          ctx.font = 'bold 16px Calibri, sans-serif';
+          ctx.fillText('...', tbl.x + 26, tbl.y - 14);
         } else if (tbl.state === 'READY_TO_ORDER') {
           ctx.fillStyle = '#FEF08A';
           ctx.beginPath(); ctx.arc(tbl.x + 26, tbl.y - 18, 11, 0, Math.PI * 2); ctx.fill();
           ctx.fillStyle = '#B45309';
           ctx.fillText('!', tbl.x + 26, tbl.y - 14);
         } else if (tbl.state === 'EATING') {
-          ctx.fillText('🍔', tbl.x + 26, tbl.y - 14);
+          ctx.fillStyle = '#d8a56d';
+          ctx.beginPath(); ctx.arc(tbl.x + 26, tbl.y - 18, 8, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#f7e5b9';
+          ctx.beginPath(); ctx.arc(tbl.x + 26, tbl.y - 19, 4, 0, Math.PI * 2); ctx.fill();
         } else if (tbl.state === 'READY_TO_PAY') {
-          ctx.fillText('💰', tbl.x + 26, tbl.y - 14);
+          ctx.fillStyle = '#e9bc62';
+          ctx.beginPath(); ctx.arc(tbl.x + 26, tbl.y - 18, 9, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#816039'; ctx.font = 'bold 11px Calibri, sans-serif';
+          ctx.fillText('$', tbl.x + 26, tbl.y - 14);
         } else if (tbl.state === 'DIRTY_DISHES') {
-          ctx.fillText('🍽️', tbl.x, tbl.y + 4);
+          ctx.fillStyle = '#f5eee2';
+          ctx.beginPath(); ctx.arc(tbl.x, tbl.y, 12, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = '#aaa18e'; ctx.stroke();
         }
       });
 

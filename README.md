@@ -94,6 +94,12 @@ Vui lòng tham khảo file [`AGENTS.md`](./AGENTS.md) để nắm rõ:
 
 ---
 
+### Nâng cấp đồ họa game, điều khiển và độ dễ đọc (10/10/2026)
+
+Bốn engine được rà soát và thiết kế lại với mục tiêu ưu tiên hình ảnh thay emoji và khối chữ dày. **Hàng Rong** có hình món ăn nhất quán và bếp cập nhật tiến độ trực tiếp thay vì dựng lại nút liên tục. **Nông Trại** có luống đất, cây trồng và dụng cụ vẽ vector. **Pikachu Nối Hình** có 16 nhân vật minh họa trong ô, không dùng emoji kèm tên viết tắt, có chức năng phóng to trên điện thoại. **Diner Dash** có hướng dẫn ngắn và cảnh chơi bớt nhiễu.
+
+Nét vẽ được lưu trong [`scripts/game-art.js`](./scripts/game-art.js), không dùng CDN, Web font, hay hình ảnh ngoài. Xem [báo cáo đánh giá đồ họa và các giới hạn QA](./docs/VISUAL_GAME_AUDIT.md). Đây là cải thiện bốn game trọng điểm, **không phải chứng nhận tất cả 150 game đã hoàn chỉnh đồ họa**.
+
 ### Trạng thái đầy đủ của gameplay (cập nhật 10/10/2026)
 
 - Danh mục hiện có 150 mục, nhưng không phải tất cả đều có cơ chế riêng đúng luật trò chơi gốc.

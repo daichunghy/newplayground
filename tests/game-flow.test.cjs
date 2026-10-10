@@ -110,7 +110,7 @@ function harness({ loadEngines = true, loadApp = true } = {}) {
     NEWPLAYGROUND_MUTED: true
   }));
   const run = file => vm.runInContext(read(file), context, { filename: file });
-  run('scripts/game-session.js'); run('scripts/game-feel.js');
+  run('scripts/game-session.js'); run('scripts/game-feel.js'); run('scripts/game-art.js');
   if (loadEngines) for (const file of ['engines.js', 'engines-classics.js', 'engines-popcap.js', 'engines-retro50.js', 'engines-archetypes.js']) run('scripts/' + file);
   if (loadApp) vm.runInContext(read('app.js').replace('let allGames = [];', 'let allGames = globalThis.__testGames;'), context, { filename: 'app.js' });
   return {
@@ -511,4 +511,97 @@ test('Raft Wars can finish all battles using gold for cannon upgrades and repair
   assert.ok(repairCount > 0, 'repair items are purchasable');
   assert.equal(h.errors.length, 0);
   h.context.closeGameModal(); assertStopped(h);
+});
+
+
+test('original vector illustration set is stable and non-emoji', () => {
+  const h = harness({ loadApp: false, loadEngines: false });
+  const art = h.context.NP_GameArt;
+  assert.equal(art.creatureIds.length, 16);
+  assert.equal(new Set([...art.creatureIds]).size, 16);
+  for (const id of ['radish', 'corn', 'tomato', 'watermelon', 'sunflower']) {
+    const svg = art.svg('crop', id);
+    assert.match(svg, /<svg/);
+    assert.match(svg, /<path|<ellipse|<rect|<circle/);
+    assert.doesNotMatch(svg, /\p{Extended_Pictographic}/u);
+  }
+  const portraits = [...art.creatureIds].map(id => art.svg('creature', id));
+  assert.equal(new Set(portraits).size, 16, 'all 16 tile illustrations must differ');
+});
+
+test('Pikachu illustrated tiles have one click action and optional touch zoom', () => {
+  const h = harness();
+  assert.equal(h.context.openGameById('lat-the-tri-nho'), true);
+  const tiles = h.container.querySelectorAll('.np-link-tile');
+  assert.equal(tiles.length, 96, 'the full 8 by 12 board is rendered');
+  assert.ok(tiles.every(tile => !tile.disabled && tile.querySelector('svg')));
+  assert.ok(tiles.every(tile => !(tile.listeners.get('touchstart') || []).length),
+    'avoid duplicate touchstart plus synthesized click on each tile');
+  tiles[0].dispatch('click');
+  assert.equal(h.container.querySelectorAll('.np-link-tile.selected').length, 1);
+  const zoomBtn = h.container.querySelector('#pkZoomBtn');
+  zoomBtn.dispatch('click');
+  assert.ok(h.container.querySelector('.np-link-board-wrap').classList.contains('zoomed'));
+  zoomBtn.dispatch('click');
+  assert.ok(!h.container.querySelector('.np-link-board-wrap').classList.contains('zoomed'));
+  h.context.closeGameModal(); assertStopped(h);
+});
+
+test('Nong Trai soil, sowing and neighbor art preserve interactions', () => {
+  const h = harness();
+  h.context.openGameById('nong-trai-vui-ve');
+  const grid = h.container.querySelector('#nfPlotsGrid');
+  assert.equal(grid.querySelectorAll('.np-farm-plot').length, 9);
+  assert.equal(grid.querySelectorAll('.np-farm-plot.locked').length, 3);
+  grid.querySelectorAll('.np-farm-plot')[0].dispatch('click');
+  assert.match(grid.innerHTML, /Đã xới/);
+  const seedTool = h.container.querySelectorAll('.tool-btn')
+    .find(btn => btn.getAttribute('data-tool') === 'seed');
+  seedTool.dispatch('click');
+  grid.querySelectorAll('.np-farm-plot')[0].dispatch('click');
+  assert.match(grid.innerHTML, /np-farm-crop-art/, 'crop becomes visible after sowing');
+  assert.match(grid.innerHTML, /phát triển/, 'sowing retains growth progress');
+  h.container.querySelector('#nfTabNeighbors').dispatch('click');
+  assert.ok(h.container.querySelector('#nfNeighborFarmBox').innerHTML.includes('np-farm-neighbor-crop'));
+  h.context.closeGameModal(); assertStopped(h);
+});
+
+test('Hang Rong cooking progresses without replacing tap targets every tick', () => {
+  const h = harness();
+  h.context.openGameById('hang-rong');
+  assert.ok(h.container.querySelector('#hrStreetCanvas'));
+  assert.ok(h.container.querySelectorAll('.np-stall-dish-art').length >= 1);
+  const source = read('scripts/engines.js');
+  assert.match(source, /function paintCookingSlot\(slot\)/);
+  assert.match(source, /paintCookingSlot\(emptySlot\)/);
+  const intervalBlock = source.slice(source.indexOf('emptySlot.timer = setInterval('));
+  assert.doesNotMatch(intervalBlock.slice(0, intervalBlock.indexOf('}, intervalMs);')),
+    /renderCookingSlotsUI\(\)/, '100ms cooking ticks must not rebuild buttons');
+  h.context.closeGameModal(); assertStopped(h);
+});
+
+test('art assets load before game engine scripts', () => {
+  const html = read('index.html');
+  assert.ok(html.indexOf('scripts/game-art.js') > html.indexOf('scripts/game-feel.js'));
+  assert.ok(html.indexOf('scripts/game-art.js') < html.indexOf('scripts/engines.js'));
+});
+
+
+test('Diner Dash uses a concise playable intro and keeps controls active', () => {
+  const h = harness();
+  assert.equal(h.context.openGameById('diner-dash'), true);
+  assert.ok(h.container.querySelector('.np-diner-game'), 'visual update class exists');
+  const cards = h.container.querySelectorAll('.np-diner-steps');
+  assert.equal(cards.length, 1, 'onboarding is a single concise group');
+  assert.ok(h.container.querySelector('#ddCanvas'));
+  const start = h.container.querySelector('#ddStartGameBtn');
+  assert.ok(start, 'start button remains available');
+  start.dispatch('click');
+  h.frame(); h.frame();
+  assert.equal(h.errors.length, 0, h.errors.join('; '));
+  h.context.closeGameModal();
+  assertStopped(h);
+  const engine = read('scripts/engines-popcap.js');
+  assert.match(engine, /np-diner-steps/);
+  assert.match(engine, /ctx\.fillText\('BẾP', 320, 42\)/);
 });

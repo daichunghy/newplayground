@@ -90,6 +90,13 @@
   // =========================================================================
   function launchHangRong(container, game) {
     const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+    const art = (type,id,cls='') => window.NP_GameArt?.svg(type,id,cls) || '';
+    const shortDish = id => ({
+      banhmi_trung:'Bánh mì trứng', tra_da:'Trà đá',keo_lac:'Kẹo lạc',
+      cavien_chien:'Cá viên chiên', nuoc_mia:'Nước mía',
+      banhtrang_nuong:'Bánh tráng nướng',nemchua_ran:'Nem rán',
+      tra_chanh:'Trà chanh',trasua_topping:'Trà sữa',lau_ly:'Lẩu ly'
+    })[id] || id;
     // Persistent State
     const STORAGE_KEY = 'np_hangrong_save_v2';
     let saved = null;
@@ -372,13 +379,13 @@
 
     // Render Base HTML
     container.innerHTML = `
-      <div class="hangrong-full-engine">
+      <div class="hangrong-full-engine np-stall-game">
         <!-- TOP TABS -->
         <div class="engine-tab-nav">
           <button class="engine-tab-btn active" data-tab="stall">Quầy bán hàng</button>
-          <button class="engine-tab-btn" data-tab="market">🛒 Chợ Đầu Mối</button>
-          <button class="engine-tab-btn" data-tab="upgrades">🛠️ Tiệm Nâng Cấp</button>
-          <button class="engine-tab-btn" data-tab="handbook">Cẩm nang & Cấp độ</button>
+          <button class="engine-tab-btn" data-tab="market">Chợ nguyên liệu</button>
+          <button class="engine-tab-btn" data-tab="upgrades">Nâng cấp</button>
+          <button class="engine-tab-btn" data-tab="handbook">Tiến trình</button>
         </div>
 
         <!-- PROGRESSION HEADER -->
@@ -387,7 +394,7 @@
             <div class="stage-info-title">
               <span>⭐ Cấp ${state.level}</span> • <span id="hrStageName">${STAGES[state.stageIndex].name}</span>
             </div>
-            <div class="stage-subtext">📍 Địa điểm: ${STAGES[state.stageIndex].location} | Danh vọng: 💖 ${state.reputation}</div>
+            <div class="stage-subtext">${STAGES[state.stageIndex].location} · Danh vọng ${state.reputation}</div>
           </div>
           <div class="stage-xp-bar-wrap">
             <div class="stage-xp-label">
@@ -405,8 +412,8 @@
 
         <!-- EMERGENCY ALERT BANNER (HIDDEN INITIALLY) -->
         <div id="hrEmergencyBanner" style="display: none;" class="street-alert-banner">
-          <span class="street-alert-text" id="hrAlertText">🚨 CẢNH BÁO ĐÔ THỊ ĐI TUẦN! DỌN ĐỒ NGAY!</span>
-          <button class="btn-emergency-flee" id="hrFleeBtn">🏃 DỌN GÁNH TẨU THOÁT! (<span id="hrAlertTimer">4</span>s)</button>
+          <span class="street-alert-text" id="hrAlertText">Có người tuần tra, dọn gánh!</span>
+          <button class="btn-emergency-flee" id="hrFleeBtn">Dọn gánh ngay! (<span id="hrAlertTimer">4</span>s)</button>
         </div>
 
         <!-- TAB CONTENT VIEWPORT -->
@@ -586,9 +593,11 @@
           ctx.arc(cp.x, cp.y - 36, 10, 0, Math.PI * 2);
           ctx.fill();
 
-          ctx.font = '16px sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText(cust.avatar, cp.x, cp.y - 32);
+          ctx.fillStyle = '#332c27';
+          ctx.beginPath(); ctx.arc(cp.x, cp.y-42, 10, Math.PI, Math.PI*2); ctx.fill();
+          ctx.fillStyle = '#22302a';
+          ctx.fillRect(cp.x-4, cp.y-37, 2, 2);
+          ctx.fillRect(cp.x+4, cp.y-37, 2, 2);
 
           // Bubble
           ctx.fillStyle = '#FFFFFF';
@@ -605,8 +614,11 @@
           ctx.lineTo(cp.x + 4, cp.y - 50);
           ctx.fill();
 
-          ctx.font = '15px sans-serif';
-          ctx.fillText(cust.order.icon, cp.x - 12, cp.y - 62);
+          ctx.fillStyle='#cf965f';
+          ctx.beginPath();ctx.ellipse(cp.x-13,cp.y-65,11,7,0,0,Math.PI*2);ctx.fill();
+          ctx.fillStyle='#f7ddb0';
+          ctx.beginPath();ctx.ellipse(cp.x-13,cp.y-66,7,4,0,0,Math.PI*2);ctx.fill();
+          ctx.fillStyle='#71a270';ctx.fillRect(cp.x-17,cp.y-67,7,2);
 
           const pPct = cust.patience / cust.maxPatience;
           ctx.fillStyle = pPct > 0.3 ? '#10B981' : '#EF4444';
@@ -663,15 +675,15 @@
         <div style="background-color: #0F172A; border: 2px solid var(--border-dark); border-radius: var(--radius-md); overflow: hidden; margin-bottom: 12px; position: relative; box-shadow: 0 4px 14px rgba(0,0,0,0.15);">
           <canvas id="hrStreetCanvas" width="600" height="190" style="width: 100%; height: auto; display: block;"></canvas>
           <div style="position: absolute; bottom: 6px; right: 8px; font-size: 0.72rem; color: #FFF; background: rgba(0,0,0,0.6); padding: 2px 8px; border-radius: 4px; pointer-events: none;">
-            🏮 ${currentStage.name} • ${currentStage.location}
+            ${currentStage.location}
           </div>
         </div>
 
         <!-- CUSTOMER QUEUE -->
         <div style="background-color: var(--bg-surface); border: 1.5px solid var(--border-dark); border-radius: var(--radius-md); padding: 12px; margin-bottom: 14px;">
           <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 800; margin-bottom: 8px;">
-            <span>👥 Khách đang chờ phục vụ (${customers.length}/${state.upgrades.extraChair ? 4 : 2} bàn):</span>
-            <small style="color: var(--text-muted);">Bấm vào khách khi món trên khay đã sẵn sàng!</small>
+            <span>👥 Khách chờ ${customers.length}/${state.upgrades.extraChair ? 4 : 2}</span>
+            <small style="color: var(--text-muted);">Chạm khách để giao món</small>
           </div>
           <div id="hrCustomerRow" style="display: flex; gap: 12px; overflow-x: auto; min-height: 80px;">
             <!-- Customer slots -->
@@ -681,8 +693,8 @@
         <!-- COOKING WORKBENCH -->
         <div style="background-color: var(--bg-surface); border: 1.5px solid var(--border-dark); border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px;">
           <div style="font-size: 0.88rem; font-weight: 900; margin-bottom: 10px; display: flex; justify-content: space-between;">
-            <span>🍳 Bếp Chế Biến (3 Chảo Nấu)</span>
-            <span style="font-size: 0.78rem; color: var(--text-muted);">Mẹo: Căn lúc vạch XANH (70-95%) để đạt chất lượng Hoàn Hảo!</span>
+            <span>Bếp nấu</span>
+            <span style="font-size: 0.78rem; color: var(--text-muted);">Canh vùng xanh để món chín ngon</span>
           </div>
           <div class="cooking-station-grid" id="hrCookingSlots">
             <!-- 3 cooking slots -->
@@ -693,24 +705,24 @@
         <div style="display: grid; grid-template-columns: 1fr 1.6fr; gap: 14px; flex-wrap: wrap;">
           <!-- Tray -->
           <div style="background-color: var(--bg-surface-soft); border: 1.5px solid var(--border-medium); border-radius: var(--radius-md); padding: 12px;">
-            <div style="font-size: 0.82rem; font-weight: 800; margin-bottom: 8px;">🍽️ Khay đã nấu (${tray.length}/4 món):</div>
+            <div style="font-size: 0.82rem; font-weight: 800; margin-bottom: 8px;">Khay món ${tray.length}/4</div>
             <div id="hrTraySlots" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;">
               <!-- Tray boxes -->
             </div>
-            <small style="display: block; margin-top: 8px; font-size: 0.72rem; color: var(--text-muted); text-align: center;">Bấm món trên khay để hủy nếu nấu nhầm</small>
+            <small style="display: block; margin-top: 8px; font-size: 0.72rem; color: var(--text-muted); text-align: center;">Chạm món để bỏ khỏi khay</small>
           </div>
 
           <!-- Recipe Cooking Trigger Buttons -->
           <div style="background-color: var(--bg-surface); border: 1.5px solid var(--border-dark); border-radius: var(--radius-md); padding: 12px;">
-            <div style="font-size: 0.82rem; font-weight: 800; margin-bottom: 8px;">📜 Chọn món đặt lên bếp:</div>
+            <div style="font-size: 0.82rem; font-weight: 800; margin-bottom: 8px;">Thực đơn</div>
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px;" id="hrRecipeBtns">
               ${availableRecipeKeys.map(key => {
                 const r = ALL_RECIPES[key];
                 return `
                   <button class="btn-cook-action" data-recipe="${r.id}" style="display: flex; flex-direction: column; align-items: center; padding: 6px 4px; gap: 2px;">
-                    <span style="font-size: 1.2rem;">${r.icon}</span>
-                    <span style="font-size: 0.76rem; font-weight: 800;">${r.name}</span>
-                    <span style="font-size: 0.7rem; color: #78350F;">Giá ${r.sellPrice}đ (${r.cookTime}s)</span>
+                    <span style="font-size: 1.2rem;">${art('dish',r.id,'np-stall-dish-art')}</span>
+                    <span class="np-stall-recipe-name">${shortDish(r.id)}</span>
+                    <span class="np-stall-recipe-price">${r.sellPrice} xu</span>
                   </button>
                 `;
               }).join('')}
@@ -743,10 +755,10 @@
 
       row.innerHTML = customers.map(c => `
         <div class="customer-slot" data-cust-id="${c.id}" style="min-width: 130px; cursor: pointer; border: 1.5px solid var(--border-dark); padding: 8px; border-radius: var(--radius-sm); background: var(--bg-primary); text-align: center;">
-          <div style="font-size: 1.6rem;">${c.avatar}</div>
+          <div class="np-stall-portrait"><span class="np-stall-avatar" aria-hidden="true"></span></div>
           <div style="font-weight: 900; font-size: 0.82rem; margin: 2px 0;">${c.name}</div>
           <div style="background: var(--bg-surface); border: 1px solid var(--border-light); padding: 3px 6px; border-radius: 4px; font-size: 0.76rem; font-weight: 800; color: #B45309; margin-bottom: 4px;">
-            ${c.order.icon} ${c.order.name}
+            ${art('dish',c.order.id,'np-stall-order-art')}<span>${shortDish(c.order.id)}</span>
           </div>
           <div class="cook-progress-track" style="height: 6px; margin: 0;">
             <div style="width: ${(c.patience / c.maxPatience) * 100}%; height: 100%; background: ${c.patience < 30 ? '#EF4444' : '#10B981'}; transition: width 0.2s linear;"></div>
@@ -762,73 +774,67 @@
       });
     }
 
+
+    // Cooking updates only mutate the progress and text of existing DOM.
+    // Rebuilding every 100ms used to replace buttons under the player's finger.
+    function cookingQuality(progress) {
+      if (progress > 102) return { name:'burnt', text:'Cháy món', action:'Bỏ món', color:'#b95c4d' };
+      if (progress > 92) return { name:'late', text:'Sắp cháy', action:'Nhấc ngay', color:'#c98146' };
+      if (progress >= 65) return { name:'perfect', text:'Chín ngon', action:'Nhấc món', color:'#3e936f' };
+      return { name:'cooking', text:'Đang nấu', action:'Nhấc sớm', color:'#ba874a' };
+    }
+    function paintCookingSlot(slot) {
+      const card = container.querySelector('#hrCookingSlot' + slot.id);
+      if (!card || slot.status !== 'cooking') return;
+      const progress = Math.max(0, Math.min(120, slot.progress));
+      const quality = cookingQuality(progress);
+      const track = card.querySelector('.np-stall-cook-track');
+      if (track) track.setAttribute('aria-valuenow', String(Math.round(progress)));
+      const fill = card.querySelector('.cook-progress-bar');
+      if (fill) {
+        fill.style.width = Math.min(100,progress) + '%';
+        fill.style.backgroundColor = quality.color;
+      }
+      const status = card.querySelector('.cook-status-text');
+      if (status) status.textContent = quality.text;
+      const pct = card.querySelector('.np-stall-cook-percent');
+      if (pct) pct.textContent = Math.round(progress) + '%';
+      const button = card.querySelector('.btn-pickup-stove');
+      if (button) {
+        button.textContent = quality.action;
+        button.style.backgroundColor = quality.color;
+      }
+      if (card.getAttribute('data-cook-phase') !== quality.name) {
+        card.setAttribute('data-cook-phase',quality.name);
+      }
+    }
     function renderCookingSlotsUI() {
       const el = container.querySelector('#hrCookingSlots');
       if (!el) return;
-
       el.innerHTML = cookingSlots.map(slot => {
-        if (slot.status === 'empty') {
-          return `
-            <div class="cooking-slot-card" style="border: 2px dashed var(--border-medium); opacity: 0.75; text-align: center; padding: 12px; border-radius: 8px;">
-              <div style="font-size: 1.8rem; margin-bottom: 4px;">🍳</div>
-              <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted);">Bếp số ${slot.id} (Trống)</div>
-              <div style="font-size: 0.72rem; color: var(--text-sub); margin-top: 2px;">Chọn món bên dưới để bắt đầu chiên/nấu</div>
-            </div>
-          `;
-        }
-
-        const pct = Math.min(115, Math.round(slot.progress));
-        let statusColor = '#F59E0B'; // Cooking orange
-        let statusText = 'Đang sôi sùng sục...';
-        let cardStyle = '';
-        let btnText = '🍽️ Nhấc ra khay (Non)';
-
-        if (pct < 65) {
-          statusColor = '#F59E0B';
-          statusText = `Đang nấu... (${pct}%)`;
-          btnText = '⚠️ Nhấc non (Chưa chín vàng)';
-        } else if (pct >= 65 && pct <= 92) {
-          statusColor = '#10B981'; // Sweet spot green!
-          statusText = `✨ VÀNG GIÒN HOÀN HẢO! (${pct}%)`;
-          cardStyle = 'border: 2px solid #10B981; box-shadow: 0 0 12px rgba(16, 185, 129, 0.45); transform: translateY(-2px);';
-          btnText = '✨ NHẤC NGAY (+50% TIP!)';
-        } else if (pct > 92 && pct <= 102) {
-          statusColor = '#EA580C';
-          statusText = `⚠️ SẮP KHÉT! (${pct}%)`;
-          cardStyle = 'border: 2px solid #EA580C; box-shadow: 0 0 10px rgba(234, 88, 12, 0.4);';
-          btnText = '⚠️ Nhấc khẩn cấp!';
-        } else {
-          statusColor = '#EF4444'; // Burnt red
-          statusText = '🔥 KHÉT LẸT! HỎNG MÓN';
-          cardStyle = 'border: 2px solid #EF4444; box-shadow: 0 0 14px rgba(239, 68, 68, 0.5);';
-          btnText = '🗑️ Đổ bỏ vào thùng rác';
-        }
-
+        if (slot.status === 'empty') return `
+          <div class="cooking-slot-card np-stall-burner empty" id="hrCookingSlot${slot.id}">
+            <span class="np-stall-empty-burner" aria-hidden="true"></span>
+            <small>Bếp ${slot.id} · Trống</small>
+          </div>`;
         return `
-          <div class="cooking-slot-card" style="padding: 12px; border-radius: 8px; transition: all 0.2s ease; ${cardStyle}">
-            <div class="cooking-dish-icon" style="font-size: 1.8rem;">${slot.recipe.icon}</div>
-            <div class="cooking-dish-name" style="font-weight: 800; font-size: 0.85rem; margin: 4px 0;">${slot.recipe.name}</div>
-            
-            <!-- Progress track with clear 65-92% green sweet-spot band -->
-            <div class="cook-progress-track" style="position: relative; height: 16px; background: #1E293B; border-radius: 8px; overflow: hidden; border: 1.5px solid #334155; margin: 6px 0;">
-              <!-- Sweet-spot visual marker -->
-              <div style="position: absolute; left: 65%; width: 27%; top: 0; bottom: 0; background: rgba(16, 185, 129, 0.35); border-left: 1.5px dashed #10B981; border-right: 1.5px dashed #10B981; pointer-events: none; z-index: 1;"></div>
-              <!-- Moving progress fill -->
-              <div class="cook-progress-bar" style="width: ${Math.min(100, pct)}%; height: 100%; background-color: ${statusColor}; transition: width 0.08s linear;"></div>
+          <div class="cooking-slot-card np-stall-burner" id="hrCookingSlot${slot.id}">
+            <div class="np-stall-burner-top">
+              ${art('dish',slot.recipe.id,'np-stall-dish-art')}
+              <div><strong>${shortDish(slot.recipe.id)}</strong><small class="cook-status-text">Đang nấu</small></div>
             </div>
-
-            <div class="cook-status-text" style="color: ${statusColor}; font-weight: 800; font-size: 0.76rem; margin-bottom: 6px;">${statusText}</div>
-            <button class="btn-cook-action btn-pickup-stove" data-slot="${slot.id}" style="width: 100%; padding: 6px; font-weight: 800; font-size: 0.78rem; border-radius: 6px; background-color: ${statusColor}; color: #FFF; border: none; cursor: pointer;">
-              ${btnText}
-            </button>
-          </div>
-        `;
+            <div class="np-stall-cook-meta"><span class="np-stall-cook-percent">0%</span><small>Vùng xanh = chín ngon</small></div>
+            <div class="cook-progress-track np-stall-cook-track" role="progressbar" aria-label="Độ chín món ăn" aria-valuemin="0" aria-valuemax="120">
+              <span class="np-stall-sweet-spot" aria-hidden="true"></span>
+              <span class="cook-progress-bar"></span>
+            </div>
+            <button type="button" class="btn-cook-action btn-pickup-stove" data-slot="${slot.id}">Nhấc món</button>
+          </div>`;
       }).join('');
-
-      el.querySelectorAll('.btn-pickup-stove').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const slotId = parseInt(btn.getAttribute('data-slot'));
-          pickupFromStove(slotId);
+      for (const slot of cookingSlots) paintCookingSlot(slot);
+      el.querySelectorAll('.btn-pickup-stove').forEach(button => {
+        button.addEventListener('click', () => {
+          pickupFromStove(Number(button.getAttribute('data-slot')));
         });
       });
     }
@@ -843,7 +849,7 @@
         html += `
           <div class="tray-box" data-tray-idx="${i}" style="aspect-ratio: 1/1; border: 1.5px solid ${item && item.isPerfect ? '#10B981' : 'var(--border-dark)'}; border-radius: var(--radius-sm); background: var(--bg-surface); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 1.4rem; cursor: pointer; position: relative;">
             ${item ? `
-              <div>${item.icon}</div>
+              <div>${art('dish',item.id,'np-stall-tray-art')}</div>
               ${item.isPerfect ? '<span style="position: absolute; top: 2px; right: 2px; font-size: 0.65rem; background: #10B981; color: #FFF; border-radius: 4px; padding: 1px 3px; font-weight: 800;">⭐</span>' : ''}
               ${item.isUnderCooked ? '<span style="position: absolute; top: 2px; right: 2px; font-size: 0.65rem; background: #F59E0B; color: #FFF; border-radius: 4px; padding: 1px 3px; font-weight: 800;">⚠️</span>' : ''}
             ` : ''}
@@ -912,7 +918,7 @@
       emptySlot.timer = setInterval(() => {
         emptySlot.progress += stepPct;
         if (currentTab === 'stall') {
-          renderCookingSlotsUI();
+          paintCookingSlot(emptySlot);
         }
         if (emptySlot.progress >= 120) {
           // Completely burnt
@@ -1075,7 +1081,7 @@
               return `
                 <div class="market-item-card">
                   <div class="market-item-header">
-                    <div class="market-item-icon">${item.icon}</div>
+                    <div class="market-item-icon">${art('ingredient',item.id,'np-stall-ingredient-art')}</div>
                     <div>
                       <div class="market-item-title" style="font-family: Calibri, sans-serif;">${item.name}</div>
                       <div class="market-item-stock" style="font-family: Calibri, sans-serif;">Tồn kho: <strong>${currentStock}</strong> cái/phần</div>
@@ -1226,7 +1232,7 @@
               return `
                 <div class="upgrade-card" style="${isPurchased ? 'opacity: 0.85; border-color: #10B981;' : ''}">
                   <div class="upgrade-header">
-                    <span class="upgrade-icon">${up.icon}</span>
+                    <span class="upgrade-icon">${art('upgrade',up.id,'np-stall-upgrade-art')}</span>
                     <div class="upgrade-info">
                       <h4>${up.name}</h4>
                       <p>${up.desc}</p>
@@ -8188,13 +8194,13 @@ function launchPikachu(container, game) {
   ];
 
   const GRAVITY_NAMES = [
-    'Màn 1: Cố định (Không đổi)',
-    'Màn 2: Trọng lực Hút Xuống',
-    'Màn 3: Trọng lực Hướng Lên',
-    'Màn 4: Trọng lực Trượt Trái',
-    'Màn 5: Trọng lực Trượt Phải',
-    'Màn 6: Trọng lực Ép Vào Tâm',
-    'Màn 7: Trọng lực Tách Ra Biên'
+    'Không dịch chuyển',
+    'Dồn xuống',
+    'Dồn lên',
+    'Dồn trái',
+    'Dồn phải',
+    'Ép vào giữa',
+    'Tách ra hai bên'
   ];
 
   function getGravityMode(lvl) {
@@ -8334,31 +8340,32 @@ function launchPikachu(container, game) {
   }
 
   container.innerHTML = `
-    <div class="canvas-game-box" style="max-width: 620px; font-family: Calibri, 'Segoe UI', sans-serif;">
-      <div class="canvas-game-hud" style="flex-wrap: wrap; gap: 6px;">
-        <div class="hud-pill">Màn: <span id="pkLevel" style="color: #FBBF24;">1</span></div>
-        <div class="hud-pill">Thời gian: <span id="pkTime" style="color: #38BDF8;">240</span>s</div>
-        <div class="hud-pill">Điểm: <span id="pkScore" style="color: #10B981;">0</span></div>
-        <div class="hud-pill">Đổi: <span id="pkShuffles" style="color: #F43F5E;">10</span></div>
-        <div class="hud-pill">Gợi ý: <span id="pkHints" style="color: #A855F7;">5</span></div>
-        <button class="btn btn-secondary" id="pkHintBtn" style="padding: 2px 8px; font-size: 0.78rem; font-family: Calibri, sans-serif;">Gợi ý</button>
-        <button class="btn btn-secondary" id="pkShuffleBtn" style="padding: 2px 8px; font-size: 0.78rem; font-family: Calibri, sans-serif;">Đổi chỗ</button>
+    <div class="canvas-game-box np-link-game">
+      <div class="np-link-top">
+        <div class="np-link-label"><strong>NỐI HÌNH</strong><small>Tìm cặp giống nhau</small></div>
+        <div class="np-link-stats">
+          <span><small>Màn</small><b id="pkLevel">1</b></span>
+          <span><small>Thời gian</small><b id="pkTime">240</b></span>
+          <span><small>Điểm</small><b id="pkScore">0</b></span>
+        </div>
       </div>
-
-      <div style="background: rgba(15, 23, 42, 0.7); padding: 4px 10px; border-radius: 6px; text-align: center; margin: 4px auto; font-size: 0.82rem; color: #E2E8F0; font-weight: bold; border: 1px solid rgba(255,255,255,0.1);">
-        <span id="pkGravityBadge" style="color: #FCD34D;">Màn 1: Cố định (Không đổi)</span>
+      <div class="np-link-toolbar">
+        <span id="pkGravityBadge" class="np-link-rule">Không dịch chuyển</span>
+        <div class="np-link-tools">
+          <button id="pkHintBtn" class="np-link-secondary" type="button" title="Hiện gợi ý một cặp có thể nối">Gợi ý <b id="pkHints">5</b></button>
+          <button id="pkShuffleBtn" class="np-link-secondary" type="button" title="Đảo vị trí ô khi chưa có nước đi">Đổi chỗ <b id="pkShuffles">10</b></button>
+          <button id="pkZoomBtn" class="np-link-secondary" type="button" aria-pressed="false" title="Phóng to bàn để dễ chạm trên điện thoại">Phóng to</button>
+          <button id="pkRestartBtn" class="np-link-secondary" type="button">Chơi lại</button>
+        </div>
       </div>
-
-      <div style="position: relative; width: 100%; max-width: 600px; margin: 6px auto;">
-        <div id="pkGrid" style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; background: #0F172A; padding: 6px; border-radius: 8px; border: 2px solid #334155; box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);"></div>
-        <canvas id="pkCanvas" width="600" height="400" style="position: absolute; top: 0; left: 0; pointer-events: none; width: 100%; height: 100%;"></canvas>
-        <div id="pkBanner" style="display: none; position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.85); color: #FFF; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 1rem; border: 2px solid #F59E0B; text-align: center; pointer-events: none; z-index: 10; font-family: Calibri, sans-serif;"></div>
+      <div class="np-link-viewport">
+      <div class="np-link-board-wrap">
+        <div id="pkGrid" class="np-link-grid" aria-label="Bàn nối hình 8 hàng, 12 cột"></div>
+        <canvas id="pkCanvas" width="600" height="400" aria-hidden="true" class="np-link-lightning"></canvas>
+        <div id="pkBanner" class="np-link-banner" role="status" aria-live="polite" style="display:none"></div>
       </div>
-
-      <div class="canvas-controls-bar" style="font-family: Calibri, sans-serif;">
-        <small style="color: #CBD5E1; font-size: 0.8rem;">⚡ Nối 2 Pokémon giống nhau bằng đường gấp khúc tối đa 3 đoạn (2 góc vuông)!</small>
-        <button class="btn-canvas-action" id="pkRestartBtn" style="font-family: Calibri, sans-serif;">Chơi lại</button>
       </div>
+      <p class="np-link-instruction">Chọn hai hình giống nhau, nối bằng đường gấp tối đa hai góc.</p>
     </div>
   `;
 
@@ -8366,6 +8373,14 @@ function launchPikachu(container, game) {
   const canvas = container.querySelector('#pkCanvas');
   const ctx = canvas.getContext('2d');
   const bannerEl = container.querySelector('#pkBanner');
+  const zoomBtn = container.querySelector('#pkZoomBtn');
+  zoomBtn?.addEventListener('click', () => {
+    const boardSurface = container.querySelector('.np-link-board-wrap');
+    const zoomed = boardSurface?.classList.toggle('zoomed') || false;
+    zoomBtn.setAttribute('aria-pressed', String(zoomed));
+    zoomBtn.textContent = zoomed ? 'Thu nhỏ' : 'Phóng to';
+    zoomBtn.title = zoomed ? 'Hiển thị toàn bộ bàn' : 'Phóng to bàn để dễ chạm trên điện thoại';
+  });
 
   function showNotification(text, borderColor = '#F59E0B') {
     if (!bannerEl) return;
@@ -8506,7 +8521,7 @@ function launchPikachu(container, game) {
 
     // Verify if shuffled board has valid moves
     const move = findAnyValidMove();
-    if (!move && items.length > 2) {
+    if (!move && board.some(row => row.some(value => value !== null))) {
       setTimeout(() => {
         isShuffling = false;
         shuffleBoard(false);
@@ -8655,52 +8670,39 @@ function launchPikachu(container, game) {
   }
 
   function renderBoard() {
+    // Use one consistent set of illustrated creatures, not platform-dependent
+    // emoji/font glyphs. Keep one click handler per tile (touch creates a click).
+    const focused = document.activeElement?.getAttribute?.('data-cell');
     gridEl.innerHTML = '';
+    const fragment = document.createDocumentFragment?.() || gridEl;
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
         const val = board[r][c];
-        const cell = document.createElement('div');
-        cell.style.aspectRatio = '1/1.05';
-        cell.style.borderRadius = '6px';
-        cell.style.display = 'flex';
-        cell.style.flexDirection = 'column';
-        cell.style.alignItems = 'center';
-        cell.style.justifyContent = 'center';
-        cell.style.cursor = val ? 'pointer' : 'default';
-        cell.style.userSelect = 'none';
-        cell.style.transition = 'transform 0.1s ease, box-shadow 0.1s ease';
-        cell.style.fontFamily = "Calibri, 'Segoe UI', sans-serif";
-
-        const isSel = selected && selected.r === r && selected.c === c;
-
+        const tile = document.createElement('button');
+        tile.type = 'button';
+        tile.className = 'np-link-tile';
+        tile.setAttribute('data-cell', r + '-' + c);
+        const selectedNow = selected && selected.r === r && selected.c === c;
         if (val) {
-          const pkm = getPokemonDef(val);
-          cell.style.background = isSel
-            ? 'linear-gradient(135deg, #FEF08A 0%, #F59E0B 100%)'
-            : `linear-gradient(145deg, #FFFFFF 0%, ${pkm.color} 100%)`;
-          cell.style.border = isSel ? '2px solid #DC2626' : `1.5px solid ${pkm.border}`;
-          cell.style.boxShadow = isSel
-            ? '0 0 10px #F59E0B, inset 0 0 6px #FBBF24'
-            : '0 2px 4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.8)';
-          cell.style.transform = isSel ? 'scale(1.08)' : 'scale(1)';
-
-          cell.innerHTML = `
-            <span style="font-size: 1.25rem; line-height: 1; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));">${pkm.icon}</span>
-            <span style="font-size: 0.65rem; font-weight: bold; color: #1E293B; margin-top: 1px; letter-spacing: -0.2px;">${pkm.label}</span>
-          `;
-          cell.addEventListener('click', () => handleCellClick(r, c));
-          cell.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            handleCellClick(r, c);
-          }, { passive: false });
+          const def = getPokemonDef(val);
+          tile.classList.add(selectedNow ? 'selected' : 'active');
+          tile.setAttribute('aria-label', def.name + ', hàng ' + (r + 1) + ', cột ' + (c + 1));
+          tile.setAttribute('aria-pressed', selectedNow ? 'true' : 'false');
+          tile.style.backgroundColor = def.color;
+          tile.innerHTML = window.NP_GameArt
+            ? window.NP_GameArt.svg('creature', val, 'np-link-creature')
+            : def.label;
+          tile.addEventListener('click', () => handleCellClick(r, c));
         } else {
-          cell.style.background = 'transparent';
-          cell.style.border = 'none';
+          tile.classList.add('empty');
+          tile.disabled = true;
+          tile.setAttribute('aria-label', 'Ô trống');
         }
-
-        gridEl.appendChild(cell);
+        fragment.appendChild(tile);
       }
     }
+    if (fragment !== gridEl) gridEl.appendChild(fragment);
+    if (focused) gridEl.querySelector('[data-cell="' + focused + '"]')?.focus?.({ preventScroll: true });
   }
 
   container.querySelector('#pkHintBtn')?.addEventListener('click', () => {
