@@ -1258,5 +1258,35 @@
     "source": "Original vector cover illustration for NewPlayground Sắc Bậc, authored in this repository with no third-party artwork or downloaded fonts.",
     "author": "NewPlayground project contributors",
     "created_at": "2026-10-09"
+  },
+  {
+    "category": "game-cover",
+    "file": "phim-sao-original.svg",
+    "local_path": "assets/covers/phim-sao-original.svg",
+    "size_bytes": 1875,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Original vector cover for Phím Sao authored specifically for NewPlayground on 2026-10-10; no external sprites, fonts or trademarks incorporated.",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-10"
+  },
+  {
+    "category": "game-cover",
+    "file": "moc-qua-original.svg",
+    "local_path": "assets/covers/moc-qua-original.svg",
+    "size_bytes": 1759,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Original vector cover for Móc Quà authored specifically for NewPlayground on 2026-10-10; no external sprites, fonts or trademarks incorporated.",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-10"
+  },
+  {
+    "category": "game-cover",
+    "file": "dao-ngoc-original.svg",
+    "local_path": "assets/covers/dao-ngoc-original.svg",
+    "size_bytes": 1923,
+    "license": "MIT — original project-authored SVG; see LICENSE",
+    "source": "Original vector cover for Đào Ngọc authored specifically for NewPlayground on 2026-10-10; no external sprites, fonts or trademarks incorporated.",
+    "author": "NewPlayground project contributors",
+    "created_at": "2026-10-10"
   }
 ]
