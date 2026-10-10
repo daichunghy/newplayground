@@ -1,4 +1,6 @@
 const {test,expect}=require('@playwright/test');
+const {mkdirSync}=require('node:fs');
+mkdirSync('screenshots/new-six',{recursive:true});
 const URL='/';
 async function prepare(page,name,id){
   const errors=[];
@@ -42,6 +44,7 @@ test('Phím Sao has live keyboard / mobile tap, wins, loses and restarts',async(
       if(mobile)await page.locator('.n6-rhythm [data-lane="'+first.lane+'"]').tap();
       else await page.keyboard.press(['a','s','d','f'][first.lane]);
       await expect.poll(()=>page.evaluate(()=>window.__newSixGame.view().hits)).toBe(1);
+      await page.screenshot({path:'screenshots/new-six/phim-sao-'+(mobile?'mobile':'desktop')+'.png'});
       await page.locator('.n6-rhythm [data-act="pause"]').click();
       expect(await page.evaluate(()=>window.__newSixGame.view().status)).toBe('paused');
       await page.locator('.n6-rhythm [data-act="play"]').click();
@@ -72,6 +75,7 @@ test('Móc Quà responds to touch and wins full three-stage crane course',async(
     const c=await visibleBox(page);
     await page.touchscreen.tap(c.x+c.width*215/760,c.y+c.height*.4);
     await expect.poll(()=>page.evaluate(()=>window.__newSixGame.view().target)).toBeCloseTo(215,0);
+    await page.screenshot({path:'screenshots/new-six/moc-qua-mobile.png'});
     await page.evaluate(()=>{
       const m=window.__newSixGame;
       for(let stage=0;stage<3;stage++)for(let i=0;i<3;i++){
@@ -97,6 +101,7 @@ test('Đào Ngọc has real swipe input, victory, failure, restart and clean rou
   await page.keyboard.press('ArrowRight');
   const player=await page.evaluate(()=>window.__newSixGame.view().player);
   expect(player).toEqual({x:2,y:1});
+  await page.screenshot({path:'screenshots/new-six/dao-ngoc-desktop.png'});
   await page.locator('.n6-dig [data-act="pause"]').click();
   expect(await page.evaluate(()=>window.__newSixGame.view().status)).toBe('paused');
   await page.locator('.n6-dig [data-act="play"]').click();
