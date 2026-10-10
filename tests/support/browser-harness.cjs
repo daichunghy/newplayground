@@ -71,6 +71,8 @@ class Element extends Target {
     const matches = node => selectors.some(s => {
       if (s.startsWith('#')) return node.id === s.slice(1);
       if (s.startsWith('.')) return s.slice(1).split('.').every(c => node.classList.contains(c));
+      const attr = /^\[([\w-]+)(?:=["']([^"']+)["'])?\]$/.exec(s);
+      if (attr) return attr[2] === undefined ? node.getAttribute(attr[1]) !== null : node.getAttribute(attr[1]) === attr[2];
       return node.tagName.toLowerCase() === s.toLowerCase();
     });
     return this.children.flatMap(child => [...(matches(child) ? [child] : []), ...child.querySelectorAll(selector)]);
@@ -87,6 +89,7 @@ class Element extends Target {
       const key = attribute[1].replace(/-([a-z])/g, (_, c) => c.toUpperCase());
       if (this.dataset[key] !== undefined) return this;
     }
+    if (this.tagName.toLowerCase() === selector.toLowerCase()) return this;
     return this.parentNode?.closest(selector) || null;
   }
   remove() { if (this.parentNode) this.parentNode.children = this.parentNode.children.filter(c => c !== this); }
