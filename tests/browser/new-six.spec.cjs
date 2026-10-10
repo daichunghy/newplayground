@@ -112,7 +112,12 @@ test('Đào Ngọc has real swipe input, victory, failure, restart and clean rou
     const paths=['RDDUURRRRRRDDDDDDDLLRRRRUUUUUUU','RRRRDDDDDRRDDRRRUUUUUUU','RRDDLDDDRRRRDDRRURRDLUUUUURUU'];
     const moves={R:'right',D:'down',L:'left',U:'up'};
     for(let level=0;level<paths.length;level++){
-      for(const letter of paths[level])if(!model.move(moves[letter]))throw Error('Rejected cave move '+letter+' at stage '+level);
+      for(const letter of paths[level]){
+        const oldSteps=model.view().steps,oldLevel=model.view().level;
+        window.dispatchEvent(new KeyboardEvent('keydown',{key:{R:'ArrowRight',D:'ArrowDown',L:'ArrowLeft',U:'ArrowUp'}[letter],bubbles:true,cancelable:true}));
+        if(model.view().steps===oldSteps&&model.view().level===oldLevel)
+          throw Error('Keyboard cave move rejected '+letter+' at stage '+level);
+      }
       const state=model.view();
       if(level<paths.length-1 && (state.level!==level+1 || state.status!=='playing'))throw Error('Stage '+level+' incomplete');
     }
