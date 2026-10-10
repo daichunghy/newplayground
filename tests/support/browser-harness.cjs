@@ -50,6 +50,10 @@ class Element extends Target {
     };
     this.className = ''; this.hidden = /(?:^|\s)hidden(?:\s|$)/.test(attrs);
     for (const match of attrs.matchAll(/([\w-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g)) this.setAttribute(match[1], match[2] ?? match[3]);
+    // HTML boolean data attributes are meaningful to delegated game UIs as well.
+    for (const match of attrs.matchAll(/(?:^|\s)(data-[\w-]+)(?=\s|$)/g)) {
+      if (this.getAttribute(match[1]) === null) this.setAttribute(match[1], '');
+    }
   }
   setAttribute(name, value) {
     this.attributes[name] = String(value);
@@ -71,6 +75,8 @@ class Element extends Target {
     const matches = node => selectors.some(s => {
       if (s.startsWith('#')) return node.id === s.slice(1);
       if (s.startsWith('.')) return s.slice(1).split('.').every(c => node.classList.contains(c));
+      const attr = /^\[([\w-]+)(?:=["']([^"']+)["'])?\]$/.exec(s);
+      if (attr) return attr[2] === undefined ? node.getAttribute(attr[1]) !== null : node.getAttribute(attr[1]) === attr[2];
       return node.tagName.toLowerCase() === s.toLowerCase();
     });
     return this.children.flatMap(child => [...(matches(child) ? [child] : []), ...child.querySelectorAll(selector)]);
@@ -87,6 +93,7 @@ class Element extends Target {
       const key = attribute[1].replace(/-([a-z])/g, (_, c) => c.toUpperCase());
       if (this.dataset[key] !== undefined) return this;
     }
+    if (this.tagName.toLowerCase() === selector.toLowerCase()) return this;
     return this.parentNode?.closest(selector) || null;
   }
   remove() { if (this.parentNode) this.parentNode.children = this.parentNode.children.filter(c => c !== this); }
@@ -136,6 +143,10 @@ function harness({ loadEngines = true, loadApp = true, storage = new Map(), comp
       'scripts/engines-p3-games.js']) run(file);
   }
   if (loadEngines) run('scripts/engines-batch4-games.js');
+  if (loadEngines) {
+    for (const file of ['scripts/games/phim-sao.js', 'scripts/games/moc-qua.js', 'scripts/games/dao-ngoc.js',
+      'scripts/engines-batch6-games.js']) run(file);
+  }
   run('scripts/game-registry.js'); run('scripts/modal-accessibility.js');
   if (loadApp) vm.runInContext(read('app.js').replace('let allGames = [];', 'let allGames = globalThis.__testGames;'), context, { filename: 'app.js' });
   return {

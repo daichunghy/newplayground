@@ -841,15 +841,15 @@ window.__NP_GAMES_CACHE__ = [
   },
   {
     "id": "piano-tiles-phim-nhac",
-    "title": "Phím Nhạc Rơi (Piano Tiles)",
-    "tagline": "Nhấp đúng phím đen theo nhịp bản nhạc du dương.",
+    "title": "Phím Sao",
+    "tagline": "Giữ đúng nhịp trên đường phím ánh sáng.",
     "category": "Kỹ năng",
     "section": "all",
     "players": "1 người",
     "duration": "2-4 phút",
-    "mechanic": "Bấm phím trượt rơi theo tiết tấu giai điệu bài hát",
-    "badge": "Âm nhạc",
-    "color": "#3B82F6"
+    "mechanic": "Chạm bốn cột phím theo ba chặng nhanh dần; combo và ba lượt sai",
+    "badge": "Bản thử",
+    "color": "#736fd5"
   },
   {
     "id": "among-us-impostor",
@@ -1033,15 +1033,15 @@ window.__NP_GAMES_CACHE__ = [
   },
   {
     "id": "gap-thu-bong-dien-tu",
-    "title": "Gắp Thú Bông Điện Tử",
-    "tagline": "Căn cần gạt gắp đúng chú gấu bông xinh.",
+    "title": "Móc Quà",
+    "tagline": "Canh tay móc và mang đủ quà về kệ.",
     "category": "Kỹ năng",
     "section": "all",
     "players": "1 người",
-    "duration": "2-4 phút",
-    "mechanic": "Điều khiển cần gạt 2D gắp gấu bông thả vào hộc",
-    "badge": "Kỹ năng",
-    "color": "#F4A261"
+    "duration": "3-5 phút",
+    "mechanic": "Canh vị trí, hạ móc, gắp ba phần thưởng mỗi kệ trong năm lượt",
+    "badge": "Bản thử",
+    "color": "#7858a9"
   },
   {
     "id": "tam-cuc-co-dien",
@@ -1537,15 +1537,15 @@ window.__NP_GAMES_CACHE__ = [
   },
   {
     "id": "boulder-dash-tho-dao-ngoc",
-    "title": "Thợ Đào Ngọc Hầm Đá",
-    "tagline": "Đào đường ngầm gom kim cương, cẩn thận đá tảng sụp đè bẹp dí!",
+    "title": "Đào Ngọc",
+    "tagline": "Đào đất, lách đá rơi và mở cửa hang.",
     "category": "Giải đố",
     "section": "classic",
     "players": "1 người",
-    "duration": "3-7 phút",
-    "mechanic": "Đào hầm đất thu gom kim cương theo chỉ tiêu, quản lý vật lý lăn của các tảng đá tròn để không bị đè và bẫy quái vật biến thành ngọc",
-    "badge": "Kinh điển",
-    "color": "#854D0E"
+    "duration": "3-6 phút",
+    "mechanic": "Giải ba hang theo lượt, đào đất lấy ngọc, đẩy đá và tránh bị đè",
+    "badge": "Bản thử",
+    "color": "#3c7980"
   },
   {
     "id": "moorhuhn-ban-ga-dam-lay",

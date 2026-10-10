@@ -1,0 +1,42 @@
+name: NewPlayground isolated game batch browser QA
+
+on:
+  push:
+    branches:
+      - feat-newplayground-games-oct10
+
+permissions:
+  contents: read
+
+concurrency:
+  group: six-games-browser-qa
+  cancel-in-progress: true
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate static game package
+        run: node scripts/release-preflight.mjs --prepare
+      - name: Install browser test tools
+        run: |
+          npm install --prefix "$RUNNER_TEMP/newplayground-playwright" --no-save --package-lock=false --no-audit --no-fund @playwright/test@1.63.0
+          echo "NODE_PATH=$RUNNER_TEMP/newplayground-playwright/node_modules" >> "$GITHUB_ENV"
+      - name: Install Chromium headless
+        run: '"$RUNNER_TEMP/newplayground-playwright/node_modules/.bin/playwright" install --with-deps chromium --only-shell'
+      - name: Browser QA for authored games and live screenshots
+        run: '"$RUNNER_TEMP/newplayground-playwright/node_modules/.bin/playwright" test tests/browser/new-six.spec.cjs'
+        env:
+          CI: 'true'
+      - name: Upload actual gameplay screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: new-six-browser-screenshots
+          path: screenshots/new-six/
+          if-no-files-found: ignore

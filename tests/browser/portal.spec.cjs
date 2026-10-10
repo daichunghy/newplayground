@@ -34,7 +34,7 @@ async function closeGame(page) {
 
 async function loadPortal(page) {
   await page.goto('/');
-  await expect(page.locator('#catalogAvailability')).toContainText('70');
+  await expect(page.locator('#catalogAvailability')).toContainText('73');
 }
 
 async function newMobilePage(browser, width = 320, height = 800) {
@@ -53,8 +53,8 @@ async function expectViewportFits(page) {
 
 test('the default grid is playable-only; explicit catalog browsing keeps planned entries informational', async ({ page }) => {
   await loadPortal(page);
-  await expect(page.locator('#allSectionTitle')).toHaveText('Bản thử nghiệm có thể chơi (70)');
-  await expect(page.locator('#gridAll .game-card')).toHaveCount(70);
+  await expect(page.locator('#allSectionTitle')).toHaveText('Bản thử nghiệm có thể chơi (73)');
+  await expect(page.locator('#gridAll .game-card')).toHaveCount(73);
   await expect(page.locator('.filter-pill[data-category="playable"]')).toHaveClass(/active/);
 
   await page.locator('.filter-pill[data-category="all"]').click();
@@ -66,7 +66,7 @@ test('the default grid is playable-only; explicit catalog browsing keeps planned
   await expect(page.locator('#gameModal')).toHaveCSS('display', 'none');
 });
 
-test('all 70 registered games open, render, close and release their session', async ({ page }) => {
+test('all 73 registered games open, render, close and release their session', async ({ page }) => {
   test.setTimeout(120_000);
   const errors = watchErrors(page);
   await loadPortal(page);
@@ -76,7 +76,7 @@ test('all 70 registered games open, render, close and release their session', as
       id, engine, title: byId.get(id)?.title || id
     }));
   });
-  expect(routes).toHaveLength(70);
+  expect(routes).toHaveLength(73);
 
   for (const route of routes) {
     await openGame(page, route.id);
@@ -1423,7 +1423,7 @@ test('2048 completes a deterministic 2048 win, continue, and reload resume', asy
   await expect(page.locator('#g2048Overlay')).toBeHidden();
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('np_2048_state_v1')).keepPlaying)).toBe(true);
   await page.reload();
-  await expect(page.locator('#catalogAvailability')).toContainText('70');
+  await expect(page.locator('#catalogAvailability')).toContainText('73');
   await openGame(page, 'tro-choi-2048');
   await expect(page.locator('#g2048Overlay')).toBeHidden();
   await expect(page.locator('#g2048Score')).toHaveText('2048');
