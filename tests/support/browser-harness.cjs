@@ -50,6 +50,10 @@ class Element extends Target {
     };
     this.className = ''; this.hidden = /(?:^|\s)hidden(?:\s|$)/.test(attrs);
     for (const match of attrs.matchAll(/([\w-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g)) this.setAttribute(match[1], match[2] ?? match[3]);
+    // HTML boolean data attributes are meaningful to delegated game UIs as well.
+    for (const match of attrs.matchAll(/(?:^|\s)(data-[\w-]+)(?=\s|$)/g)) {
+      if (this.getAttribute(match[1]) === null) this.setAttribute(match[1], '');
+    }
   }
   setAttribute(name, value) {
     this.attributes[name] = String(value);
