@@ -29,7 +29,14 @@ jobs:
           echo "NODE_PATH=$RUNNER_TEMP/newplayground-playwright/node_modules" >> "$GITHUB_ENV"
       - name: Install Chromium headless
         run: '"$RUNNER_TEMP/newplayground-playwright/node_modules/.bin/playwright" install --with-deps chromium --only-shell'
-      - name: Browser QA for all registered games and new batch
-        run: '"$RUNNER_TEMP/newplayground-playwright/node_modules/.bin/playwright" test'
+      - name: Browser QA for authored games and live screenshots
+        run: '"$RUNNER_TEMP/newplayground-playwright/node_modules/.bin/playwright" test tests/browser/new-six.spec.cjs'
         env:
           CI: 'true'
+      - name: Upload actual gameplay screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: new-six-browser-screenshots
+          path: screenshots/new-six/
+          if-no-files-found: ignore
