@@ -71,7 +71,10 @@
     'cut-the-rope': 'launchCutRope',
     'pinball-3d-space-cadet': 'launchOrbitPinball',
     'typer-shark': 'launchTyperShark',
-    'qbert-nhay-khoi-lap-phuong': 'launchQbertPyramid'
+    'qbert-nhay-khoi-lap-phuong': 'launchQbertPyramid',
+    'piano-tiles-phim-nhac': 'launchPhimSao',
+    'gap-thu-bong-dien-tu': 'launchMocQua',
+    'boulder-dash-tho-dao-ngoc': 'launchDaoNgoc'
   });
   const engineFor = id => Object.prototype.hasOwnProperty.call(entries, id) ? entries[id] : null;
   const isPlayable = id => Boolean(engineFor(id) && window.NP_Engines &&
