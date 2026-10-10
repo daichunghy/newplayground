@@ -419,6 +419,13 @@
     return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
   }
 
+  // Rendering 150 cards should not regenerate complex SVG thumbs on every search.
+  const thumbnailCache = new Map();
+  function cachedThumb(game) {
+    if (!thumbnailCache.has(game.id)) thumbnailCache.set(game.id, getThumbArt(game));
+    return thumbnailCache.get(game.id);
+  }
+
   function createGameCard(game) {
     const isLiked = favorites.includes(game.id);
     const card = document.createElement('div');
@@ -431,7 +438,7 @@
 
     card.innerHTML = `
       <div class="game-card-thumb">
-        <img src="${getThumbArt(game)}" alt="${game.title}" class="game-thumb-art" loading="lazy">
+        <img src="${cachedThumb(game)}" alt="${game.title}" class="game-thumb-art" loading="lazy">
         <button class="game-card-heart-btn ${isLiked ? 'liked' : ''}" title="${isLiked ? 'Bỏ thích' : 'Yêu thích'}" aria-label="${isLiked ? 'Bỏ khỏi yêu thích' : 'Thêm vào yêu thích'}" aria-pressed="${isLiked}" data-heart-id="${game.id}">
           ${isLiked ? '❤️' : '🤍'}
         </button>
@@ -534,7 +541,10 @@
       if (noResultsBlock) noResultsBlock.style.display = 'block';
     } else {
       if (noResultsBlock) noResultsBlock.style.display = 'none';
-      filtered.forEach(g => gridAll.appendChild(createGameCard(g)));
+      const fragment = typeof document.createDocumentFragment === 'function'
+        ? document.createDocumentFragment() : null;
+      filtered.forEach(g => (fragment || gridAll).appendChild(createGameCard(g)));
+      if (fragment) gridAll.appendChild(fragment);
     }
 
     if (resultsCount) resultsCount.textContent = `${filtered.length} game`;

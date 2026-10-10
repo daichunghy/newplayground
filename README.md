@@ -94,6 +94,14 @@ Vui lòng tham khảo file [`AGENTS.md`](./AGENTS.md) để nắm rõ:
 
 ---
 
+### Trạng thái đầy đủ của gameplay (cập nhật 10/10/2026)
+
+- Danh mục hiện có 150 mục, nhưng không phải tất cả đều có cơ chế riêng đúng luật trò chơi gốc.
+- 86 mục đang sử dụng `scripts/engines-archetypes.js`, gồm 7 chế độ có thể chơi, thử thách tăng dần, điều khiển cảm ứng, tạm dừng và chơi lại. Đây là gameplay **theo thể loại**, không phải bản tái hiện đầy đủ của từng tựa.
+- Các engine riêng có cơ chế và số màn khác nhau. Việc kiểm tra mở/đóng 150 game không thay thế kiểm thử toàn bộ hành trình chơi.
+- Xem [ma trận kiểm kê gameplay](./docs/GAMEPLAY_COMPLETENESS_AUDIT.md) để phân biệt các mức hoàn thiện và kế hoạch QA.
+- CI trên `main` chạy kiểm tra cú pháp và bộ test hồi quy, bắt buộc qua test trước khi deploy.
+
 ## 6. Bản quyền & Tài nguyên
 
 - Mã nguồn: Giấy phép [MIT License](./LICENSE).

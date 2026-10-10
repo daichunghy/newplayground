@@ -1888,12 +1888,16 @@
         </div>
 
         <div class="canvas-controls-bar">
-          <div style="display: flex; gap: 6px;">
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <button class="btn-canvas-action" id="sfLeft" aria-label="Di chuyển trái">◀ Trái</button>
+            <button class="btn-canvas-action" id="sfRight" aria-label="Di chuyển phải">Phải ▶</button>
             <button class="btn-canvas-action" id="sfPunch" style="background-color: #0284C7; color: #FFF; font-weight: bold;">🥊 ĐẤM (J)</button>
             <button class="btn-canvas-action" id="sfKick" style="background-color: #EA580C; color: #FFF; font-weight: bold;">🦵 ĐÁ (K)</button>
             <button class="btn-canvas-action" id="sfHadouken" style="background-color: #38BDF8; color: #000; font-weight: 900;">🔥 HADOUKEN (L)</button>
             <button class="btn-canvas-action" id="sfShoryuken" style="background-color: #EF4444; color: #FFF; font-weight: 900;">⚡ SHORYUKEN (I)</button>
+            <button class="btn-canvas-action" id="sfRestart">Chơi lại giải đấu</button>
           </div>
+          <div id="sfStatus" role="status" aria-live="polite" style="color:var(--text-main);text-align:center;font-weight:bold;min-height:24px"></div>
         </div>
       </div>
     `;
@@ -1912,17 +1916,38 @@
 
     let matchIdx = 0;
     let superGauge = 0;
+    let phase = 'playing';
+    let lastFrameTime = 0;
 
     const ryu = { x: 140, y: 260, w: 48, h: 90, hp: 100, state: 'idle', animTimer: 0, vy: 0, isGrounded: true };
     const enemy = { x: 440, y: 260, w: 48, h: 90, hp: 100, maxHp: 100, state: 'idle', animTimer: 0, aiTimer: 0 };
     const fireballs = [];
 
     const keys = {};
-    listen(window, 'keydown', e => { keys[e.code] = true; });
+    listen(window, 'keydown', e => {
+      keys[e.code] = true;
+      if (phase !== 'playing' || e.repeat) return;
+      const actionKeys = { KeyJ: 'punch', KeyK: 'kick', KeyL: 'hadouken', KeyI: 'shoryuken' };
+      if (actionKeys[e.code]) {
+        e.preventDefault();
+        ryuAttack(actionKeys[e.code]);
+      }
+    });
     listen(window, 'keyup', e => { keys[e.code] = false; });
+    const movementButtons = [['#sfLeft', 'ArrowLeft'], ['#sfRight', 'ArrowRight']];
+    movementButtons.forEach(([selector, code]) => {
+      const button = container.querySelector(selector);
+      if (!button) return;
+      listen(button, 'pointerdown', e => { e.preventDefault(); keys[code] = true; });
+      for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+        listen(button, type, () => { keys[code] = false; });
+      }
+    });
+    listen(window, 'pointerup', () => { keys.ArrowLeft = false; keys.ArrowRight = false; });
+    listen(window, 'blur', () => { keys.ArrowLeft = false; keys.ArrowRight = false; });
 
     function ryuAttack(type) {
-      if (ryu.state !== 'idle') return;
+      if (phase !== 'playing' || ryu.state !== 'idle') return;
       ryu.state = type;
       ryu.animTimer = 22;
       superGauge = Math.min(100, superGauge + 15);
@@ -1950,6 +1975,7 @@
           Juice.triggerHitstop(60);
           playSfx('hit');
           popupMgr.add('SHORYUKEN! 🐉', enemy.x, enemy.y - 20, '#EF4444', 24);
+          checkVictory();
         }
       } else {
         playSfx('whoosh');
@@ -1958,8 +1984,50 @@
           cameraShake.addTrauma(0.5);
           Juice.triggerHitstop(40);
           playSfx('hit');
+          checkVictory();
         }
       }
+      updateHUD();
+    }
+
+    function checkVictory() {
+      if (phase !== 'playing' || enemy.hp > 0) return;
+      playSfx('win');
+      fireballs.length = 0;
+      if (matchIdx < OPPONENTS.length - 1) {
+        matchIdx++;
+        enemy.hp = OPPONENTS[matchIdx].hp;
+        enemy.maxHp = enemy.hp;
+        enemy.aiTimer = 0;
+        ryu.hp = Math.min(100, ryu.hp + 20);
+        const message = 'K.O! Tiến vào trận ' + (matchIdx + 1) + ' với ' + OPPONENTS[matchIdx].name + '!';
+        const status = container.querySelector('#sfStatus');
+        if (status) status.textContent = message;
+        popupMgr.add(message, W / 2, H / 2, '#FBBF24', 24);
+      } else {
+        phase = 'won';
+        const status = container.querySelector('#sfStatus');
+        if (status) status.textContent = 'Vô địch! Bấm Chơi lại giải đấu để thử sức lần nữa.';
+        popupMgr.add('VÔ ĐỊCH GIẢI ĐẤU STREET FIGHTER II!', W / 2, H / 2, '#FBBF24', 28);
+      }
+      updateHUD();
+    }
+
+    function restartTournament() {
+      phase = 'playing';
+      matchIdx = 0;
+      superGauge = 0;
+      ryu.hp = 100;
+      ryu.state = 'idle';
+      ryu.animTimer = 0;
+      ryu.vy = 0;
+      ryu.y = 260;
+      enemy.hp = OPPONENTS[0].hp;
+      enemy.maxHp = enemy.hp;
+      enemy.aiTimer = 0;
+      fireballs.length = 0;
+      const status = container.querySelector('#sfStatus');
+      if (status) status.textContent = 'Giải đấu mới bắt đầu.';
       updateHUD();
     }
 
@@ -1971,6 +2039,7 @@
     bind('#sfKick', () => ryuAttack('kick'));
     bind('#sfHadouken', () => ryuAttack('hadouken'));
     bind('#sfShoryuken', () => ryuAttack('shoryuken'));
+    bind('#sfRestart', restartTournament);
 
     function updateHUD() {
       const mEl = container.querySelector('#sfMatch');
@@ -1984,14 +2053,17 @@
     }
 
     let animId = null;
-    function loop() {
-      if (ryu.state === 'idle') {
-        if (keys['ArrowLeft'] || keys['KeyA']) ryu.x = Math.max(40, ryu.x - 3.5);
-        if (keys['ArrowRight'] || keys['KeyD']) ryu.x = Math.min(W - 80, ryu.x + 3.5);
+    function loop(timestamp) {
+      const dt = lastFrameTime ? Math.min(2, Math.max(0, (timestamp - lastFrameTime) / (1000 / 60))) : 1;
+      lastFrameTime = timestamp || 0;
+      if (phase === 'playing' && ryu.state === 'idle') {
+        if (keys['ArrowLeft'] || keys['KeyA']) ryu.x = Math.max(40, ryu.x - 3.5 * dt);
+        if (keys['ArrowRight'] || keys['KeyD']) ryu.x = Math.min(W - 80, ryu.x + 3.5 * dt);
       }
 
-      ryu.vy += 0.7;
-      ryu.y += ryu.vy;
+      if (phase === 'playing') {
+      ryu.vy += 0.7 * dt;
+      ryu.y += ryu.vy * dt;
       if (ryu.y >= 260) {
         ryu.y = 260;
         ryu.vy = 0;
@@ -1999,16 +2071,21 @@
       }
 
       if (ryu.animTimer > 0) {
-        ryu.animTimer--;
+        ryu.animTimer -= dt;
         if (ryu.animTimer <= 0) ryu.state = 'idle';
       }
 
       // Enemy AI
-      enemy.aiTimer++;
-      if (enemy.aiTimer > 75) {
+      enemy.aiTimer += dt;
+      if (enemy.aiTimer > Math.max(35, 75 - matchIdx * 15)) {
         enemy.aiTimer = 0;
         if (Math.abs(enemy.x - ryu.x) < 80) {
-          ryu.hp = Math.max(0, ryu.hp - 12);
+          ryu.hp = Math.max(0, ryu.hp - (12 + 3 * matchIdx));
+          if (ryu.hp <= 0) {
+            phase = 'lost';
+            const status = container.querySelector('#sfStatus');
+            if (status) status.textContent = 'Bạn đã thua. Bấm Chơi lại giải đấu để thử lại.';
+          }
           cameraShake.addTrauma(0.5);
           playSfx('hit');
           updateHUD();
@@ -2018,7 +2095,7 @@
       // Fireballs
       for (let fi = fireballs.length - 1; fi >= 0; fi--) {
         const fb = fireballs[fi];
-        fb.x += fb.vx;
+        fb.x += fb.vx * dt;
         if (fb.x > enemy.x && fb.x < enemy.x + enemy.w) {
           enemy.hp = Math.max(0, enemy.hp - fb.damage);
           cameraShake.addTrauma(fb.isSuper ? 1.0 : 0.6);
@@ -2028,22 +2105,13 @@
           fireballs.splice(fi, 1);
           updateHUD();
 
-          if (enemy.hp <= 0) {
-            playSfx('win');
-            if (matchIdx < OPPONENTS.length - 1) {
-              matchIdx++;
-              enemy.hp = OPPONENTS[matchIdx].hp;
-              enemy.maxHp = enemy.hp;
-              popupMgr.add(`K.O! BƯỚC VÀO TRẬN ĐẤU ${OPPONENTS[matchIdx].name}! 🏆`, W / 2, H / 2, '#FBBF24', 24);
-            } else {
-              popupMgr.add('VÔ ĐỊCH GIẢI ĐẤU STREET FIGHTER II! 👑', W / 2, H / 2, '#FBBF24', 28);
-            }
-          }
+          checkVictory();
           continue;
         }
         if (fb.x > W) fireballs.splice(fi, 1);
       }
 
+      }
       // RENDER
       const offset = cameraShake.getOffset(12);
       ctx.save();
@@ -2861,6 +2929,7 @@
           <div class="hud-pill" style="font-family: Calibri, sans-serif;">Máu Simon: <span id="rwSimonHp" style="color: #10B981; font-weight: bold;">100%</span></div>
           <div class="hud-pill" style="font-family: Calibri, sans-serif;">Địch: <span id="rwEnemyHp" style="color: #EF4444; font-weight: bold;">100%</span></div>
           <div class="hud-pill" style="font-family: Calibri, sans-serif;">Vàng: <span id="rwGold" style="color: #FBBF24; font-weight: bold;">0g</span></div>
+          <button id="rwRestart" class="btn-canvas-action">Chơi lại từ trận 1</button>
         </div>
 
         <div style="position: relative; display: flex; justify-content: center; cursor: crosshair;">
@@ -2869,8 +2938,9 @@
 
         <div class="canvas-controls-bar">
           <p style="font-size: 13px; color: var(--text-secondary); margin: 0; font-family: Calibri, sans-serif;">
-            👉 <strong>Cách ngắm:</strong> Kéo chuột/ngón tay để căn Góc & Lực bắn pháo quỹ đạo Parabol!
+            <strong>Cách ngắm:</strong> Kéo chuột hoặc ngón tay để chỉnh góc và lực, thả để bắn.
           </p>
+          <p id="rwStatus" role="status" aria-live="polite" style="font-weight:bold;color:var(--text-main);margin:0"></p>
         </div>
       </div>
     `;
@@ -2892,36 +2962,57 @@
     let gold = 0;
     let simonHp = 100;
     let enemyHp = 60;
-    let turn = 'player'; // 'player', 'enemy'
+    let turn = 'player'; // player, enemy, won, lost
+    let lastFrameTime = 0;
 
     let isAiming = false;
     let aimAngle = 45;
     let aimPower = 12;
     let projectile = null;
 
-    canvas.addEventListener('mousedown', e => {
-      if (turn === 'player' && !projectile) isAiming = true;
+    canvas.style.touchAction = 'none';
+    listen(canvas, 'pointerdown', e => {
+      if (turn !== 'player' || projectile) return;
+      e.preventDefault();
+      isAiming = true;
+      if (canvas.setPointerCapture && e.pointerId !== undefined) {
+        try { canvas.setPointerCapture(e.pointerId); } catch (error) {}
+      }
     });
-
-    canvas.addEventListener('mousemove', e => {
+    listen(canvas, 'pointermove', e => {
       if (!isAiming) return;
+      e.preventDefault();
       const rect = canvas.getBoundingClientRect();
       const mx = (e.clientX - rect.left) * (W / rect.width);
       const my = (e.clientY - rect.top) * (H / rect.height);
       const dx = mx - 100;
       const dy = 280 - my;
-      aimAngle = Math.atan2(dy, dx);
-      aimPower = Math.min(20, Math.hypot(dx, dy) * 0.12);
+      aimAngle = Math.max(0.1, Math.min(Math.PI * 0.48, Math.atan2(dy, Math.max(1, dx))));
+      aimPower = Math.max(7, Math.min(20, Math.hypot(dx, dy) * 0.12));
     });
-
-    canvas.addEventListener('mouseup', () => {
-      if (isAiming) {
-        isAiming = false;
-        firePlayer();
-      }
+    listen(canvas, 'pointerup', e => {
+      if (!isAiming) return;
+      e.preventDefault();
+      isAiming = false;
+      firePlayer();
+    });
+    listen(canvas, 'pointercancel', () => { isAiming = false; });
+    listen(window, 'blur', () => { isAiming = false; });
+    listen(container.querySelector('#rwRestart'), 'click', () => {
+      battleIdx = 0;
+      gold = 0;
+      simonHp = 100;
+      enemyHp = BATTLES[0].enemyHp;
+      projectile = null;
+      isAiming = false;
+      turn = 'player';
+      const status = container.querySelector('#rwStatus');
+      if (status) status.textContent = 'Trận mới bắt đầu. Chạm hoặc kéo để ngắm.';
+      updateHUD();
     });
 
     function firePlayer() {
+      if (turn !== 'player' || projectile) return;
       projectile = {
         x: 100,
         y: 280,
@@ -2933,6 +3024,7 @@
     }
 
     function fireEnemy() {
+      if (turn !== 'enemy' || projectile) return;
       const targetX = 100;
       const dist = W - 180 - targetX;
       projectile = {
@@ -2957,12 +3049,14 @@
     }
 
     let animId = null;
-    function loop() {
-      // Projectile Parabolic Physics
-      if (projectile) {
-        projectile.vy += 0.35; // Gravity
-        projectile.x += projectile.vx;
-        projectile.y += projectile.vy;
+    function loop(timestamp) {
+      const dt = lastFrameTime ? Math.min(2, Math.max(0, (timestamp - lastFrameTime) / (1000 / 60))) : 1;
+      lastFrameTime = timestamp || 0;
+      // Projectile physics is proportional to elapsed time, not screen refresh rate.
+      if (projectile && (turn === 'player' || turn === 'enemy')) {
+        projectile.vy += 0.35 * dt;
+        projectile.x += projectile.vx * dt;
+        projectile.y += projectile.vy * dt;
 
         // Splash into water
         if (projectile.y > 330) {
@@ -2988,20 +3082,33 @@
               if (battleIdx < BATTLES.length - 1) {
                 battleIdx++;
                 enemyHp = BATTLES[battleIdx].enemyHp;
-                popupMgr.add(`THẮNG TRẬN! TIẾN VÀO ${BATTLES[battleIdx].name}! 🏆`, W / 2, H / 2, '#FBBF24', 24);
+                simonHp = Math.min(100, simonHp + 15);
+                turn = 'player';
+                const status = container.querySelector('#rwStatus');
+                if (status) status.textContent = 'Thắng trận! Bắt đầu ' + BATTLES[battleIdx].name + '.';
+                popupMgr.add('THẮNG TRẬN! TIẾN VÀO ' + BATTLES[battleIdx].name + '!', W / 2, H / 2, '#FBBF24', 24);
               } else {
-                popupMgr.add('CHIẾN THẮNG TRỌN BỘ RAFT WARS! 👑', W / 2, H / 2, '#FBBF24', 28);
+                turn = 'won';
+                const status = container.querySelector('#rwStatus');
+                if (status) status.textContent = 'Hoàn thành cả 4 trận! Bấm Chơi lại để bắt đầu giải đấu mới.';
+                popupMgr.add('CHIẾN THẮNG TRỌN BỘ RAFT WARS!', W / 2, H / 2, '#FBBF24', 28);
               }
             } else {
               turn = 'enemy';
               setTimeout(fireEnemy, 1000);
             }
           } else if (projectile.isEnemy && projectile.x < 120 && projectile.y > 250) {
-            simonHp -= 25;
+            simonHp = Math.max(0, simonHp - (25 + battleIdx * 3));
             cameraShake.addTrauma(0.6);
             playSfx('hit');
             projectile = null;
-            turn = 'player';
+            if (simonHp <= 0) {
+              turn = 'lost';
+              const status = container.querySelector('#rwStatus');
+              if (status) status.textContent = 'Thất bại. Bấm Chơi lại từ trận 1 để thử lại.';
+            } else {
+              turn = 'player';
+            }
           }
         }
       }
@@ -3055,6 +3162,14 @@
 
       particleSys.updateAndDraw(ctx);
       popupMgr.updateAndDraw(ctx);
+      if (turn === 'won' || turn === 'lost') {
+        ctx.fillStyle = 'rgba(15,23,42,0.82)';
+        ctx.fillRect(90, 148, 460, 95);
+        ctx.fillStyle = '#FFF';
+        ctx.font = 'bold 26px Calibri, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(turn === 'won' ? 'CHIẾN THẮNG!' : 'THẤT BẠI', W / 2, 202);
+      }
       ctx.restore();
 
       animId = requestAnimationFrame(loop);

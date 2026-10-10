@@ -7817,7 +7817,8 @@ function launchDoMin(container, game) {
   const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
   const ROWS = 9;
   const COLS = 9;
-  const MINES = 10;
+  let MINES = 10;
+  let stage = 1;
 
   let grid = [];
   let flags = [];
@@ -7840,6 +7841,8 @@ function launchDoMin(container, game) {
     grid = Array(ROWS).fill(null).map(() => Array(COLS).fill(0));
     flags = Array(ROWS).fill(null).map(() => Array(COLS).fill(false));
     revealed = Array(ROWS).fill(null).map(() => Array(COLS).fill(false));
+    const nextBtn = container.querySelector('#dmNextBtn');
+    if (nextBtn) nextBtn.style.display = 'none';
     updateHUD();
     renderBoard();
   }
@@ -7848,10 +7851,11 @@ function launchDoMin(container, game) {
     <div style="background: #C0C0C0; padding: 14px; border: 3px solid #FFF; border-right-color: #808080; border-bottom-color: #808080; border-radius: 4px; max-width: 400px; margin: 0 auto; user-select: none; font-family: Calibri, 'Segoe UI', sans-serif;">
       <div style="display: flex; justify-content: space-between; align-items: center; background: #C0C0C0; border: 2px solid #808080; border-right-color: #FFF; border-bottom-color: #FFF; padding: 6px 14px; margin-bottom: 10px;">
         <div id="dmMineCount" style="background: #000; color: #EF4444; font-family: monospace; font-size: 1.6rem; font-weight: 900; padding: 2px 8px; border-radius: 2px; letter-spacing: 2px;">010</div>
-        <button id="dmFaceBtn" style="font-size: 1.7rem; background: #C0C0C0; border: 2.5px solid #FFF; border-right-color: #808080; border-bottom-color: #808080; cursor: pointer; padding: 0 6px; border-radius: 4px; touch-action: manipulation;">🙂</button>
+        <button id="dmFaceBtn" aria-label="Chơi lại màn hiện tại" style="font-size: 1.7rem; background: #C0C0C0; border: 2.5px solid #FFF; border-right-color: #808080; border-bottom-color: #808080; cursor: pointer; padding: 0 6px; border-radius: 4px; touch-action: manipulation;">🙂</button>
         <div id="dmTimer" style="background: #000; color: #EF4444; font-family: monospace; font-size: 1.6rem; font-weight: 900; padding: 2px 8px; border-radius: 2px; letter-spacing: 2px;">000</div>
       </div>
 
+      <div style="font-weight:700;color:#1E293B;margin:0 0 8px;text-align:center">Màn <span id="dmStage">1</span> • Số mìn tăng sau mỗi lần thắng</div>
       <div id="dmGrid" style="display: grid; grid-template-columns: repeat(9, 1fr); gap: 1px; background: #808080; border: 3px solid #808080; border-right-color: #FFF; border-bottom-color: #FFF; padding: 1px;"></div>
 
       <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
@@ -7859,6 +7863,7 @@ function launchDoMin(container, game) {
           🚩 Chế độ cắm cờ: <span id="dmFlagStatus">TẮT</span>
         </button>
         <small style="color: #1E293B; font-weight: 600;">Chuột phải / Bấm cờ • Bấm ô số để mở nhanh (Chord)</small>
+        <button id="dmNextBtn" class="btn-canvas-action" style="display:none;background:#047857;color:white">Sang màn tiếp theo →</button>
       </div>
     </div>
   `;
@@ -7869,6 +7874,13 @@ function launchDoMin(container, game) {
   const timerEl = container.querySelector('#dmTimer');
   const flagToggleBtn = container.querySelector('#dmFlagToggleBtn');
   const flagStatusEl = container.querySelector('#dmFlagStatus');
+  const nextBtn = container.querySelector('#dmNextBtn');
+  nextBtn?.addEventListener('click', () => {
+    if (!gameWon) return;
+    stage++;
+    MINES = Math.min(25, 10 + (stage - 1) * 2);
+    initBoard();
+  });
 
   flagToggleBtn?.addEventListener('click', () => {
     flagMode = !flagMode;
@@ -7982,6 +7994,7 @@ function launchDoMin(container, game) {
     if (unrevealedSafe === 0) {
       gameWon = true;
       clearInterval(timerInterval);
+      if (nextBtn) nextBtn.style.display = 'inline-flex';
       if (window.NP_Juice) NP_Juice.vibrate.success();
       AudioEngine.win();
       updateHUD();
@@ -7993,6 +8006,8 @@ function launchDoMin(container, game) {
     flags.forEach(row => row.forEach(f => { if (f) flagsCount++; }));
     if (mineCountEl) mineCountEl.textContent = String(Math.max(0, MINES - flagsCount)).padStart(3, '0');
     if (timerEl) timerEl.textContent = String(Math.min(999, timer)).padStart(3, '0');
+    const stageEl = container.querySelector('#dmStage');
+    if (stageEl) stageEl.textContent = stage;
     if (faceBtn) {
       if (gameWon) faceBtn.textContent = '😎';
       else if (gameOver) faceBtn.textContent = '😵';
@@ -8007,7 +8022,12 @@ function launchDoMin(container, game) {
 
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
-        const cell = document.createElement('div');
+        const cell = document.createElement('button');
+        cell.type = 'button';
+        cell.setAttribute('aria-label', revealed[r][c]
+          ? (grid[r][c] === 9 ? 'Mìn' : 'Ô ' + grid[r][c])
+          : (flags[r][c] ? 'Ô đã cắm cờ' : 'Ô chưa mở'));
+        cell.style.padding = '0';
         cell.style.aspectRatio = '1/1';
         cell.style.display = 'flex';
         cell.style.alignItems = 'center';
@@ -8050,9 +8070,9 @@ function launchDoMin(container, game) {
         cell.addEventListener('click', () => {
           if (gameOver || gameWon) return;
 
-          // If clicking an already revealed cell with numbers -> trigger Chord
-          if (revealed[r][c] && grid[r][c] > 0) {
-            chordCell(r, c);
+          // Revealed cells cannot be flagged, including cells with value zero.
+          if (revealed[r][c]) {
+            if (!flagMode && grid[r][c] > 0) chordCell(r, c);
             return;
           }
 
@@ -8740,6 +8760,11 @@ function launchPikachu(container, game) {
 
 
   function launchRetroArcade(container, game) {
+    // The fallback catalog should not collapse unrelated genres into one shooter.
+    if (window.NP_Archetypes && typeof window.NP_Archetypes.launch === 'function') {
+      window.NP_Archetypes.launch(container, game);
+      return;
+    }
     const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     let lives = 3;
     let level = 1;

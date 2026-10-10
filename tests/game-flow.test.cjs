@@ -111,7 +111,7 @@ function harness({ loadEngines = true, loadApp = true } = {}) {
   }));
   const run = file => vm.runInContext(read(file), context, { filename: file });
   run('scripts/game-session.js'); run('scripts/game-feel.js');
-  if (loadEngines) for (const file of ['engines.js', 'engines-classics.js', 'engines-popcap.js', 'engines-retro50.js']) run('scripts/' + file);
+  if (loadEngines) for (const file of ['engines.js', 'engines-classics.js', 'engines-popcap.js', 'engines-retro50.js', 'engines-archetypes.js']) run('scripts/' + file);
   if (loadApp) vm.runInContext(read('app.js').replace('let allGames = [];', 'let allGames = globalThis.__testGames;'), context, { filename: 'app.js' });
   return {
     context, window, document, timers, frames, errors, vibrations, stored,
@@ -311,4 +311,128 @@ test('malformed catalog ID falls back safely instead of throwing before cleanup'
     h.context.closeGameModal(); assertStopped(h);
     assert.equal(h.errors.length, 0);
   } finally { games.pop(); }
+});
+
+
+test('fallback catalog has real, distinct genre loops and closes resources safely', () => {
+  const h = harness();
+  let count = 0;
+  const found = new Set();
+  for (const game of games) {
+    h.context.openGameById(game.id);
+    const canvas = h.container.querySelector('#arcCanvas');
+    if (canvas) {
+      count++;
+      const kind = h.context.NP_Archetypes.kindFor(game);
+      found.add(kind);
+      assert.ok(h.container.querySelector('#arcProgress'), game.id + ' has stage goal');
+      assert.ok(h.container.querySelector('#arcRestart'), game.id + ' can restart');
+      assert.ok(h.container.querySelector('#arcPause'), game.id + ' can pause');
+      h.frame(); h.frame();
+    }
+    h.context.closeGameModal();
+    assertStopped(h);
+    assert.equal(h.errors.length, 0, game.id + ': ' + h.errors.join('; '));
+  }
+  assert.equal(count, 86, 'every currently generic catalog entry uses a playable archetype');
+  assert.deepEqual([...found].sort(), ['duel', 'management', 'puzzle', 'quiz', 'reflex', 'runner', 'shooter']);
+});
+
+test('fallback puzzle, reflex, management and quiz advance to stage two', () => {
+  function setup(id) {
+    const h = harness();
+    vm.runInContext('Math.random = () => 0;', h.context);
+    assert.equal(h.context.openGameById(id), true);
+    return { h, get: selector => h.container.querySelector(selector) };
+  }
+  let { h, get } = setup('lemonade-tycoon');
+  for (let i = 0; i < 6; i++) get('#arcAction').dispatch('pointerdown');
+  assert.equal(get('#arcLevel').textContent, 2, 'management advances after enough correct orders');
+  h.context.closeGameModal(); assertStopped(h);
+
+  ({ h, get } = setup('dap-chuot-chui'));
+  for (let i = 0; i < 6; i++) get('#arcCanvas').dispatch('pointerdown', { clientX: 70, clientY: 102 });
+  assert.equal(get('#arcLevel').textContent, 2, 'reflex advances after hitting targets');
+  h.context.closeGameModal(); assertStopped(h);
+
+  ({ h, get } = setup('xep-bai-solitaire'));
+  const cards = [0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5];
+  for (let i = cards.length - 1; i > 0; i--) [cards[i], cards[0]] = [cards[0], cards[i]];
+  for (const value of new Set(cards)) {
+    for (const index of cards.flatMap((c, i) => c === value ? [i] : [])) {
+      const x = 186.5 + index % 4 * 69 + 20;
+      const y = (72 + Math.floor(index / 4) * 69 + 20) * (480 / 400);
+      get('#arcCanvas').dispatch('pointerdown', { clientX: x, clientY: y });
+    }
+  }
+  assert.equal(get('#arcLevel').textContent, 2, 'puzzle advances only after clearing all pairs');
+  h.context.closeGameModal(); assertStopped(h);
+
+  ({ h, get } = setup('ai-la-trieu-phu'));
+  const answers = [2, 2, 1, 1, 0, 2];
+  let selected = 0;
+  for (const answer of answers) {
+    while (selected !== answer) {
+      get('#arcRight').dispatch('pointerdown');
+      selected = (selected + 1) % 4;
+    }
+    get('#arcAction').dispatch('pointerdown');
+  }
+  assert.equal(get('#arcLevel').textContent, 2, 'quiz advances after six correct answers');
+  h.context.closeGameModal(); assertStopped(h);
+});
+
+test('fallback action genres stay frame-driven and progress across stages', () => {
+  function setup(id) {
+    const h = harness();
+    vm.runInContext('Math.random = () => 0;', h.context);
+    h.context.openGameById(id);
+    return h;
+  }
+  let h = setup('crossy-road');
+  for (let i = 0; i < 1200; i++) h.frame();
+  assert.ok(+h.container.querySelector('#arcLevel').textContent >= 2, 'runner advances by avoiding hazards');
+  h.context.closeGameModal(); assertStopped(h);
+
+  h = setup('asteroids-tau-ban-thien-thach');
+  h.container.querySelector('#arcCanvas').dispatch('pointerdown', { clientX: 28, clientY: 330 });
+  h.window.dispatch('keydown', { key: ' ', code: 'Space' });
+  for (let i = 0; i < 1200; i++) h.frame();
+  assert.ok(+h.container.querySelector('#arcLevel').textContent >= 2, 'shooter advances when enemies are destroyed');
+  h.context.closeGameModal(); assertStopped(h);
+
+  h = setup('electric-man-2-vo-thuat-nguoi-que');
+  for (let i = 0; i < 6; i++) {
+    h.container.querySelector('#arcAction').dispatch('pointerdown');
+    for (let f = 0; f < 30; f++) h.frame();
+  }
+  assert.equal(h.container.querySelector('#arcLevel').textContent, 2, 'duel advances after enemy defeat');
+  h.context.closeGameModal(); assertStopped(h);
+});
+
+test('Minesweeper has progressive boards, Street Fighter rematch and Raft Wars pointer aiming', () => {
+  const h = harness();
+  h.context.openGameById('do-min-minesweeper');
+  assert.ok(h.container.querySelector('#dmStage'));
+  assert.ok(h.container.querySelector('#dmNextBtn'));
+  assert.ok(h.container.querySelector('#dmGrid').children.length === 81);
+  h.context.closeGameModal(); assertStopped(h);
+
+  h.context.openGameById('street-fighter-2-doi-khang');
+  assert.ok(h.container.querySelector('#sfRestart'));
+  assert.ok(h.container.querySelector('#sfLeft'));
+  h.window.dispatch('keydown', { code: 'KeyL', key: 'l' });
+  h.frame(); h.frame();
+  assert.equal(h.errors.length, 0);
+  h.context.closeGameModal(); assertStopped(h);
+
+  h.context.openGameById('raft-wars-ban-sung-phao');
+  assert.ok(h.container.querySelector('#rwRestart'));
+  const canvas = h.container.querySelector('#rwCanvas');
+  canvas.dispatch('pointerdown', { clientX: 220, clientY: 180 });
+  canvas.dispatch('pointermove', { clientX: 260, clientY: 140 });
+  canvas.dispatch('pointerup', { clientX: 260, clientY: 140 });
+  h.frame(); h.frame();
+  assert.equal(h.errors.length, 0);
+  h.context.closeGameModal(); assertStopped(h);
 });

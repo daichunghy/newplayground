@@ -499,6 +499,9 @@
     let score = 0;
     let coins = 0;
     let lives = 3;
+    let stage = 1;
+    let transitioning = false;
+    let gameOver = false;
     let animId = null;
 
     if (window.NP_Audio && typeof window.NP_Audio.startBGM === 'function') {
@@ -511,11 +514,13 @@
           <div class="hud-pill">Mạng: <span id="mrLives" style="color: #EF4444;">❤️❤️❤️</span></div>
           <div class="hud-pill">Xu: <span id="mrCoins" style="color: #F59E0B;">0</span></div>
           <div class="hud-pill">Điểm: <span id="mrScore" style="color: #10B981;">0</span></div>
-          <div class="hud-pill">Màn: <span id="mrStage" style="color: #38BDF8;">1-1</span></div>
+          <div class="hud-pill">Màn: <span id="mrStage" style="color: #38BDF8;">1</span></div>
+          <button id="mrRestart" class="btn-canvas-action">Chơi lại từ màn 1</button>
         </div>
         <canvas id="mrCanvas" width="480" height="320" class="canvas-main-viewport" style="background: #5c94fc; display: block; margin: 0 auto;"></canvas>
         <div class="canvas-controls-bar" style="font-family: Calibri, sans-serif;">
-          <small style="color: #FFF;">🍄 [A][D] hoặc Phím mũi tên: Di chuyển • [W] / [Space] / Nút Nhảy: Nhảy đạp quái</small>
+          <small style="color: #FFF;">[A][D] hoặc Mũi tên để đi • [W], Space hoặc nút Nhảy để nhảy. Tới cột cờ để sang màn khó hơn.</small>
+          <small id="mrStatus" role="status" aria-live="polite" style="color:#FBBF24"></small>
         </div>
         <div class="virtual-dpad-row" style="margin-top: 8px;">
           <button class="v-btn" id="mrLeft">◀ Trái</button>
@@ -556,6 +561,7 @@
     let flagpole = { x: 1800, y: 60, h: 200 };
 
     function initLevel() {
+      transitioning = false;
       cameraX = 0;
       screenShake = 0;
       player.x = 40;
@@ -575,7 +581,8 @@
       // Ground segments
       blocks.push({ x: 0, y: 260, w: 700, h: 60, type: 'ground', bumpY: 0 });
       blocks.push({ x: 760, y: 260, w: 500, h: 60, type: 'ground', bumpY: 0 });
-      blocks.push({ x: 1320, y: 260, w: 700, h: 60, type: 'ground', bumpY: 0 });
+      blocks.push({ x: 1320, y: 260, w: 700 + (stage - 1) * 110, h: 60, type: 'ground', bumpY: 0 });
+      flagpole.x = 1800 + (stage - 1) * 100;
 
       // Pipes
       blocks.push({ x: 260, y: 220, w: 36, h: 40, type: 'pipe', bumpY: 0 });
@@ -600,6 +607,13 @@
         { x: 1100, y: 242, w: 18, h: 18, vx: -1, alive: true, squashedTimer: 0 },
         { x: 1500, y: 242, w: 18, h: 18, vx: -1, alive: true, squashedTimer: 0 }
       ];
+      // Later stages feature faster opponents and extra patrols near the finish.
+      for (const enemy of enemies) enemy.vx *= 1 + Math.min(10, stage - 1) * 0.075;
+      for (let i = 0; i < Math.min(8, stage - 1); i++) {
+        enemies.push({ x: 1575 + i * 85, y: 242, w: 18, h: 18,
+          vx: -1.1 - stage * 0.08, alive: true, squashedTimer: 0 });
+      }
+      refreshHUD();
     }
 
     const keys = {};
@@ -620,28 +634,52 @@
     listen(window, 'keydown', keyHandlerDown);
     listen(window, 'keyup', keyHandlerUp);
 
-    // Touch Controls
-    container.querySelector('#mrLeft')?.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowLeft'] = true; });
-    container.querySelector('#mrLeft')?.addEventListener('touchend', (e) => { e.preventDefault(); keys['ArrowLeft'] = false; });
-    container.querySelector('#mrRight')?.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowRight'] = true; });
-    container.querySelector('#mrRight')?.addEventListener('touchend', (e) => { e.preventDefault(); keys['ArrowRight'] = false; });
-
-    container.querySelector('#mrJump')?.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      jumpBuffer = 7;
-      isJumpHeld = true;
+    // Unified pointer handling prevents duplicate mouse/touch activations.
+    [['#mrLeft', 'ArrowLeft'], ['#mrRight', 'ArrowRight'], ['#mrJump', 'Jump']].forEach(([selector, code]) => {
+      const button = container.querySelector(selector);
+      if (!button) return;
+      listen(button, 'pointerdown', e => {
+        e.preventDefault();
+        if (button.setPointerCapture && e.pointerId !== undefined) {
+          try { button.setPointerCapture(e.pointerId); } catch (error) {}
+        }
+        if (code === 'Jump') {
+          jumpBuffer = 7;
+          isJumpHeld = true;
+        } else keys[code] = true;
+      });
+      for (const eventName of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+        listen(button, eventName, () => {
+          if (code === 'Jump') isJumpHeld = false;
+          else keys[code] = false;
+        });
+      }
     });
-    container.querySelector('#mrJump')?.addEventListener('touchend', (e) => {
-      e.preventDefault();
-      isJumpHeld = false;
+    listen(window, 'blur', () => {
+      keys.ArrowLeft = false; keys.ArrowRight = false; isJumpHeld = false;
     });
-    container.querySelector('#mrJump')?.addEventListener('mousedown', () => {
-      jumpBuffer = 7;
-      isJumpHeld = true;
+    listen(window, 'pointerup', () => {
+      keys.ArrowLeft = false; keys.ArrowRight = false; isJumpHeld = false;
     });
-    listen(window, 'mouseup', () => { isJumpHeld = false; });
+    container.querySelector('#mrRestart')?.addEventListener('click', () => {
+      lives = 3; coins = 0; score = 0; stage = 1; gameOver = false;
+      initLevel();
+      const status = container.querySelector('#mrStatus');
+      if (status) status.textContent = 'Đã bắt đầu ván mới.';
+    });
+    function refreshHUD() {
+      const lEl = container.querySelector('#mrLives');
+      const cEl = container.querySelector('#mrCoins');
+      const sEl = container.querySelector('#mrScore');
+      const stEl = container.querySelector('#mrStage');
+      if (lEl) lEl.textContent = '❤️'.repeat(Math.max(0, lives));
+      if (cEl) cEl.textContent = coins;
+      if (sEl) sEl.textContent = score;
+      if (stEl) stEl.textContent = stage;
+    }
 
     function update() {
+      if (gameOver || transitioning) return;
       // Horizontal Momentum
       const leftPressed = keys['ArrowLeft'] || keys['a'] || keys['A'];
       const rightPressed = keys['ArrowRight'] || keys['d'] || keys['D'];
@@ -768,11 +806,13 @@
         screenShake = 12;
         AudioEngine.explosion();
         if (lives <= 0) {
-          lives = 3;
-          score = 0;
-          coins = 0;
+          gameOver = true;
+          const status = container.querySelector('#mrStatus');
+          if (status) status.textContent = 'Hết mạng. Bấm Chơi lại từ màn 1 để thử lại.';
+        } else {
+          initLevel();
         }
-        initLevel();
+        refreshHUD();
         return;
       }
 
@@ -791,7 +831,9 @@
       }
 
       // Enemies
+      let respawnPending = false;
       enemies.forEach(e => {
+        if (respawnPending) return;
         if (!e.alive) {
           if (e.squashedTimer > 0) e.squashedTimer--;
           return;
@@ -830,21 +872,30 @@
             if (window.NP_Juice) window.NP_Juice.vibrate([30, 60]);
             AudioEngine.explosion();
             if (lives <= 0) {
-              lives = 3;
-              score = 0;
-              coins = 0;
+              gameOver = true;
+              const status = container.querySelector('#mrStatus');
+              if (status) status.textContent = 'Hết mạng. Bấm Chơi lại để thử lại.';
+            } else {
+              initLevel();
             }
-            initLevel();
+            refreshHUD();
+            respawnPending = true;
           }
         }
       });
+      if (respawnPending) return;
 
       // Win flagpole
-      if (player.x >= flagpole.x) {
+      if (player.x >= flagpole.x && !transitioning) {
+        transitioning = true; // Prevent one victory and +1000 points per animation frame.
         AudioEngine.win();
         score += 1000;
         particles.push({ x: flagpole.x, y: 100, vy: -2, text: 'STAGE CLEAR! +1000' });
-        setTimeout(() => initLevel(), 800);
+        const status = container.querySelector('#mrStatus');
+        if (status) status.textContent = 'Hoàn thành màn ' + stage + '! Màn tiếp theo khó hơn.';
+        refreshHUD();
+        setTimeout(() => { stage++; initLevel(); }, 800);
+        return;
       }
 
       // Floating text particles
@@ -854,13 +905,7 @@
         if (particles[i].y < -20 || particles[i].vy > 2) particles.splice(i, 1);
       }
 
-      // Update HUD
-      const lEl = container.querySelector('#mrLives');
-      const cEl = container.querySelector('#mrCoins');
-      const sEl = container.querySelector('#mrScore');
-      if (lEl) lEl.textContent = '❤️'.repeat(Math.max(0, lives));
-      if (cEl) cEl.textContent = coins;
-      if (sEl) sEl.textContent = score;
+      refreshHUD();
     }
 
     function draw() {
@@ -1007,10 +1052,30 @@
       });
 
       ctx.restore();
+      if (gameOver) {
+        ctx.fillStyle = 'rgba(15,23,42,0.8)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#FFF';
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 24px Calibri, sans-serif';
+        ctx.fillText('HẾT MẠNG', canvas.width / 2, 148);
+        ctx.font = '16px Calibri, sans-serif';
+        ctx.fillText('Bấm Chơi lại để bắt đầu lại', canvas.width / 2, 180);
+      }
     }
 
-    function loop() {
-      update();
+    // Fixed 60 Hz simulation keeps gameplay speed consistent on 60/90/120 Hz screens.
+    let lastFrameTime = 0;
+    let elapsedAccumulator = 0;
+    function loop(timestamp) {
+      if (lastFrameTime) elapsedAccumulator += Math.min(100, Math.max(0, timestamp - lastFrameTime));
+      lastFrameTime = timestamp || 0;
+      let steps = 0;
+      while (elapsedAccumulator >= 1000 / 60 && steps < 4) {
+        update();
+        elapsedAccumulator -= 1000 / 60;
+        steps++;
+      }
       draw();
       animId = requestAnimationFrame(loop);
     }
