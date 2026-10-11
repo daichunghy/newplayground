@@ -227,6 +227,73 @@
     }
   }
 
+  // Classic Piano Tiles mode: hit only black keys, clear 50 notes as quickly
+  // as possible, and lose on a white-key hit or a tile that reaches the floor.
+  const PIANO_TILES = Object.freeze({ width: 480, height: 780, columns: 4, rowsVisible: 6, cellHeight: 130, total: 50 });
+
+  function pianoRandom(state) {
+    state.rng = (Math.imul(state.rng, 1664525) + 1013904223) >>> 0;
+    return state.rng / 0x100000000;
+  }
+
+  function pianoSpeed(score) { return Math.min(360, 145 + Math.floor(score / 8) * 24); }
+
+  function pianoSpawn(state, y) {
+    let lane = Math.floor(pianoRandom(state) * PIANO_TILES.columns);
+    for (let attempt = 0; lane === state.lastLane && attempt < 3; attempt++) lane = Math.floor(pianoRandom(state) * PIANO_TILES.columns);
+    state.lastLane = lane;
+    state.rows.push({ id: state.nextId++, lane, y });
+    state.generated++;
+  }
+
+  function createPianoTilesState(seed = 0x2014) {
+    const state = { rng: (Number(seed) >>> 0) || 1, phase: 'ready', score: 0, elapsed: 0,
+      generated: 0, nextId: 1, spawnRemaining: PIANO_TILES.cellHeight / pianoSpeed(0),
+      rows: [], lastEvent: null, reason: null };
+    for (let row = 0; row < PIANO_TILES.rowsVisible; row++) pianoSpawn(state, row * PIANO_TILES.cellHeight);
+    return state;
+  }
+
+  function pianoEnd(state, reason) {
+    if (!['ready', 'playing'].includes(state.phase)) return;
+    state.phase = reason === 'complete' ? 'won' : 'over';
+    state.reason = reason;
+    state.lastEvent = { type: reason === 'complete' ? 'complete' : 'mistake', reason, score: state.score };
+  }
+
+  function pianoTap(state, tileId, lane) {
+    if (!['ready', 'playing'].includes(state.phase)) return false;
+    if (state.phase === 'ready') state.phase = 'playing';
+    const index = state.rows.findIndex(row => row.id === tileId);
+    if (index < 0 || state.rows[index].lane !== lane) {
+      pianoEnd(state, 'white');
+      return false;
+    }
+    state.rows.splice(index, 1);
+    state.score++;
+    state.lastEvent = { type: 'note', lane, score: state.score };
+    if (state.score >= PIANO_TILES.total) pianoEnd(state, 'complete');
+    return true;
+  }
+
+  function pianoTick(state, dt = 1 / 60) {
+    const seconds = Math.min(0.05, Math.max(0, Number(dt) || 0));
+    if (!seconds || state.phase !== 'playing') return;
+    state.elapsed += seconds;
+    const speed = pianoSpeed(state.score);
+    for (const row of state.rows) row.y += speed * seconds;
+    if (state.rows.some(row => row.y >= PIANO_TILES.height)) {
+      pianoEnd(state, 'missed');
+      return;
+    }
+    state.spawnRemaining -= seconds;
+    if (state.spawnRemaining <= 0 && state.generated < PIANO_TILES.total) {
+      const top = state.rows.length ? Math.min(...state.rows.map(row => row.y)) : 0;
+      pianoSpawn(state, top - PIANO_TILES.cellHeight);
+      state.spawnRemaining += Math.max(0.32, PIANO_TILES.cellHeight / pianoSpeed(state.score));
+    }
+  }
+
   // Galaga-inspired fixed shooter. The 1981 Namco reference specifies about
   // forty enemies, three ranks, a two-shot cap, lateral movement, dives and
   // the Boss Galaga capture/rescue that unlocks a larger dual fighter.
@@ -531,6 +598,158 @@
     function frame(timestamp){const dt=lastFrame?Math.min(.05,Math.max(0,(timestamp-lastFrame)/1000)):1/60;lastFrame=timestamp;const prior=state.phase;if(!paused)asteroidTick(state,held,dt);setRecord();updateHud();if(state.score>lastScore){if(window.NP_Audio&&typeof window.NP_Audio.explosion==='function')window.NP_Audio.explosion(false);lastScore=state.score;}if(state.lastEvent&&state.lastEvent!==announcedEvent){announcedEvent=state.lastEvent;if(state.lastEvent.type==='lost-ship'){help.textContent=state.lives?'Tàu bị phá hủy · còn '+state.lives:'Mất tàu · Enter hoặc LẠI để thử lại';if(window.NP_Audio&&typeof window.NP_Audio.alarm==='function')window.NP_Audio.alarm();}if(state.lastEvent.type==='wave-start'){help.textContent='Làn sóng '+state.stage+' · tốc độ thiên thạch tăng';if(window.NP_Audio&&typeof window.NP_Audio.win==='function')window.NP_Audio.win();}}if(state.phase!==prior&&state.phase==='over')help.textContent='Mất tàu · Enter hoặc LẠI để thử lại';draw();raf=session.requestAnimationFrame(frame);}
     updateHud();draw();raf=session.requestAnimationFrame(frame);
     session.onCleanup(()=>{if(raf!==null)session.cancelAnimationFrame(raf);for(const key of Object.keys(held))held[key]=false;pointers.clear();setRecord();});
+  }
+
+  function launchPianoTiles(container, game) {
+    const session = window.NP_GameSession.start();
+    const { listen } = session;
+    const recordKey = 'np_piano_tiles_record_v1';
+    let state = createPianoTilesState((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0);
+    let bestScore = 0, fastest = 0, paused = false, raf = null, lastFrame = 0, announcedEvent = null;
+    try {
+      const record = JSON.parse(localStorage.getItem(recordKey) || '{}');
+      bestScore = Math.max(0, Number(record.score) || 0);
+      fastest = Math.max(0, Number(record.fastest) || 0);
+    } catch (error) {}
+    container.innerHTML = `
+      <style>
+        #gameModal:has(.np-piano-shell) .modal-window { width:min(98vw,620px); max-width:620px; min-width:0; }
+        #gameModal:has(.np-piano-shell) .modal-body,#gameModal:has(.np-piano-shell) .modal-title-group { min-width:0; }
+        .np-piano-shell { width:min(100%,500px); margin:auto; display:grid; justify-items:center; gap:8px; color:#16181b; font-family:Calibri,Inter,sans-serif; }
+        .np-piano-hud { width:min(100%,480px); display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px; color:#77766f; font-size:11px; letter-spacing:.1em; text-transform:uppercase; }
+        .np-piano-hud span:last-child { text-align:right; }
+        .np-piano-hud strong { display:block; color:#111317; font-size:18px; letter-spacing:0; font-variant-numeric:tabular-nums; }
+        .np-piano-board { display:block; width:min(100%,460px,calc((100dvh - 270px) * .6154)); height:auto; aspect-ratio:8/13; background:#e5e2da; border:1px solid #c8c2b5; border-radius:5px; touch-action:manipulation; }
+        .np-piano-controls { width:min(100%,460px); display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+        .np-piano-controls button { min-height:42px; border:1px solid #c6c0b4; border-radius:5px; background:#f3f0e8; color:#242529; font:700 12px Calibri,Inter,sans-serif; }
+        .np-piano-controls button:active { background:#e7d19b; }
+        .np-piano-controls button:focus-visible { outline:3px solid #c89942; outline-offset:2px; }
+        .np-piano-status { min-height:16px; margin:0; color:#74716a; text-align:center; font-size:12px; }
+        @media(max-width:700px) { .np-piano-board { width:min(100%,460px,calc((100dvh - 240px) * .6154)); } }
+        @media(max-width:560px) { .np-piano-shell { gap:6px; } .np-piano-hud { font-size:10px; } .np-piano-hud strong { font-size:16px; } .np-piano-controls { gap:6px; } }
+        @media(prefers-reduced-motion:reduce) { .np-piano-controls button { transition:none; } }
+      </style>
+      <section class="np-piano-shell" aria-label="Piano Tiles, chế độ 50 phím cổ điển">
+        <div class="np-piano-hud"><span>Điểm <strong id="ptScore">0/50</strong></span><span>Thời gian <strong id="ptTime">0.0</strong></span><span>Tốt nhất <strong id="ptBest">0</strong></span></div>
+        <canvas id="ptCanvas" class="np-piano-board" width="480" height="780" tabindex="0" aria-label="Chạm phím đen. Chạm phím trắng hoặc để phím đen rơi qua đáy sẽ kết thúc lượt chơi."></canvas>
+        <div class="np-piano-controls"><button type="button" id="ptPause" aria-label="Tạm dừng">DỪNG</button><button type="button" id="ptRestart" aria-label="Chơi lại">LẠI</button></div>
+        <p id="ptStatus" class="np-piano-status" role="status" aria-live="polite">Chạm phím đen · bàn phím D F J K</p>
+      </section>`;
+    const canvas = container.querySelector('#ptCanvas'), ctx = canvas.getContext('2d');
+    const scoreEl = container.querySelector('#ptScore'), timeEl = container.querySelector('#ptTime');
+    const bestEl = container.querySelector('#ptBest'), status = container.querySelector('#ptStatus');
+    const pauseButton = container.querySelector('#ptPause');
+    const keyLanes = { KeyD: 0, KeyF: 1, KeyJ: 2, KeyK: 3, Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3 };
+    const tones = [261.63, 293.66, 349.23, 392.0];
+
+    function saveRecord() {
+      let changed = false;
+      if (state.score > bestScore) { bestScore = state.score; changed = true; }
+      if (state.phase === 'won' && (!fastest || state.elapsed < fastest)) { fastest = state.elapsed; changed = true; }
+      if (changed) { try { localStorage.setItem(recordKey, JSON.stringify({ score: bestScore, fastest })); } catch (error) {} }
+    }
+    function reset() {
+      state = createPianoTilesState((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0);
+      paused = false; announcedEvent = null; lastFrame = 0;
+      pauseButton.textContent = 'DỪNG';
+      status.textContent = 'Chạm phím đen · bàn phím D F J K';
+      updateHud(); draw();
+    }
+    function updateHud() {
+      scoreEl.textContent = state.score + '/' + PIANO_TILES.total;
+      timeEl.textContent = state.elapsed.toFixed(1);
+      bestEl.textContent = fastest ? fastest.toFixed(1) + 's' : String(bestScore);
+    }
+    function draw() {
+      const cellWidth = PIANO_TILES.width / PIANO_TILES.columns;
+      ctx.fillStyle = '#d9d5cc'; ctx.fillRect(0, 0, PIANO_TILES.width, PIANO_TILES.height);
+      for (const row of state.rows) {
+        if (row.y < -PIANO_TILES.cellHeight || row.y > PIANO_TILES.height) continue;
+        for (let lane = 0; lane < PIANO_TILES.columns; lane++) {
+          const x = lane * cellWidth, y = row.y;
+          ctx.fillStyle = lane === row.lane ? '#111317' : '#faf8f2';
+          ctx.fillRect(x + 1, y + 1, cellWidth - 2, PIANO_TILES.cellHeight - 2);
+          if (lane === row.lane) {
+            ctx.fillStyle = 'rgba(255,255,255,.08)';
+            ctx.fillRect(x + 5, y + 5, cellWidth - 10, 3);
+          } else {
+            ctx.strokeStyle = '#d6d1c6'; ctx.lineWidth = 1;
+            ctx.strokeRect(x + 1.5, y + 1.5, cellWidth - 3, PIANO_TILES.cellHeight - 3);
+          }
+        }
+      }
+      ctx.strokeStyle = '#c4bdaF'; ctx.lineWidth = 2;
+      for (let col = 1; col < PIANO_TILES.columns; col++) ctx.beginPath(), ctx.moveTo(col * cellWidth, 0), ctx.lineTo(col * cellWidth, PIANO_TILES.height), ctx.stroke();
+      if (state.phase === 'ready') {
+        ctx.fillStyle = 'rgba(250,248,242,.9)'; ctx.fillRect(52, PIANO_TILES.height / 2 - 39, PIANO_TILES.width - 104, 78);
+        ctx.fillStyle = '#15171a'; ctx.textAlign = 'center'; ctx.font = '700 24px Calibri, sans-serif'; ctx.fillText('CHẠM PHÍM ĐEN', PIANO_TILES.width / 2, PIANO_TILES.height / 2 + 8);
+      } else if (state.phase === 'over' || state.phase === 'won' || paused) {
+        ctx.fillStyle = 'rgba(250,248,242,.92)'; ctx.fillRect(52, PIANO_TILES.height / 2 - 62, PIANO_TILES.width - 104, 124);
+        ctx.fillStyle = state.phase === 'over' ? '#a8443e' : '#15171a'; ctx.textAlign = 'center';
+        ctx.font = '700 27px Calibri, sans-serif';
+        ctx.fillText(paused ? 'TẠM DỪNG' : state.phase === 'won' ? 'HOÀN THÀNH' : state.reason === 'missed' ? 'BỎ LỠ PHÍM' : 'CHẠM PHÍM TRẮNG', PIANO_TILES.width / 2, PIANO_TILES.height / 2 - 7);
+        ctx.fillStyle = '#65615b'; ctx.font = '15px Calibri, sans-serif';
+        ctx.fillText(state.phase === 'won' ? '50 phím · ' + state.elapsed.toFixed(2) + ' giây' : paused ? 'Tiếp tục hoặc chơi lại' : state.phase === 'over' ? state.score + ' / 50 · nhấn LẠI để tiếp tục' : 'Tiếp tục chạm phím đen', PIANO_TILES.width / 2, PIANO_TILES.height / 2 + 23);
+      }
+    }
+    function playLane(lane, tileId = null) {
+      if (paused || !['ready', 'playing'].includes(state.phase)) return;
+      if (tileId === null) {
+        const matching = state.rows.filter(row => row.lane === lane && row.y >= 0 && row.y < PIANO_TILES.height - PIANO_TILES.cellHeight);
+        const target = matching.sort((a, b) => b.y - a.y)[0];
+        tileId = target ? target.id : -1;
+      }
+      const before = state.phase;
+      const correct = pianoTap(state, tileId, lane);
+      if (correct) {
+        if (window.NP_Audio?.tone) window.NP_Audio.tone(tones[lane], 'sine', 0.14, 0.1);
+        status.textContent = state.phase === 'won' ? '50 phím · ' + state.elapsed.toFixed(2) + ' giây' : 'Tiếp tục · phím đen ' + (state.score + 1) + ' / 50';
+      } else if (before !== state.phase && state.phase === 'over') {
+        status.textContent = state.reason === 'white' ? 'Phím trắng · lượt chơi kết thúc' : 'Lượt chơi kết thúc';
+      }
+      saveRecord(); updateHud(); draw();
+    }
+    function pointerTap(event) {
+      event.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const x = (event.clientX - rect.left) / Math.max(1, rect.width) * PIANO_TILES.width;
+      const y = (event.clientY - rect.top) / Math.max(1, rect.height) * PIANO_TILES.height;
+      const lane = Math.max(0, Math.min(PIANO_TILES.columns - 1, Math.floor(x / (PIANO_TILES.width / PIANO_TILES.columns))));
+      const row = state.rows.find(item => y >= item.y && y < item.y + PIANO_TILES.cellHeight);
+      playLane(lane, row ? row.id : -1);
+    }
+    function togglePause() {
+      if (!['ready', 'playing'].includes(state.phase)) return;
+      paused = !paused; pauseButton.textContent = paused ? 'TIẾP' : 'DỪNG';
+      status.textContent = paused ? 'Tạm dừng' : state.phase === 'ready' ? 'Chạm phím đen · bàn phím D F J K' : 'Tiếp tục · phím đen ' + (state.score + 1) + ' / 50';
+      draw();
+    }
+    listen(canvas, 'pointerdown', pointerTap);
+    listen(window, 'keydown', event => {
+      if (event.code === 'Escape') { event.preventDefault(); togglePause(); return; }
+      if ((event.code === 'Enter' || event.code === 'Space') && ['over', 'won'].includes(state.phase)) { event.preventDefault(); reset(); return; }
+      if (event.repeat) return;
+      if (Object.prototype.hasOwnProperty.call(keyLanes, event.code)) { event.preventDefault(); playLane(keyLanes[event.code]); }
+    });
+    listen(pauseButton, 'click', togglePause);
+    listen(container.querySelector('#ptRestart'), 'click', reset);
+    function frame(timestamp) {
+      const dt = lastFrame ? Math.min(0.05, Math.max(0, (timestamp - lastFrame) / 1000)) : 1 / 60;
+      lastFrame = timestamp;
+      if (!paused) pianoTick(state, dt);
+      if (state.lastEvent && state.lastEvent !== announcedEvent) {
+        announcedEvent = state.lastEvent;
+        if (state.lastEvent.type === 'mistake') {
+          status.textContent = state.lastEvent.reason === 'missed' ? 'Một phím rơi khỏi bàn · lượt chơi kết thúc' : 'Phím trắng · lượt chơi kết thúc';
+          if (window.NP_Audio?.alarm) window.NP_Audio.alarm();
+        }
+        if (state.lastEvent.type === 'complete') { status.textContent = 'Hoàn thành 50 phím · ' + state.elapsed.toFixed(2) + ' giây'; if (window.NP_Audio?.win) window.NP_Audio.win(); }
+      }
+      saveRecord(); updateHud(); draw();
+      raf = session.requestAnimationFrame(frame);
+    }
+    updateHud(); draw(); raf = session.requestAnimationFrame(frame);
+    session.onCleanup(() => { if (raf !== null) session.cancelAnimationFrame(raf); saveRecord(); });
   }
 
   function launchGalaga(container, game) {
@@ -1393,6 +1612,10 @@
       launchGalaga(container, game);
       return;
     }
+    if (id === 'piano-tiles-phim-nhac') {
+      launchPianoTiles(container, game);
+      return;
+    }
     const session = window.NP_GameSession.start();
     const { listen, requestAnimationFrame, cancelAnimationFrame, setTimeout } = session;
     const kind = kindFor(game);
@@ -2050,6 +2273,7 @@
     kindFor,
     froggerModel: { create: createFroggerState, hop: froggerHop, tick: tickFrogger, constants: FROGGER },
     asteroidsModel: { create: createAsteroidsState, fire: asteroidFire, hyperspace: asteroidHyperspace, tick: asteroidTick, constants: ASTEROIDS },
-    galagaModel: { create: createGalagaState, fire: galagaFire, capture: galagaCapture, tick: galagaTick, constants: GALAGA }
+    galagaModel: { create: createGalagaState, fire: galagaFire, capture: galagaCapture, tick: galagaTick, constants: GALAGA },
+    pianoTilesModel: { create: createPianoTilesState, tap: pianoTap, tick: pianoTick, speed: pianoSpeed, constants: PIANO_TILES }
   };
 })();

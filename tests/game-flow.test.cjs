@@ -325,7 +325,7 @@ test('fallback catalog has real, distinct genre loops and closes resources safel
   for (const game of games) {
     h.context.openGameById(game.id);
     const canvas = h.container.querySelector('#arcCanvas');
-    const dedicatedDispatch = ['frogger-ech-bang-qua-duong', 'asteroids-tau-ban-thien-thach', 'ban-ruoi-galaga'].includes(game.id);
+    const dedicatedDispatch = ['frogger-ech-bang-qua-duong', 'asteroids-tau-ban-thien-thach', 'ban-ruoi-galaga', 'piano-tiles-phim-nhac'].includes(game.id);
     if (canvas && !dedicatedDispatch) {
       count++;
       const kind = h.context.NP_Archetypes.kindFor(game);
@@ -339,7 +339,7 @@ test('fallback catalog has real, distinct genre loops and closes resources safel
     assertStopped(h);
     assert.equal(h.errors.length, 0, game.id + ': ' + h.errors.join('; '));
   }
-  assert.equal(count, 83, 'the generic fallback count stays stable while the specialized Galaga route changes to its exact title loop');
+  assert.equal(count, 82, 'Piano Tiles now has a dedicated 50-key mode outside the generic reflex archetype');
   assert.deepEqual([...found].sort(), ['duel', 'management', 'puzzle', 'quiz', 'reflex', 'runner', 'shooter']);
 });
 
@@ -448,6 +448,22 @@ test('Minesweeper has progressive boards, Street Fighter rematch and Raft Wars p
   canvas.dispatch('pointerup', { clientX: 260, clientY: 140 });
   h.frame(); h.frame();
   assert.equal(h.errors.length, 0);
+  h.context.closeGameModal(); assertStopped(h);
+});
+
+test('Piano Tiles opens its falling-key board and pause/restart/close cleanly', () => {
+  const h = harness();
+  h.context.openGameById('piano-tiles-phim-nhac');
+  assert.ok(h.container.querySelector('.np-piano-shell'));
+  assert.ok(h.container.querySelector('#ptCanvas'));
+  assert.equal(h.container.querySelector('#arcCanvas'), null, 'Piano Tiles skips the generic reflex target canvas');
+  assert.equal(h.frames.size, 1);
+  h.container.querySelector('#ptPause').dispatch('click');
+  assert.equal(h.container.querySelector('#ptPause').textContent, 'TIẾP');
+  h.container.querySelector('#ptPause').dispatch('click');
+  assert.equal(h.container.querySelector('#ptPause').textContent, 'DỪNG');
+  h.container.querySelector('#ptRestart').dispatch('click');
+  assert.equal(h.container.querySelector('#ptScore').textContent, '0/50');
   h.context.closeGameModal(); assertStopped(h);
 });
 
