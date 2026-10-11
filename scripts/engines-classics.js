@@ -4962,91 +4962,57 @@
     let moves = 0;
     let history = []; // Undo stack
 
-    // 6 Classic Warehouse Levels of increasing complexity
+    // Solvable, independently checked by a Sokoban push-state BFS.
+    // Every puzzle has an equal number of crates and targets, including '*' tiles.
     const LEVELS = [
-      {
-        name: "Màn 1: Nhập môn",
-        map: [
-          "  ##### ",
-          "###   # ",
-          "# $ # ##",
-          "# #  . #",
-          "#    . #",
-          "###### #"
-        ],
-        px: 1, py: 2
-      },
-      {
-        name: "Màn 2: Kho đôi",
-        map: [
-          "######",
-          "# .. #",
-          "# $$ #",
-          "#    #",
-          "######"
-        ],
-        px: 2, py: 3
-      },
-      {
-        name: "Màn 3: Góc chữ L",
-        map: [
-          "#######",
-          "#  .  #",
-          "# $#$ #",
-          "#  .  #",
-          "#  @  #",
-          "#######"
-        ],
-        px: 3, py: 4
-      },
-      {
-        name: "Màn 4: Hành lang hẹp",
-        map: [
-          "########",
-          "#  #   #",
-          "# $ $  #",
-          "## # ###",
-          "#  . . #",
-          "#      #",
-          "########"
-        ],
-        px: 1, py: 1
-      },
-      {
-        name: "Màn 5: Thập tự hoa",
-        map: [
-          "  #####  ",
-          "###   ###",
-          "#  $$$  #",
-          "#  ...  #",
-          "#   @   #",
-          "#########"
-        ],
-        px: 4, py: 4
-      },
-      {
-        name: "Màn 6: Bậc thầy thủ kho",
-        map: [
-          "#######",
-          "#  .  #",
-          "# $.$ #",
-          "#.$.$.#",
-          "# $.$ #",
-          "#  .  #",
-          "#######"
-        ],
-        px: 1, py: 1
-      }
+      { name: 'Lối vào', px: 3, py: 1, map: [
+        '#######', '#   . #', '# $   #', '#     #', '#     #', '#     #', '#######'
+      ] },
+      { name: 'Qua kho', px: 2, py: 5, map: [
+        '#######', '#     #', '# . $ #', '#     #', '#     #', '#     #', '#######'
+      ] },
+      { name: 'Hai kiện hàng', px: 2, py: 1, map: [
+        '#######', '#     #', '#  $# #', '# .  .#', '#   $ #', '#     #', '#######'
+      ] },
+      { name: 'Lách qua vách', px: 5, py: 2, map: [
+        '#######', '#     #', '#   $ #', '# $ # #', '#.    #', '#.    #', '#######'
+      ] },
+      { name: 'Lối đi vòng', px: 1, py: 2, map: [
+        '#######', '#    .#', '#.    #', '#     #', '#$## $#', '#     #', '#######'
+      ] },
+      { name: 'Góc hẹp', px: 1, py: 1, map: [
+        '#######', '#     #', '#  # $#', '#  #$ #', '#  .*.#', '#     #', '#######'
+      ] },
+      { name: 'Ba kiện hàng', px: 4, py: 1, map: [
+        '########', '#   .  #', '#   #* #', '#      #', '#   #  #', '#  # $ #', '#.   $ #', '########'
+      ] },
+      { name: 'Kho rẽ nhánh', px: 1, py: 4, map: [
+        '########', '#      #', '#.# $  #', '#  #   #', '#   #. #', '#*   $ #', '#      #', '########'
+      ] },
+      { name: 'Bốn mục tiêu', px: 3, py: 5, map: [
+        '########', '# .    #', '# $ #$ #', '# #.#  #', '#   # .#', '#  . $$#', '#      #', '########'
+      ] },
+      { name: 'Thủ kho', px: 6, py: 6, map: [
+        '########', '# $  . #', '#  # # #', '#   $  #', '#  .#  #', '#   #$*#', '#    . #', '########'
+      ] }
     ];
 
     let grid = [];
     let player = { x: 0, y: 0 };
     let playerDir = 'down'; // 'up'|'down'|'left'|'right'
+    let levelComplete = false;
+    let unlockedStage = 1;
+    try { unlockedStage = Math.max(1, Math.min(LEVELS.length, Number(localStorage.getItem('np_sokoban_unlocked')) || 1)); } catch (_) {}
 
     function initLevel(lvlIdx) {
       currentLevel = lvlIdx % LEVELS.length;
       moves = 0;
       history = [];
+      levelComplete = false;
+      const nextButton = container.querySelector('#skNextBtn');
+      if (nextButton) nextButton.style.display = 'none';
+      const message = container.querySelector('#skResult');
+      if (message) message.textContent = '';
       const lvl = LEVELS[currentLevel];
       grid = lvl.map.map(row => row.split(''));
       player = { x: lvl.px, y: lvl.py };
@@ -5058,7 +5024,8 @@
       <div class="canvas-game-box" style="max-width: 460px; margin: 0 auto; font-family: Calibri, 'Segoe UI', sans-serif;">
         <div class="canvas-game-hud">
           <div class="hud-pill">Màn: <span id="skLevel" style="color: #38BDF8;">1</span>/${LEVELS.length}</div>
-          <div class="hud-pill">Bước đi: <span id="skMoves" style="color: #F59E0B;">0</span></div>
+          <div class="hud-pill">Bước: <span id="skMoves" style="color: #F59E0B;">0</span></div>
+          <div class="hud-pill">Mở khóa: <span id="skUnlocked">${unlockedStage}</span>/${LEVELS.length}</div>
           <button class="btn-canvas-action" id="skUndoBtn" style="padding: 2px 10px; font-size: 0.8rem; background: #64748B; color: #FFF; font-family: Calibri, sans-serif;">
             ↩ Hoàn tác [Z]
           </button>
@@ -5069,9 +5036,11 @@
         <div style="text-align: center; margin-bottom: 6px;">
           <small id="skLevelTitle" style="color: #94A3B8; font-weight: 600; font-family: Calibri, sans-serif;">Màn 1: Nhập môn</small>
         </div>
-        <div id="skBoard" style="background: #0F172A; padding: 14px; border-radius: 10px; display: inline-block; margin: 0 auto; box-shadow: inset 0 2px 8px rgba(0,0,0,0.5); border: 2px solid #334155;"></div>
+        <div id="skBoard" aria-label="Bàn đẩy thùng" style="background: #0F172A; padding: 10px; border-radius: 10px; display: inline-block; margin: 0 auto; box-shadow: inset 0 2px 8px rgba(0,0,0,0.5); border: 2px solid #334155; touch-action:none;"></div>
+        <div id="skResult" role="status" style="min-height: 22px; text-align:center; color:#6EE7B7; font-weight:700;"></div>
+        <button class="btn-canvas-action" id="skNextBtn" style="display:none; margin: 3px auto 9px; min-height:44px; background:#047857; color:white;">Màn tiếp theo</button>
         <div class="canvas-controls-bar" style="font-family: Calibri, sans-serif;">
-          <small style="color: #E2E8F0;">📦 Mũi tên / WASD: Di chuyển • [Z]: Hoàn tác • Đẩy thùng vào ô chấm đỏ (•)</small>
+          <small style="color: #E2E8F0;">Mũi tên / WASD để đẩy thùng vào các vòng tròn. Z để hoàn tác. Trên điện thoại, vuốt bàn cờ hoặc dùng các phím hướng.</small>
         </div>
         <div class="virtual-dpad-row" style="display: flex; justify-content: center; gap: 8px; margin-top: 8px;">
           <button class="v-btn" id="skUp">▲</button>
@@ -5088,50 +5057,31 @@
       const boardEl = container.querySelector('#skBoard');
       if (!boardEl) return;
       let html = '';
+      const cellSize = grid[0].length > 7 ? 35 : 39;
+      const tile = (background, child = '', border = '1px solid rgba(255,255,255,.06)') =>
+        '<span style="width:' + cellSize + 'px;height:' + cellSize + 'px;box-sizing:border-box;flex:none;display:flex;align-items:center;justify-content:center;position:relative;border-radius:4px;background:' + background + ';border:' + border + ';">' + child + '</span>';
+      const goal = '<span style="width:17px;height:17px;border:3px solid #E8B35F;border-radius:50%;box-sizing:border-box;"></span>';
+      const crate = '<span style="width:26px;height:26px;background:#CA9254;border:3px solid #E8BC7B;border-bottom-color:#84552D;border-right-color:#84552D;border-radius:4px;box-sizing:border-box;box-shadow:0 3px 2px #10151B;"></span>';
+      const hero = '<span style="width:24px;height:24px;background:#56D8B3;border:3px solid #D1FAE5;border-radius:50%;box-sizing:border-box;box-shadow:0 2px 6px #064E3B;"></span>';
       for (let r = 0; r < grid.length; r++) {
-        html += '<div style="display: flex;">';
+        html += '<div style="display:flex;justify-content:center;">';
         for (let c = 0; c < grid[r].length; c++) {
-          const char = grid[r][c];
-          let icon = '&nbsp;';
-          let bg = '#1E293B';
-          let border = '0.5px solid rgba(255,255,255,0.04)';
-          let extraStyle = '';
-
-          if (r === player.y && c === player.x) {
-            icon = playerDir === 'left' ? '👷' : (playerDir === 'right' ? '👷' : '👷‍♂️');
-            bg = '#334155';
-            extraStyle = 'filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));';
-          } else if (char === '#') {
-            icon = '🧱';
-            bg = '#475569';
-            border = '1px solid #334155';
-          } else if (char === '$') {
-            icon = '📦';
-            bg = '#78350F';
-            border = '1px solid #B45309';
-            extraStyle = 'box-shadow: inset 0 1px 2px #FCD34D, 0 2px 4px rgba(0,0,0,0.4);';
-          } else if (char === '.') {
-            icon = '🎯';
-            bg = '#1E293B';
-          } else if (char === '*') {
-            icon = '💎'; // Crate on target - glowing emerald
-            bg = '#065F46';
-            border = '1px solid #10B981';
-            extraStyle = 'box-shadow: 0 0 10px #10B981; animation: pulse 1.5s infinite;';
-          }
-
-          html += `<div style="width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; background: ${bg}; border: ${border}; border-radius: 4px; margin: 1px; ${extraStyle}">${icon}</div>`;
+          const value = grid[r][c], isPlayer = r === player.y && c === player.x;
+          if (value === '#') html += tile('#445668', '<span style="width:65%;height:65%;border-top:3px solid #71889C;border-left:3px solid #71889C;box-sizing:border-box;"></span>');
+          else if (isPlayer) html += tile(value === '.' ? '#1D604A' : '#203649', hero);
+          else if (value === '$') html += tile('#263F4E', crate);
+          else if (value === '*') html += tile('#185F4A', crate, '2px solid #44D8A5');
+          else if (value === '.') html += tile('#1D3140', goal);
+          else html += tile('#1D3140');
         }
         html += '</div>';
       }
       boardEl.innerHTML = html;
-
-      const lEl = container.querySelector('#skLevel');
-      const mEl = container.querySelector('#skMoves');
-      const tEl = container.querySelector('#skLevelTitle');
-      if (lEl) lEl.textContent = currentLevel + 1;
-      if (mEl) mEl.textContent = moves;
-      if (tEl) tEl.textContent = LEVELS[currentLevel].name;
+      const update = (id, val) => { const el = container.querySelector(id); if (el) el.textContent = val; };
+      update('#skLevel', currentLevel + 1);
+      update('#skMoves', moves);
+      update('#skLevelTitle', LEVELS[currentLevel].name);
+      update('#skUnlocked', unlockedStage);
     }
 
     function pushHistory() {
@@ -5146,6 +5096,11 @@
 
     function undo() {
       if (history.length === 0) return;
+      levelComplete = false;
+      const nextButton = container.querySelector('#skNextBtn');
+      if (nextButton) nextButton.style.display = 'none';
+      const message = container.querySelector('#skResult');
+      if (message) message.textContent = '';
       const prev = history.pop();
       grid = prev.grid;
       player = prev.player;
@@ -5156,6 +5111,7 @@
     }
 
     function tryMove(dx, dy, dirName) {
+      if (levelComplete) return;
       if (dirName) playerDir = dirName;
       const nx = player.x + dx;
       const ny = player.y + dy;
@@ -5169,7 +5125,7 @@
         const nny = ny + dy;
         if (nny < 0 || nny >= grid.length || nnx < 0 || nnx >= grid[nny].length) return;
 
-        if (grid[nny][nnx] === ' ' || grid[nny][nnx] === '.' || grid[nny][nnx] === undefined) {
+        if (grid[nny][nnx] === ' ' || grid[nny][nnx] === '.') {
           pushHistory();
           const targetCell = grid[nny][nnx];
           grid[nny][nnx] = targetCell === '.' ? '*' : '$';
@@ -5195,27 +5151,22 @@
 
       render();
 
-      // Check win
-      let won = true;
-      for (let r = 0; r < grid.length; r++) {
-        for (let c = 0; c < grid[r].length; c++) {
-          if (grid[r][c] === '.' || grid[r][c] === '$') {
-            // Still dots left or unplaced crates
-            if (grid[r][c] === '.') won = false;
-          }
-        }
-      }
-
-      if (won) {
+      // All targets must be occupied; do not auto-advance while an input is held.
+      if (grid.every(row => !row.includes('.'))) {
+        levelComplete = true;
+        unlockedStage = Math.max(unlockedStage, Math.min(LEVELS.length, currentLevel + 2));
+        try { localStorage.setItem('np_sokoban_unlocked', String(unlockedStage)); } catch (_) {}
         AudioEngine.win();
-        setTimeout(() => {
-          if (currentLevel + 1 < LEVELS.length) {
-            initLevel(currentLevel + 1);
-          } else {
-            alert('🎉 CHÚC MỪNG BẠN ĐÃ PHÁ ĐẢO TOÀN BỘ 6 MÀN SOKOBAN!');
-            initLevel(0);
-          }
-        }, 500);
+        const message = container.querySelector('#skResult');
+        const nextButton = container.querySelector('#skNextBtn');
+        if (message) message.textContent = currentLevel + 1 === LEVELS.length
+          ? 'Đã hoàn thành cả 10 màn. Bạn có thể chơi lại bất kỳ lúc nào.'
+          : 'Hoàn thành màn ' + (currentLevel + 1) + ' sau ' + moves + ' bước.';
+        if (nextButton) {
+          nextButton.style.display = 'block';
+          nextButton.textContent = currentLevel + 1 === LEVELS.length ? 'Chơi lại từ đầu' : 'Màn tiếp theo';
+        }
+        render();
       }
     }
 
@@ -5258,6 +5209,9 @@
     }
 
     container.querySelector('#skResetBtn')?.addEventListener('click', () => initLevel(currentLevel));
+    container.querySelector('#skNextBtn')?.addEventListener('click', () => {
+      if (levelComplete) initLevel((currentLevel + 1) % LEVELS.length);
+    });
     container.querySelector('#skUndoBtn')?.addEventListener('click', undo);
     container.querySelector('#skUp')?.addEventListener('click', () => tryMove(0, -1, 'up'));
     container.querySelector('#skDown')?.addEventListener('click', () => tryMove(0, 1, 'down'));
@@ -6401,158 +6355,165 @@
   // 13. ENGINE: PONG 1972 (CLASSIC TABLE TENNIS ENGINE)
   // =========================================================================
   function launchPong(container, game) {
-    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
-    let pScore = 0;
-    let aiScore = 0;
-    let animId = null;
-
+    const { requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+    const W = 460, H = 280, PADDLE_H = 50, PADDLE_W = 9, BALL_R = 4.5;
+    const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+    let player = { y: (H - PADDLE_H) / 2, target: (H - PADDLE_H) / 2 };
+    let rival = { y: (H - PADDLE_H) / 2, target: (H - PADDLE_H) / 2 };
+    let score = [0, 0], winner = -1, paused = false, rally = 0, shake = 0;
+    let ball = { x: W / 2, y: H / 2, vx: 4, vy: 1.5, trail: [] };
+    let serve = 0.85, direction = Math.random() < 0.5 ? -1 : 1;
+    let frameId = null, lastTime = 0, accumulator = 0, aiThink = 0;
+    const keys = { up: false, down: false };
     container.innerHTML = `
-      <div class="canvas-game-box">
-        <div class="canvas-game-hud">
-          <div class="hud-pill">Bạn: <span id="pongPlayer" style="color: #10B981;">0</span></div>
-          <div class="hud-pill">Máy: <span id="pongAI" style="color: #EF4444;">0</span></div>
+      <div class="canvas-game-box" style="max-width:500px;">
+        <div class="canvas-game-hud" style="justify-content:space-between;">
+          <div class="hud-pill">Bạn <span id="pongPlayer" style="color:#34D399;">0</span></div>
+          <div class="hud-pill">Chạm mốc 7, hơn 2 điểm</div>
+          <div class="hud-pill">Máy <span id="pongAI" style="color:#FB7185;">0</span></div>
         </div>
-        <canvas id="pongCanvas" width="460" height="280" class="canvas-main-viewport" style="background: #000; display: block; margin: 0 auto;"></canvas>
-        <div class="canvas-controls-bar">
-          <small style="color: #FFF;">🏓 Rê chuột hoặc Phím [W][S] / Mũi tên để điều khiển vợt</small>
+        <canvas id="pongCanvas" width="460" height="280" class="canvas-main-viewport"
+          aria-label="Bóng bàn. Di chuột, chạm kéo hoặc dùng W S để điều khiển."
+          style="display:block;margin:auto;touch-action:none;background:#080D16;cursor:none;"></canvas>
+        <div class="canvas-controls-bar" style="gap:8px;">
+          <span id="pongStatus" role="status" style="font-weight:700;color:#D1FAE5;">Di chuyển vợt để đón bóng</span>
+          <button class="btn-canvas-action" id="pongPause">Tạm dừng</button>
+          <button class="btn-canvas-action" id="pongRestart">Ván mới</button>
         </div>
-      </div>
-    `;
-
-    const canvas = container.querySelector('#pongCanvas');
-    const ctx = canvas.getContext('2d');
-
-    let pY = 110;
-    let aiY = 110;
-    let ball = { x: 230, y: 140, vx: 4, vy: 3 };
-    const pongKeys = {};
-
-    const onPongKeyDown = (e) => {
-      if (['ArrowUp', 'ArrowDown', 'w', 'W', 's', 'S'].includes(e.key)) {
-        pongKeys[e.key] = true;
-        e.preventDefault();
-      }
+        <small style="color:#94A3B8;text-align:center;">Rê chuột, kéo tay trên sân hoặc giữ W / S và ↑ / ↓</small>
+      </div>`;
+    const canvas = container.querySelector('#pongCanvas'), ctx = canvas.getContext('2d');
+    const status = container.querySelector('#pongStatus');
+    const restart = () => {
+      score = [0, 0]; winner = -1; paused = false; rally = 0;
+      player.y = player.target = rival.y = rival.target = (H - PADDLE_H) / 2;
+      direction = Math.random() < .5 ? -1 : 1; resetServe();
+      syncHUD();
+      const pauseButton = container.querySelector('#pongPause');
+      if (pauseButton) pauseButton.textContent = 'Tạm dừng';
     };
-    const onPongKeyUp = (e) => {
-      pongKeys[e.key] = false;
-    };
-    listen(window, 'keydown', onPongKeyDown);
-    listen(window, 'keyup', onPongKeyUp);
-
-    canvas.addEventListener('mousemove', (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const scaleY = canvas.height / rect.height;
-      pY = Math.max(10, Math.min(canvas.height - 60, (e.clientY - rect.top) * scaleY - 25));
-    });
-
-    canvas.addEventListener('touchmove', (e) => {
-      if (e.touches && e.touches[0]) {
-        e.preventDefault();
-        const rect = canvas.getBoundingClientRect();
-        const scaleY = canvas.height / rect.height;
-        pY = Math.max(10, Math.min(canvas.height - 60, (e.touches[0].clientY - rect.top) * scaleY - 25));
-      }
-    }, { passive: false });
-
-    canvas.addEventListener('touchstart', (e) => {
-      if (e.touches && e.touches[0]) {
-        e.preventDefault();
-        const rect = canvas.getBoundingClientRect();
-        const scaleY = canvas.height / rect.height;
-        pY = Math.max(10, Math.min(canvas.height - 60, (e.touches[0].clientY - rect.top) * scaleY - 25));
-      }
-    }, { passive: false });
-
-    function loop() {
-      // Keyboard input
-      if (pongKeys['ArrowUp'] || pongKeys['w'] || pongKeys['W']) {
-        pY = Math.max(10, pY - 5.5);
-      }
-      if (pongKeys['ArrowDown'] || pongKeys['s'] || pongKeys['S']) {
-        pY = Math.min(canvas.height - 60, pY + 5.5);
-      }
-
-      ball.x += ball.vx;
-      ball.y += ball.vy;
-
-      // Top/bottom bounce
-      if (ball.y < 5 || ball.y > canvas.height - 5) {
-        ball.vy = -ball.vy;
-        AudioEngine.pop();
-      }
-
-      // Player paddle hit with dynamic angle deflection & rally acceleration
-      if (ball.x < 30 && ball.x > 15 && ball.y > pY - 4 && ball.y < pY + 54) {
-        const offset = (ball.y - (pY + 25)) / 25; // -1 to 1
-        ball.vy = offset * 4.8;
-        ball.vx = Math.min(9.5, Math.abs(ball.vx) * 1.05); // Accelerate
-        AudioEngine.hit();
-        if (window.NP_Juice) window.NP_Juice.screenShake(canvas, 3, 100);
-      }
-
-      // AI paddle hit
-      if (ball.x > canvas.width - 30 && ball.x < canvas.width - 15 && ball.y > aiY - 4 && ball.y < aiY + 54) {
-        const offset = (ball.y - (aiY + 25)) / 25;
-        ball.vy = offset * 4.8;
-        ball.vx = -Math.min(9.5, Math.abs(ball.vx) * 1.05);
-        AudioEngine.hit();
-        if (window.NP_Juice) window.NP_Juice.screenShake(canvas, 3, 100);
-      }
-
-      // AI follow with human-like lag
-      aiY += (ball.y - (aiY + 25)) * 0.075;
-
-      // Score
-      if (ball.x < 0) {
-        aiScore++;
-        AudioEngine.alarm();
-        ball = { x: 230, y: 140, vx: 4, vy: (Math.random() - 0.5) * 5 };
-      } else if (ball.x > canvas.width) {
-        pScore++;
-        AudioEngine.win();
-        ball = { x: 230, y: 140, vx: -4, vy: (Math.random() - 0.5) * 5 };
-      }
-
-      const pEl = container.querySelector('#pongPlayer');
-      const aEl = container.querySelector('#pongAI');
-      if (pEl) pEl.textContent = pScore;
-      if (aEl) aEl.textContent = aiScore;
-
-      // Draw
-      ctx.fillStyle = '#000000';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // CRT Phosphor subtle scanlines
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
-      for (let y = 0; y < canvas.height; y += 3) {
-        ctx.fillRect(0, y, canvas.width, 1);
-      }
-
-      // Net
-      ctx.fillStyle = '#374151';
-      for (let y = 0; y < canvas.height; y += 15) {
-        ctx.fillRect(canvas.width / 2 - 1, y, 2, 8);
-      }
-
-      // Paddles
-      ctx.fillStyle = '#10B981';
-      ctx.fillRect(15, pY, 8, 50);
-      ctx.fillStyle = '#EF4444';
-      ctx.fillRect(canvas.width - 23, aiY, 8, 50);
-
-      // Ball with glow
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(ball.x - 4, ball.y - 4, 8, 8);
-
-      animId = requestAnimationFrame(loop);
+    function resetServe() {
+      serve = .8; rally = 0;
+      ball = { x: W / 2, y: H / 2, vx: direction * 4.2, vy: (Math.random() * 2 - 1) * 1.8, trail: [] };
     }
-
-    animId = requestAnimationFrame(loop);
-
-    onCleanup(() => {
-      cancelAnimationFrame(animId);
+    function syncHUD() {
+      const a = container.querySelector('#pongPlayer'), b = container.querySelector('#pongAI');
+      if (a) a.textContent = score[0];
+      if (b) b.textContent = score[1];
+      if (status) status.textContent = winner >= 0 ? (winner ? 'Máy thắng trận. Chơi lại để thử tiếp.' : 'Bạn thắng trận!')
+        : paused ? 'Đã tạm dừng' : serve > 0 ? 'Chuẩn bị giao bóng' : 'Đang thi đấu';
+    }
+    const movePointer = e => {
+      if (e.pointerType === 'touch' && e.type === 'pointermove' && e.buttons === 0) return;
+      const rect = canvas.getBoundingClientRect();
+      if (!rect.height) return;
+      player.target = clamp((e.clientY - rect.top) * H / rect.height - PADDLE_H / 2, 5, H - PADDLE_H - 5);
+      if (e.type === 'pointerdown') {
+        if (canvas.setPointerCapture) { try { canvas.setPointerCapture(e.pointerId); } catch (_) {} }
+        e.preventDefault();
+      }
+    };
+    listen(canvas, 'pointerdown', movePointer);
+    listen(canvas, 'pointermove', movePointer);
+    listen(window, 'keydown', e => {
+      const up = ['ArrowUp', 'w', 'W'].includes(e.key);
+      const down = ['ArrowDown', 's', 'S'].includes(e.key);
+      if (up || down) { keys[up ? 'up' : 'down'] = true; e.preventDefault(); }
+      if (e.key === ' ' && !e.repeat) { togglePause(); e.preventDefault(); }
     });
+    listen(window, 'keyup', e => {
+      if (['ArrowUp', 'w', 'W'].includes(e.key)) keys.up = false;
+      if (['ArrowDown', 's', 'S'].includes(e.key)) keys.down = false;
+    });
+    listen(window, 'blur', () => { if (!paused && winner < 0) { paused = true; syncHUD(); } });
+    function togglePause() {
+      if (winner >= 0) return;
+      paused = !paused;
+      const btn = container.querySelector('#pongPause');
+      if (btn) btn.textContent = paused ? 'Tiếp tục' : 'Tạm dừng';
+      syncHUD();
+    }
+    container.querySelector('#pongPause')?.addEventListener('click', togglePause);
+    container.querySelector('#pongRestart')?.addEventListener('click', restart);
+    function bounce(paddleY, towardsRight) {
+      const angle = clamp((ball.y - (paddleY + PADDLE_H / 2)) / (PADDLE_H / 2), -1, 1) * 1.07;
+      const speed = Math.min(9.4, 4.2 + ++rally * .22);
+      ball.vx = (towardsRight ? 1 : -1) * Math.max(2.6, Math.cos(angle) * speed);
+      ball.vy = Math.sin(angle) * speed;
+      ball.x = towardsRight ? 24 + BALL_R : W - 24 - BALL_R;
+      shake = Math.min(2.2, .65 + speed * .1);
+      AudioEngine.hit();
+    }
+    function point(side) {
+      score[side]++;
+      AudioEngine[side ? 'alarm' : 'win']();
+      if (score[side] >= 7 && score[side] - score[1 - side] >= 2) winner = side;
+      direction = side === 0 ? -1 : 1;
+      resetServe(); syncHUD();
+    }
+    function step() {
+      if (paused || winner >= 0) return;
+      const keyDelta = (keys.down ? 1 : 0) - (keys.up ? 1 : 0);
+      if (keyDelta) player.target = clamp(player.target + keyDelta * 6.8, 5, H - PADDLE_H - 5);
+      player.y += clamp(player.target - player.y, -8.6, 8.6);
+      aiThink -= 1 / 60;
+      if (aiThink <= 0) {
+        aiThink = .13 + Math.random() * .08;
+        const towardAI = ball.vx > 0;
+        const travel = towardAI ? (W - 30 - ball.x) / Math.max(1, ball.vx) : 0;
+        let predicted = ball.y + ball.vy * travel;
+        const range = 2 * (H - BALL_R * 2);
+        predicted = Math.abs(((predicted - BALL_R) % range + range) % range - (H - BALL_R * 2)) + BALL_R;
+        rival.target = clamp((towardAI ? predicted : H / 2) - PADDLE_H / 2 + (Math.random() - .5) * 25, 5, H - PADDLE_H - 5);
+      }
+      rival.y += clamp(rival.target - rival.y, -(3.7 + Math.min(1.6, rally * .08)), 3.7 + Math.min(1.6, rally * .08));
+      if (serve > 0) { serve = Math.max(0, serve - 1 / 60); return; }
+      ball.trail.unshift({ x: ball.x, y: ball.y });
+      if (ball.trail.length > 7) ball.trail.pop();
+      ball.x += ball.vx; ball.y += ball.vy;
+      if (ball.y <= BALL_R) { ball.y = BALL_R; ball.vy = Math.abs(ball.vy); AudioEngine.pop(); }
+      if (ball.y >= H - BALL_R) { ball.y = H - BALL_R; ball.vy = -Math.abs(ball.vy); AudioEngine.pop(); }
+      if (ball.vx < 0 && ball.x - BALL_R <= 24 && ball.x >= 10 && ball.y >= player.y - BALL_R && ball.y <= player.y + PADDLE_H + BALL_R) bounce(player.y, true);
+      if (ball.vx > 0 && ball.x + BALL_R >= W - 24 && ball.x <= W - 10 && ball.y >= rival.y - BALL_R && ball.y <= rival.y + PADDLE_H + BALL_R) bounce(rival.y, false);
+      if (ball.x < -BALL_R) point(1);
+      if (ball.x > W + BALL_R) point(0);
+    }
+    function draw() {
+      ctx.save();
+      ctx.fillStyle = '#080D16'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#253448';
+      for (let y = 7; y < H; y += 20) ctx.fillRect(W / 2 - 1, y, 2, 10);
+      if (shake > .12) { ctx.translate((Math.random() - .5) * shake, (Math.random() - .5) * shake); shake *= .8; }
+      ctx.fillStyle = '#34D399'; ctx.fillRect(15, player.y, PADDLE_W, PADDLE_H);
+      ctx.fillStyle = '#FB7185'; ctx.fillRect(W - 24, rival.y, PADDLE_W, PADDLE_H);
+      ball.trail.forEach((dot, i) => {
+        ctx.globalAlpha = Math.max(.04, (.3 - i * .045));
+        ctx.fillStyle = '#A7F3D0'; ctx.beginPath(); ctx.arc(dot.x, dot.y, BALL_R * (1 - i * .1), 0, Math.PI * 2); ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.arc(ball.x, ball.y, BALL_R, 0, Math.PI * 2); ctx.fill();
+      if (serve > 0 || paused || winner >= 0) {
+        ctx.fillStyle = 'rgba(8,13,22,.68)'; ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = '#F8FAFC'; ctx.textAlign = 'center'; ctx.font = 'bold 21px Calibri, sans-serif';
+        ctx.fillText(winner >= 0 ? (winner ? 'MÁY THẮNG' : 'CHIẾN THẮNG') : paused ? 'TẠM DỪNG' : 'GIAO BÓNG', W / 2, H / 2 - 5);
+        ctx.fillStyle = '#CBD5E1'; ctx.font = '15px Calibri, sans-serif';
+        ctx.fillText(winner >= 0 ? 'Bấm Ván mới để chơi tiếp' : paused ? 'Bấm Tiếp tục' : 'Sẵn sàng đón bóng', W / 2, H / 2 + 24);
+      }
+      ctx.restore();
+    }
+    function loop(t) {
+      const dt = lastTime ? Math.min(50, Math.max(0, t - lastTime)) : 16.667;
+      lastTime = t; accumulator = Math.min(66.667, accumulator + dt);
+      let steps = 0;
+      while (accumulator >= 16.6667 && steps++ < 4) { step(); accumulator -= 16.6667; }
+      draw();
+      frameId = requestAnimationFrame(loop);
+    }
+    syncHUD();
+    frameId = requestAnimationFrame(loop);
+    onCleanup(() => { cancelAnimationFrame(frameId); keys.up = keys.down = false; });
   }
+
 
   // =========================================================================
   // EXPORT TO NP_ENGINES
