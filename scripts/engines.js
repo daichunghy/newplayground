@@ -7277,6 +7277,7 @@ function launchFlappyBird(container, game) {
   let gameOver = false;
   let started = false;
   let animId = null;
+  let lastFrame = 0, frameBudget = 0, paused = false;
 
     container.innerHTML = `
     <div class="canvas-game-box" style="max-width: 420px; font-family: Calibri, sans-serif;">
@@ -7286,9 +7287,8 @@ function launchFlappyBird(container, game) {
       </div>
       <canvas id="fbCanvas" width="360" height="480" class="canvas-main-viewport" style="touch-action: none; display: block; margin: 0 auto;"></canvas>
       <div class="canvas-controls-bar" style="touch-action: none;">
-        <button class="btn-canvas-action" id="fbFlapBtn" style="background: var(--accent-terracotta); color: #FFF; width: 100%; font-size: 1rem; font-weight: 900; padding: 10px;">
-          🕊️ VỖ CÁNH (SPACE / CHẠM)
-        </button>
+        <button class="btn-canvas-action" id="fbFlapBtn" style="background:var(--accent-terracotta);color:#fff;width:100%;font-size:1rem;font-weight:800;min-height:50px;">VỖ CÁNH</button>
+        <button class="btn-canvas-action" id="fbPauseBtn" style="min-height:44px;">Tạm dừng</button>
       </div>
     </div>
   `;
@@ -7297,16 +7297,17 @@ function launchFlappyBird(container, game) {
   const ctx = canvas.getContext('2d');
 
   function flap() {
+    if (paused) return;
     if (gameOver) {
       score = 0;
       bird.y = 200;
       bird.vy = 0;
       pipes = [];
+      frame = 0;
+      frameBudget = 0;
       gameOver = false;
-      started = true;
+      started = false;
       updateHUD();
-      if (window.NP_Juice) window.NP_Juice.vibrate(15);
-      return;
     }
     started = true;
     bird.vy = -6.2;
@@ -7315,23 +7316,32 @@ function launchFlappyBird(container, game) {
   }
 
   const onKeyDown = (e) => {
-    if (e.key === ' ' || e.key === 'ArrowUp' || e.code === 'Space') {
+    if ((e.key === ' ' || e.key === 'ArrowUp' || e.code === 'Space') && !e.repeat) {
       e.preventDefault();
       flap();
     }
+    if ((e.key === 'p' || e.key === 'P') && !e.repeat) {
+      e.preventDefault();
+      togglePause();
+    }
   };
   listen(window, 'keydown', onKeyDown);
-  canvas.addEventListener('click', flap);
-  canvas.addEventListener('touchstart', (e) => {
+  // One pointerdown per physical press: no touchstart + synthetic click double-flap.
+  listen(canvas, 'pointerdown', e => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
     e.preventDefault();
     flap();
-  }, { passive: false });
-
+  });
   container.querySelector('#fbFlapBtn')?.addEventListener('click', flap);
-  container.querySelector('#fbFlapBtn')?.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    flap();
-  }, { passive: false });
+  function togglePause() {
+    if (gameOver || !started) return;
+    paused = !paused;
+    const btn = container.querySelector('#fbPauseBtn');
+    if (btn) btn.textContent = paused ? 'Tiếp tục' : 'Tạm dừng';
+    lastFrame = 0; frameBudget = 0;
+  }
+  container.querySelector('#fbPauseBtn')?.addEventListener('click', togglePause);
+  listen(window, 'blur', () => { if (started && !paused && !gameOver) togglePause(); });
 
   function updateHUD() {
     const sEl = container.querySelector('#fbScore');
@@ -7340,23 +7350,24 @@ function launchFlappyBird(container, game) {
     if (hEl) hEl.textContent = highScore;
   }
 
-  function loop() {
+  function advance() {
+    if (!started || gameOver || paused) return;
     frame++;
-
-    if (started && !gameOver) {
+    {
       bird.vy += 0.36; // Gravity
       bird.y += bird.vy;
 
       // Spawn pipes
-      if (frame % 85 === 0) {
-        const topH = 60 + Math.random() * 200;
-        pipes.push({ x: canvas.width, top: topH, passed: false });
+      if (frame % Math.max(78, 94 - Math.floor(score / 5) * 2) === 0) {
+        const gap = Math.max(114, 148 - Math.floor(score / 4) * 4);
+        const topH = 68 + Math.random() * (canvas.height - 40 - gap - 130);
+        pipes.push({ x: canvas.width, top: topH, gap, passed: false });
       }
 
       // Update pipes
       for (let i = pipes.length - 1; i >= 0; i--) {
         const p = pipes[i];
-        p.x -= 2.6;
+        p.x -= Math.min(3.65, 2.55 + Math.floor(score / 4) * .13);
 
         // Score
         if (!p.passed && p.x + 52 < 90) {
@@ -7364,7 +7375,7 @@ function launchFlappyBird(container, game) {
           score++;
           if (score > highScore) {
             highScore = score;
-            localStorage.setItem('np_flappy_high', highScore);
+            try { localStorage.setItem('np_flappy_high', String(highScore)); } catch (_) {}
           }
           AudioEngine.coin();
           if (window.NP_Juice) window.NP_Juice.vibrate(15);
@@ -7374,15 +7385,10 @@ function launchFlappyBird(container, game) {
         // Collision
         const birdX = 90;
         const birdR = 14;
-        const gap = 125;
+        const gap = p.gap;
         if (birdX + birdR > p.x && birdX - birdR < p.x + 52) {
           if (bird.y - birdR < p.top || bird.y + birdR > p.top + gap) {
-            gameOver = true;
-            AudioEngine.explosion();
-            if (window.NP_Juice) {
-              window.NP_Juice.vibrate([35, 60]);
-              window.NP_Juice.screenShake(canvas, 10, 300);
-            }
+            endRun();
           }
         }
 
@@ -7391,12 +7397,31 @@ function launchFlappyBird(container, game) {
 
       // Ground / Ceiling collision
       if (bird.y > canvas.height - 45 || bird.y < 0) {
-        gameOver = true;
-        AudioEngine.explosion();
-        if (window.NP_Juice) {
-          window.NP_Juice.vibrate([35, 60]);
-          window.NP_Juice.screenShake(canvas, 10, 300);
-        }
+        endRun();
+      }
+    }
+  }
+
+  function endRun() {
+    if (gameOver) return;
+    gameOver = true;
+    AudioEngine.explosion();
+    if (window.NP_Juice) {
+      window.NP_Juice.vibrate([35, 60]);
+      window.NP_Juice.screenShake(canvas, 7, 170);
+    }
+  }
+
+  function loop(timestamp) {
+    if (!lastFrame) lastFrame = timestamp;
+    const dt = Math.max(0, Math.min(65, timestamp - lastFrame));
+    lastFrame = timestamp;
+    if (!paused) {
+      frameBudget = Math.min(66.667, frameBudget + dt);
+      let count = 0;
+      while (frameBudget >= 16.6667 && count++ < 4) {
+        advance();
+        frameBudget -= 16.6667;
       }
     }
 
@@ -7414,7 +7439,7 @@ function launchFlappyBird(container, game) {
     // Pipes
     pipes.forEach(p => {
       ctx.fillStyle = '#73BF2E';
-      const gap = 125;
+      const gap = p.gap;
       ctx.fillRect(p.x, 0, 52, p.top);
       ctx.fillStyle = '#558022';
       ctx.fillRect(p.x - 3, p.top - 20, 58, 20);
@@ -7478,17 +7503,17 @@ function launchFlappyBird(container, game) {
       ctx.font = 'bold 20px Calibri, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText('CHẠM ĐỂ BẮT ĐẦU VỖ CÁNH!', canvas.width / 2, canvas.height / 2 - 20);
-    } else if (gameOver) {
+    } else if (gameOver || paused) {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = '#EF4444';
       ctx.font = 'bold 26px Calibri, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('RƠI RỒI! GAME OVER', canvas.width / 2, canvas.height / 2 - 20);
+      ctx.fillText(paused ? 'TẠM DỪNG' : 'HẾT LƯỢT', canvas.width / 2, canvas.height / 2 - 20);
       ctx.fillStyle = '#FFF';
       ctx.font = '16px Calibri, sans-serif';
       ctx.fillText(`Điểm: ${score} (Kỷ lục: ${highScore})`, canvas.width / 2, canvas.height / 2 + 15);
-      ctx.fillText('Chạm để chơi lại', canvas.width / 2, canvas.height / 2 + 45);
+      ctx.fillText(paused ? 'Bấm Tiếp tục hoặc P' : 'Chạm để chơi lại', canvas.width / 2, canvas.height / 2 + 45);
     }
 
     animId = requestAnimationFrame(loop);
