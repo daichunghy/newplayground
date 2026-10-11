@@ -4766,7 +4766,14 @@
       if (bestEl) bestEl.textContent = best;
     }
 
-    function loop() {
+    function simulateOneFrame() {
+      if (gameOver || paused) return;
+      if (awaitingLaunch) {
+        if (balls[0]) { balls[0].x = paddle.x + paddle.w / 2; balls[0].y = paddle.y - balls[0].r - 1; }
+        return;
+      }
+      if (effects.expand > 0 && --effects.expand === 0) paddle.w = 80;
+      if (effects.fireball > 0 && --effects.fireball === 0) isFireball = false;
       // Keyboard input
       if (dxKeys['ArrowLeft'] || dxKeys['a'] || dxKeys['A']) {
         paddle.x = Math.max(10, paddle.x - 6);
@@ -4786,10 +4793,10 @@
           AudioEngine.powerup();
           if (p.type === 'expand') {
             paddle.w = 120;
-            setTimeout(() => { paddle.w = 80; }, 10000);
+            effects.expand = 600;
           } else if (p.type === 'fireball') {
             isFireball = true;
-            setTimeout(() => { isFireball = false; }, 8000);
+            effects.fireball = 480;
           } else if (p.type === 'triball') {
             const b = balls[0] || { x: paddle.x + paddle.w / 2, y: paddle.y - 10 };
             balls.push({ x: b.x, y: b.y, vx: -3, vy: -3, r: 6 });
@@ -4821,32 +4828,43 @@
         ball.y += ball.vy;
 
         // Wall bounce
-        if (ball.x - ball.r < 0 || ball.x + ball.r > canvas.width) {
-          ball.vx = -ball.vx;
-          AudioEngine.pop();
+        if (ball.x - ball.r < 0) {
+          ball.x = ball.r; ball.vx = Math.abs(ball.vx); AudioEngine.pop();
+        } else if (ball.x + ball.r > canvas.width) {
+          ball.x = canvas.width - ball.r; ball.vx = -Math.abs(ball.vx); AudioEngine.pop();
         }
         if (ball.y - ball.r < 0) {
-          ball.vy = -ball.vy;
-          AudioEngine.pop();
+          ball.y = ball.r; ball.vy = Math.abs(ball.vy); AudioEngine.pop();
         }
 
         // Paddle hit
-        if (ball.y + ball.r >= paddle.y && ball.y - ball.r <= paddle.y + paddle.h &&
-            ball.x >= paddle.x && ball.x <= paddle.x + paddle.w) {
-          ball.vy = -Math.abs(ball.vy);
-          const hitOffset = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2);
-          ball.vx = hitOffset * 4.6;
+        if (ball.vy > 0 && ball.y + ball.r >= paddle.y && ball.y - ball.r < paddle.y + paddle.h &&
+            ball.x + ball.r >= paddle.x && ball.x - ball.r <= paddle.x + paddle.w) {
+          ball.y = paddle.y - ball.r - .1;
+          const hitOffset = Math.max(-1, Math.min(1, (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2)));
+          const speed = Math.min(7.8, Math.hypot(ball.vx, ball.vy) + .08);
+          ball.vx = Math.sin(hitOffset * 1.08) * speed;
+          ball.vy = -Math.max(2.5, Math.cos(hitOffset * 1.08) * speed);
           AudioEngine.hit();
         }
 
-        // Brick collision
+        // A single rebound per physics step, unless the fireball pierces.
+        let bounced = false;
         bricks.forEach(b => {
-          if (!b.alive) return;
+          if (!b.alive || (bounced && !isFireball)) return;
           if (ball.x + ball.r > b.x && ball.x - ball.r < b.x + b.w &&
               ball.y + ball.r > b.y && ball.y - ball.r < b.y + b.h) {
+            b.hp--;
+            if (!isFireball) {
+              const prevX = ball.x - ball.vx;
+              if (prevX + ball.r <= b.x || prevX - ball.r >= b.x + b.w) ball.vx = -ball.vx;
+              else ball.vy = -ball.vy;
+              bounced = true;
+            }
+            if (b.hp > 0) { AudioEngine.hit(); return; }
             b.alive = false;
-            if (!isFireball) ball.vy = -ball.vy;
-            score += 25;
+            score += 25 * level;
+            saveBest();
             AudioEngine.match(1);
             updateHUD();
 
@@ -4885,22 +4903,31 @@
       if (balls.length === 0) {
         lives--;
         AudioEngine.explosion();
+        powerups = []; effects.expand = effects.fireball = 0;
+        paddle.w = 80; isFireball = false;
+        if (lives <= 0) { gameOver = true; awaitingLaunch = true; }
+        else resetBall(); // Preserve broken bricks when a ball is lost.
         updateHUD();
-        if (lives <= 0) {
-          lives = 3;
-          score = 0;
-          level = 1;
-        }
-        initBricks();
       }
 
       // Clear level if all bricks dead
       const activeCount = bricks.filter(b => b.alive).length;
-      if (activeCount === 0) {
+      if (activeCount === 0 && !gameOver) {
         AudioEngine.win();
         level++;
         initBricks();
         updateHUD();
+      }
+    }
+
+    function loop(timestamp) {
+      const delta = lastFrame ? Math.max(0, Math.min(55, timestamp - lastFrame)) : 16.667;
+      lastFrame = timestamp;
+      accumulator = Math.min(66.667, accumulator + delta);
+      let ticks = 0;
+      while (accumulator >= 16.6667 && ticks++ < 4) {
+        simulateOneFrame();
+        accumulator -= 16.6667;
       }
 
       // --- RENDER ---
@@ -4917,7 +4944,7 @@
       // Draw Beveled Bricks
       bricks.forEach(b => {
         if (!b.alive) return;
-        ctx.fillStyle = b.color;
+        ctx.fillStyle = b.hp > 1 ? '#74839B' : b.color;
         ctx.fillRect(b.x, b.y, b.w, b.h);
 
         // 3D Bevel highlight
@@ -4979,6 +5006,14 @@
         }
       });
 
+      if (gameOver || paused || awaitingLaunch) {
+        ctx.fillStyle = 'rgba(8,15,27,.72)';
+        ctx.fillRect(0, 155, canvas.width, 90);
+        ctx.fillStyle = '#F8FAFC'; ctx.textAlign = 'center'; ctx.font = 'bold 21px Calibri, sans-serif';
+        ctx.fillText(gameOver ? 'HẾT MẠNG' : paused ? 'TẠM DỪNG' : 'SẴN SÀNG?', canvas.width / 2, 191);
+        ctx.font = '14px Calibri, sans-serif'; ctx.fillStyle = '#CBD5E1';
+        ctx.fillText(gameOver ? 'Bấm Chơi lại' : paused ? 'Bấm Tiếp tục' : 'Chạm sân / Space để phát bóng', canvas.width / 2, 219);
+      }
       animId = requestAnimationFrame(loop);
     }
 
