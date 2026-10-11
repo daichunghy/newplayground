@@ -2615,15 +2615,16 @@
         .np-contra-hud span:last-child { text-align:right; }
         .np-contra-hud strong { display:block; color:#f1edcf; font-size:17px; letter-spacing:0; font-variant-numeric:tabular-nums; }
         .np-contra-board { display:block; width:min(100%,960px); height:auto; aspect-ratio:16/9; border:1px solid #64766b; background:#101d24; touch-action:none; }
+        .np-contra-board:focus-visible { outline:3px solid #f2dd86; outline-offset:3px; }
         .np-contra-controls { width:min(100%,960px); display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:5px; }
-        .np-contra-controls button { min-width:0; min-height:48px; border:1px solid #68766a; border-radius:3px; background:#293b39; color:#e7e8d2; font:700 12px Calibri,Inter,sans-serif; touch-action:none; user-select:none; }
+        .np-contra-controls button { min-width:0; min-height:48px; border:1px solid #68766a; border-radius:3px; background:#293b39; color:#e7e8d2; font:700 12px Calibri,Inter,sans-serif; touch-action:none; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; -webkit-tap-highlight-color:transparent; }
         .np-contra-controls button[data-contra-control="fire"] { color:#192318; background:#d9c765; border-color:#f2dd86; }
         .np-contra-controls button[data-contra-control="jump"] { background:#506453; }
         .np-contra-controls button:active { transform:translateY(1px); filter:brightness(1.3); }
         .np-contra-controls button:focus-visible { outline:3px solid #f2dd86; outline-offset:2px; }
         .np-contra-status { min-height:16px; margin:0; color:#a7b5a4; text-align:center; font-size:12px; }
-        @media(max-width:620px) { .np-contra-shell { gap:5px; } .np-contra-hud { gap:5px; font-size:9px; } .np-contra-hud strong { font-size:14px; } .np-contra-controls { grid-template-columns:repeat(4,minmax(44px,1fr)); gap:3px; } .np-contra-controls button { min-height:46px; padding:1px; font-size:10px; } }
-        @media(prefers-reduced-motion:reduce) { .np-contra-controls button { scroll-behavior:auto; } }
+        @media(max-width:620px) { .np-contra-shell { gap:5px; } .np-contra-hud { gap:5px; font-size:9px; } .np-contra-hud strong { font-size:14px; } .np-contra-controls { grid-template-columns:repeat(4,minmax(44px,1fr)); gap:3px; } .np-contra-controls button { min-height:48px; padding:1px; font-size:10px; } }
+        @media(prefers-reduced-motion:reduce) { .np-contra-controls button { transform:none; transition:none; } }
       </style>
       <section class="np-contra-shell" aria-label="Màn bắn súng cuộn ngang">
         <div class="np-contra-hud"><span>Điểm<strong id="ctScore">0</strong></span><span>Màn<strong id="ctStage">1 / 3</strong></span><span>Mạng<strong id="ctLives">3</strong></span><span>Kỷ lục<strong id="ctBest">0</strong></span></div>
@@ -2822,16 +2823,17 @@
         .np-snow-clock span { position:absolute; right:0; top:0; line-height:11px; font-variant-numeric:tabular-nums; }
         .np-snow-clock i { position:absolute; left:0; bottom:0; display:block; width:100%; height:4px; background:rgba(177,226,227,.18); border-radius:4px; transform-origin:left; }
         .np-snow-board { display:block; width:min(100%,720px,calc(100vh - 280px)); height:auto; aspect-ratio:9/8; border:1px solid #7bb9c0; border-radius:16px 16px 7px 7px; background:#12394f; touch-action:none; }
+        .np-snow-board:focus-visible { outline:3px solid #e5fbf7; outline-offset:3px; }
         @supports (height:100dvh) { .np-snow-board { width:min(100%,720px,calc(100dvh - 280px)); } }
         .np-snow-controls { width:min(100%,720px); display:grid; grid-template-columns:repeat(7,minmax(44px,1fr)); gap:6px; }
-        .np-snow-controls button { min-width:0; min-height:48px; border:1px solid #568e9d; border-radius:16px 16px 8px 8px; background:#174c63; color:#e6f6ef; font:700 12px Calibri,Inter,sans-serif; touch-action:none; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+        .np-snow-controls button { min-width:0; min-height:48px; border:1px solid #568e9d; border-radius:16px 16px 8px 8px; background:#174c63; color:#e6f6ef; font:700 12px Calibri,Inter,sans-serif; touch-action:none; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; -webkit-tap-highlight-color:transparent; }
         .np-snow-controls button[data-snow-control="fire"] { color:#183b4a; background:#dff2e8; border-color:#fff; }
         .np-snow-controls button[data-snow-control="jump"] { background:#26748a; }
         .np-snow-controls button:active { transform:translateY(1px); background:#34839a; }
         .np-snow-controls button:focus-visible { outline:3px solid #e5fbf7; outline-offset:2px; }
         .np-snow-status { min-height:16px; margin:0; color:#8fb8bd; text-align:center; font-size:12px; }
-        @media(max-width:560px) { .np-snow-shell { gap:5px; } .np-snow-hud { gap:4px; font-size:9px; } .np-snow-hud strong { font-size:14px; } .np-snow-board { width:min(100%,720px); } .np-snow-controls { grid-template-columns:repeat(4,minmax(44px,1fr)); gap:4px; } .np-snow-controls button { min-height:46px; border-radius:12px 12px 6px 6px; padding:2px; font-size:10px; } }
-        @media(prefers-reduced-motion:reduce) { .np-snow-controls button { scroll-behavior:auto; } }
+        @media(max-width:560px) { .np-snow-shell { gap:5px; } .np-snow-hud { gap:4px; font-size:9px; } .np-snow-hud strong { font-size:14px; } .np-snow-board { width:min(100%,720px); } .np-snow-controls { grid-template-columns:repeat(4,minmax(44px,1fr)); gap:4px; } .np-snow-controls button { min-height:48px; border-radius:12px 12px 6px 6px; padding:2px; font-size:10px; } }
+        @media(prefers-reduced-motion:reduce) { .np-snow-controls button { transform:none; transition:none; } }
       </style>
       <section class="np-snow-shell" aria-label="Đóng tuyết đối thủ và lăn cầu tuyết qua màn">
         <div class="np-snow-hud"><span>Điểm<strong id="sbScore">0</strong></span><span>Tầng<strong id="sbStage">1 / 5</strong></span><span>Mạng<strong id="sbLives">3</strong></span><span>Kỷ lục<strong id="sbBest">0</strong></span></div>
