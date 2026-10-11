@@ -294,6 +294,172 @@
     }
   }
 
+  // Bubble Trouble's one-player arcade loop. The model keeps the defining
+  // chase intact: line harpoon -> split each bubble into faster pieces ->
+  // clear the field while staying alive. Level counts and tuning are this
+  // browser adaptation's own, not copied level data.
+  const BUBBLE_TROUBLE = Object.freeze({
+    width: 900, height: 560, floor: 520, playerY: 498,
+    playerHalfWidth: 13, playerHalfHeight: 18,
+    maxLives: 3, maxStage: 10, maxBubbleSize: 2,
+    radii: [11, 19, 31], gravity: 620
+  });
+
+  function bubbleRandom(state) {
+    state.rng = (Math.imul(state.rng, 1664525) + 1013904223) >>> 0;
+    return state.rng / 0x100000000;
+  }
+
+  function bubbleSpawnStage(state, stage) {
+    const count = Math.min(6, 1 + Math.floor(stage / 2));
+    state.bubbles = Array.from({ length: count }, (_, index) => {
+      const x = BUBBLE_TROUBLE.width * (index + 1) / (count + 1);
+      const direction = index % 2 ? 1 : -1;
+      return { size: BUBBLE_TROUBLE.maxBubbleSize, radius: BUBBLE_TROUBLE.radii[2],
+        x, y: 188 + (index % 3) * 38, vx: direction * (94 + bubbleRandom(state) * 28),
+        vy: -265 - bubbleRandom(state) * 50, spin: (bubbleRandom(state) - 0.5) * 1.4,
+        phase: bubbleRandom(state) * Math.PI * 2 };
+    });
+    state.harpoon = null;
+    state.fireCooldown = 0.2;
+    state.phase = 'playing';
+    state.lastEvent = { type: 'stage-start', stage };
+  }
+
+  function createBubbleTroubleState(seed = 0x2002) {
+    const state = { rng: (Number(seed) >>> 0) || 1, phase: 'playing', stage: 1,
+      score: 0, lives: BUBBLE_TROUBLE.maxLives, elapsed: 0, playerX: BUBBLE_TROUBLE.width / 2,
+      invulnerable: 1.1, fireCooldown: 0, harpoon: null, bubbles: [], fx: [],
+      transitionRemaining: 0, lastEvent: null };
+    bubbleSpawnStage(state, 1);
+    state.lastEvent = null;
+    return state;
+  }
+
+  function bubbleFire(state) {
+    if (state.phase !== 'playing' || state.fireCooldown > 0 || state.harpoon) return false;
+    state.harpoon = { x: state.playerX, tip: BUBBLE_TROUBLE.playerY - 22, age: 0, hitLock: 0 };
+    state.fireCooldown = 0.22;
+    return true;
+  }
+
+  function bubbleBurst(state, x, y, color) {
+    for (let i = 0; i < 7; i++) {
+      const angle = bubbleRandom(state) * Math.PI * 2;
+      const speed = 35 + bubbleRandom(state) * 95;
+      state.fx.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+        life: 0.36 + bubbleRandom(state) * 0.18, color });
+    }
+  }
+
+  function bubblePop(state, bubble) {
+    const points = [110, 70, 45][bubble.size] || 45;
+    state.score += points;
+    const color = ['#f6dc82', '#75ddcf', '#fb806f'][bubble.size] || '#75ddcf';
+    bubbleBurst(state, bubble.x, bubble.y, color);
+    if (bubble.size > 0) {
+      const childSize = bubble.size - 1;
+      const speed = childSize === 1 ? 128 : 166;
+      const lift = Math.max(150, Math.abs(bubble.vy) * 0.36 + 88);
+      for (const direction of [-1, 1]) {
+        state.bubbles.push({ size: childSize, radius: BUBBLE_TROUBLE.radii[childSize],
+          x: bubble.x + direction * 5, y: bubble.y, vx: direction * speed,
+          vy: -lift, spin: direction * 1.3, phase: bubbleRandom(state) * Math.PI * 2 });
+      }
+    }
+    state.lastEvent = { type: 'bubble-pop', size: bubble.size, score: state.score };
+  }
+
+  function bubbleLoseLife(state) {
+    if (state.phase !== 'playing' || state.invulnerable > 0) return false;
+    state.lives = Math.max(0, state.lives - 1);
+    state.playerX = BUBBLE_TROUBLE.width / 2;
+    state.invulnerable = 1.35;
+    state.harpoon = null;
+    state.lastEvent = { type: 'lost-life', lives: state.lives };
+    if (!state.lives) state.phase = 'over';
+    return true;
+  }
+
+  function bubblePlayerOverlap(bubble, x) {
+    const nearX = clamp(bubble.x, x - BUBBLE_TROUBLE.playerHalfWidth, x + BUBBLE_TROUBLE.playerHalfWidth);
+    const nearY = clamp(bubble.y, BUBBLE_TROUBLE.playerY - BUBBLE_TROUBLE.playerHalfHeight,
+      BUBBLE_TROUBLE.playerY + BUBBLE_TROUBLE.playerHalfHeight);
+    return Math.hypot(bubble.x - nearX, bubble.y - nearY) < bubble.radius;
+  }
+
+  function bubbleTick(state, input = {}, dt = 1 / 60) {
+    const seconds = Math.min(0.05, Math.max(0, Number(dt) || 0));
+    if (!seconds || state.phase === 'over' || state.phase === 'won' || state.phase === 'paused') return;
+    if (state.phase === 'stage-clear') {
+      state.transitionRemaining -= seconds;
+      if (state.transitionRemaining <= 0) {
+        if (state.stage >= BUBBLE_TROUBLE.maxStage) {
+          state.phase = 'won';
+          state.lastEvent = { type: 'complete', stage: state.stage, score: state.score };
+        } else {
+          state.stage++;
+          bubbleSpawnStage(state, state.stage);
+        }
+      }
+      return;
+    }
+    if (state.phase !== 'playing') return;
+
+    state.elapsed += seconds;
+    state.invulnerable = Math.max(0, state.invulnerable - seconds);
+    state.fireCooldown = Math.max(0, state.fireCooldown - seconds);
+    if (Number.isFinite(input.targetX)) state.playerX = clamp(input.targetX, 24, BUBBLE_TROUBLE.width - 24);
+    else state.playerX = clamp(state.playerX + ((input.right ? 1 : 0) - (input.left ? 1 : 0)) * 355 * seconds,
+      24, BUBBLE_TROUBLE.width - 24);
+    if (input.fire) bubbleFire(state);
+
+    const harpoon = state.harpoon;
+    if (harpoon) {
+      harpoon.age += seconds;
+      harpoon.hitLock = Math.max(0, harpoon.hitLock - seconds);
+      harpoon.tip = Math.max(10, harpoon.tip - 880 * seconds);
+      if (!harpoon.hitLock) {
+        for (let i = 0; i < state.bubbles.length; i++) {
+          const bubble = state.bubbles[i];
+          if (Math.abs(bubble.x - harpoon.x) > bubble.radius + 3 ||
+              bubble.y + bubble.radius < harpoon.tip ||
+              bubble.y - bubble.radius > BUBBLE_TROUBLE.playerY) continue;
+          state.bubbles.splice(i, 1);
+          bubblePop(state, bubble);
+          harpoon.hitLock = 0.14;
+          break;
+        }
+      }
+      if (harpoon.tip <= 10 || harpoon.age >= 0.78) state.harpoon = null;
+    }
+
+    for (const bubble of state.bubbles) {
+      bubble.vy += BUBBLE_TROUBLE.gravity * seconds;
+      bubble.x += bubble.vx * seconds;
+      bubble.y += bubble.vy * seconds;
+      bubble.phase += bubble.spin * seconds;
+      if (bubble.x < bubble.radius) { bubble.x = bubble.radius; bubble.vx = Math.abs(bubble.vx); }
+      if (bubble.x > BUBBLE_TROUBLE.width - bubble.radius) {
+        bubble.x = BUBBLE_TROUBLE.width - bubble.radius; bubble.vx = -Math.abs(bubble.vx);
+      }
+      if (bubble.y < bubble.radius + 12) { bubble.y = bubble.radius + 12; bubble.vy = Math.abs(bubble.vy) * 0.82; }
+      if (bubble.y > BUBBLE_TROUBLE.floor - bubble.radius) {
+        bubble.y = BUBBLE_TROUBLE.floor - bubble.radius;
+        bubble.vy = -Math.max(185, Math.abs(bubble.vy) * 0.9);
+      }
+    }
+    for (const fx of state.fx) { fx.life -= seconds; fx.x += fx.vx * seconds; fx.y += fx.vy * seconds; fx.vx *= 0.97; fx.vy *= 0.97; }
+    state.fx = state.fx.filter(fx => fx.life > 0);
+
+    if (state.invulnerable <= 0 && state.bubbles.some(bubble => bubblePlayerOverlap(bubble, state.playerX))) bubbleLoseLife(state);
+    if (state.phase === 'playing' && state.bubbles.length === 0) {
+      state.phase = 'stage-clear';
+      state.transitionRemaining = 1.05;
+      state.lastEvent = { type: 'stage-clear', stage: state.stage, score: state.score };
+    }
+  }
+
   // Galaga-inspired fixed shooter. The 1981 Namco reference specifies about
   // forty enemies, three ranks, a two-shot cap, lateral movement, dives and
   // the Boss Galaga capture/rescue that unlocks a larger dual fighter.
@@ -750,6 +916,243 @@
     }
     updateHud(); draw(); raf = session.requestAnimationFrame(frame);
     session.onCleanup(() => { if (raf !== null) session.cancelAnimationFrame(raf); saveRecord(); });
+  }
+
+  function launchBubbleTrouble(container, game) {
+    const session = window.NP_GameSession.start();
+    const { listen } = session;
+    const recordKey = 'np_bubble_trouble_record_v1';
+    let state = createBubbleTroubleState((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0);
+    const keys = { left: false, right: false, fire: false };
+    const pointers = new Map();
+    let boardPointerX = null, bestScore = 0, bestStage = 1, raf = null, lastFrame = 0;
+    let pauseReturnPhase = 'playing', lastAnnounced = null, lastScoreSound = 0;
+    try {
+      const record = JSON.parse(localStorage.getItem(recordKey) || '{}');
+      bestScore = Math.max(0, Number(record.score) || 0);
+      bestStage = Math.max(1, Number(record.stage) || 1);
+    } catch (error) {}
+    container.innerHTML = `
+      <style>
+        #gameModal:has(.np-bubble-shell) .modal-window { width:min(98vw,1080px); max-width:1080px; min-width:0; }
+        #gameModal:has(.np-bubble-shell) .modal-body,#gameModal:has(.np-bubble-shell) .modal-title-group { min-width:0; }
+        #gameModal:has(.np-bubble-shell) #modalGameBadge,#gameModal:has(.np-bubble-shell) #crtToggleBtn { display:none; }
+        .np-bubble-shell { width:min(100%,960px); margin:auto; display:grid; justify-items:center; gap:7px; color:#e7e1d5; font-family:Calibri,Inter,sans-serif; }
+        .np-bubble-hud { width:min(100%,960px); display:grid; grid-template-columns:1fr 1fr 1fr 1fr; align-items:center; gap:8px; color:#646d6e; font-size:11px; letter-spacing:.1em; text-transform:uppercase; }
+        .np-bubble-hud span:nth-child(2),.np-bubble-hud span:nth-child(3) { text-align:center; }
+        .np-bubble-hud span:last-child { text-align:right; }
+        .np-bubble-hud strong { display:block; color:#25343a; font-size:17px; letter-spacing:0; font-variant-numeric:tabular-nums; }
+        .np-bubble-board { display:block; width:min(100%,960px,calc((100dvh - 310px) * 1.6071)); height:auto; aspect-ratio:45/28; border:1px solid #3f5860; border-radius:4px; background:#111a23; touch-action:none; }
+        .np-bubble-controls { width:min(100%,960px); display:grid; grid-template-columns:repeat(5,minmax(44px,1fr)); gap:7px; }
+        .np-bubble-controls button { min-width:44px; min-height:46px; border:1px solid #445d61; border-radius:5px; background:#26383d; color:#e8e4d8; font:700 12px Calibri,Inter,sans-serif; touch-action:none; user-select:none; }
+        .np-bubble-controls button[data-bubble-control="fire"] { color:#281d16; background:#e5a461; border-color:#f0c58a; }
+        .np-bubble-controls button:active { transform:translateY(1px); background:#506064; }
+        .np-bubble-controls button:focus-visible { outline:3px solid #f0c58a; outline-offset:2px; }
+        .np-bubble-status { min-height:16px; margin:0; color:#626b68; text-align:center; font-size:12px; }
+        @media(max-width:700px) { #gameModal:has(.np-bubble-shell) .modal-header { gap:6px; } #gameModal:has(.np-bubble-shell) .modal-title-group { flex:1 1 auto; } #gameModal:has(.np-bubble-shell) .modal-header-actions { flex:0 0 auto; } #gameModal:has(.np-bubble-shell) .modal-game-title { font-size:clamp(15px,4.2vw,20px); line-height:1.15; white-space:normal; overflow-wrap:anywhere; } }
+        @media(max-width:560px) { .np-bubble-shell { gap:5px; } .np-bubble-hud { font-size:9px; gap:4px; } .np-bubble-hud strong { font-size:14px; } .np-bubble-controls { gap:4px; } .np-bubble-controls button { padding:2px; font-size:10px; } }
+        @media(prefers-reduced-motion:reduce) { .np-bubble-controls button { transition:none; } }
+      </style>
+      <section class="np-bubble-shell" aria-label="Bắn Bong Bóng Nước, arcade một người chơi">
+        <div class="np-bubble-hud"><span>Điểm<strong id="btScore">0</strong></span><span>Màn<strong id="btStage">1</strong></span><span>Mạng<strong id="btLives">3</strong></span><span>Kỷ lục<strong id="btBest">0</strong></span></div>
+        <canvas id="btCanvas" class="np-bubble-board" width="900" height="560" tabindex="0" aria-label="Bắn lao thẳng lên. Bóng nổ thành các bóng nhỏ và nhanh hơn. Né bóng, hạ hết để qua màn."></canvas>
+        <div class="np-bubble-controls" aria-label="Điều khiển Bắn Bong Bóng Nước">
+          <button type="button" data-bubble-control="left" aria-label="Di chuyển trái">← TRÁI</button><button type="button" data-bubble-control="fire" aria-label="Giữ để bắn lao">BẮN</button><button type="button" data-bubble-control="right" aria-label="Di chuyển phải">PHẢI →</button><button type="button" id="btPause" aria-label="Tạm dừng">DỪNG</button><button type="button" id="btRestart" aria-label="Chơi lại">LẠI</button>
+        </div>
+        <p id="btStatus" class="np-bubble-status" role="status" aria-live="polite">← → di chuyển · giữ Space bắn · chạm/kéo để né</p>
+      </section>`;
+
+    const canvas = container.querySelector('#btCanvas'), ctx = canvas.getContext('2d');
+    const scoreEl = container.querySelector('#btScore'), stageEl = container.querySelector('#btStage');
+    const livesEl = container.querySelector('#btLives'), bestEl = container.querySelector('#btBest');
+    const status = container.querySelector('#btStatus'), pauseButton = container.querySelector('#btPause');
+
+    function syncInput() {
+      const held = [...pointers.values()];
+      state.input = { left: keys.left || held.includes('left'), right: keys.right || held.includes('right'),
+        fire: keys.fire || held.includes('fire') || held.includes('board'),
+        targetX: boardPointerX === null ? undefined : boardPointerX };
+    }
+    function updateBoardPoint(event) {
+      const rect = canvas.getBoundingClientRect();
+      boardPointerX = clamp((event.clientX - rect.left) / Math.max(1, rect.width) * BUBBLE_TROUBLE.width,
+        24, BUBBLE_TROUBLE.width - 24);
+    }
+    function releasePointer(event) {
+      if (!pointers.has(event.pointerId)) return;
+      const wasBoard = pointers.get(event.pointerId) === 'board';
+      pointers.delete(event.pointerId);
+      if (wasBoard && ![...pointers.values()].includes('board')) boardPointerX = null;
+      syncInput();
+    }
+    listen(canvas, 'pointerdown', event => {
+      event.preventDefault();
+      try { canvas.setPointerCapture?.(event.pointerId); } catch (error) {}
+      pointers.set(event.pointerId, 'board'); updateBoardPoint(event); syncInput();
+    });
+    listen(canvas, 'pointermove', event => {
+      if (pointers.get(event.pointerId) !== 'board') return;
+      event.preventDefault(); updateBoardPoint(event); syncInput();
+    });
+    listen(canvas, 'pointerup', releasePointer);
+    listen(canvas, 'pointercancel', releasePointer);
+    listen(canvas, 'lostpointercapture', releasePointer);
+    container.querySelectorAll('[data-bubble-control]').forEach(button => {
+      const action = button.dataset.bubbleControl;
+      listen(button, 'pointerdown', event => {
+        event.preventDefault();
+        try { button.setPointerCapture?.(event.pointerId); } catch (error) {}
+        pointers.set(event.pointerId, action); syncInput();
+      });
+      listen(button, 'pointerup', releasePointer);
+      listen(button, 'pointercancel', releasePointer);
+      listen(button, 'lostpointercapture', releasePointer);
+    });
+    const keyMap = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', Space: 'fire' };
+    listen(window, 'keydown', event => {
+      if (event.code === 'Escape' || event.code === 'KeyP') { event.preventDefault(); if (!event.repeat) togglePause(); return; }
+      const action = keyMap[event.code];
+      if (action && !(event.target && event.target.tagName === 'BUTTON')) {
+        event.preventDefault(); keys[action] = true; syncInput();
+      }
+      if (event.code === 'Enter' && ['over', 'won'].includes(state.phase)) { event.preventDefault(); reset(); }
+    });
+    listen(window, 'keyup', event => {
+      const action = keyMap[event.code];
+      if (action) { keys[action] = false; syncInput(); }
+    });
+    listen(window, 'blur', () => {
+      for (const name of Object.keys(keys)) keys[name] = false;
+      pointers.clear(); boardPointerX = null; syncInput();
+    });
+
+    function saveRecord() {
+      let changed = false;
+      if (state.score > bestScore) { bestScore = state.score; changed = true; }
+      if (state.stage > bestStage) { bestStage = state.stage; changed = true; }
+      if (changed) { try { localStorage.setItem(recordKey, JSON.stringify({ score: bestScore, stage: bestStage })); } catch (error) {} }
+    }
+    function updateHud() {
+      scoreEl.textContent = String(state.score); stageEl.textContent = String(state.stage);
+      livesEl.textContent = String(state.lives); bestEl.textContent = bestScore + ' · M' + bestStage;
+    }
+    function reset() {
+      state = createBubbleTroubleState((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0);
+      for (const name of Object.keys(keys)) keys[name] = false;
+      pointers.clear(); boardPointerX = null; syncInput(); lastFrame = 0; lastAnnounced = null; lastScoreSound = 0;
+      pauseButton.textContent = 'DỪNG'; status.textContent = '← → di chuyển · giữ Space bắn · chạm/kéo để né';
+      updateHud(); draw(); canvas.focus({ preventScroll: true });
+    }
+    function togglePause() {
+      if (state.phase === 'paused') state.phase = pauseReturnPhase;
+      else if (state.phase === 'playing' || state.phase === 'stage-clear') {
+        pauseReturnPhase = state.phase; state.phase = 'paused';
+      } else return;
+      for (const name of Object.keys(keys)) keys[name] = false;
+      pointers.clear(); boardPointerX = null; syncInput(); lastFrame = 0;
+      pauseButton.textContent = state.phase === 'paused' ? 'TIẾP' : 'DỪNG';
+      status.textContent = state.phase === 'paused' ? 'Đã tạm dừng' : '← → di chuyển · giữ Space bắn · chạm/kéo để né';
+      draw();
+    }
+    listen(pauseButton, 'click', togglePause);
+    listen(container.querySelector('#btRestart'), 'click', reset);
+
+    function drawBubble(bubble) {
+      const palettes = [
+        { fill: '#f1cf70', edge: '#fff0bd', shine: '#fff8dd' },
+        { fill: '#59bdb9', edge: '#b8f1df', shine: '#e5fff3' },
+        { fill: '#e87968', edge: '#ffb298', shine: '#ffe3c9' }
+      ];
+      const colors = palettes[bubble.size];
+      ctx.save(); ctx.translate(bubble.x, bubble.y); ctx.rotate(Math.sin(bubble.phase) * 0.04);
+      ctx.beginPath(); ctx.arc(0, 0, bubble.radius, 0, Math.PI * 2);
+      ctx.fillStyle = colors.fill; ctx.fill(); ctx.strokeStyle = colors.edge; ctx.lineWidth = 2.2; ctx.stroke();
+      ctx.globalAlpha = 0.54; ctx.beginPath(); ctx.arc(-bubble.radius * 0.31, -bubble.radius * 0.37, bubble.radius * 0.19, 0, Math.PI * 2);
+      ctx.fillStyle = colors.shine; ctx.fill(); ctx.globalAlpha = 1;
+      ctx.strokeStyle = 'rgba(35,44,48,.28)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(0, 0, bubble.radius * 0.7, 0.24, Math.PI * 0.9); ctx.stroke();
+      ctx.restore();
+    }
+    function drawHunter() {
+      const x = state.playerX, y = BUBBLE_TROUBLE.playerY;
+      if (state.invulnerable > 0 && Math.floor(state.elapsed * 12) % 2 === 0) return;
+      ctx.save(); ctx.translate(x, y);
+      ctx.fillStyle = '#d99256'; ctx.fillRect(-10, -29, 20, 8);
+      ctx.fillStyle = '#edbb7c'; ctx.beginPath(); ctx.arc(0, -26, 7, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#334a51'; ctx.beginPath(); ctx.moveTo(-8, -20); ctx.lineTo(8, -20); ctx.lineTo(13, 14); ctx.lineTo(-13, 14); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#d99256'; ctx.fillRect(-5, -15, 10, 3);
+      ctx.fillStyle = '#222b31'; ctx.fillRect(-12, 14, 9, 5); ctx.fillRect(3, 14, 9, 5);
+      ctx.strokeStyle = '#f1d199'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, -6); ctx.lineTo(0, -17); ctx.stroke();
+      ctx.restore();
+    }
+    function draw() {
+      const width = BUBBLE_TROUBLE.width, height = BUBBLE_TROUBLE.height;
+      const sky = ctx.createLinearGradient(0, 0, 0, height);
+      sky.addColorStop(0, '#19242e'); sky.addColorStop(1, '#29343a');
+      ctx.fillStyle = sky; ctx.fillRect(0, 0, width, height);
+      ctx.fillStyle = '#202b32';
+      for (let i = 0; i < 12; i++) {
+        const x = i * 82 + 8, h = 52 + ((i * 43) % 108);
+        ctx.fillRect(x, BUBBLE_TROUBLE.floor - h, 56, h);
+        ctx.fillStyle = 'rgba(236,185,112,.19)';
+        for (let row = 0; row < 3; row++) for (let col = 0; col < 2; col++) ctx.fillRect(x + 12 + col * 19, BUBBLE_TROUBLE.floor - h + 13 + row * 19, 5, 7);
+        ctx.fillStyle = '#202b32';
+      }
+      ctx.fillStyle = '#353c3c'; ctx.fillRect(0, BUBBLE_TROUBLE.floor, width, height - BUBBLE_TROUBLE.floor);
+      ctx.fillStyle = '#d69c5e'; ctx.fillRect(0, BUBBLE_TROUBLE.floor, width, 4);
+      ctx.fillStyle = 'rgba(238,223,184,.15)';
+      for (let x = 16; x < width; x += 48) ctx.fillRect(x, BUBBLE_TROUBLE.floor + 17, 25, 2);
+      for (const bubble of state.bubbles) drawBubble(bubble);
+      for (const fx of state.fx) {
+        ctx.globalAlpha = Math.min(1, fx.life * 2.2); ctx.fillStyle = fx.color;
+        ctx.beginPath(); ctx.arc(fx.x, fx.y, 2.5, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
+      }
+      if (state.harpoon) {
+        ctx.strokeStyle = 'rgba(246,229,189,.28)'; ctx.lineWidth = 8;
+        ctx.beginPath(); ctx.moveTo(state.harpoon.x, BUBBLE_TROUBLE.playerY - 17); ctx.lineTo(state.harpoon.x, state.harpoon.tip); ctx.stroke();
+        ctx.strokeStyle = '#f2d9a1'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(state.harpoon.x, BUBBLE_TROUBLE.playerY - 17); ctx.lineTo(state.harpoon.x, state.harpoon.tip); ctx.stroke();
+      }
+      drawHunter();
+      if (state.phase === 'paused' || state.phase === 'stage-clear' || state.phase === 'over' || state.phase === 'won') {
+        ctx.fillStyle = 'rgba(14,22,27,.78)'; ctx.fillRect(0, 0, width, height);
+        ctx.textAlign = 'center'; ctx.fillStyle = state.phase === 'over' ? '#ffb298' : '#f1d99f';
+        ctx.font = '700 34px Calibri,sans-serif';
+        const title = state.phase === 'paused' ? 'TẠM DỪNG' : state.phase === 'stage-clear' ? 'DỌN SẠCH MÀN ' + state.stage : state.phase === 'won' ? 'CHIẾN THẮNG' : 'MẤT LƯỢT';
+        ctx.fillText(title, width / 2, height / 2 - 5);
+        ctx.fillStyle = '#e2ddd0'; ctx.font = '16px Calibri,sans-serif';
+        const sub = state.phase === 'paused' ? 'Bấm TIẾP để trở lại' : state.phase === 'stage-clear' ? 'Bóng mới đang tới' : state.phase === 'won' ? 'Mười màn đã hoàn thành · nhấn LẠI để chơi lại' : state.score + ' điểm · nhấn LẠI hoặc Enter';
+        ctx.fillText(sub, width / 2, height / 2 + 25);
+      }
+    }
+    function frame(timestamp) {
+      const dt = lastFrame ? Math.min(0.05, Math.max(0, (timestamp - lastFrame) / 1000)) : 1 / 60;
+      lastFrame = timestamp;
+      const beforeEvent = state.lastEvent, beforeScore = state.score;
+      bubbleTick(state, state.input || {}, dt);
+      saveRecord(); updateHud();
+      if (state.score > beforeScore && state.score > lastScoreSound) {
+        lastScoreSound = state.score;
+        if (window.NP_Audio?.pop) window.NP_Audio.pop();
+      }
+      if (state.lastEvent && state.lastEvent !== beforeEvent && state.lastEvent !== lastAnnounced) {
+        lastAnnounced = state.lastEvent;
+        if (state.lastEvent.type === 'stage-clear') { status.textContent = 'Màn ' + state.stage + ' sạch bóng · chuẩn bị màn tiếp'; if (window.NP_Audio?.win) window.NP_Audio.win(); }
+        if (state.lastEvent.type === 'stage-start' && state.stage > 1) status.textContent = 'Màn ' + state.stage + ' · nhiều bóng hơn, bóng nhỏ nhanh hơn';
+        if (state.lastEvent.type === 'lost-life') { status.textContent = state.lives ? 'Mất một mạng · còn ' + state.lives : 'Hết mạng · nhấn LẠI hoặc Enter'; if (window.NP_Audio?.alarm) window.NP_Audio.alarm(); }
+        if (state.lastEvent.type === 'complete') { status.textContent = 'Mười màn hoàn thành · ' + state.score + ' điểm'; if (window.NP_Audio?.win) window.NP_Audio.win(); }
+      }
+      if (state.phase === 'over' && status.textContent !== 'Hết mạng · nhấn LẠI hoặc Enter') status.textContent = 'Hết mạng · nhấn LẠI hoặc Enter';
+      draw(); raf = session.requestAnimationFrame(frame);
+    }
+    updateHud(); draw(); canvas.focus({ preventScroll: true });
+    session.setTimeout(() => canvas.focus({ preventScroll: true }), 0);
+    raf = session.requestAnimationFrame(frame);
+    session.onCleanup(() => {
+      if (raf !== null) session.cancelAnimationFrame(raf);
+      for (const name of Object.keys(keys)) keys[name] = false;
+      pointers.clear(); boardPointerX = null; saveRecord();
+    });
   }
 
   function launchGalaga(container, game) {
@@ -1616,6 +2019,10 @@
       launchPianoTiles(container, game);
       return;
     }
+    if (id === 'bong-bong-nuoc-bubble-trouble') {
+      launchBubbleTrouble(container, game);
+      return;
+    }
     const session = window.NP_GameSession.start();
     const { listen, requestAnimationFrame, cancelAnimationFrame, setTimeout } = session;
     const kind = kindFor(game);
@@ -2274,6 +2681,7 @@
     froggerModel: { create: createFroggerState, hop: froggerHop, tick: tickFrogger, constants: FROGGER },
     asteroidsModel: { create: createAsteroidsState, fire: asteroidFire, hyperspace: asteroidHyperspace, tick: asteroidTick, constants: ASTEROIDS },
     galagaModel: { create: createGalagaState, fire: galagaFire, capture: galagaCapture, tick: galagaTick, constants: GALAGA },
-    pianoTilesModel: { create: createPianoTilesState, tap: pianoTap, tick: pianoTick, speed: pianoSpeed, constants: PIANO_TILES }
+    pianoTilesModel: { create: createPianoTilesState, tap: pianoTap, tick: pianoTick, speed: pianoSpeed, constants: PIANO_TILES },
+    bubbleTroubleModel: { create: createBubbleTroubleState, fire: bubbleFire, pop: bubblePop, tick: bubbleTick, constants: BUBBLE_TROUBLE }
   };
 })();
