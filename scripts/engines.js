@@ -2531,57 +2531,60 @@
       }
     }
 
-    function onCellClick(r, c) {
-      if (gameOver) return;
-      const cellVal = board[r][c];
-
-      if (cellVal > 0) {
-        // Select ball
-        selectedCell = { r, c };
+    function onCellClick(r,c) {
+      if(gameOver||moving)return;
+      const cellVal=board[r][c];
+      if(cellVal>0){
+        selectedCell={r,c};
         AudioEngine.pop();
-        if (window.NP_Juice) window.NP_Juice.vibrate(8);
-        updateStatus('Đã chọn bóng. Chọn ô trống để di chuyển.');
+        if(window.NP_Juice)window.NP_Juice.vibrate(8);
+        updateStatus('Chọn ô trống có đường đi đến.');
         renderGrid();
-      } else if (selectedCell) {
-        // Try move
-        if (hasPath(selectedCell.r, selectedCell.c, r, c)) {
-          // Save for Undo
-          previousState = {
-            board: board.map(row => [...row]),
-            score: score,
-            nextColors: [...nextColors]
-          };
-
-          // Move
-          board[r][c] = board[selectedCell.r][selectedCell.c];
-          board[selectedCell.r][selectedCell.c] = 0;
-          selectedCell = null;
-          AudioEngine.pop();
-          if (window.NP_Juice) window.NP_Juice.vibrate(14);
-
-          // Check if lines are made
-          const cleared = checkAndClearLines();
-          if (cleared) {
-            if (window.NP_Juice) window.NP_Juice.vibrate([20, 40]);
-          } else {
-            // Spawn 3 balls
-            spawnBalls(3);
-          }
-
-          if (!gameOver) updateStatus(cleared ? 'Tốt! Bạn được đi tiếp mà không sinh thêm bóng.' : 'Lượt mới. Chọn bóng tiếp theo.');
-          renderGrid();
-        } else {
-          // Blocked path
-          AudioEngine.alarm();
-          if (window.NP_Juice) window.NP_Juice.vibrate(22);
-          updateStatus('Không có đường đến ô này. Hãy chọn vị trí khác.');
-        }
+        return;
       }
+      if(!selectedCell)return;
+      const route=findPath(selectedCell.r,selectedCell.c,r,c);
+      if(!route||!route.length){
+        AudioEngine.alarm();
+        updateStatus('Đường đi bị chặn. Hãy chọn một ô trống khác.');
+        return;
+      }
+      previousState={board:board.map(row=>row.slice()),score,nextColors:[...nextColors]};
+      const color=board[selectedCell.r][selectedCell.c];
+      let previous={...selectedCell},index=0;
+      selectedCell=null;
+      moving=true;movingCell=previous;
+      const stepDelay=Math.max(22,Math.min(65,420/route.length));
+      updateStatus('Đang di chuyển...');
+      const advance=()=>{
+        if(!moving)return;
+        const cell=route[index++];
+        board[previous.r][previous.c]=0;
+        board[cell.r][cell.c]=color;
+        movingCell=cell;
+        previous=cell;
+        renderGrid();
+        if(index<route.length){
+          moveTimer=setTimeout(advance,stepDelay);
+          return;
+        }
+        stopMoving();
+        AudioEngine.pop();
+        if(window.NP_Juice)window.NP_Juice.vibrate(14);
+        const cleared=checkAndClearLines();
+        if(cleared){
+          if(window.NP_Juice)window.NP_Juice.vibrate.combo();
+        }else spawnBalls(3);
+        if(!gameOver)updateStatus(cleared?'Ghép thành công! Không phát sinh bóng mới.':'Lượt mới. Chọn bóng tiếp theo.');
+        renderGrid();
+      };
+      moveTimer=setTimeout(advance,Math.min(30,stepDelay));
     }
 
     const undoBtn = container.querySelector('#l98UndoBtn');
     if (undoBtn) {
       undoBtn.addEventListener('click', () => {
+        stopMoving();
         if (previousState) {
           board = previousState.board;
           score = previousState.score;
