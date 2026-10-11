@@ -6604,6 +6604,7 @@ function launchTetris(container, game) {
   let gameOver = false;
   let animId = null;
   let lastDrop = 0;
+  let gravityBudget = 0, paused = false;
   let canHold = true;
   let holdPiece = null;
   let screenShake = 0;
@@ -6622,9 +6623,18 @@ function launchTetris(container, game) {
     Z: { shape: [[1, 1, 0], [0, 1, 1]], color: '#EF4444', light: '#FCA5A5', dark: '#B91C1C' }
   };
   const PIECE_KEYS = Object.keys(SHAPES);
+  let pieceBag = [];
 
+  // Shuffle all seven shapes before repeating any shape.
   function randomPiece() {
-    const key = PIECE_KEYS[Math.floor(Math.random() * PIECE_KEYS.length)];
+    if (!pieceBag.length) {
+      pieceBag = PIECE_KEYS.slice();
+      for (let i = pieceBag.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pieceBag[i], pieceBag[j]] = [pieceBag[j], pieceBag[i]];
+      }
+    }
+    const key = pieceBag.pop();
     const def = SHAPES[key];
     return {
       type: key,
@@ -6666,7 +6676,7 @@ function launchTetris(container, game) {
 
         <!-- Main Board -->
         <div style="position: relative;">
-          <canvas id="tetCanvas" width="${COLS * CELL}" height="${ROWS * CELL}" style="background: #0B0F19; border: 3px solid #374151; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.6);"></canvas>
+          <canvas id="tetCanvas" width="${COLS * CELL}" height="${ROWS * CELL}" aria-label="Xếp gạch. Chạm để xoay, kéo trái phải hoặc xuống để di chuyển." style="background:#0B0F19;border:3px solid #374151;border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,.6);touch-action:none;max-width:52vw;height:auto;"></canvas>
         </div>
 
         <!-- Right Side: NEXT Piece -->
@@ -6686,7 +6696,8 @@ function launchTetris(container, game) {
           <button class="btn-canvas-action" id="tetDown">▼ Rơi</button>
           <button class="btn-canvas-action" id="tetRotate">Xoay</button>
         </div>
-        <button class="btn-canvas-action" id="tetRestartBtn" style="font-family: Calibri, sans-serif;">Chơi lại</button>
+        <button class="btn-canvas-action" id="tetPauseBtn" style="min-height:44px;">Tạm dừng</button>
+        <button class="btn-canvas-action" id="tetRestartBtn" style="min-height:44px;">Chơi lại</button>
       </div>
     </div>
   `;
@@ -6799,29 +6810,25 @@ function launchTetris(container, game) {
   }
 
   function rotatePiece() {
+    if (gameOver || paused) return;
     const rotated = rotateMatrix(currentPiece.matrix);
-    let success = false;
-    if (!collides(currentPiece, 0, 0, rotated)) {
+    // Rotation near the walls, stacked pieces or floor must try a few offsets.
+    // Compact wall-kicks keep controls forgiving without letting pieces cross walls.
+    const kicks = [[0,0], [-1,0], [1,0], [-2,0], [2,0], [0,-1], [-1,-1], [1,-1]];
+    for (const [dx, dy] of kicks) {
+      if (collides(currentPiece, dx, dy, rotated)) continue;
+      currentPiece.x += dx;
+      currentPiece.y += dy;
       currentPiece.matrix = rotated;
-      success = true;
-    } else if (!collides(currentPiece, -1, 0, rotated)) {
-      currentPiece.x -= 1;
-      currentPiece.matrix = rotated;
-      success = true;
-    } else if (!collides(currentPiece, 1, 0, rotated)) {
-      currentPiece.x += 1;
-      currentPiece.matrix = rotated;
-      success = true;
-    }
-    if (success) {
       if (window.NP_Audio?.pop) NP_Audio.pop();
       else AudioEngine.pop();
       if (window.NP_Juice) window.NP_Juice.vibrate(8);
+      break;
     }
   }
 
   function hold() {
-    if (!canHold || gameOver) return;
+    if (!canHold || gameOver || paused) return;
     canHold = false;
 
     if (holdPiece === null) {
@@ -6971,6 +6978,7 @@ function launchTetris(container, game) {
   }
 
   function hardDrop() {
+    if (gameOver || paused) return;
     let dropped = 0;
     while (!collides(currentPiece, 0, 1)) {
       currentPiece.y++;
@@ -6983,9 +6991,24 @@ function launchTetris(container, game) {
     updateHUD();
   }
 
+  function togglePause() {
+    if (gameOver) return;
+    paused = !paused;
+    lastDrop = 0;
+    gravityBudget = 0;
+    const btn = container.querySelector('#tetPauseBtn');
+    if (btn) btn.textContent = paused ? 'Tiếp tục' : 'Tạm dừng';
+  }
+  container.querySelector('#tetPauseBtn')?.addEventListener('click', togglePause);
+  listen(window, 'blur', () => { if (!paused && !gameOver) togglePause(); });
   // Keyboard controls
   function handleKeyDown(e) {
-    if (gameOver) return;
+    if ((e.key === 'p' || e.key === 'P') && !e.repeat) {
+      e.preventDefault(); togglePause(); return;
+    }
+    if (gameOver || paused || e.altKey || e.ctrlKey || e.metaKey ||
+        /INPUT|TEXTAREA|SELECT/.test(e.target?.tagName || '')) return;
+    if (e.key.startsWith('Arrow')) e.preventDefault();
     if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
       if (!collides(currentPiece, -1, 0)) {
         currentPiece.x--;
@@ -7007,10 +7030,10 @@ function launchTetris(container, game) {
       rotatePiece();
     } else if (e.key === ' ' || e.code === 'Space') {
       e.preventDefault();
-      hardDrop();
+      if (!e.repeat) hardDrop();
     } else if (e.key === 'c' || e.key === 'C' || e.key === 'Shift') {
       e.preventDefault();
-      hold();
+      if (!e.repeat) hold();
     }
   }
 
