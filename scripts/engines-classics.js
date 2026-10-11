@@ -4382,15 +4382,18 @@
     ];
     let score = 0;
     let mergedPositions = [];
+    let undoState = null;
 
     container.innerHTML = `
       <div class="canvas-game-box" style="max-width: 380px; margin: 0 auto; padding-bottom: 12px;">
         <div class="canvas-game-hud" style="width: 100%;">
           <div class="hud-pill">Điểm: <span id="g2048Score" style="color: #F59E0B; font-size: 1.1rem;">0</span></div>
-          <button class="btn-canvas-action" id="g2048NewBtn" style="padding: 4px 12px; font-size: 0.85rem;">🔄 Ván Mới</button>
+          <div class="hud-pill">Kỷ lục <span id="g2048Best">0</span></div>
+          <button class="btn-canvas-action" id="g2048UndoBtn" style="min-height:44px;">Hoàn tác</button>
+          <button class="btn-canvas-action" id="g2048NewBtn" style="min-height:44px;">Ván mới</button>
         </div>
         <div style="padding: 12px; display: flex; justify-content: center; width: 100%;">
-          <div id="g2048Grid" style="background: #BBADA0; width: 320px; height: 320px; padding: 10px; border-radius: 10px; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); gap: 10px; box-sizing: border-box; touch-action: none; user-select: none;">
+          <div id="g2048Grid" style="background: #BBADA0; width: min(320px, 84vw); aspect-ratio: 1; padding: 9px; border-radius: 10px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(4, minmax(0, 1fr)); gap: min(9px, 2vw); box-sizing: border-box; touch-action: none; user-select: none; position:relative;">
             <!-- 16 tiles -->
           </div>
         </div>
@@ -4445,13 +4448,41 @@
       mergedPositions = [];
       const sEl = container.querySelector('#g2048Score');
       if (sEl) sEl.textContent = score;
+      const bestEl = container.querySelector('#g2048Best');
+      if (bestEl) bestEl.textContent = highScore;
+      const undoBtn = container.querySelector('#g2048UndoBtn');
+      if (undoBtn) undoBtn.disabled = !undoState;
+      if (gameOver) {
+        const overEl = document.createElement('div');
+        overEl.style.cssText = 'position:absolute;inset:0;background:rgba(238,228,218,.94);display:flex;align-items:center;justify-content:center;flex-direction:column;border-radius:9px;z-index:2;color:#776E65;gap:8px;text-align:center;';
+        overEl.innerHTML = `<strong style="font-size:1.7rem;">Hết nước đi</strong><span>Điểm ${score} • Kỷ lục ${highScore}</span><button id="g2048OverReset" style="background:#8F7A66;color:#fff;border:0;padding:12px 20px;border-radius:6px;min-height:44px;">Chơi lại</button>`;
+        grid.appendChild(overEl);
+        overEl.querySelector('#g2048OverReset')?.addEventListener('click', reset);
+      }
     }
 
     let highScore = parseInt(localStorage.getItem('np_2048_high') || '0') || 0;
     let hasWon = false;
     let gameOver = false;
 
-    function slide(row, rIdx, isHorizontal) {
+    function save() {
+      try { localStorage.setItem('np_2048_state', JSON.stringify({ board, score, hasWon })); } catch (_) {}
+    }
+    function reset() {
+      board = Array.from({ length: 4 }, () => [0, 0, 0, 0]);
+      score = 0; gameOver = false; hasWon = false; undoState = null;
+      mergedPositions = [];
+      spawnTile(); spawnTile(); save(); render();
+    }
+    function undo() {
+      if (!undoState) return;
+      board = undoState.board.map(row => row.slice());
+      score = undoState.score; hasWon = undoState.hasWon;
+      undoState = null; gameOver = false; mergedPositions = [];
+      save(); render();
+    }
+
+    function slide(row, rIdx, isHorizontal, direction) {
       let arr = row.filter(x => x > 0);
       for (let i = 0; i < arr.length - 1; i++) {
         if (arr[i] === arr[i + 1]) {
@@ -4474,9 +4505,10 @@
             else NP_Juice.vibrate.medium();
           }
           // Fix: Record merged position for tactile pop animation
+          const dst = direction === 'right' || direction === 'down' ? 3 - i : i;
           mergedPositions.push({
-            r: isHorizontal ? rIdx : i,
-            c: isHorizontal ? i : rIdx
+            r: isHorizontal ? rIdx : dst,
+            c: isHorizontal ? dst : rIdx
           });
           arr.splice(i + 1, 1);
         }
@@ -4499,26 +4531,28 @@
     function move(dir) {
       if (gameOver) return;
       const old = JSON.stringify(board);
+      const snapshot = { board: board.map(row => row.slice()), score, hasWon };
 
       if (dir === 'left') {
-        for (let r = 0; r < 4; r++) board[r] = slide(board[r], r, true);
+        for (let r = 0; r < 4; r++) board[r] = slide(board[r], r, true, 'left');
       } else if (dir === 'right') {
-        for (let r = 0; r < 4; r++) board[r] = slide(board[r].reverse(), r, true).reverse();
+        for (let r = 0; r < 4; r++) board[r] = slide(board[r].slice().reverse(), r, true, 'right').reverse();
       } else if (dir === 'up') {
         for (let c = 0; c < 4; c++) {
           let col = [board[0][c], board[1][c], board[2][c], board[3][c]];
-          col = slide(col, c, false);
+          col = slide(col, c, false, 'up');
           for (let r = 0; r < 4; r++) board[r][c] = col[r];
         }
       } else if (dir === 'down') {
         for (let c = 0; c < 4; c++) {
           let col = [board[3][c], board[2][c], board[1][c], board[0][c]];
-          col = slide(col, c, false);
+          col = slide(col, c, false, 'down');
           for (let r = 0; r < 4; r++) board[3 - r][c] = col[r];
         }
       }
 
       if (old !== JSON.stringify(board)) {
+        undoState = snapshot;
         if (window.NP_Audio && typeof window.NP_Audio.pop === 'function') window.NP_Audio.pop();
         if (window.NP_Juice) NP_Juice.vibrate.light();
         spawnTile();
@@ -4530,32 +4564,17 @@
           }
         }
 
-        if (checkGameOver()) {
-          gameOver = true;
-          setTimeout(() => {
-            if (window.NP_Audio) window.NP_Audio.alarm();
-            const grid = container.querySelector('#g2048Grid');
-            if (grid) {
-              const overEl = document.createElement('div');
-              overEl.style.cssText = 'position:absolute; inset:0; background:rgba(238,228,218,0.85); display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:10px; font-weight:900; color:#776E65; z-index:10;';
-              overEl.innerHTML = `<h2 style="font-size:2rem; margin:0 0 8px;">Hết nước đi!</h2><p style="margin:0 0 14px;">Điểm: <strong>${score}</strong> | Kỷ lục: <strong>${highScore}</strong></p><button id="g2048OverReset" style="background:#8F7A66; color:#FFF; border:none; padding:8px 18px; border-radius:6px; font-weight:900; font-family:Calibri,sans-serif; cursor:pointer;">Chơi lại</button>`;
-              grid.style.position = 'relative';
-              grid.appendChild(overEl);
-              overEl.querySelector('#g2048OverReset')?.addEventListener('click', () => {
-                board = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
-                score = 0;
-                gameOver = false;
-                hasWon = false;
-                spawnTile(); spawnTile();
-                render();
-              });
-            }
-          }, 350);
+        gameOver = checkGameOver();
+        save();
+        if (gameOver) {
+          if (window.NP_Audio) window.NP_Audio.alarm();
+          render();
         }
       }
     }
 
     const keyHandler = (e) => {
+      if (e.altKey || e.metaKey || e.ctrlKey || /INPUT|TEXTAREA|SELECT/.test(e.target?.tagName || '')) return;
       if (['ArrowLeft', 'a', 'A'].includes(e.key)) { move('left'); e.preventDefault(); }
       if (['ArrowRight', 'd', 'D'].includes(e.key)) { move('right'); e.preventDefault(); }
       if (['ArrowUp', 'w', 'W'].includes(e.key)) { move('up'); e.preventDefault(); }
@@ -4563,57 +4582,43 @@
     };
     listen(window, 'keydown', keyHandler);
 
-    // Touch Swipe Gestures
+    // Unified Pointer Events. No touch+click double dispatch or origin=(0,0) bug.
     const gridEl = container.querySelector('#g2048Grid');
-    let touchStartX = 0;
-    let touchStartY = 0;
-
-    const touchStartHandler = (e) => {
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-    };
-
-    const touchEndHandler = (e) => {
-      if (!touchStartX || !touchStartY) return;
-      const dx = e.changedTouches[0].clientX - touchStartX;
-      const dy = e.changedTouches[0].clientY - touchStartY;
-      const absDx = Math.abs(dx);
-      const absDy = Math.abs(dy);
-
-      if (Math.max(absDx, absDy) > 25) {
-        if (absDx > absDy) {
-          move(dx > 0 ? 'right' : 'left');
-        } else {
-          move(dy > 0 ? 'down' : 'up');
-        }
+    let gesture = null;
+    listen(gridEl, 'pointerdown', e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      gesture = { x: e.clientX, y: e.clientY, id: e.pointerId };
+      if (gridEl.setPointerCapture) {
+        try { gridEl.setPointerCapture(e.pointerId); } catch (_) {}
       }
-    };
-
-    if (gridEl) {
-      gridEl.addEventListener('touchstart', touchStartHandler, { passive: true });
-      gridEl.addEventListener('touchend', touchEndHandler, { passive: true });
-    }
-
-    container.querySelector('#g2048NewBtn')?.addEventListener('click', () => {
-      board = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
-      score = 0;
-      gameOver = false;
-      hasWon = false;
-      spawnTile();
-      spawnTile();
-      render();
     });
+    listen(gridEl, 'pointerup', e => {
+      if (!gesture || gesture.id !== e.pointerId) return;
+      const dx = e.clientX - gesture.x, dy = e.clientY - gesture.y;
+      gesture = null;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) return;
+      move(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'));
+    });
+    listen(gridEl, 'pointercancel', () => { gesture = null; });
+    container.querySelector('#g2048NewBtn')?.addEventListener('click', reset);
+    container.querySelector('#g2048UndoBtn')?.addEventListener('click', undo);
 
-    spawnTile();
-    spawnTile();
+    // Restore the last run; never trust malformed or old storage.
+    let restored = false;
+    try {
+      const saved = JSON.parse(localStorage.getItem('np_2048_state') || 'null');
+      if (saved && Array.isArray(saved.board) && saved.board.length === 4 &&
+          saved.board.every(row => Array.isArray(row) && row.length === 4 &&
+            row.every(v => Number.isSafeInteger(v) && (v === 0 || (v >= 2 && (v & (v - 1)) === 0))) &&
+          Number.isSafeInteger(saved.score) && saved.score >= 0) {
+        board = saved.board.map(row => row.slice());
+        score = saved.score;
+        hasWon = !!saved.hasWon; gameOver = checkGameOver();
+        restored = true;
+      }
+    } catch (_) {}
+    if (!restored) { spawnTile(); spawnTile(); save(); }
     render();
-
-    onCleanup(() => {
-      if (gridEl) {
-        gridEl.removeEventListener('touchstart', touchStartHandler);
-        gridEl.removeEventListener('touchend', touchEndHandler);
-      }
-    });
   }
 
   // =========================================================================
