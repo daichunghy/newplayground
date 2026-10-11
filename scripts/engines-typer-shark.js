@@ -57,8 +57,12 @@
       });
     }
 
+    function sharkSide(x) { return x < 300 ? 'near the diver' : (x < 500 ? 'mid-water' : 'far right'); }
+
     function updateTargets() {
-      text('#tsTargets', state.sharks.map(shark => shark.word).join(' '));
+      const value = state.sharks.map((shark, index) => 'Target ' + (index + 1) + ', ' + sharkSide(shark.x) + ': ' + shark.word).join('. ');
+      const list = container.querySelector('#tsTargets');
+      if (list && list.textContent !== value) list.textContent = value;
     }
 
     function updateHUD() {
@@ -103,7 +107,13 @@
         return;
       }
       const victims = [...state.sharks];
+      if (!victims.length) {
+        message('Chưa có mục tiêu trong tầm của SHARK ZAPPER.');
+        return;
+      }
       state.charge = 0;
+      state.typed = '';
+      input.value = '';
       for (const shark of victims) {
         state.score += 75 + state.level * 10;
         state.effects.push({ x: shark.x, y: shark.y, life: 0.8, max: 0.8, kind: 'zap' });
@@ -112,6 +122,10 @@
       state.sharks = [];
       state.effects.push({ x: 390, y: 240, life: 0.8, max: 0.8, kind: 'wave' });
       if (state.kills >= 5) state.level = 1 + Math.floor(state.kills / 5);
+      if (state.score > state.best) {
+        state.best = state.score;
+        try { localStorage.setItem('np_typer_shark_best', String(state.best)); } catch (_) {}
+      }
       message('SHARK ZAPPER! ' + victims.length + ' mục tiêu bị hạ.');
       updateHUD();
     }
@@ -120,7 +134,7 @@
       if (state.phase !== 'playing' || state.paused) return;
       const value = String(raw || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 12);
       state.typed = value;
-      if (!value) { updateTargets(); return; }
+      if (!value) return;
       const matching = state.sharks.filter(shark => shark.word.startsWith(value)).sort((a, b) => a.x - b.x);
       if (matching.length) {
         if (matching[0].word === value) {
@@ -128,7 +142,7 @@
           state.typed = '';
           input.value = '';
         } else {
-          message('TARGET LOCKED: ' + matching[0].word);
+          message('TARGET LOCKED: ' + matching[0].word + ' — ' + sharkSide(matching[0].x));
         }
       } else {
         const last = value.slice(-1);
@@ -144,7 +158,6 @@
           message('MISS! Start with a letter shown above a shark.');
         }
       }
-      updateTargets();
     }
 
     function resetGame() {
@@ -186,14 +199,15 @@
     }
 
     function update(dt) {
+      if (state.phase !== 'playing' || state.paused) return;
       state.elapsed += dt;
       state.flash = Math.max(0, state.flash - dt);
       state.diverKick = Math.max(0, state.diverKick - dt);
-      if (state.phase !== 'playing' || state.paused) return;
       state.spawnIn -= dt;
       const maxSharks = Math.min(5, 2 + Math.floor((state.level - 1) / 2));
       if (state.spawnIn <= 0 && state.sharks.length < maxSharks) {
         spawnShark();
+        updateTargets();
         state.spawnIn = Math.max(1.65, 3.8 - state.level * 0.16);
       }
       for (const shark of [...state.sharks]) {
@@ -369,6 +383,8 @@
         if (event.key === 'Enter') { event.preventDefault(); useZapper(); }
         return;
       }
+      // Focused buttons use their native Enter-to-click behavior; don't fire the same action twice.
+      if (event.target && String(event.target.tagName).toLowerCase() === 'button') return;
       if (/^[a-z]$/i.test(event.key)) {
         event.preventDefault(); input.value = (input.value || '') + event.key.toUpperCase();
         submitLetters(input.value); input.focus();

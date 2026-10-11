@@ -740,9 +740,10 @@ test('Typer Shark has its own underwater word-target loop, HUD and responsive co
   assert.ok(input, 'typing input is available for desktop and touch keyboards');
   assert.equal(h.container.querySelector('#arcCanvas'), null, 'generic quiz/archetype renderer is bypassed');
 
-  const targets = h.container.querySelector('#tsTargets').textContent.split(/\s+/).filter(Boolean);
-  assert.ok(targets.length >= 1, 'sharks carry words for the player to type');
-  input.value = targets[0];
+  const targetList = h.container.querySelector('#tsTargets').textContent;
+  const targetWord = targetList.match(/:\s*([A-Z]+)/)?.[1];
+  assert.ok(targetWord, 'accessible target list includes each shark word and its screen-side position');
+  input.value = targetWord;
   input.dispatch('input', { target: input });
   assert.ok(Number(h.container.querySelector('#tsScore').textContent) > 0,
     'typing a shark word zaps that shark and awards points');
