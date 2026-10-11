@@ -722,3 +722,147 @@ test('Bắn Trứng uses one pointer shot, controls and sprite caching', () => {
   assert.equal(h.errors.length,0);
   h.context.closeGameModal();assertStopped(h);
 });
+
+
+test('ten polished games keep their core interactions and clean up', async () => {
+  const h = harness();
+  const cases = [
+    ['pong-1972', '#pongCanvas', '#pongPause', '#pongRestart'],
+    ['pha-gach-dx-ball', '#dxCanvas', '#dxPauseBtn', '#dxRestartBtn'],
+    ['ran-san-moi-snake', '#snkCanvas', '#snkPauseBtn', '#snkRestartBtn'],
+    ['xep-gach-tetris', '#tetCanvas', '#tetPauseBtn', '#tetRestartBtn'],
+    ['flappy-bird', '#fbCanvas', '#fbPauseBtn', '#fbFlapBtn']
+  ];
+  for (const [id, canvasSelector, pauseSelector, restartSelector] of cases) {
+    assert.equal(h.context.openGameById(id), true);
+    const canvas = h.container.querySelector(canvasSelector);
+    assert.ok(canvas, id + ' must render a canvas');
+    assert.ok(h.container.querySelector(pauseSelector), id + ' needs pause');
+    assert.ok(h.container.querySelector(restartSelector), id + ' needs restart/action');
+    if (id === 'flappy-bird') {
+      canvas.dispatch('pointerdown', { pointerId: 1, pointerType: 'touch', clientX: 100, clientY: 180 });
+    } else if (id === 'pha-gach-dx-ball') {
+      canvas.dispatch('pointerdown', { pointerId: 1, pointerType: 'touch', clientX: 220, clientY: 300 });
+    }
+    for (let n = 0; n < 12; n++) h.frame();
+    h.container.querySelector(pauseSelector).dispatch('click');
+    assert.equal(h.container.querySelector(pauseSelector).textContent, 'Tiếp tục', id + ' enters paused state');
+    for (let n = 0; n < 5; n++) h.frame();
+    h.container.querySelector(pauseSelector).dispatch('click');
+    assert.equal(h.container.querySelector(pauseSelector).textContent, 'Tạm dừng', id + ' resumes');
+    if (id !== 'flappy-bird') h.container.querySelector(restartSelector).dispatch('click');
+    h.context.closeGameModal(); h.flushTimeouts(); assertStopped(h);
+    assert.equal(h.errors.length, 0, h.errors.join('; '));
+  }
+
+  h.context.openGameById('co-caro');
+  let cells = h.container.querySelectorAll('.caro-cell');
+  cells[112].dispatch('click');
+  cells = h.container.querySelectorAll('.caro-cell');
+  cells[113].dispatch('click');
+  assert.equal(h.container.querySelectorAll('.caro-cell')
+    .filter(cell => cell.innerHTML.includes('piece-x')).length, 1,
+    'a player cannot place a second stone during the delayed AI turn');
+  h.container.querySelector('#caroResetBtn').dispatch('click');
+  h.flushTimeouts();
+  await Promise.resolve();
+  assert.equal(h.container.querySelectorAll('.caro-cell')
+    .filter(cell => cell.innerHTML.includes('piece-o')).length, 0,
+    'an old AI response cannot appear on a reset board');
+  h.context.closeGameModal(); assertStopped(h);
+
+  h.context.openGameById('line-98');
+  assert.ok(h.container.querySelector('#l98NewBtn'));
+  assert.ok(h.container.querySelector('#l98Best'));
+  assert.equal(h.container.querySelectorAll('.line98-cell').length, 81);
+  assert.ok(h.container.querySelectorAll('.line98-cell')
+    .every(cell => !(cell.listeners.get('touchstart') || []).length));
+  h.container.querySelector('#l98NewBtn').dispatch('click');
+  assert.equal(h.container.querySelector('#l98Score').textContent, 0);
+  h.context.closeGameModal(); assertStopped(h);
+
+  h.context.openGameById('tro-choi-2048');
+  const grid2048 = h.container.querySelector('#g2048Grid');
+  assert.ok(h.container.querySelector('#g2048UndoBtn'));
+  grid2048.dispatch('pointerdown', { pointerId: 1, pointerType: 'touch', clientX: 240, clientY: 120 });
+  grid2048.dispatch('pointerup', { pointerId: 1, pointerType: 'touch', clientX: 30, clientY: 120 });
+  assert.ok(h.stored.has('np_2048_state'), 'run is saved after interaction');
+  h.container.querySelector('#g2048NewBtn').dispatch('click');
+  assert.equal(h.container.querySelector('#g2048Score').textContent, 0);
+  h.context.closeGameModal(); assertStopped(h);
+
+  h.context.openGameById('do-min-minesweeper');
+  const grid = h.container.querySelector('#dmGrid');
+  grid.children[0].dispatch('pointerdown', { pointerType: 'touch', clientX: 10, clientY: 10 });
+  h.flushTimeouts();
+  assert.equal(h.container.querySelector('#dmMineCount').textContent, '009',
+    'touch long-press toggles a flag without revealing the minefield');
+  h.container.querySelector('#dmGrid').children[0].dispatch('click');
+  assert.equal(h.container.querySelector('#dmMineCount').textContent, '009',
+    'synthetic click after holding cannot remove a flag');
+  h.context.closeGameModal(); assertStopped(h);
+  assert.equal(h.errors.length, 0, h.errors.join('; '));
+});
+
+test('Sokoban campaign has ten solvable levels and the first is finishable by input', () => {
+  const code = read('scripts/engines-classics.js');
+  const portion = code.slice(code.indexOf('function launchSokoban('), code.indexOf('function launchOAnQuan('));
+  const matches = [...portion.matchAll(/\{\s*name:\s*'([^']+)',\s*px:\s*(\d+),\s*py:\s*(\d+),\s*map:\s*\[([\s\S]*?)\]\s*\}/g)];
+  const levels = matches.map(m => ({ name: m[1], px: +m[2], py: +m[3], map: [...m[4].matchAll(/'([^']*)'/g)].map(x => x[1]) }));
+  assert.equal(levels.length, 10);
+  function solvable(lvl) {
+    const H = lvl.map.length, W = Math.max(...lvl.map.map(r => r.length));
+    const walls = new Set(), goals = new Set(), boxes = [];
+    for (let r = 0; r < H; r++) for (let c = 0; c < W; c++) {
+      const ch = lvl.map[r][c] || '#', n = r * W + c;
+      if (ch === '#') walls.add(n);
+      if (ch === '.' || ch === '*') goals.add(n);
+      if (ch === '$' || ch === '*') boxes.push(n);
+    }
+    assert.equal(boxes.length, goals.size, lvl.name + ' has equal boxes and goals');
+    const dirs = [-W, W, -1, 1];
+    function reach(player, objects) {
+      const filled = new Set(objects), found = new Set([player]), q = [player];
+      for (let k = 0; k < q.length; k++) for (const d of dirs) {
+        const n = q[k] + d;
+        if (n < 0 || n >= H * W || walls.has(n) || filled.has(n) || found.has(n)) continue;
+        if (Math.abs(d) === 1 && Math.floor(n / W) !== Math.floor(q[k] / W)) continue;
+        found.add(n); q.push(n);
+      }
+      return found;
+    }
+    const first = { player: lvl.py * W + lvl.px, boxes: boxes.sort((x,y) => x-y) };
+    const seen = new Set(), q = [first];
+    while (q.length) {
+      const state = q.shift();
+      if (state.boxes.every(x => goals.has(x))) return true;
+      const accessible = reach(state.player, state.boxes), occupied = new Set(state.boxes);
+      for (const box of state.boxes) for (const d of dirs) {
+        const behind = box - d, ahead = box + d;
+        if (!accessible.has(behind) || walls.has(ahead) || occupied.has(ahead) || ahead < 0 || ahead >= H * W) continue;
+        if (Math.abs(d) === 1 && (Math.floor(behind / W) !== Math.floor(box / W) ||
+            Math.floor(ahead / W) !== Math.floor(box / W))) continue;
+        const next = state.boxes.filter(x => x !== box).concat(ahead).sort((x,y) => x-y);
+        const reachable = reach(box, next), key = next.join(',') + '|' + Math.min(...reachable);
+        if (!seen.has(key)) {
+          seen.add(key);
+          q.push({ player: box, boxes: next });
+        }
+      }
+      assert.ok(seen.size < 30000, lvl.name + ' state search must remain tractable');
+    }
+    return false;
+  }
+  for (const level of levels) assert.ok(solvable(level), level.name + ' has a winning push sequence');
+  const h = harness();
+  h.context.openGameById('day-thung-sokoban');
+  for (const direction of ['ArrowLeft', 'ArrowLeft', 'ArrowDown', 'ArrowRight',
+    'ArrowRight', 'ArrowDown', 'ArrowRight', 'ArrowUp']) {
+    h.window.dispatch('keydown', { key: direction });
+  }
+  assert.equal(h.container.querySelector('#skNextBtn').style.display, 'block');
+  h.container.querySelector('#skNextBtn').dispatch('click');
+  assert.equal(h.container.querySelector('#skLevel').textContent, 2);
+  h.context.closeGameModal(); assertStopped(h);
+  assert.equal(h.errors.length, 0);
+});
