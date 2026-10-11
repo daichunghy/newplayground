@@ -427,7 +427,7 @@
       '<div class="np-deep-shade" data-a="shade" role="status" aria-live="polite"><h2 data-a="headline"></h2><p data-a="description"></p><button class="np-deep-primary" data-a="next" type="button"></button></div></div>'+
       '<div class="np-deep-footer"><span data-a="hint"></span><span data-a="feedback" aria-live="polite"></span></div><p class="np-deep-help" data-a="instructions" hidden></p></section>';
     const el=name=>container.querySelector('[data-a="'+name+'"]');
-    const messages={rings:'Chạm để ngắm, thả để ném; phím mũi tên và Space cũng dùng được. Chai vàng thưởng thêm lượt ném, còn gió thay đổi sau mỗi vòng.',darts:'Chạm bóng để ném; phím mũi tên và Space cũng dùng được. Bóng đồng hồ cộng ba giây, bóng viền trắng cần hai phi tiêu.',quiz:'Chọn đáp án trong thời gian quy định; trả lời nhanh và đúng liên tiếp được thưởng điểm. Mỗi quyền 50/50 và bỏ qua chỉ dùng một lần trong hành trình.'};
+    const messages={rings:'Chạm để ngắm, thả để ném; phím mũi tên và Space cũng dùng được. Chai vàng thưởng thêm lượt ném; điện thoại có vùng chạm rộng hơn, gió thay đổi sau mỗi vòng.',darts:'Chạm bóng để ném; phím mũi tên và Space cũng dùng được. Bóng đồng hồ cộng ba giây, bóng viền trắng cần hai phi tiêu.',quiz:'Chọn đáp án trong thời gian quy định; trả lời nhanh và đúng liên tiếp được thưởng điểm. Mỗi quyền 50/50 và bỏ qua chỉ dùng một lần trong hành trình.'};
     el('hint').textContent=kind==='rings'?'Kéo ngắm • thả ném':kind==='darts'?'Chạm bóng để ném':'Chọn đáp án đúng';
     el('instructions').textContent=messages[kind];
     session.listen(el('help'),'click',()=>{el('instructions').hidden=!el('instructions').hidden;});
@@ -522,6 +522,19 @@
         const observer=new root.ResizeObserver(fit);observer.observe(canvas);session.onCleanup(()=>observer.disconnect());
       }
       const point=e=>{const r=canvas.getBoundingClientRect();return {x:(e.clientX-r.left)*W/Math.max(1,r.width),y:(e.clientY-r.top)*H/Math.max(1,r.height),scale:r.width/W};};
+      // A bottle only occupies a few CSS pixels on a narrow phone.
+      // Assist touches inside a 44px-diameter target while retaining moving-target timing and wind.
+      const aimRing=p=>{
+        if(p.scale>=.8){engine.point(p.x,p.y);return;}
+        const reach=Math.min(85,22/Math.max(.24,p.scale));
+        const nearest=s.bottles.filter(b=>!b.collected)
+          .map(b=>({b,x:engine.bottleX(b)}))
+          .map(item=>({...item,distance:Math.hypot(item.x-p.x,item.b.y-p.y)}))
+          .sort((a,b)=>a.distance-b.distance)[0];
+        if(nearest&&nearest.distance<=reach){
+          engine.point(nearest.x-s.wind,nearest.b.y);
+        }else engine.point(p.x,p.y);
+      };
       let dragging=false,activePointer=null,keys=new Set();
       session.listen(canvas,'pointerdown',e=>{
         if(s.paused||s.phase!=='playing')return;
@@ -529,17 +542,17 @@
         if(kind==='rings'){
           if(dragging)return;
           dragging=true;activePointer=e.pointerId;
-          engine.point(p.x,p.y);try{canvas.setPointerCapture(e.pointerId);}catch(_){}
+          aimRing(p);try{canvas.setPointerCapture(e.pointerId);}catch(_){}
         }
         else{engine.fire(p.x,p.y,p.scale);updateUI(true);}
       });
       session.listen(canvas,'pointermove',e=>{
-        if(kind==='rings'&&dragging&&e.pointerId===activePointer&&!s.paused){const p=point(e);engine.point(p.x,p.y);}
+        if(kind==='rings'&&dragging&&e.pointerId===activePointer&&!s.paused){const p=point(e);aimRing(p);}
       });
       session.listen(canvas,'pointerup',e=>{
         if(kind==='rings'&&dragging&&e.pointerId===activePointer){
           dragging=false;activePointer=null;const p=point(e);
-          engine.point(p.x,p.y);engine.throwRing();updateUI(true);
+          aimRing(p);engine.throwRing();updateUI(true);
         }
       });
       session.listen(canvas,'pointercancel',e=>{if(e.pointerId===activePointer){dragging=false;activePointer=null;}});
