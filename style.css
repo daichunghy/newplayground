@@ -2952,3 +2952,25 @@ body.dark-theme .filter-pill.active {
     max-height: calc(100dvh - 120px);
   }
 }
+
+
+/* Flappy Bird is a portrait playfield: preserve its 3:4 world and center it in the expanded modal. */
+#modalGameContainer:has(.np-flappy-game) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.np-flappy-game {
+  flex: 0 0 auto;
+}
+.np-flappy-game .np-flappy-hud {
+  background: #2f7446;
+  color: #f7ffe9;
+  border-bottom-color: #235b35;
+}
+.np-flappy-game .np-flappy-hud .hud-pill {
+  background: rgba(14, 58, 35, 0.66);
+}
+@media (max-height: 640px) {
+  #modalGameContainer:has(.np-flappy-game) { align-items: flex-start; overflow-y: auto; }
+}

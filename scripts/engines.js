@@ -7244,8 +7244,8 @@ function launchFlappyBird(container, game) {
   let lastFrame = 0, frameBudget = 0, paused = false;
 
     container.innerHTML = `
-    <div class="canvas-game-box" style="max-width: 420px; font-family: Calibri, sans-serif;">
-      <div class="canvas-game-hud">
+    <div class="canvas-game-box np-flappy-game" style="width:min(100%, 520px, max(240px, calc(75dvh - 270px))); max-width:none; margin:0 auto; font-family: Calibri, sans-serif;">
+      <div class="canvas-game-hud np-flappy-hud">
         <div class="hud-pill">Điểm: <span id="fbScore" style="color: #10B981; font-weight: bold;">0</span></div>
         <div class="hud-pill">Kỷ lục: <span id="fbHigh" style="font-weight: bold;">${highScore}</span></div>
       </div>
@@ -7259,6 +7259,11 @@ function launchFlappyBird(container, game) {
 
   const canvas = container.querySelector('#fbCanvas');
   const ctx = canvas.getContext('2d');
+  const flappySprite = typeof Image === 'function' ? new Image() : null;
+  if (flappySprite) {
+    flappySprite.decoding = 'async';
+    flappySprite.src = 'assets/avatars/flappy-swift-sprite.webp';
+  }
 
   function flap() {
     if (paused) return;
@@ -7390,77 +7395,79 @@ function launchFlappyBird(container, game) {
     }
 
     // --- RENDER ---
-    // Sky
-    ctx.fillStyle = '#70C5CE';
+    // Classic bright sky with blocky clouds that drift behind the playfield.
+    const sky = ctx.createLinearGradient(0, 0, 0, canvas.height - 40);
+    sky.addColorStop(0, '#4fc2d3');
+    sky.addColorStop(1, '#9be0e8');
+    ctx.fillStyle = sky;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // City Skyline
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    const cloudSpan = canvas.width + 110;
     for (let c = 0; c < 5; c++) {
-      ctx.fillRect(c * 80 + 10, canvas.height - 130, 60, 90);
+      const rawX = c * 112 - frame * (0.22 + (c % 2) * 0.12);
+      const x = ((rawX % cloudSpan) + cloudSpan) % cloudSpan - 52;
+      const y = 56 + (c % 3) * 66;
+      ctx.fillStyle = 'rgba(244, 255, 255, 0.72)';
+      ctx.fillRect(x + 10, y, 32, 8);
+      ctx.fillRect(x, y + 8, 58, 10);
+      ctx.fillRect(x + 18, y + 18, 30, 5);
     }
 
-    // Pipes
+    // Green pipes use a bright face, shaded edge and projecting collar for a crisp arcade silhouette.
     pipes.forEach(p => {
-      ctx.fillStyle = '#73BF2E';
       const gap = p.gap;
-      ctx.fillRect(p.x, 0, 52, p.top);
-      ctx.fillStyle = '#558022';
-      ctx.fillRect(p.x - 3, p.top - 20, 58, 20);
-
-      ctx.fillStyle = '#73BF2E';
-      ctx.fillRect(p.x, p.top + gap, 52, canvas.height - (p.top + gap));
-      ctx.fillStyle = '#558022';
-      ctx.fillRect(p.x - 3, p.top + gap, 58, 20);
+      const body = (x, y, w, h) => {
+        if (h <= 0) return;
+        ctx.fillStyle = '#4b8f25'; ctx.fillRect(x, y, w, h);
+        ctx.fillStyle = '#79c63a'; ctx.fillRect(x + 2, y, w - 4, h);
+        ctx.fillStyle = '#a4e75a'; ctx.fillRect(x + 7, y, 8, h);
+        ctx.fillStyle = '#57902d'; ctx.fillRect(x + w - 8, y, 6, h);
+      };
+      body(p.x, 0, 52, p.top - 20);
+      ctx.fillStyle = '#4b8f25'; ctx.fillRect(p.x - 4, p.top - 20, 60, 20);
+      ctx.fillStyle = '#80cf3d'; ctx.fillRect(p.x - 2, p.top - 18, 56, 15);
+      ctx.fillStyle = '#a4e75a'; ctx.fillRect(p.x + 4, p.top - 17, 8, 13);
+      ctx.fillStyle = '#4b8f25'; ctx.fillRect(p.x - 4, p.top + gap, 60, 20);
+      ctx.fillStyle = '#80cf3d'; ctx.fillRect(p.x - 2, p.top + gap + 2, 56, 15);
+      ctx.fillStyle = '#a4e75a'; ctx.fillRect(p.x + 4, p.top + gap + 3, 8, 13);
+      body(p.x, p.top + gap + 20, 52, canvas.height - (p.top + gap + 20));
     });
 
-    // Ground
-    ctx.fillStyle = '#DED895';
+    // Two-tone ground strip with repeating pixel marks.
+    ctx.fillStyle = '#e8d99a';
     ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
-    ctx.fillStyle = '#73BF2E';
+    ctx.fillStyle = '#70bd35';
     ctx.fillRect(0, canvas.height - 40, canvas.width, 10);
+    ctx.fillStyle = '#f3e6b5';
+    for (let x = -((frame * 2) % 24); x < canvas.width; x += 24) {
+      ctx.fillRect(x, canvas.height - 25, 12, 4);
+      ctx.fillRect(x + 8, canvas.height - 12, 10, 3);
+    }
 
-    // Bird
+    // Original pixel-art character sprite. Keep a vector fallback for offline/failed asset loads.
     ctx.save();
     ctx.translate(90, bird.y);
     const rot = Math.min(Math.PI / 3, Math.max(-Math.PI / 4, bird.vy * 0.08));
     ctx.rotate(rot);
-
-    // Body
-    ctx.fillStyle = '#FBBF24';
-    ctx.beginPath();
-    ctx.arc(0, 0, 15, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#D97706';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // Wing
-    const wingY = Math.sin(frame * 0.3) * 4;
-    ctx.fillStyle = '#FFF';
-    ctx.beginPath();
-    ctx.ellipse(-5, wingY, 8, 5, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Eye
-    ctx.fillStyle = '#FFF';
-    ctx.beginPath();
-    ctx.arc(6, -6, 5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#000';
-    ctx.beginPath();
-    ctx.arc(8, -6, 2.5, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Beak
-    ctx.fillStyle = '#EF4444';
-    ctx.beginPath();
-    ctx.moveTo(12, 0);
-    ctx.lineTo(20, 4);
-    ctx.lineTo(12, 8);
-    ctx.closePath();
-    ctx.fill();
+    if (flappySprite && flappySprite.complete && flappySprite.naturalWidth > 0) {
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(flappySprite, -21, -21, 42, 42);
+    } else {
+      ctx.fillStyle = '#20b7c5';
+      ctx.beginPath(); ctx.ellipse(0, 0, 15, 12, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#f97353';
+      ctx.beginPath(); ctx.ellipse(-5, Math.sin(frame * 0.3) * 3, 8, 5, -0.25, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(6, -5, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#10222b'; ctx.beginPath(); ctx.arc(8, -5, 2.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ffd34d'; ctx.beginPath(); ctx.moveTo(12, 0); ctx.lineTo(21, 3); ctx.lineTo(12, 7); ctx.closePath(); ctx.fill();
+    }
     ctx.restore();
+
+    if (started) {
+      ctx.textAlign = 'center'; ctx.font = 'bold 34px Calibri, sans-serif';
+      ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(31, 84, 91, 0.72)';
+      ctx.strokeText(String(score), canvas.width / 2, 48);
+      ctx.fillStyle = '#fff'; ctx.fillText(String(score), canvas.width / 2, 48);
+    }
 
     if (!started) {
       ctx.fillStyle = '#FFF';

@@ -706,5 +706,19 @@
     "width": 640,
     "height": 400,
     "format": "WebP"
+  },
+  {
+    "category": "runtime_character",
+    "file": "flappy-swift-sprite.webp",
+    "local_path": "assets/avatars/flappy-swift-sprite.webp",
+    "size_bytes": 9460,
+    "license": "AI-generated original sprite; governed by project asset policy",
+    "source": "OpenAI ImageGen; generated 2026-10-11",
+    "game_id": "flappy-bird",
+    "role": "runtime_player_character",
+    "prompt": "A single original side-view swift bird gameplay sprite for a retro arcade game. Crisp 16-bit pixel art with chunky square pixels, compact rounded turquoise body, coral-orange wing, small yellow beak, large white eye with dark pupil. One character only, centered, facing right, neutral flying pose, transparent background; no scenery, text, logo, watermark, or imitation.",
+    "width": 256,
+    "height": 256,
+    "format": "WebP"
   }
 ]
