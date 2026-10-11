@@ -729,16 +729,28 @@ test('Bắn Trứng uses one pointer shot, controls and sprite caching', () => {
 
 test('Flappy Bird sprite fits its collision box and offline fallback stays available', async () => {
   const fallback = harness();
+  fallback.drawImageCalls.length = 0;
   assert.equal(fallback.context.openGameById('flappy-bird'), true);
   fallback.frame();
   assert.equal(fallback.drawImageCalls.length, 0, 'offline mode uses vector art');
   fallback.context.closeGameModal(); fallback.flushTimeouts(); assertStopped(fallback);
+
+  class FailedImage {
+    constructor() { this.complete = true; this.naturalWidth = 0; this.src = ''; }
+  }
+  const failed = harness({ ImageClass: FailedImage });
+  failed.drawImageCalls.length = 0;
+  assert.equal(failed.context.openGameById('flappy-bird'), true);
+  failed.frame();
+  assert.equal(failed.drawImageCalls.length, 0, 'failed image load falls back to vector art');
+  failed.context.closeGameModal(); failed.flushTimeouts(); assertStopped(failed);
 
   let loadedSprite;
   class LoadedImage {
     constructor() { this.complete = true; this.naturalWidth = 256; this.src = ''; loadedSprite = this; }
   }
   const loaded = harness({ ImageClass: LoadedImage });
+  loaded.drawImageCalls.length = 0;
   assert.equal(loaded.context.openGameById('flappy-bird'), true);
   loaded.frame();
   const call = loaded.drawImageCalls.find(args => args[0] === loadedSprite);
