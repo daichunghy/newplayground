@@ -6547,12 +6547,20 @@
     let ball = { x: W / 2, y: H / 2, vx: 4, vy: 1.5, trail: [] };
     let serve = 0.85, direction = Math.random() < 0.5 ? -1 : 1;
     let frameId = null, lastTime = 0, accumulator = 0, aiThink = 0;
-    const keys = { up: false, down: false };
+    const keys={up:false,down:false};
+    let mode='normal';
+    let playerVelocity=0, rivalVelocity=0;
+    const difficulties = {
+      casual:{speed:2.6,think:.22,error:46},
+      normal:{speed:3.7,think:.15,error:27},
+      hard:{speed:5.0,think:.09,error:13}
+    };
     container.innerHTML = `
       <div class="canvas-game-box" style="max-width:500px;">
         <div class="canvas-game-hud" style="justify-content:space-between;">
           <div class="hud-pill">Bạn <span id="pongPlayer" style="color:#34D399;">0</span></div>
-          <div class="hud-pill">Chạm mốc 7, hơn 2 điểm</div>
+          <div class="hud-pill">Đánh 7, cách 2</div>
+          <div class="hud-pill">Rally <span id="pongRally">0</span></div>
           <div class="hud-pill">Máy <span id="pongAI" style="color:#FB7185;">0</span></div>
         </div>
         <canvas id="pongCanvas" width="460" height="280" class="canvas-main-viewport"
@@ -6560,6 +6568,11 @@
           style="display:block;margin:auto;touch-action:none;background:#080D16;cursor:none;"></canvas>
         <div class="canvas-controls-bar" style="gap:8px;">
           <span id="pongStatus" role="status" style="font-weight:700;color:#D1FAE5;">Di chuyển vợt để đón bóng</span>
+          <label style="color:#E2E8F0;">Máy
+            <select id="pongDifficulty" aria-label="Chọn độ khó đối thủ" style="min-height:40px;padding:6px;border:1px solid #475569;border-radius:6px;background:#18222F;color:white;">
+              <option value="casual">Dễ</option><option value="normal" selected>Vừa</option><option value="hard">Khó</option>
+            </select>
+          </label>
           <button class="btn-canvas-action" id="pongPause">Tạm dừng</button>
           <button class="btn-canvas-action" id="pongRestart">Ván mới</button>
         </div>
@@ -6568,7 +6581,8 @@
     const canvas = container.querySelector('#pongCanvas'), ctx = canvas.getContext('2d');
     const status = container.querySelector('#pongStatus');
     const restart = () => {
-      score = [0, 0]; winner = -1; paused = false; rally = 0;
+      score=[0,0];winner=-1;paused=false;rally=0;
+      playerVelocity=rivalVelocity=0;aiThink=0;
       player.y = player.target = rival.y = rival.target = (H - PADDLE_H) / 2;
       direction = Math.random() < .5 ? -1 : 1; resetServe();
       syncHUD();
@@ -6583,6 +6597,8 @@
       const a = container.querySelector('#pongPlayer'), b = container.querySelector('#pongAI');
       if (a) a.textContent = score[0];
       if (b) b.textContent = score[1];
+      const rallyEl=container.querySelector('#pongRally');
+      if (rallyEl) rallyEl.textContent=rally;
       if (status) status.textContent = winner >= 0 ? (winner ? 'Máy thắng trận. Chơi lại để thử tiếp.' : 'Bạn thắng trận!')
         : paused ? 'Đã tạm dừng' : serve > 0 ? 'Chuẩn bị giao bóng' : 'Đang thi đấu';
     }
@@ -6608,7 +6624,10 @@
       if (['ArrowUp', 'w', 'W'].includes(e.key)) keys.up = false;
       if (['ArrowDown', 's', 'S'].includes(e.key)) keys.down = false;
     });
-    listen(window, 'blur', () => { if (!paused && winner < 0) { paused = true; syncHUD(); } });
+    listen(window,'blur',()=>{
+      keys.up=keys.down=false;
+      if (!paused && winner<0) togglePause();
+    });
     function togglePause() {
       if (winner >= 0) return;
       paused = !paused;
@@ -6616,13 +6635,23 @@
       if (btn) btn.textContent = paused ? 'Tiếp tục' : 'Tạm dừng';
       syncHUD();
     }
-    container.querySelector('#pongPause')?.addEventListener('click', togglePause);
-    container.querySelector('#pongRestart')?.addEventListener('click', restart);
+    container.querySelector('#pongPause')?.addEventListener('click',togglePause);
+    container.querySelector('#pongRestart')?.addEventListener('click',restart);
+    container.querySelector('#pongDifficulty')?.addEventListener('change',e=>{
+      const chosen=String(e.target.value);
+      if (!Object.prototype.hasOwnProperty.call(difficulties,chosen)) return;
+      mode=chosen;
+      restart();
+    });
     function bounce(paddleY, towardsRight) {
-      const angle = clamp((ball.y - (paddleY + PADDLE_H / 2)) / (PADDLE_H / 2), -1, 1) * 1.07;
-      const speed = Math.min(9.4, 4.2 + ++rally * .22);
-      ball.vx = (towardsRight ? 1 : -1) * Math.max(2.6, Math.cos(angle) * speed);
-      ball.vy = Math.sin(angle) * speed;
+      const angle=clamp((ball.y-(paddleY+PADDLE_H/2))/(PADDLE_H/2),-1,1)*1.07;
+      const speed=Math.min(9.4,4.2 + ++rally*.22);
+      const x=(towardsRight?1:-1)*Math.max(2.6,Math.cos(angle)*speed);
+      const y=Math.sin(angle)*speed + clamp(towardsRight?playerVelocity:rivalVelocity,-6,6)*.22;
+      const mag=Math.hypot(x,y)||1;
+      ball.vx=x*speed/mag;
+      ball.vy=y*speed/mag;
+      syncHUD();
       ball.x = towardsRight ? 24 + BALL_R : W - 24 - BALL_R;
       shake = Math.min(2.2, .65 + speed * .1);
       AudioEngine.hit();
@@ -6638,19 +6667,26 @@
       if (paused || winner >= 0) return;
       const keyDelta = (keys.down ? 1 : 0) - (keys.up ? 1 : 0);
       if (keyDelta) player.target = clamp(player.target + keyDelta * 6.8, 5, H - PADDLE_H - 5);
-      player.y += clamp(player.target - player.y, -8.6, 8.6);
-      aiThink -= 1 / 60;
+      const previousY=player.y;
+      player.y += clamp(player.target-player.y,-8.6,8.6);
+      playerVelocity=player.y-previousY;
+      const ai=difficulties[mode];
+      aiThink -= 1/60;
       if (aiThink <= 0) {
-        aiThink = .13 + Math.random() * .08;
+        aiThink=ai.think + Math.random()*.055;
         const towardAI = ball.vx > 0;
         const travel = towardAI ? (W - 30 - ball.x) / Math.max(1, ball.vx) : 0;
         let predicted = ball.y + ball.vy * travel;
         const range = 2 * (H - BALL_R * 2);
         const reflected = ((predicted - BALL_R) % range + range) % range;
         predicted = (reflected > H - BALL_R * 2 ? range - reflected : reflected) + BALL_R;
-        rival.target = clamp((towardAI ? predicted : H / 2) - PADDLE_H / 2 + (Math.random() - .5) * 25, 5, H - PADDLE_H - 5);
+        rival.target=clamp((towardAI?predicted:H/2)-PADDLE_H/2+
+          (Math.random()-.5)*ai.error,5,H-PADDLE_H-5);
       }
-      rival.y += clamp(rival.target - rival.y, -(3.7 + Math.min(1.6, rally * .08)), 3.7 + Math.min(1.6, rally * .08));
+      const previousRival=rival.y;
+      const aiSpeed=ai.speed+Math.min(1.25,rally*.06);
+      rival.y+=clamp(rival.target-rival.y,-aiSpeed,aiSpeed);
+      rivalVelocity=rival.y-previousRival;
       if (serve > 0) { serve = Math.max(0, serve - 1 / 60); return; }
       ball.trail.unshift({ x: ball.x, y: ball.y });
       if (ball.trail.length > 7) ball.trail.pop();
