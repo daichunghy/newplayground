@@ -6180,15 +6180,8 @@ function launchSnake(container, game) {
   let gameOver = false;
   let animId = null;
   let lastTick = 0;
+  let tickBudget = 0, paused = false, wonBoard = false;
 
-  function spawnFood() {
-    let fx, fy;
-    do {
-      fx = Math.floor(Math.random() * COLS);
-      fy = Math.floor(Math.random() * ROWS);
-    } while (snake.some(s => s.x === fx && s.y === fy));
-    food = { x: fx, y: fy };
-  }
 
   container.innerHTML = `
     <div class="canvas-game-box" style="background: #1E293B; font-family: Calibri, 'Segoe UI', sans-serif;">
@@ -6198,10 +6191,11 @@ function launchSnake(container, game) {
         <div class="hud-pill" style="background: #1E293B; color: #38BDF8;">Kỷ lục: <span id="snkHigh">${highScore}</span></div>
       </div>
 
-      <canvas id="snkCanvas" width="${COLS * CELL}" height="${ROWS * CELL}" class="canvas-main-viewport" style="background: #0B0F19; border: 2px solid #334155; border-radius: 8px;"></canvas>
+      <canvas id="snkCanvas" width="${COLS * CELL}" height="${ROWS * CELL}" class="canvas-main-viewport" aria-label="Rắn săn mồi, vuốt theo hướng muốn đổi." style="background: #0B0F19; border: 2px solid #334155; border-radius: 8px; touch-action:none;"></canvas>
 
       <div class="canvas-controls-bar" style="background: #0F172A; font-family: Calibri, sans-serif;">
-        <small style="color: #94A3B8;">📱 Vuốt ngón tay trên màn hình hoặc dùng phím Mũi tên / Phím ảo để điều khiển rắn</small>
+        <small style="color:#94A3B8;">Vuốt trên bàn, dùng mũi tên / WASD hoặc các nút hướng.</small>
+        <button class="btn-canvas-action" id="snkPauseBtn" style="min-height:44px;">Tạm dừng</button>
         <button class="btn-canvas-action" id="snkRestartBtn" style="background: #10B981; color: #FFF; font-family: Calibri, sans-serif;">
           Chơi lại
         </button>
@@ -6232,6 +6226,7 @@ function launchSnake(container, game) {
     }
     if (!available.length) {
       gameOver = true;
+      wonBoard = true;
       return;
     }
     food = available[Math.floor(Math.random() * available.length)];
@@ -6241,7 +6236,7 @@ function launchSnake(container, game) {
   let inputQueue = [];
 
   function changeDir(dx, dy) {
-    if (gameOver) return;
+    if (gameOver || paused) return;
     const last = inputQueue.length > 0 ? inputQueue[inputQueue.length - 1] : dir;
     // Prevent 180-degree suicide reversal
     if (last.x === -dx && last.y === -dy) return;
@@ -6261,41 +6256,50 @@ function launchSnake(container, game) {
       e.preventDefault();
       changeDir(dx, dy);
     };
+    // Native clicks are synthesized for touch taps as well.
     btn.addEventListener('click', handler);
-    btn.addEventListener('touchstart', handler);
   }
   bindBtn('#snkUp', 0, -1);
   bindBtn('#snkDown', 0, 1);
   bindBtn('#snkLeft', -1, 0);
   bindBtn('#snkRight', 1, 0);
 
-  // Touch Swipe Gesture Detection for ultimate tactile feel
-  let touchStartX = 0, touchStartY = 0;
-  canvas.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    const t = e.touches[0];
-    touchStartX = t.clientX;
-    touchStartY = t.clientY;
-  }, { passive: false });
-
-  canvas.addEventListener('touchend', (e) => {
-    e.preventDefault();
-    const t = e.changedTouches[0];
-    const dx = t.clientX - touchStartX;
-    const dy = t.clientY - touchStartY;
-    const absX = Math.abs(dx);
-    const absY = Math.abs(dy);
-
-    if (Math.max(absX, absY) > 20) {
-      if (absX > absY) {
-        changeDir(dx > 0 ? 1 : -1, 0);
-      } else {
-        changeDir(0, dy > 0 ? 1 : -1);
-      }
+  // Pointer Events unify mouse, pen and mobile swipes with one buffered turn.
+  let swipe = null;
+  listen(canvas, 'pointerdown', e => {
+    swipe = { x: e.clientX, y: e.clientY, id: e.pointerId };
+    if (canvas.setPointerCapture) {
+      try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
     }
-  }, { passive: false });
+    if (e.pointerType === 'touch') e.preventDefault();
+  });
+  listen(canvas, 'pointerup', e => {
+    if (!swipe || swipe.id !== e.pointerId) return;
+    const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y;
+    swipe = null;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 16) return;
+    if (Math.abs(dx) > Math.abs(dy)) changeDir(dx > 0 ? 1 : -1, 0);
+    else changeDir(0, dy > 0 ? 1 : -1);
+  });
+  listen(canvas, 'pointercancel', () => { swipe = null; });
+
+  function togglePause() {
+    if (gameOver) return;
+    paused = !paused;
+    tickBudget = 0;
+    lastTick = 0;
+    const pauseBtn = container.querySelector('#snkPauseBtn');
+    if (pauseBtn) pauseBtn.textContent = paused ? 'Tiếp tục' : 'Tạm dừng';
+  }
+  container.querySelector('#snkPauseBtn')?.addEventListener('click', togglePause);
+  listen(window, 'blur', () => {
+    if (!paused && !gameOver) togglePause();
+  });
 
   const keyHandler = (e) => {
+    if ((e.key === ' ' || e.key === 'p' || e.key === 'P') && !e.repeat) {
+      e.preventDefault(); togglePause(); return;
+    }
     if (['ArrowUp', 'w', 'W'].includes(e.key)) { changeDir(0, -1); e.preventDefault(); }
     else if (['ArrowDown', 's', 'S'].includes(e.key)) { changeDir(0, 1); e.preventDefault(); }
     else if (['ArrowLeft', 'a', 'A'].includes(e.key)) { changeDir(-1, 0); e.preventDefault(); }
@@ -6316,6 +6320,11 @@ function launchSnake(container, game) {
     foodEaten = 0;
     speedLevel = 1;
     gameOver = false;
+    wonBoard = false;
+    paused = false;
+    tickBudget = 0; lastTick = 0;
+    const pauseButton = container.querySelector('#snkPauseBtn');
+    if (pauseButton) pauseButton.textContent = 'Tạm dừng';
     particles = [];
     screenShake = 0;
     spawnFood();
@@ -6370,7 +6379,7 @@ function launchSnake(container, game) {
 
       if (score > highScore) {
         highScore = score;
-        localStorage.setItem(HIGH_SCORE_KEY, highScore);
+        try { localStorage.setItem(HIGH_SCORE_KEY, highScore); } catch (_) {}
       }
       AudioEngine.coin();
 
@@ -6400,13 +6409,16 @@ function launchSnake(container, game) {
   }
 
   function loop(timestamp) {
-    const interval = Math.max(65, 190 - speedLevel * 14);
     if (!lastTick) lastTick = timestamp;
-
-    if (timestamp - lastTick >= interval) {
-      lastTick = timestamp;
-      if (!gameOver) {
+    const dt = Math.min(180, Math.max(0, timestamp - lastTick));
+    lastTick = timestamp;
+    if (!paused && !gameOver) {
+      tickBudget = Math.min(240, tickBudget + dt);
+      let ticks = 0;
+      while (!gameOver && ticks < 3 && tickBudget >= Math.max(65, 190 - speedLevel * 14)) {
+        tickBudget -= Math.max(65, 190 - speedLevel * 14);
         tick();
+        ticks++;
       }
     }
 
@@ -6548,16 +6560,16 @@ function launchSnake(container, game) {
       }
     }
 
-    if (gameOver) {
+    if (gameOver || paused) {
       ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = '#EF4444';
       ctx.font = 'bold 24px Calibri, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('GAME OVER!', canvas.width / 2, canvas.height / 2 - 12);
+      ctx.fillText(paused ? 'TẠM DỪNG' : wonBoard ? 'HOÀN THÀNH!' : 'HẾT LƯỢT', canvas.width / 2, canvas.height / 2 - 12);
       ctx.fillStyle = '#F8FAFC';
       ctx.font = '15px Calibri, sans-serif';
-      ctx.fillText(`Điểm số: ${score} - Nhấn "Chơi lại"`, canvas.width / 2, canvas.height / 2 + 16);
+      ctx.fillText(paused ? 'Bấm Tiếp tục hoặc phím P' : 'Điểm ' + score + ' • Chọn Chơi lại', canvas.width / 2, canvas.height / 2 + 16);
     }
 
     ctx.restore();
