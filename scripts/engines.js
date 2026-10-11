@@ -5777,6 +5777,7 @@ function launchCaro(container, game) {
   let lastMove = null;
   let wins = 0;
   let losses = 0;
+  let ruleSet = 'blocked';
   let aiThinking = false;
   let turnVersion = 0;
 
@@ -5785,6 +5786,12 @@ function launchCaro(container, game) {
       <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
         <div class="hud-pill" style="font-size: 0.85rem; font-family: Calibri, sans-serif;">Bạn: <strong style="color: #2563EB;">X (Xanh)</strong> | Máy: <strong style="color: #DC2626;">O (Đỏ)</strong></div>
         <div class="hud-pill" style="font-size: 0.85rem; font-family: Calibri, sans-serif;">Tỷ số: <span id="caroScore" style="color: #10B981; font-weight: 900;">0 - 0</span></div>
+        <label style="font-size:.85rem;color:var(--text-main);">Luật
+          <select id="caroRules" aria-label="Chọn luật Cờ Caro" style="padding:6px;min-height:40px;border:1px solid #64748B;border-radius:4px;">
+            <option value="blocked">Caro chặn 2 đầu</option>
+            <option value="free">5 quân tự do</option>
+          </select>
+        </label>
         <div style="display: flex; gap: 6px;">
           <button class="btn btn-secondary" id="caroUndoBtn" style="padding: 4px 10px; font-size: 0.8rem; font-family: Calibri, sans-serif;">↩️ Đi lại</button>
           <button class="btn btn-secondary" id="caroResetBtn" style="padding: 4px 10px; font-size: 0.8rem; font-family: Calibri, sans-serif;">🔄 Bàn mới</button>
@@ -5807,43 +5814,38 @@ function launchCaro(container, game) {
 
   function renderGrid() {
     if (!gridEl) return;
-    gridEl.innerHTML = '';
-    for (let r = 0; r < SIZE; r++) {
-      for (let c = 0; c < SIZE; c++) {
-        const cell = document.createElement('div');
-        cell.className = 'caro-cell';
-        cell.dataset.r = r;
-        cell.dataset.c = c;
-
-        const val = board[r][c];
-        if (val === 1) {
-          cell.innerHTML = '<span class="caro-piece piece-x" style="font-family: Calibri, sans-serif; font-weight: 900;">✕</span>';
-        } else if (val === 2) {
-          cell.innerHTML = '<span class="caro-piece piece-o" style="font-family: Calibri, sans-serif; font-weight: 900;">◯</span>';
-        }
-
-        // Highlight last move indicator
-        if (lastMove && lastMove.r === r && lastMove.c === c) {
-          cell.style.boxShadow = 'inset 0 0 0 2px #F59E0B, 0 0 8px rgba(245, 158, 11, 0.6)';
-          cell.style.backgroundColor = 'rgba(245, 158, 11, 0.15)';
-        }
-
-        // Highlight winning line
-        if (winningLine && winningLine.some(p => p.r === r && p.c === c)) {
-          cell.classList.add('winning-cell');
-          cell.style.animation = 'pulse 1s infinite alternate';
-        }
-
-        const onAction = (e) => {
-          e.preventDefault();
-          handlePlayerMove(r, c);
-        };
-        // A click is generated for taps too; do not execute the move twice.
-        cell.style.touchAction = 'manipulation';
-        cell.addEventListener('click', onAction);
-
+    const firstDraw=gridEl.children.length!==SIZE*SIZE;
+    if (firstDraw) gridEl.innerHTML='';
+    for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++) {
+      const cell=firstDraw?document.createElement('div'):gridEl.children[r*SIZE+c];
+      const val=board[r][c];
+      if (firstDraw) {
+        cell.className='caro-cell';
+        cell.dataset.r=r;cell.dataset.c=c;
+        cell.setAttribute('role','button');
+        cell.setAttribute('tabindex','0');
+        cell.style.touchAction='manipulation';
+        cell.addEventListener('click',()=>handlePlayerMove(r,c));
+        cell.addEventListener('keydown',e=>{
+          if(e.key==='Enter'||e.key===' ') { e.preventDefault();handlePlayerMove(r,c); }
+        });
         gridEl.appendChild(cell);
       }
+      cell.setAttribute('aria-label',val===1?'Quân X':val===2?'Quân O':'Ô trống hàng '+(r+1)+' cột '+(c+1));
+      if (cell.dataset.value!==String(val)) {
+        cell.dataset.value=String(val);
+        cell.innerHTML=val===1
+          ? '<span class="caro-piece piece-x" style="font-family:Calibri,sans-serif;font-weight:900;">✕</span>'
+          : val===2
+            ? '<span class="caro-piece piece-o" style="font-family:Calibri,sans-serif;font-weight:900;">◯</span>'
+            : '';
+      }
+      const justMoved=lastMove && lastMove.r===r && lastMove.c===c;
+      cell.style.boxShadow=justMoved?'inset 0 0 0 2px #F59E0B':'';
+      cell.style.backgroundColor=justMoved?'rgba(245,158,11,.17)':'';
+      const won=winningLine && winningLine.some(p=>p.r===r&&p.c===c);
+      if(won) cell.classList.add('winning-cell');
+      else cell.classList.remove('winning-cell');
     }
   }
 
@@ -5870,7 +5872,12 @@ function launchCaro(container, game) {
               break;
             }
           }
-          if (line.length === 5) {
+          if (line.length===5) {
+            const beforeR=r-d.dr,beforeC=c-d.dc;
+            const afterR=r+d.dr*5,afterC=c+d.dc*5;
+            const blocked=(rr,cc)=>
+              rr<0||rr>=SIZE||cc<0||cc>=SIZE||b[rr][cc]===3-playerVal;
+            if (ruleSet==='blocked' && blocked(beforeR,beforeC) && blocked(afterR,afterC)) continue;
             return line;
           }
         }
@@ -6072,7 +6079,13 @@ function launchCaro(container, game) {
 
   if (undoBtn) {
     undoBtn.addEventListener('click', () => {
-      if (gameOver || !moveHistory.length) return;
+      if (!moveHistory.length) return;
+      if (gameOver) {
+        if (winningLine && board[winningLine[0].r][winningLine[0].c]===1) wins=Math.max(0,wins-1);
+        else if(winningLine) losses=Math.max(0,losses-1);
+        if(scoreEl) scoreEl.textContent=wins+' - '+losses;
+      }
+      gameOver=false;winningLine=null;
       ++turnVersion;
       aiThinking = false;
       const last = moveHistory.pop();
@@ -6096,22 +6109,24 @@ function launchCaro(container, game) {
     });
   }
 
-  if (resetBtn) {
-    resetBtn.addEventListener('click', () => {
-      ++turnVersion;
-      aiThinking = false;
-      board = Array(SIZE).fill(null).map(() => Array(SIZE).fill(0));
-      moveHistory = [];
-      gameOver = false;
-      winningLine = null;
-      lastMove = null;
-      if (window.NP_Audio) window.NP_Audio.coin();
-      else AudioEngine.coin();
-      if (navigator.vibrate) navigator.vibrate(10);
-      renderGrid();
-      if (statusEl) statusEl.textContent = 'Bàn cờ mới bắt đầu! Lượt của bạn (X)';
-    });
+  function restartBoard() {
+    ++turnVersion;
+    aiThinking=false;
+    board=Array.from({length:SIZE},()=>Array(SIZE).fill(0));
+    moveHistory=[];
+    gameOver=false;winningLine=null;lastMove=null;
+    renderGrid();
+    if(statusEl) statusEl.textContent='Ván mới. Bạn đi trước (X).';
   }
+  resetBtn?.addEventListener('click',restartBoard);
+  container.querySelector('#caroRules')?.addEventListener('change',e=>{
+    const chosen=String(e.target.value);
+    if(!['blocked','free'].includes(chosen))return;
+    ruleSet=chosen;
+    wins=0;losses=0;
+    if(scoreEl)scoreEl.textContent='0 - 0';
+    restartBoard();
+  });
 
   renderGrid();
 
