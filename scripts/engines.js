@@ -2277,6 +2277,7 @@
     let nextColors = [];
     let selectedCell = null;
     let previousState = null; // For Undo
+    let gameOver = false;
 
     const COLORS = [
       '#EF4444', // Red
@@ -2291,24 +2292,26 @@
     container.innerHTML = `
       <div class="line98-board-wrapper">
         <div style="display: flex; justify-content: space-between; width: 100%; max-width: 450px; align-items: center;">
-          <div style="font-size: 1rem; font-weight: 900;">
-            Điểm: <span id="l98Score" style="color: #10B981;">0</span>
+          <div style="font-size: 1rem; font-weight: 900;">Điểm <span id="l98Score" style="color:#10B981;">0</span>
+            <small style="font-size:.75rem;color:var(--text-muted);"> Kỷ lục <span id="l98Best">${highScore}</span></small>
           </div>
           <div class="line98-next-balls-bar">
             <span>Sắp ra:</span>
             <div class="line98-next-balls-list" id="l98NextBalls"></div>
           </div>
           <button class="btn btn-secondary" id="l98UndoBtn" style="padding: 4px 10px; font-size: 0.8rem;">
-            ↩️ Đi lại
+            Hoàn tác
           </button>
+          <button class="btn btn-secondary" id="l98NewBtn" style="padding:4px 10px;min-height:44px;">Ván mới</button>
         </div>
 
         <div class="line98-grid-table" id="l98Grid">
           <!-- 81 Cells -->
         </div>
 
-        <div style="font-size: 0.82rem; color: var(--text-muted); text-align: center; max-width: 420px;">
-          💡 Luật chơi: Xếp từ 5 quả bóng cùng màu thành hàng ngang, dọc hoặc chéo để ăn điểm và được đi tiếp mà không sinh bóng mới!
+        <div id="l98Status" role="status" style="font-size:.87rem;text-align:center;min-height:21px;color:var(--text-main);">Chọn một quả bóng rồi chọn ô trống có đường đi đến.</div>
+        <div style="font-size:.78rem;color:var(--text-muted);text-align:center;max-width:420px;">
+          Xếp từ 5 bóng cùng màu trên một đường thẳng để ghi điểm mà không sinh thêm bóng.
         </div>
       </div>
     `;
@@ -2335,6 +2338,25 @@
       spawnBalls(5);
     }
 
+    function updateStatus(message) {
+      const el = container.querySelector('#l98Status');
+      if (el) el.textContent = message;
+    }
+    function endIfFull() {
+      if (getEmptyCells().length > 0) return false;
+      gameOver = true;
+      selectedCell = null;
+      updateStatus('Hết ô trống. Điểm ' + score + '. Chọn Ván mới để chơi tiếp.');
+      return true;
+    }
+    function restart() {
+      board = Array.from({ length: 9 }, () => Array(9).fill(0));
+      score = 0; nextColors = []; selectedCell = null;
+      previousState = null; gameOver = false;
+      spawnInitialBalls(); updateScoreUI(); renderGrid();
+      updateStatus('Ván mới. Chọn bóng, sau đó chọn ô đích.');
+    }
+
     function getEmptyCells() {
       const empty = [];
       for (let r = 0; r < 9; r++) {
@@ -2347,7 +2369,7 @@
 
     function spawnBalls(count) {
       const empty = getEmptyCells();
-      if (empty.length === 0) return;
+      if (empty.length === 0) { endIfFull(); return; }
 
       const num = Math.min(count, empty.length);
       for (let i = 0; i < num; i++) {
@@ -2358,6 +2380,7 @@
       }
       rollNextColors();
       checkAndClearLines();
+      endIfFull();
     }
 
     // BFS Pathfinding
@@ -2451,8 +2474,10 @@
       if (el) el.textContent = score;
       if (score > highScore) {
         highScore = score;
-        localStorage.setItem(HIGH_SCORE_KEY, highScore.toString());
+        try { localStorage.setItem(HIGH_SCORE_KEY, highScore.toString()); } catch (_) {}
       }
+      const bestEl = container.querySelector('#l98Best');
+      if (bestEl) bestEl.textContent = highScore;
     }
 
     function renderGrid() {
@@ -2477,17 +2502,22 @@
             cellEl.appendChild(ballEl);
           }
 
+          // Native click supports touch and keyboard activation without duplicate taps.
+          cellEl.setAttribute('role', 'button');
+          cellEl.setAttribute('tabindex', '0');
+          cellEl.setAttribute('aria-label', cellVal ? 'Bóng màu ' + cellVal : 'Ô trống');
+          cellEl.style.touchAction = 'manipulation';
           cellEl.addEventListener('click', () => onCellClick(r, c));
-          cellEl.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            onCellClick(r, c);
-          }, { passive: false });
+          cellEl.addEventListener('keydown', evt => {
+            if (evt.key === 'Enter' || evt.key === ' ') { evt.preventDefault(); onCellClick(r, c); }
+          });
           grid.appendChild(cellEl);
         }
       }
     }
 
     function onCellClick(r, c) {
+      if (gameOver) return;
       const cellVal = board[r][c];
 
       if (cellVal > 0) {
@@ -2495,6 +2525,7 @@
         selectedCell = { r, c };
         AudioEngine.pop();
         if (window.NP_Juice) window.NP_Juice.vibrate(8);
+        updateStatus('Đã chọn bóng. Chọn ô trống để di chuyển.');
         renderGrid();
       } else if (selectedCell) {
         // Try move
@@ -2522,14 +2553,13 @@
             spawnBalls(3);
           }
 
+          if (!gameOver) updateStatus(cleared ? 'Tốt! Bạn được đi tiếp mà không sinh thêm bóng.' : 'Lượt mới. Chọn bóng tiếp theo.');
           renderGrid();
         } else {
           // Blocked path
           AudioEngine.alarm();
           if (window.NP_Juice) window.NP_Juice.vibrate(22);
-          if (typeof window.showToastNotification === 'function') {
-            window.showToastNotification('Đường đi bị chặn! Không thể di chuyển tới ô này.');
-          }
+          updateStatus('Không có đường đến ô này. Hãy chọn vị trí khác.');
         }
       }
     }
@@ -2542,7 +2572,9 @@
           score = previousState.score;
           nextColors = previousState.nextColors;
           previousState = null;
+          gameOver = false; selectedCell = null;
           AudioEngine.pop();
+          updateStatus('Đã hoàn tác lượt vừa rồi.');
           updateScoreUI();
           renderNextBalls();
           renderGrid();
@@ -2550,8 +2582,8 @@
       });
     }
 
-    spawnInitialBalls();
-    renderGrid();
+    container.querySelector('#l98NewBtn')?.addEventListener('click', restart);
+    restart();
   }
 
   // =========================================================================
