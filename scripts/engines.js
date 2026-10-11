@@ -7039,76 +7039,64 @@ function launchTetris(container, game) {
 
   listen(window, 'keydown', handleKeyDown);
 
-  // Mobile Touch Gestures (Swipe left/right, pull down, tap rotate)
-  let touchStartX = 0;
-  let touchStartY = 0;
-  let touchMoved = false;
-
-  canvas.addEventListener('touchstart', (e) => {
-    if (gameOver || !e.touches[0]) return;
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-    touchMoved = false;
-  }, { passive: true });
-
-  canvas.addEventListener('touchmove', (e) => {
-    if (gameOver || !e.touches[0]) return;
-    const dx = e.touches[0].clientX - touchStartX;
-    const dy = e.touches[0].clientY - touchStartY;
-
-    // Horizontal Swipe
-    if (Math.abs(dx) > CELL) {
-      const step = Math.sign(dx);
-      if (!collides(currentPiece, step, 0)) {
-        currentPiece.x += step;
-        touchStartX = e.touches[0].clientX;
-        touchMoved = true;
-        if (window.NP_Juice) window.NP_Juice.vibrate(6);
+  // Unified pointer gesture, scaled to the actual CSS canvas size.
+  let drag = null;
+  listen(canvas, 'pointerdown', e => {
+    if (gameOver || paused || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    drag = { x: e.clientX, y: e.clientY, id: e.pointerId, moved: false };
+    if (canvas.setPointerCapture) {
+      try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+    }
+    if (e.pointerType === 'touch') e.preventDefault();
+  });
+  listen(canvas, 'pointermove', e => {
+    if (!drag || drag.id !== e.pointerId || gameOver || paused) return;
+    const rect = canvas.getBoundingClientRect();
+    const cellPx = rect.width / COLS || CELL;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (Math.abs(dx) >= cellPx * .85) {
+      const steps = Math.min(5, Math.floor(Math.abs(dx) / (cellPx * .85)));
+      const direction = Math.sign(dx);
+      for (let n = 0; n < steps; n++) {
+        if (!collides(currentPiece, direction, 0)) currentPiece.x += direction;
       }
+      drag.x += direction * steps * cellPx * .85;
+      drag.moved = true;
     }
-
-    // Soft Drop Swipe Down
-    if (dy > CELL * 1.5) {
-      if (!collides(currentPiece, 0, 1)) {
-        currentPiece.y++;
-        score += 1;
-        touchStartY = e.touches[0].clientY;
-        touchMoved = true;
-        if (window.NP_Juice) window.NP_Juice.vibrate(6);
+    if (dy >= cellPx * 1.05) {
+      const steps = Math.min(6, Math.floor(dy / (cellPx * 1.05)));
+      for (let n = 0; n < steps; n++) {
+        if (!collides(currentPiece, 0, 1)) { currentPiece.y++; score++; }
+        else break;
       }
+      drag.y += steps * cellPx * 1.05;
+      drag.moved = true;
     }
-  }, { passive: true });
+  });
+  listen(canvas, 'pointerup', e => {
+    if (!drag || e.pointerId !== drag.id) return;
+    if (!drag.moved) rotatePiece();
+    drag = null;
+  });
+  listen(canvas, 'pointercancel', () => { drag = null; });
 
-  canvas.addEventListener('touchend', () => {
-    if (gameOver) return;
-    if (!touchMoved) {
-      rotatePiece();
-    }
-  });
-
-  container.querySelector('#tetLeft')?.addEventListener('click', () => {
-    if (!collides(currentPiece, -1, 0)) {
-      currentPiece.x--;
+  for (const [name, dx, dy] of [['#tetLeft', -1, 0], ['#tetRight', 1, 0], ['#tetDown', 0, 1]]) {
+    container.querySelector(name)?.addEventListener('click', () => {
+      if (gameOver || paused || collides(currentPiece, dx, dy)) return;
+      currentPiece.x += dx;
+      currentPiece.y += dy;
       if (window.NP_Juice) window.NP_Juice.vibrate(5);
-    }
-  });
-  container.querySelector('#tetRight')?.addEventListener('click', () => {
-    if (!collides(currentPiece, 1, 0)) {
-      currentPiece.x++;
-      if (window.NP_Juice) window.NP_Juice.vibrate(5);
-    }
-  });
-  container.querySelector('#tetDown')?.addEventListener('click', () => {
-    if (!collides(currentPiece, 0, 1)) {
-      currentPiece.y++;
-      if (window.NP_Juice) window.NP_Juice.vibrate(5);
-    }
-  });
+    });
+  }
   container.querySelector('#tetRotate')?.addEventListener('click', rotatePiece);
   container.querySelector('#tetHardDropBtn')?.addEventListener('click', hardDrop);
   container.querySelector('#tetHoldBtn')?.addEventListener('click', hold);
   container.querySelector('#tetRestartBtn')?.addEventListener('click', () => {
     grid = Array(ROWS).fill(null).map(() => Array(COLS).fill(0));
+    pieceBag = [];
+    gravityBudget = 0; lastDrop = 0; paused = false;
+    const pauseBtn = container.querySelector('#tetPauseBtn');
+    if (pauseBtn) pauseBtn.textContent = 'Tạm dừng';
     score = 0;
     linesCleared = 0;
     level = 1;
@@ -7132,15 +7120,15 @@ function launchTetris(container, game) {
   function loop(timestamp) {
     const dropInterval = Math.max(80, 750 - (level - 1) * 65);
     if (!lastDrop) lastDrop = timestamp;
-
-    if (timestamp - lastDrop >= dropInterval) {
-      lastDrop = timestamp;
-      if (!gameOver) {
-        if (!collides(currentPiece, 0, 1)) {
-          currentPiece.y++;
-        } else {
-          lockPiece();
-        }
+    const dt = Math.max(0, Math.min(70, timestamp - lastDrop));
+    lastDrop = timestamp;
+    if (!paused && !gameOver) {
+      gravityBudget = Math.min(220, gravityBudget + dt);
+      let drops = 0;
+      while (!gameOver && drops++ < 3 && gravityBudget >= dropInterval) {
+        gravityBudget -= dropInterval;
+        if (!collides(currentPiece, 0, 1)) currentPiece.y++;
+        else lockPiece();
       }
     }
 
@@ -7244,19 +7232,19 @@ function launchTetris(container, game) {
     }
 
     // Game Over Overlay
-    if (gameOver) {
+    if (gameOver || paused) {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.82)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = '#EF4444';
       ctx.font = 'bold 22px Calibri, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('GAME OVER!', canvas.width / 2, canvas.height / 2 - 15);
+      ctx.fillText(paused ? 'TẠM DỪNG' : 'HẾT LƯỢT', canvas.width / 2, canvas.height / 2 - 15);
       ctx.fillStyle = '#FFF';
       ctx.font = '15px Calibri, sans-serif';
       ctx.fillText(`Điểm số: ${score}`, canvas.width / 2, canvas.height / 2 + 12);
       ctx.font = '12px Calibri, sans-serif';
       ctx.fillStyle = '#94A3B8';
-      ctx.fillText('Nhấn [Chơi lại] để thử lại', canvas.width / 2, canvas.height / 2 + 34);
+      ctx.fillText(paused ? 'Bấm Tiếp tục / P' : 'Chọn Chơi lại để thử tiếp', canvas.width / 2, canvas.height / 2 + 34);
     }
 
     ctx.restore();
