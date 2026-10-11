@@ -2974,3 +2974,67 @@ body.dark-theme .filter-pill.active {
 @media (max-height: 640px) {
   #modalGameContainer:has(.np-flappy-game) { align-items: flex-start; overflow-y: auto; }
 }
+
+
+/* Typer Shark has its own 4:3 underwater typing stage and control deck. */
+#modalGameContainer:has(.np-typer-shark) { display:flex; align-items:center; justify-content:center; }
+.np-typer-shark {
+  width:min(100%, 760px, max(320px, calc(82dvh - 100px)));
+  max-width:none; margin:0 auto; flex:0 0 auto; overflow:hidden;
+  border:1px solid #2d6b78; border-radius:12px; background:#092b3b;
+  box-shadow:0 18px 52px rgba(1,20,32,.38);
+}
+.np-typer-shark .np-ts-hud {
+  min-height:44px; padding:7px 12px; color:#f8f3dd; background:#073c56;
+  border-bottom:1px solid #2c8392; gap:8px;
+}
+.np-typer-shark .np-ts-name {
+  color:#f5c750; font:900 13px/1 Trebuchet MS,sans-serif;
+  letter-spacing:.12em; margin-right:auto;
+}
+.np-typer-shark .np-ts-hud .hud-pill {
+  background:#0a5268; color:#edf5e6; font:800 11px/1.1 Trebuchet MS,sans-serif;
+}
+.np-typer-shark .np-ts-hud .hud-pill span { color:#ffd258; font-size:14px; padding-left:4px; }
+.np-typer-shark .np-ts-canvas {
+  display:block; width:100%; max-width:none; height:auto; aspect-ratio:4/3;
+  margin:0 auto; background:#064b68;
+}
+.np-ts-console {
+  display:grid; grid-template-columns:1fr auto; gap:6px 10px; align-items:center;
+  padding:10px 12px 12px; color:#f7f0d7; background:linear-gradient(180deg,#124c5c,#0b3446);
+  font-family:Trebuchet MS,sans-serif;
+}
+.np-ts-label { grid-column:1/-1; color:#a5d7d0; font-size:10px; font-weight:900; letter-spacing:.12em; }
+.np-ts-entry { display:flex; gap:8px; min-width:0; }
+.np-ts-entry input {
+  width:100%; min-width:0; min-height:40px; padding:8px 12px; color:#17313b;
+  background:#fff7df; border:2px solid #d8b650; border-radius:5px;
+  font:800 16px/1 Trebuchet MS,sans-serif; text-transform:uppercase; outline:none;
+}
+.np-ts-entry input:focus { border-color:#f3d169; box-shadow:0 0 0 3px rgba(243,209,105,.2); }
+.np-ts-entry button,.np-ts-actions button {
+  min-height:38px; padding:7px 10px; border:1px solid #67b7b0; border-radius:4px;
+  color:#f7f1d9; background:#125d6a; font:900 10px/1 Trebuchet MS,sans-serif;
+  letter-spacing:.06em; cursor:pointer;
+}
+.np-ts-entry button { white-space:nowrap; color:#172c34; background:#f2c64f; border-color:#f2c64f; }
+.np-ts-meter { grid-column:1/-1; height:5px; overflow:hidden; background:#082a3b; border:1px solid #42818a; border-radius:5px; }
+.np-ts-meter span { display:block; width:0; height:100%; background:linear-gradient(90deg,#86dc9b,#f2d356); transition:width .12s linear; }
+.np-ts-status { min-height:16px; color:#d8e8d8; font-size:11px; font-weight:700; }
+.np-ts-actions { display:flex; gap:6px; }
+.np-ts-actions button { min-width:72px; }
+.np-ts-sr-only { position:absolute!important; width:1px!important; height:1px!important; padding:0!important; margin:-1px!important; overflow:hidden!important; clip:rect(0,0,0,0)!important; white-space:nowrap!important; border:0!important; }
+@media (max-width:600px) {
+  .np-typer-shark { width:min(100%, calc(82dvh - 150px)); }
+  .np-typer-shark .np-ts-hud { flex-wrap:wrap; }
+  .np-typer-shark .np-ts-name { flex-basis:100%; }
+  .np-ts-console { grid-template-columns:1fr; }
+  .np-ts-entry button { min-width:92px; }
+  .np-ts-actions { justify-content:stretch; }
+  .np-ts-actions button { flex:1; }
+}
+@media (max-height:640px) {
+  #modalGameContainer:has(.np-typer-shark) { align-items:flex-start; overflow-y:auto; }
+  .np-typer-shark { width:min(100%, 600px); }
+}

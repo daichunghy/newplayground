@@ -114,7 +114,7 @@ function harness({ loadEngines = true, loadApp = true, ImageClass } = {}) {
   const run = file => vm.runInContext(read(file), context, { filename: file });
   if (ImageClass) context.Image = ImageClass;
   run('scripts/game-session.js'); run('scripts/game-feel.js'); run('scripts/game-art.js');
-  if (loadEngines) for (const file of ['engines.js', 'engines-classics.js', 'engines-popcap.js', 'engines-retro50.js', 'engines-archetypes.js']) run('scripts/' + file);
+  if (loadEngines) for (const file of ['engines.js', 'engines-classics.js', 'engines-popcap.js', 'engines-retro50.js', 'engines-archetypes.js', 'engines-typer-shark.js']) run('scripts/' + file);
   if (loadApp) vm.runInContext(read('app.js').replace('let allGames = [];', 'let allGames = globalThis.__testGames;'), context, { filename: 'app.js' });
   return {
     context, window, document, timers, frames, errors, vibrations, stored, drawImageCalls,
@@ -726,6 +726,36 @@ test('Bắn Trứng uses one pointer shot, controls and sprite caching', () => {
   h.context.closeGameModal();assertStopped(h);
 });
 
+
+
+
+test('Typer Shark has its own underwater word-target loop, HUD and responsive controls', async () => {
+  const h = harness();
+  assert.equal(h.context.openGameById('typer-shark'), true);
+  const canvas = h.container.querySelector('#tsCanvas');
+  const input = h.container.querySelector('#tsInput');
+  assert.ok(canvas, 'Typer Shark gets a dedicated 640x480 underwater stage');
+  assert.equal(canvas.width, 640);
+  assert.equal(canvas.height, 480);
+  assert.ok(input, 'typing input is available for desktop and touch keyboards');
+  assert.equal(h.container.querySelector('#arcCanvas'), null, 'generic quiz/archetype renderer is bypassed');
+
+  const targets = h.container.querySelector('#tsTargets').textContent.split(/\s+/).filter(Boolean);
+  assert.ok(targets.length >= 1, 'sharks carry words for the player to type');
+  input.value = targets[0];
+  input.dispatch('input', { target: input });
+  assert.ok(Number(h.container.querySelector('#tsScore').textContent) > 0,
+    'typing a shark word zaps that shark and awards points');
+  for (let n=0;n<5;n++) h.frame();
+  h.container.querySelector('#tsPause').dispatch('click');
+  assert.equal(h.container.querySelector('#tsPause').textContent, 'TIẾP TỤC');
+  h.container.querySelector('#tsPause').dispatch('click');
+  assert.equal(h.container.querySelector('#tsPause').textContent, 'PAUSE');
+  h.container.querySelector('#tsRestart').dispatch('click');
+  assert.equal(h.container.querySelector('#tsScore').textContent, '0');
+  h.context.closeGameModal(); h.flushTimeouts(); assertStopped(h);
+  assert.equal(h.errors.length, 0, h.errors.join('; '));
+});
 
 test('Flappy Bird sprite fits its collision box and offline fallback stays available', async () => {
   const fallback = harness();
