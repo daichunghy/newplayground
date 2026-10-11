@@ -29,20 +29,24 @@
     const random = rngFrom(seed);
     const s = { kind:'rings', stage:1, score:0, best:0, phase:'playing', paused:false, time:0,
       throws:0, limit:7, goal:2, hits:0, combo:0, wind:0, aimX:360, aimY:225,
-      bottles:[], projectile:null, result:'', effects:[], event:0 };
+      bottles:[], projectile:null, result:'', effects:[], event:0,
+      perfects:0, bestCombo:0, stageMedal:0, medals:0 };
     function stageInit() {
-      s.phase='playing'; s.time=0; s.throws=0; s.hits=0; s.combo=0;
+      s.phase='playing'; s.paused=false; s.time=0; s.throws=0; s.hits=0; s.combo=0;
+      s.perfects=0; s.bestCombo=0; s.stageMedal=0;
       s.goal=Math.min(5,2+Math.floor((s.stage-1)/2));
       s.limit=Math.min(10,7+Math.floor(s.stage/3));
       s.wind=s.stage===1?0:Math.round((random()-.5)*Math.min(33,6+s.stage*4));
       s.checkpoint=s.score;s.aimX=360; s.aimY=225; s.projectile=null; s.result=''; s.effects=[]; s.event++;
+      const bonusIndex=s.stage>=2?Math.floor(random()*5):-1;
       s.bottles=Array.from({length:5},(_,i)=>({
         x:120+i*120, y:(i%2 ? 268 : 212), collected:false,
-        drift:s.stage<3?0:(8+Math.min(16,s.stage*2)),
+        bonus:i===bonusIndex,
+        drift:s.stage<3?0:(8+Math.min(20,s.stage*2)),
         phase:random()*Math.PI*2
       }));
     }
-    const bottleX = bottle => bottle.x + Math.sin(s.time*1.3 + bottle.phase)*bottle.drift;
+    const bottleX = (bottle,time=s.time) => bottle.x + Math.sin(time*(1.2+Math.min(.9,s.stage*.075)) + bottle.phase)*bottle.drift;
     function point(x,y) { if(s.phase==='playing'&&!s.paused){s.aimX=clamp(x,52,668);s.aimY=clamp(y,192,285);} }
     function throwRing(){
       if(s.phase!=='playing'||s.paused||s.projectile||s.throws>=s.limit)return false;
@@ -58,17 +62,30 @@
       if(nearest&&nearest.dist<=24){
         nearest.b.collected=true;s.hits++;s.combo++;
         const perfect=nearest.dist<11;
-        const gained=(perfect?180:120)*Math.min(4,s.combo);
-        s.score+=gained;s.result=(perfect?'Chuẩn xác!':'Trúng vòng!')+' +'+gained;
+        if(perfect)s.perfects++;
+        s.bestCombo=Math.max(s.bestCombo,s.combo);
+        const gained=(perfect?180:120)*Math.min(4,s.combo)+(nearest.b.bonus?150:0);
+        if(nearest.b.bonus)s.limit=Math.min(11,s.limit+1);
+        s.score+=gained;s.result=(nearest.b.bonus?'Chai vàng! ':perfect?'Chuẩn xác! ':'Trúng vòng! ')+'+'+gained;
         s.effects.push({x:bottleX(nearest.b),y:nearest.b.y,age:0,color:'#caff69'});
       }else{
         s.combo=0;s.result=nearest&&nearest.dist<46?'Suýt trúng!':'Trượt rồi';
         s.effects.push({x:actualX,y:actualY,age:0,color:'#fb9e70'});
       }
       s.projectile=null;s.event++;
-      if(s.hits>=s.goal){s.phase='won';s.best=Math.max(s.best,s.stage);}
-      else if(s.throws>=s.limit)s.phase='lost';
-      else s.phase='playing';
+      if(s.hits>=s.goal){
+        s.phase='won';s.best=Math.max(s.best,s.stage);
+        s.stageMedal=s.perfects>=s.goal?3:s.throws<=s.goal+1?2:1;
+        s.medals+=s.stageMedal;
+        const remaining=s.limit-s.throws;
+        const bonus=remaining*35;
+        s.score+=bonus;s.result='Hoàn thành · thưởng '+bonus+' điểm';
+      }else if(s.throws>=s.limit)s.phase='lost';
+      else {
+        s.phase='playing';
+        // The next gust is rolled only after landing and immediately disclosed in the HUD.
+        s.wind=s.stage===1?0:Math.round((random()-.5)*Math.min(33,6+s.stage*4));
+      }
     }
     function tick(dt){
       if(s.paused||s.phase==='won'||s.phase==='lost')return;
@@ -78,7 +95,7 @@
       if(s.projectile){s.projectile.elapsed+=dt;if(s.projectile.elapsed>=s.projectile.duration)land();}
     }
     function next(){if(s.phase!=='won')return false;s.stage++;stageInit();return true;}
-    function retry(){const checkpoint=s.checkpoint;stageInit();s.score=checkpoint;return true;}
+    function retry(){const checkpoint=s.checkpoint;stageInit();s.score=checkpoint;s.checkpoint=checkpoint;return true;}
     function reset(){s.stage=1;s.score=0;s.best=0;stageInit();}
     stageInit();return {s,point,throwRing,tick,next,retry,reset,bottleX};
   }
@@ -87,10 +104,11 @@
     const random=rngFrom(seed);
     const s={kind:'darts',stage:1,score:0,best:0,phase:'playing',paused:false,time:0,
       seconds:31,shots:0,ammo:14,popped:0,goal:7,combo:0,balls:[],dart:null,
-      aimX:360,aimY:210,spawnIn:0,result:'',effects:[],event:0,nextId:1};
+      aimX:360,aimY:210,spawnIn:0,result:'',effects:[],event:0,nextId:1,
+      accurate:0,bestCombo:0,timeBonuses:0,stageMedal:0,medals:0};
     function spawn(){
       if(s.balls.length>=6+Math.min(3,s.stage))return;
-      const variant=random();const kind=variant<.14?'gold':variant>.86&&s.stage>=3?'tough':'normal';
+      const variant=random();const kind=variant<.10?'gold':variant<.18&&s.stage>=2?'clock':variant>.85&&s.stage>=3?'tough':'normal';
       const index=s.nextId++;
       let candidate={x:92+random()*535,y:104+random()*220};
       for(let tries=0;tries<14;tries++){
@@ -112,13 +130,14 @@
     function stageInit(){
       s.phase='playing';s.paused=false;s.time=0;s.goal=Math.min(15,5+s.stage*2);
       s.seconds=Math.max(18,31-Math.min(12,(s.stage-1)*2));s.ammo=s.goal+7;
-      s.checkpoint=s.score;s.shots=0;s.popped=0;s.combo=0;s.balls=[];s.dart=null;
+      s.checkpoint=s.score;s.shots=0;s.popped=0;s.combo=0;s.accurate=0;s.bestCombo=0;
+      s.timeBonuses=0;s.stageMedal=0;s.balls=[];s.dart=null;
       s.result='';s.effects=[];s.spawnIn=.3;s.aimX=360;s.aimY=210;
       for(let i=0;i<5;i++)spawn();s.event++;
     }
     function aim(x,y){if(s.phase==='playing'&&!s.paused){s.aimX=clamp(x,28,692);s.aimY=clamp(y,42,400);}}
     function fire(x=s.aimX,y=s.aimY,scale=1){
-      if(s.phase!=='playing'||s.paused||s.dart||s.shots>=s.ammo)return false;
+      if(s.phase!=='playing'||s.paused||s.dart||s.shots>=s.ammo||s.seconds<=0)return false;
       aim(x,y);s.shots++;
       s.dart={x:s.aimX,y:s.aimY,elapsed:0,duration:.18,scale:Math.max(1,scale),from:{x:360,y:433}};
       s.event++;return true;
@@ -126,23 +145,32 @@
     function dartLand(){
       const d=s.dart;let best=null;
       // On a narrow touch screen the hit target must still be about 44 CSS pixels.
-      const tolerance=Math.min(48,Math.max(9,22/d.scale));
+      const scale=clamp(Number(d.scale)||1,.35,2);
       for(const ball of s.balls){
+        // 44 CSS pixels minimum, but never add an entire second balloon on mobile.
+        const tolerance=clamp(22/scale-ball.radius,0,32);
         const p=position(ball),distance=Math.hypot(p.x-d.x,p.y-d.y);
         if(distance<=ball.radius+tolerance&&(!best||distance<best.distance))best={ball,distance,p};
       }
       if(best){
-        const b=best.ball;b.hp--;
+        const b=best.ball;s.accurate++;b.hp--;
         if(b.hp<=0){
           s.balls=s.balls.filter(x=>x!==b);s.popped++;s.combo++;
-          const value=(b.kind==='gold'?220:100)*Math.min(4,s.combo)*s.stage;
-          s.score+=value;s.result='+'+value;
+          s.bestCombo=Math.max(s.bestCombo,s.combo);
+          if(b.kind==='clock'){s.seconds=Math.min(36,s.seconds+3);s.timeBonuses++;}
+          const value=(b.kind==='gold'?220:b.kind==='clock'?140:100)*Math.min(4,s.combo)*s.stage;
+          s.score+=value;s.result=(b.kind==='clock'?'+3 giây · ':'')+'+'+value;
           s.effects.push({x:best.p.x,y:best.p.y,age:0,color:b.color});
         }else{s.result='Vỡ lớp chắn';s.effects.push({x:best.p.x,y:best.p.y,age:0,color:'#ffffff'});}
       }else{s.combo=0;s.result='Trượt';s.effects.push({x:d.x,y:d.y,age:0,color:'#9ca8c5'});}
       s.dart=null;s.event++;
-      if(s.popped>=s.goal){s.phase='won';s.best=Math.max(s.best,s.stage);}
-      else if(s.shots>=s.ammo)s.phase='lost';
+      if(s.popped>=s.goal){
+        s.phase='won';s.best=Math.max(s.best,s.stage);
+        s.stageMedal=s.shots<=s.goal+1?3:s.shots<=s.goal+4?2:1;
+        s.medals+=s.stageMedal;
+        const bonus=Math.round((s.ammo-s.shots)*35+s.seconds*10);
+        s.score+=bonus;s.result='Vượt màn · thưởng '+bonus+' điểm';
+      }else if(s.shots>=s.ammo||s.seconds<=0)s.phase='lost';
     }
     function tick(dt){
       if(s.paused||s.phase==='lost'||s.phase==='won')return;
@@ -150,10 +178,11 @@
       s.spawnIn-=dt;if(s.spawnIn<=0){spawn();s.spawnIn=Math.max(.3,.86-s.stage*.055);}
       s.effects.forEach(fx=>fx.age+=dt);s.effects=s.effects.filter(fx=>fx.age<.65);
       if(s.dart){s.dart.elapsed+=dt;if(s.dart.elapsed>=s.dart.duration)dartLand();}
-      if(s.seconds===0&&s.phase==='playing')s.phase='lost';
+      // Let a dart already airborne at the deadline resolve before judging the result.
+      if(s.seconds===0&&s.phase==='playing'&&!s.dart){s.phase='lost';s.event++;}
     }
     function next(){if(s.phase!=='won')return false;s.stage++;stageInit();return true;}
-    function retry(){const checkpoint=s.checkpoint;stageInit();s.score=checkpoint;}
+    function retry(){const checkpoint=s.checkpoint;stageInit();s.score=checkpoint;s.checkpoint=checkpoint;}
     function reset(){s.stage=1;s.score=0;s.best=0;stageInit();}
     stageInit();return {s,position,aim,fire,tick,next,retry,reset};
   }
