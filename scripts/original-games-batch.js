@@ -249,7 +249,7 @@
       "Một thế kỷ gồm 100 năm."
     ],
     [
-      "12 × 12 = 144.",
+      "Lấy 12 nhân với 12 sẽ được 144.",
       "Âm thanh cần môi trường vật chất để lan truyền.",
       "Đồng dẫn điện tốt và được dùng rộng rãi làm dây dẫn.",
       "Trái Đất tự quay quanh trục trong khoảng 24 giờ.",
@@ -264,7 +264,7 @@
     ],
     [
       "Ở 25°C, pH 7 của dung dịch nước được coi là trung tính.",
-      "13 × 13 = 169.",
+      "Lấy 13 nhân với 13 sẽ được 169.",
       "Mặt Trăng là vệ tinh tự nhiên của Trái Đất.",
       "Hệ nhị phân chỉ sử dụng 0 và 1.",
       "Định luật Ohm mô tả quan hệ U = I × R.",
