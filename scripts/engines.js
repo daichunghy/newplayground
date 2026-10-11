@@ -6124,7 +6124,8 @@ function launchCaro(container, game) {
 function launchSnake(container, game) {
   const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
   const HIGH_SCORE_KEY = 'np_snake_high_score';
-  let highScore = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
+  let highScore = 0;
+  try { highScore = Math.max(0, parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0') || 0); } catch (_) {}
 
   const COLS = 24;
   const ROWS = 16;
@@ -6220,32 +6221,40 @@ function launchSnake(container, game) {
       e.preventDefault();
       changeDir(dx, dy);
     };
-    // Native clicks are synthesized for touch taps as well.
-    btn.addEventListener('click', handler);
+    // Move on contact; ignore synthesized click, preserve keyboard activation.
+    listen(btn, 'pointerdown', handler);
+    listen(btn, 'click', e => { if (e.detail === 0 || e.detail === undefined) handler(e); });
   }
   bindBtn('#snkUp', 0, -1);
   bindBtn('#snkDown', 0, 1);
   bindBtn('#snkLeft', -1, 0);
   bindBtn('#snkRight', 1, 0);
 
-  // Pointer Events unify mouse, pen and mobile swipes with one buffered turn.
+  // Streaming swipes let the player queue the next corner before lifting a finger.
   let swipe = null;
+  function consumeSwipe(e, threshold = 18) {
+    if (!swipe || swipe.id !== e.pointerId) return;
+    const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < threshold) return;
+    if (Math.abs(dx) > Math.abs(dy)) changeDir(dx > 0 ? 1 : -1, 0);
+    else changeDir(0, dy > 0 ? 1 : -1);
+    swipe.x = e.clientX;
+    swipe.y = e.clientY;
+  }
   listen(canvas, 'pointerdown', e => {
-    swipe = { x: e.clientX, y: e.clientY, id: e.pointerId };
+    if (e.pointerType==='mouse' && e.button!==0) return;
+    swipe={x:e.clientX,y:e.clientY,id:e.pointerId};
     if (canvas.setPointerCapture) {
       try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
     }
-    if (e.pointerType === 'touch') e.preventDefault();
+    if (e.pointerType==='touch') e.preventDefault();
   });
+  listen(canvas, 'pointermove', e => consumeSwipe(e));
   listen(canvas, 'pointerup', e => {
-    if (!swipe || swipe.id !== e.pointerId) return;
-    const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y;
-    swipe = null;
-    if (Math.max(Math.abs(dx), Math.abs(dy)) < 16) return;
-    if (Math.abs(dx) > Math.abs(dy)) changeDir(dx > 0 ? 1 : -1, 0);
-    else changeDir(0, dy > 0 ? 1 : -1);
+    consumeSwipe(e);
+    if (swipe && swipe.id===e.pointerId) swipe=null;
   });
-  listen(canvas, 'pointercancel', () => { swipe = null; });
+  listen(canvas, 'pointercancel', () => { swipe=null; });
 
   function togglePause() {
     if (gameOver) return;
@@ -6261,6 +6270,7 @@ function launchSnake(container, game) {
   });
 
   const keyHandler = (e) => {
+    if (e.altKey || e.metaKey || e.ctrlKey || /INPUT|TEXTAREA|SELECT/.test(e.target?.tagName || '')) return;
     if ((e.key === ' ' || e.key === 'p' || e.key === 'P') && !e.repeat) {
       e.preventDefault(); togglePause(); return;
     }
