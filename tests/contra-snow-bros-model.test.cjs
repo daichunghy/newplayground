@@ -161,6 +161,35 @@ test('Snow Bros supports platform landings, a visible timed pumpkin threat, and 
   assert.equal(state.lives, 0);
 });
 
+test('Snow Bros jumps through a stage-three ledge from below and lands on descent', () => {
+  const state = snow.create(13);
+  state.stage = 3;
+  state.platforms = [{ x: 0, y: snow.constants.ground, w: 720 }, { x: 34, y: 420, w: 192 }];
+  state.enemies = [{ id: 99, x: 680, y: 540, vx: 0, platform: 0, snow: 0, frozen: true, fireCooldown: 10, phase: 0 }];
+  state.player.x = 120;
+  snow.tick(state, { jump: true }, 0.05);
+  let passedThroughFromBelow = false;
+  for (let i = 0; i < 24 && !state.player.grounded; i++) {
+    snow.tick(state, {}, 0.05);
+    if (state.player.y + 42 < 420) passedThroughFromBelow = true;
+  }
+  assert.equal(passedThroughFromBelow, true);
+  assert.equal(state.player.grounded, true);
+  assert.equal(state.player.y + 42, 420);
+});
+
+test('Snow Bros upward throw can reach an enemy on the next raised ledge', () => {
+  const state = snow.create(131);
+  state.stage = 3;
+  state.platforms = [{ x: 0, y: 578, w: 720 }, { x: 34, y: 445, w: 192 }, { x: 218, y: 308, w: 284 }];
+  state.player = { x: 90, y: 403, vx: 0, vy: 0, grounded: true, facing: 1, invulnerable: 1, speedBoost: 0, rolling: false };
+  const target = { id: 131, x: 320, y: 270, vx: 0, platform: 2, snow: 0, frozen: false, fireCooldown: 10, phase: 0 };
+  state.enemies = [target];
+  assert.equal(snow.fire(state, -1), true);
+  for (let i = 0; i < 14; i++) snow.tick(state, {}, 0.05);
+  assert.equal(target.snow, 1);
+});
+
 test('Snow Bros clears five fixed-screen waves then enters a terminal win state', () => {
   const state = snow.create(14);
   for (let stage = 1; stage <= snow.constants.maxStage; stage++) {

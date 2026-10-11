@@ -2435,7 +2435,7 @@
 
   // Snow Bros arcade loop: accumulate snow, freeze one opponent into a ball,
   // then kick the rolling ball through the rest of that fixed-screen wave.
-  const SNOW_BROS = Object.freeze({ width: 720, height: 640, ground: 578, maxStage: 5, freezeHits: 3, stageSeconds: 52 });
+  const SNOW_BROS = Object.freeze({ width: 720, height: 640, ground: 578, jumpSpeed: 600, maxStage: 5, freezeHits: 3, stageSeconds: 72 });
   const SNOW_PLATFORMS = Object.freeze([
     [{ x: 0, y: 578, w: 720 }],
     [{ x: 0, y: 578, w: 720 }, { x: 94, y: 430, w: 210 }, { x: 416, y: 430, w: 210 }],
@@ -2486,7 +2486,7 @@
       state.lastEvent = { type: 'kick', enemy: frozen.id };
       return true;
     }
-    const angle = direction < 0 ? -0.44 : direction > 0 ? 0.28 : 0;
+    const angle = direction < 0 ? -0.58 : direction > 0 ? 0.28 : 0;
     state.shots.push({ x: p.x + p.facing * 20, y: p.y + 20, vx: Math.cos(angle) * p.facing * 420,
       vy: Math.sin(angle) * 420, life: 1.15 });
     state.fireCooldown = 0.24;
@@ -2523,7 +2523,7 @@
     if (dx) p.facing = dx;
     p.vx = dx * (p.speedBoost > 0 ? 265 : 205);
     p.x = clamp(p.x + p.vx * seconds, 20, SNOW_BROS.width - 20);
-    if (input.jump && p.grounded) { p.vy = -570; p.grounded = false; }
+    if (input.jump && p.grounded) { p.vy = -SNOW_BROS.jumpSpeed; p.grounded = false; }
     const previousBottom = p.y + 42;
     p.y += p.vy * seconds; p.vy += 1050 * seconds; p.grounded = false;
     for (const platform of state.platforms) {
@@ -2821,9 +2821,10 @@
         .np-snow-clock { position:relative; width:min(100%,720px); height:16px; color:#90bbc1; font-size:10px; }
         .np-snow-clock span { position:absolute; right:0; top:0; line-height:11px; font-variant-numeric:tabular-nums; }
         .np-snow-clock i { position:absolute; left:0; bottom:0; display:block; width:100%; height:4px; background:rgba(177,226,227,.18); border-radius:4px; transform-origin:left; }
-        .np-snow-board { display:block; width:min(100%,720px,calc(100dvh - 280px)); height:auto; aspect-ratio:9/8; border:1px solid #7bb9c0; border-radius:16px 16px 7px 7px; background:#12394f; touch-action:none; }
+        .np-snow-board { display:block; width:min(100%,720px,calc(100vh - 280px)); height:auto; aspect-ratio:9/8; border:1px solid #7bb9c0; border-radius:16px 16px 7px 7px; background:#12394f; touch-action:none; }
+        @supports (height:100dvh) { .np-snow-board { width:min(100%,720px,calc(100dvh - 280px)); } }
         .np-snow-controls { width:min(100%,720px); display:grid; grid-template-columns:repeat(7,minmax(44px,1fr)); gap:6px; }
-        .np-snow-controls button { min-width:0; min-height:48px; border:1px solid #568e9d; border-radius:16px 16px 8px 8px; background:#174c63; color:#e6f6ef; font:700 12px Calibri,Inter,sans-serif; touch-action:none; user-select:none; }
+        .np-snow-controls button { min-width:0; min-height:48px; border:1px solid #568e9d; border-radius:16px 16px 8px 8px; background:#174c63; color:#e6f6ef; font:700 12px Calibri,Inter,sans-serif; touch-action:none; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
         .np-snow-controls button[data-snow-control="fire"] { color:#183b4a; background:#dff2e8; border-color:#fff; }
         .np-snow-controls button[data-snow-control="jump"] { background:#26748a; }
         .np-snow-controls button:active { transform:translateY(1px); background:#34839a; }
@@ -2834,7 +2835,7 @@
       </style>
       <section class="np-snow-shell" aria-label="Đóng tuyết đối thủ và lăn cầu tuyết qua màn">
         <div class="np-snow-hud"><span>Điểm<strong id="sbScore">0</strong></span><span>Tầng<strong id="sbStage">1 / 5</strong></span><span>Mạng<strong id="sbLives">3</strong></span><span>Kỷ lục<strong id="sbBest">0</strong></span></div>
-        <div class="np-snow-clock" aria-label="Thời gian trước khi bí ma xuất hiện"><span id="sbTimer">52</span><i id="sbTimerFill"></i></div>
+        <div class="np-snow-clock" aria-label="Thời gian trước khi bí ma xuất hiện"><span id="sbTimer">72</span><i id="sbTimerFill"></i></div>
         <canvas id="sbCanvas" class="np-snow-board" width="720" height="640" tabindex="0" aria-label="Ném tuyết nhiều lần để đóng băng đối thủ. Đứng sát rồi bắn để đá cầu tuyết. Nhảy lên các bục và tránh quả bí ma."></canvas>
         <div class="np-snow-controls" aria-label="Điều khiển Người Tuyết"><button type="button" data-snow-control="left" aria-label="Sang trái">←</button><button type="button" data-snow-control="right" aria-label="Sang phải">→</button><button type="button" data-snow-control="up" aria-label="Ngắm lên">NGẮM ↑</button><button type="button" data-snow-control="jump" aria-label="Nhảy">NHẢY</button><button type="button" data-snow-control="fire" aria-label="Giữ để ném tuyết hoặc đá bóng tuyết">TUYẾT</button><button type="button" id="sbPause" aria-label="Tạm dừng">DỪNG</button><button type="button" id="sbRestart" aria-label="Chơi lại">LẠI</button></div>
         <p id="sbStatus" class="np-snow-status" role="status" aria-live="polite">← → đi · Space nhảy · X ném tuyết / đá cầu tuyết · P dừng</p>
@@ -2883,10 +2884,15 @@
       ctx.fillStyle = 'rgba(202,239,236,.18)';
       for (let i = 0; i < 4; i++) { const x = i * 235 - 52; ctx.beginPath(); ctx.moveTo(x, 460); ctx.lineTo(x + 90, 267 + (i % 2) * 35); ctx.lineTo(x + 205, 460); ctx.fill(); }
       for (const platform of state.platforms) {
-        roundRect(platform.x, platform.y, platform.w, SNOW_BROS.height - platform.y + 18, 8, '#4a8792');
-        roundRect(platform.x, platform.y - 7, platform.w, 15, 7, '#d9f0e5');
+        if (platform.y >= SNOW_BROS.ground) {
+          roundRect(platform.x, platform.y, platform.w, SNOW_BROS.height - platform.y + 18, 8, '#4a8792');
+          roundRect(platform.x, platform.y - 7, platform.w, 15, 7, '#d9f0e5');
+        } else {
+          roundRect(platform.x, platform.y, platform.w, 14, 7, '#4a8792');
+          roundRect(platform.x, platform.y - 6, platform.w, 13, 6, '#d9f0e5');
+        }
         ctx.fillStyle = 'rgba(18,80,103,.35)';
-        for (let x = platform.x + 20; x < platform.x + platform.w - 8; x += 42) ctx.fillRect(x, platform.y + 17, 19, 3);
+        for (let x = platform.x + 20; x < platform.x + platform.w - 8; x += 42) ctx.fillRect(x, platform.y + (platform.y >= SNOW_BROS.ground ? 17 : 8), 19, 3);
       }
       for (const item of state.items) {
         ctx.fillStyle = '#e14f61'; ctx.beginPath(); ctx.moveTo(item.x, item.y - 15); ctx.lineTo(item.x + 10, item.y); ctx.lineTo(item.x, item.y + 15); ctx.lineTo(item.x - 10, item.y); ctx.closePath(); ctx.fill();
