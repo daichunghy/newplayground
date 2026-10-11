@@ -3,6 +3,7 @@
 This ledger tracks **title-specific work and evidence in this improvement effort**, not whether a catalog card opens. See [`GAMEPLAY_COMPLETENESS_AUDIT.md`](./GAMEPLAY_COMPLETENESS_AUDIT.md) for current dispatcher/fallback inventory. The previous engine smoke tests open/mock all catalog entries; they are not individual game playtests.
 
 - Main baseline: `32e50649ad182bc89e185fd6067287602874079f`. This Lemonade/Dr. Mario batch uses `codex/lemonade-dr-mario-gameplay-20261011`, based on Bubble Trouble PR #7 head `418701cd0de44ffc8344ff7be74f0eef588c99db`.
+- Tested implementation/evidence commit: `5375b3140d6563ca0e4e0526bf62af341db5e8fd`; [draft PR #8](https://github.com/daichunghy/newplayground/pull/8) is stacked on PR #7.
 - This ledger enumerates all **150** catalog IDs. Frogger, Asteroids, Galaga, Piano Tiles, Bubble Trouble, Lemonade Tycoon and Dr. Mario received title-specific work in these batches; the other 143 have no title-specific work recorded in this effort.
 - Acceptance requires a pinned edition/source, research record, deterministic model coverage where applicable, real browser play including loss/restart and next progression step, before/after screenshots, persistence/lifecycle/input/responsive checks, and explicit deviations. See [`GAME_DEVELOPMENT_GUIDELINES.md`](./GAME_DEVELOPMENT_GUIDELINES.md).
 

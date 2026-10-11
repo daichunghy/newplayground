@@ -5,6 +5,7 @@
 - **Branch:** `codex/lemonade-dr-mario-gameplay-20261011`.
 - **Main baseline:** `32e50649ad182bc89e185fd6067287602874079f` (fetched and unchanged before this batch).
 - **Stack base:** Bubble Trouble PR #7 at `418701cd0de44ffc8344ff7be74f0eef588c99db`. This batch does not edit another active branch's files.
+- **Tested implementation/evidence commit:** `5375b3140d6563ca0e4e0526bf62af341db5e8fd`. Published as [draft PR #8](https://github.com/daichunghy/newplayground/pull/8), stacked on PR #7.
 - The before screenshots were captured from that stack base immediately before these game-specific edits; before/after desktop and mobile captures use the same 1365×900 and 390×844 viewports.
 - Before editing, the open PRs and concurrent game-wave scope were reviewed. PR #5 covers Frogger/Asteroids/Galaga, #6 Piano Tiles and #7 Bubble Trouble; the checked distinct-game wave scope does not list Lemonade Tycoon or Dr. Mario. No existing PR claimed either of these changes.
 - **Changed game code:** `scripts/engines-archetypes.js` adds an exact-ID Lemonade Tycoon market loop; `scripts/engines.js` adds a separate Dr. Mario capsule model/renderer; `app.js` routes `dr-mario-diet-khuan` ahead of the broad Mario platformer match.
