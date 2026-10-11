@@ -29,11 +29,13 @@ class Target {
   listenerCount() { return [...this.listeners.values()].reduce((n, list) => n + list.length, 0); }
 }
 
+const drawImageCalls = [];
 const drawing = new Proxy({}, {
   get(target, key) {
     if (key in target) return target[key];
     if (key === 'measureText') return text => ({ width: String(text).length * 8 });
     if (key === 'createLinearGradient' || key === 'createRadialGradient') return () => ({ addColorStop() {} });
+    if (key === 'drawImage') return (...args) => drawImageCalls.push(args);
     return () => {};
   },
   set(target, key, value) { target[key] = value; return true; }
@@ -82,7 +84,7 @@ class Element extends Target {
   remove() { if (this.parentNode) this.parentNode.children = this.parentNode.children.filter(c => c !== this); }
 }
 
-function harness({ loadEngines = true, loadApp = true } = {}) {
+function harness({ loadEngines = true, loadApp = true, ImageClass } = {}) {
   const errors = [], vibrations = [], timers = new Map(), frames = new Map();
   let nextId = 1, now = 0;
   const window = new Target(), document = new Target();
@@ -110,11 +112,12 @@ function harness({ loadEngines = true, loadApp = true } = {}) {
     NEWPLAYGROUND_MUTED: true
   }));
   const run = file => vm.runInContext(read(file), context, { filename: file });
+  if (ImageClass) context.Image = ImageClass;
   run('scripts/game-session.js'); run('scripts/game-feel.js'); run('scripts/game-art.js');
   if (loadEngines) for (const file of ['engines.js', 'engines-classics.js', 'engines-popcap.js', 'engines-retro50.js', 'engines-archetypes.js']) run('scripts/' + file);
   if (loadApp) vm.runInContext(read('app.js').replace('let allGames = [];', 'let allGames = globalThis.__testGames;'), context, { filename: 'app.js' });
   return {
-    context, window, document, timers, frames, errors, vibrations, stored,
+    context, window, document, timers, frames, errors, vibrations, stored, drawImageCalls,
     frame(stepMs = 16) { now += stepMs; for (const [id, callback] of [...frames]) { if (frames.delete(id)) callback(now); } },
     flushTimeouts() { for (const [id, item] of [...timers]) if (!item.interval && timers.delete(id)) item.callback(...item.args); },
     container: document.getElementById('modalGameContainer')
@@ -723,6 +726,28 @@ test('Bắn Trứng uses one pointer shot, controls and sprite caching', () => {
   h.context.closeGameModal();assertStopped(h);
 });
 
+
+test('Flappy Bird sprite fits its collision box and offline fallback stays available', async () => {
+  const fallback = harness();
+  assert.equal(fallback.context.openGameById('flappy-bird'), true);
+  fallback.frame();
+  assert.equal(fallback.drawImageCalls.length, 0, 'offline mode uses vector art');
+  fallback.context.closeGameModal(); fallback.flushTimeouts(); assertStopped(fallback);
+
+  let loadedSprite;
+  class LoadedImage {
+    constructor() { this.complete = true; this.naturalWidth = 256; this.src = ''; loadedSprite = this; }
+  }
+  const loaded = harness({ ImageClass: LoadedImage });
+  assert.equal(loaded.context.openGameById('flappy-bird'), true);
+  loaded.frame();
+  const call = loaded.drawImageCalls.find(args => args[0] === loadedSprite);
+  assert.ok(call, 'loaded sprite is drawn');
+  assert.equal(loadedSprite.src, 'assets/avatars/flappy-swift-sprite.webp');
+  assert.deepEqual(Array.from(call.slice(1)), [-15, -14, 30, 28],
+    'visible sprite stays aligned to the 28px collision diameter');
+  loaded.context.closeGameModal(); loaded.flushTimeouts(); assertStopped(loaded);
+});
 
 test('ten polished games keep their core interactions and clean up', async () => {
   const h = harness();
