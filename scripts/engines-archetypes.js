@@ -24,6 +24,665 @@
     return 'shooter';
   }
 
+  // Asteroids-inspired vector arcade loop. The reference mechanics are
+  // rotation, thrust with retained inertia, wrapped space, firing and rocks
+  // that split into smaller targets. All art below is drawn from original
+  // geometric paths rather than copied cabinet graphics.
+  const ASTEROIDS = Object.freeze({ width: 960, height: 720 });
+
+  function asteroidRandom(state) {
+    state.rng = (Math.imul(state.rng, 1664525) + 1013904223) >>> 0;
+    return state.rng / 0x100000000;
+  }
+
+  function asteroidWrap(value, span) {
+    return ((value % span) + span) % span;
+  }
+
+  function asteroidDistance(a, b) {
+    const dx = Math.abs(a.x - b.x), dy = Math.abs(a.y - b.y);
+    return Math.hypot(Math.min(dx, ASTEROIDS.width - dx), Math.min(dy, ASTEROIDS.height - dy));
+  }
+
+  function asteroidRock(state, size, x, y, vx, vy) {
+    const radius = size === 3 ? 31 : size === 2 ? 19 : 11;
+    const points = Array.from({ length: 10 }, () => 0.74 + asteroidRandom(state) * 0.48);
+    return { size, radius, x, y, vx, vy, angle: asteroidRandom(state) * Math.PI * 2,
+      spin: (asteroidRandom(state) - 0.5) * 0.9, points };
+  }
+
+  function asteroidSpawnWave(state) {
+    const count = Math.min(11, 3 + state.stage);
+    const positions = [[115, 130], [800, 150], [160, 590], [790, 565], [500, 100], [500, 620], [90, 360], [870, 360], [310, 110], [650, 600], [340, 650]];
+    state.rocks = Array.from({ length: count }, (_, i) => {
+      const [x, y] = positions[i];
+      const angle = asteroidRandom(state) * Math.PI * 2;
+      const speed = 22 + Math.min(25, state.stage * 1.6) + asteroidRandom(state) * 15;
+      return asteroidRock(state, 3, x, y, Math.cos(angle) * speed, Math.sin(angle) * speed);
+    });
+    state.waveRemaining = 0;
+  }
+
+  function createAsteroidsState(seed = 0x1979) {
+    const state = { rng: (Number(seed) >>> 0) || 1, phase: 'playing', stage: 1,
+      score: 0, lives: 3, nextExtraLife: 10000, elapsed: 0, waveRemaining: 0,
+      ship: { x: 480, y: 360, vx: 0, vy: 0, angle: -Math.PI / 2 }, rocks: [],
+      bullets: [], fireCooldown: 0, invulnerable: 1.8, hyperspaceCooldown: 0,
+      saucer: null, saucerShots: [], saucerTimer: 12, fx: [], lastEvent: null };
+    asteroidSpawnWave(state);
+    return state;
+  }
+
+  function asteroidFire(state) {
+    if (state.phase !== 'playing' || state.fireCooldown > 0 || state.bullets.length >= 4) return false;
+    const ship = state.ship, nose = 17;
+    const vx = Math.cos(ship.angle), vy = Math.sin(ship.angle);
+    state.bullets.push({ x: asteroidWrap(ship.x + vx * nose, ASTEROIDS.width),
+      y: asteroidWrap(ship.y + vy * nose, ASTEROIDS.height),
+      vx: ship.vx + vx * 390, vy: ship.vy + vy * 390, life: 1.45 });
+    state.fireCooldown = 0.19;
+    return true;
+  }
+
+  function asteroidHyperspace(state) {
+    if (state.phase !== 'playing' || state.hyperspaceCooldown > 0) return false;
+    state.ship.x = asteroidRandom(state) * ASTEROIDS.width;
+    state.ship.y = asteroidRandom(state) * ASTEROIDS.height;
+    state.ship.vx = state.ship.vy = 0;
+    state.invulnerable = Math.max(state.invulnerable, 0.75);
+    state.hyperspaceCooldown = 5;
+    return true;
+  }
+
+  function asteroidLoseShip(state) {
+    state.lives = Math.max(0, state.lives - 1);
+    state.lastEvent = { type: 'lost-ship', lives: state.lives };
+    if (!state.lives) { state.phase = 'over'; return; }
+    state.ship = { x: 480, y: 360, vx: 0, vy: 0, angle: -Math.PI / 2 };
+    state.invulnerable = 1.8;
+  }
+
+  function asteroidTick(state, input = {}, dt = 1 / 60) {
+    const seconds = Math.min(0.05, Math.max(0, Number(dt) || 0));
+    if (!seconds || state.phase === 'over') return;
+    if (state.phase === 'wave-clear') {
+      state.waveRemaining -= seconds;
+      if (state.waveRemaining <= 0) {
+        state.stage++;
+        asteroidSpawnWave(state);
+        state.phase = 'playing';
+        state.invulnerable = 1.4;
+        state.lastEvent = { type: 'wave-start', stage: state.stage };
+      }
+      return;
+    }
+    state.elapsed += seconds;
+    state.invulnerable = Math.max(0, state.invulnerable - seconds);
+    state.fireCooldown = Math.max(0, state.fireCooldown - seconds);
+    state.hyperspaceCooldown = Math.max(0, state.hyperspaceCooldown - seconds);
+    const ship = state.ship;
+    if (input.left) ship.angle -= 4.6 * seconds;
+    if (input.right) ship.angle += 4.6 * seconds;
+    if (input.thrust) {
+      ship.vx += Math.cos(ship.angle) * 205 * seconds;
+      ship.vy += Math.sin(ship.angle) * 205 * seconds;
+    }
+    const speed = Math.hypot(ship.vx, ship.vy);
+    if (speed > 350) { ship.vx *= 350 / speed; ship.vy *= 350 / speed; }
+    const drag = Math.pow(0.994, seconds * 60);
+    ship.vx *= drag; ship.vy *= drag;
+    ship.x = asteroidWrap(ship.x + ship.vx * seconds, ASTEROIDS.width);
+    ship.y = asteroidWrap(ship.y + ship.vy * seconds, ASTEROIDS.height);
+    if (input.fire) asteroidFire(state);
+    if (input.hyperspace) asteroidHyperspace(state);
+
+    for (const bullet of state.bullets) {
+      bullet.x = asteroidWrap(bullet.x + bullet.vx * seconds, ASTEROIDS.width);
+      bullet.y = asteroidWrap(bullet.y + bullet.vy * seconds, ASTEROIDS.height);
+      bullet.life -= seconds;
+    }
+    state.bullets = state.bullets.filter(bullet => bullet.life > 0);
+    for (const rock of state.rocks) {
+      rock.x = asteroidWrap(rock.x + rock.vx * seconds, ASTEROIDS.width);
+      rock.y = asteroidWrap(rock.y + rock.vy * seconds, ASTEROIDS.height);
+      rock.angle += rock.spin * seconds;
+    }
+
+    if (!state.saucer) {
+      state.saucerTimer -= seconds;
+      if (state.saucerTimer <= 0) {
+        const fromLeft = asteroidRandom(state) < 0.5;
+        const size = state.stage >= 4 ? 'small' : 'large';
+        state.saucer = { x: fromLeft ? -24 : ASTEROIDS.width + 24,
+          y: 70 + asteroidRandom(state) * (ASTEROIDS.height - 140),
+          vx: (fromLeft ? 1 : -1) * (size === 'small' ? 94 : 62),
+          size, fireCooldown: size === 'small' ? 1.2 : 1.8 };
+      }
+    } else {
+      const saucer = state.saucer;
+      saucer.x += saucer.vx * seconds;
+      saucer.fireCooldown -= seconds;
+      if (saucer.fireCooldown <= 0) {
+        const aim = Math.atan2(state.ship.y - saucer.y, state.ship.x - saucer.x);
+        const velocity = saucer.size === 'small' ? 230 : 165;
+        state.saucerShots.push({ x: saucer.x, y: saucer.y,
+          vx: Math.cos(aim) * velocity, vy: Math.sin(aim) * velocity, life: 2.5 });
+        saucer.fireCooldown = saucer.size === 'small' ? 1.1 : 1.8;
+      }
+      if (saucer.x < -42 || saucer.x > ASTEROIDS.width + 42) {
+        state.saucer = null;
+        state.saucerTimer = 11 + asteroidRandom(state) * 7;
+      }
+    }
+    for (const shot of state.saucerShots) {
+      shot.x += shot.vx * seconds; shot.y += shot.vy * seconds; shot.life -= seconds;
+    }
+    state.saucerShots = state.saucerShots.filter(shot => shot.life > 0 && shot.x >= -8 && shot.x <= ASTEROIDS.width + 8 && shot.y >= -8 && shot.y <= ASTEROIDS.height + 8);
+
+    for (let bi = state.bullets.length - 1; bi >= 0; bi--) {
+      const bullet = state.bullets[bi];
+      const ri = state.rocks.findIndex(rock => asteroidDistance(bullet, rock) < rock.radius);
+      if (ri < 0) continue;
+      const [rock] = state.rocks.splice(ri, 1);
+      state.bullets.splice(bi, 1);
+      state.score += rock.size === 3 ? 20 : rock.size === 2 ? 50 : 100;
+      while (state.score >= state.nextExtraLife) {
+        if (state.lives < 6) state.lives++;
+        state.nextExtraLife += 10000;
+      }
+      if (rock.size > 1) {
+        for (const side of [-1, 1]) {
+          const angle = Math.atan2(rock.vy, rock.vx) + side * (0.48 + asteroidRandom(state) * 0.35);
+          const velocity = Math.hypot(rock.vx, rock.vy) + 28;
+          state.rocks.push(asteroidRock(state, rock.size - 1, rock.x, rock.y,
+            Math.cos(angle) * velocity, Math.sin(angle) * velocity));
+        }
+      }
+    }
+
+    if (state.saucer) {
+      const radius = state.saucer.size === 'small' ? 12 : 20;
+      const hitIndex = state.bullets.findIndex(bullet => asteroidDistance(bullet, state.saucer) < radius);
+      if (hitIndex >= 0) {
+        state.bullets.splice(hitIndex, 1);
+        state.score += state.saucer.size === 'small' ? 1000 : 200;
+        state.saucer = null;
+        state.saucerTimer = 9 + asteroidRandom(state) * 6;
+        while (state.score >= state.nextExtraLife) {
+          if (state.lives < 6) state.lives++;
+          state.nextExtraLife += 10000;
+        }
+        state.lastEvent = { type: 'saucer-hit', score: state.score };
+      }
+    }
+
+    if (state.invulnerable <= 0 && state.rocks.some(rock => asteroidDistance(ship, rock) < rock.radius + 11)) {
+      asteroidLoseShip(state);
+    }
+    if (state.phase === 'playing' && state.invulnerable <= 0 && state.saucerShots.some(shot => asteroidDistance(ship, shot) < 13)) asteroidLoseShip(state);
+    if (!state.rocks.length && state.phase === 'playing') {
+      state.phase = 'wave-clear';
+      state.waveRemaining = 1.2;
+      state.lastEvent = { type: 'wave-clear', stage: state.stage };
+    }
+  }
+
+  // Galaga-inspired fixed shooter. The 1981 Namco reference specifies about
+  // forty enemies, three ranks, a two-shot cap, lateral movement, dives and
+  // the Boss Galaga capture/rescue that unlocks a larger dual fighter.
+  const GALAGA = Object.freeze({ width: 600, height: 780, columns: 8, rows: 5, enemyCount: 40, maxShots: 2, playerY: 708 });
+
+  function galagaRandom(state) {
+    state.rng = (Math.imul(state.rng, 1664525) + 1013904223) >>> 0;
+    return state.rng / 0x100000000;
+  }
+
+  function galagaEnemy(state, id, row, column) {
+    const type = row === 0 && (column === 3 || column === 4) ? 'boss' :
+      (row < 2 && (column < 2 || column > 5)) ? 'guard' : 'grunt';
+    const baseX = 48 + column * 72;
+    const baseY = 114 + row * 48;
+    return { id, type, hp: type === 'boss' ? 2 : 1, x: baseX, y: -35 - row * 24,
+      baseX, baseY, row, column, phase: galagaRandom(state) * Math.PI * 2,
+      mode: 'entry', modeTime: 0, shotCooldown: 2 + galagaRandom(state) * 3,
+      beamCooldown: 8 + galagaRandom(state) * 5, beamTime: 0, carrying: false };
+  }
+
+  function galagaSpawnStage(state) {
+    const challenge = state.stage >= 3 && (state.stage - 3) % 4 === 0;
+    let carrierAssigned = false;
+    state.waveMode = challenge ? 'challenge' : 'formation';
+    state.phase = 'entry';
+    state.phaseRemaining = 1.5;
+    state.waveRemaining = challenge ? 18 : 0;
+    state.diveRemaining = 1.2;
+    state.challengePerfect = true;
+    state.enemies = Array.from({ length: GALAGA.enemyCount }, (_, index) => {
+      const row = Math.floor(index / GALAGA.columns), column = index % GALAGA.columns;
+      const enemy = galagaEnemy(state, index + 1, row, column);
+      if (state.capturedFighter && enemy.type === 'boss' && !carrierAssigned) { enemy.carrying = true; carrierAssigned = true; }
+      return enemy;
+    });
+    state.shots = [];
+    state.enemyShots = [];
+    state.beams = [];
+    state.lastEvent = { type: 'wave-start', stage: state.stage, challenge };
+  }
+
+  function createGalagaState(seed = 0x1981) {
+    const state = { rng: (Number(seed) >>> 0) || 1, phase: 'entry', waveMode: 'formation',
+      stage: 1, score: 0, lives: 3, nextExtraLife: 20000, elapsed: 0,
+      player: { x: GALAGA.width / 2, y: GALAGA.playerY }, dual: false,
+      capturedFighter: false, invulnerable: 1.6, shotCooldown: 0,
+      enemies: [], shots: [], enemyShots: [], lastEvent: null,
+      phaseRemaining: 1.5, waveRemaining: 0, diveRemaining: 1.2, challengePerfect: true };
+    galagaSpawnStage(state);
+    return state;
+  }
+
+  function galagaFire(state) {
+    if (!['entry', 'playing', 'challenge'].includes(state.phase) ||
+        state.shotCooldown > 0 || state.shots.length >= GALAGA.maxShots) return false;
+    const offsets = state.dual ? [-13, 13] : [0];
+    if (state.shots.length + offsets.length > GALAGA.maxShots) return false;
+    for (const offset of offsets) state.shots.push({ x: state.player.x + offset, y: state.player.y - 20, vy: -520 });
+    state.shotCooldown = 0.24;
+    return true;
+  }
+
+  function galagaCapture(state, boss) {
+    if (state.phase === 'over' || state.capturedFighter || state.dual || !boss || boss.type !== 'boss') return false;
+    state.lives = Math.max(0, state.lives - 1);
+    state.capturedFighter = true;
+    boss.carrying = true;
+    boss.beamTime = 0;
+    state.invulnerable = 1.1;
+    state.lastEvent = { type: 'captured', lives: state.lives };
+    if (!state.lives) state.phase = 'over';
+    return true;
+  }
+
+  function galagaLoseShip(state, reason = 'shot') {
+    if (state.phase === 'over') return;
+    state.lives = Math.max(0, state.lives - 1);
+    state.dual = false;
+    state.player.x = GALAGA.width / 2;
+    state.invulnerable = 1.6;
+    state.lastEvent = { type: 'lost-ship', reason, lives: state.lives };
+    if (!state.lives) state.phase = 'over';
+  }
+
+  function galagaScoreKill(state, enemy) {
+    const base = enemy.type === 'boss' ? 150 : enemy.type === 'guard' ? 80 : 50;
+    state.score += enemy.mode === 'formation' ? base : base * 2;
+    if (enemy.type === 'boss' && enemy.carrying) {
+      enemy.carrying = false;
+      state.capturedFighter = false;
+      state.dual = true;
+      state.lives = Math.min(6, state.lives + 1);
+      state.lastEvent = { type: 'rescued', score: state.score, lives: state.lives };
+    } else state.lastEvent = { type: 'enemy-hit', score: state.score };
+    while (state.score >= state.nextExtraLife) {
+      state.lives = Math.min(6, state.lives + 1);
+      state.nextExtraLife += 20000;
+    }
+  }
+
+  function galagaTick(state, input = {}, dt = 1 / 60) {
+    const seconds = Math.min(0.05, Math.max(0, Number(dt) || 0));
+    if (!seconds || state.phase === 'over') return;
+    if (state.phase === 'cleared') {
+      state.phaseRemaining -= seconds;
+      if (state.phaseRemaining <= 0) {
+        state.stage++;
+        galagaSpawnStage(state);
+      }
+      return;
+    }
+
+    state.elapsed += seconds;
+    state.invulnerable = Math.max(0, state.invulnerable - seconds);
+    state.shotCooldown = Math.max(0, state.shotCooldown - seconds);
+    if (Number.isFinite(input.pointerX)) state.player.x = Math.max(22, Math.min(GALAGA.width - 22, input.pointerX));
+    else state.player.x = Math.max(22, Math.min(GALAGA.width - 22,
+      state.player.x + ((input.right ? 1 : 0) - (input.left ? 1 : 0)) * 390 * seconds));
+    if (input.fire) galagaFire(state);
+
+    if (state.phase === 'entry') {
+      state.phaseRemaining -= seconds;
+      const progress = Math.max(0, Math.min(1, 1 - state.phaseRemaining / 1.5));
+      const ease = progress * progress * (3 - 2 * progress);
+      for (const enemy of state.enemies) {
+        enemy.x += (enemy.baseX - enemy.x) * ease;
+        enemy.y += (enemy.baseY - enemy.y) * ease;
+      }
+      if (state.phaseRemaining <= 0) {
+        for (const enemy of state.enemies) { enemy.x = enemy.baseX; enemy.y = enemy.baseY; enemy.mode = state.waveMode === 'challenge' ? 'challenge' : 'formation'; enemy.modeTime = 0; }
+        state.phase = state.waveMode === 'challenge' ? 'challenge' : 'playing';
+        state.lastEvent = { type: state.waveMode === 'challenge' ? 'challenge-start' : 'formation-ready', stage: state.stage };
+      }
+      return;
+    }
+
+    for (const shot of state.shots) shot.y += shot.vy * seconds;
+    state.shots = state.shots.filter(shot => shot.y > -12);
+    for (const shot of state.enemyShots) { shot.x += shot.vx * seconds; shot.y += shot.vy * seconds; }
+    state.enemyShots = state.enemyShots.filter(shot => shot.y < GALAGA.height + 12 && shot.x > -12 && shot.x < GALAGA.width + 12);
+
+    if (state.phase === 'playing') {
+      state.diveRemaining -= seconds;
+      if (state.diveRemaining <= 0) {
+        const candidates = state.enemies.filter(enemy => enemy.mode === 'formation');
+        if (candidates.length) {
+          const enemy = candidates[Math.floor(galagaRandom(state) * candidates.length)];
+          enemy.mode = 'diving'; enemy.modeTime = 0; enemy.diveStartX = enemy.x;
+          enemy.beamCooldown = Math.max(0, enemy.beamCooldown);
+        }
+        state.diveRemaining = Math.max(0.9, 1.9 - Math.min(0.7, state.stage * 0.025)) + galagaRandom(state) * 0.7;
+      }
+    }
+
+    for (const enemy of state.enemies) {
+      if (enemy.mode === 'formation') {
+        enemy.x = enemy.baseX + Math.sin(state.elapsed * 0.8 + enemy.phase) * 7;
+        enemy.y = enemy.baseY + Math.sin(state.elapsed * 1.1 + enemy.phase) * 2;
+      } else if (enemy.mode === 'diving') {
+        enemy.modeTime += seconds;
+        const t = Math.min(1, enemy.modeTime / 3.3);
+        enemy.x = Math.max(28, Math.min(GALAGA.width - 28, enemy.diveStartX + Math.sin(t * Math.PI * 2 + enemy.phase) * 180));
+        enemy.y = enemy.baseY + Math.sin(t * Math.PI) * 500;
+        if (enemy.shotCooldown <= 0) {
+          const dx = state.player.x - enemy.x;
+          const velocity = 255 + Math.min(50, state.stage * 5);
+          state.enemyShots.push({ x: enemy.x, y: enemy.y + 12, vx: Math.max(-90, Math.min(90, dx * 0.17)), vy: velocity });
+          enemy.shotCooldown = 1.1 + galagaRandom(state) * 1.2;
+        }
+        if (enemy.type === 'boss' && !state.dual && !state.capturedFighter && enemy.beamCooldown <= 0 && enemy.modeTime < 1.5) {
+          enemy.beamTime = 0.85;
+          enemy.beamCooldown = 12;
+        }
+        if (enemy.beamTime > 0) {
+          enemy.beamTime = Math.max(0, enemy.beamTime - seconds);
+          if (Math.abs(enemy.x - state.player.x) < 27 && state.player.y > enemy.y + 70) galagaCapture(state, enemy);
+        }
+        if (Math.abs(enemy.x - state.player.x) < (state.dual ? 34 : 22) && Math.abs(enemy.y - state.player.y) < 22 && state.invulnerable <= 0) galagaLoseShip(state, 'collision');
+        if (t >= 1 && enemy.mode === 'diving') { enemy.mode = 'formation'; enemy.modeTime = 0; enemy.x = enemy.baseX; enemy.y = enemy.baseY; }
+      } else if (enemy.mode === 'challenge') {
+        enemy.modeTime += seconds;
+        const t = enemy.modeTime / 5.5;
+        enemy.x = Math.max(24, Math.min(GALAGA.width - 24, enemy.baseX + Math.sin(t * Math.PI * 2 + enemy.phase) * 166));
+        enemy.y = enemy.baseY + t * 570;
+        if (enemy.y > GALAGA.height + 30) { state.challengePerfect = false; enemy.mode = 'escaped'; }
+      }
+      enemy.shotCooldown -= seconds;
+      enemy.beamCooldown -= seconds;
+    }
+    state.enemies = state.enemies.filter(enemy => enemy.mode !== 'escaped');
+
+    for (let si = state.shots.length - 1; si >= 0; si--) {
+      const shot = state.shots[si];
+      const index = state.enemies.findIndex(enemy => Math.hypot(enemy.x - shot.x, enemy.y - shot.y) < (enemy.type === 'boss' ? 22 : 18));
+      if (index < 0) continue;
+      const enemy = state.enemies[index];
+      state.shots.splice(si, 1);
+      enemy.hp--;
+      if (enemy.hp <= 0) { state.enemies.splice(index, 1); galagaScoreKill(state, enemy); }
+    }
+
+    if (state.invulnerable <= 0 && state.enemyShots.some(shot => Math.abs(shot.x - state.player.x) < (state.dual ? 25 : 16) && Math.abs(shot.y - state.player.y) < 18)) {
+      galagaLoseShip(state, 'enemy-fire');
+      state.enemyShots = state.enemyShots.filter(shot => Math.abs(shot.x - state.player.x) > 40 || Math.abs(shot.y - state.player.y) > 40);
+    }
+    if (state.phase === 'over') return;
+
+    if (state.phase === 'challenge') {
+      state.waveRemaining -= seconds;
+      if (state.waveRemaining <= 0) {
+        for (const enemy of state.enemies) { if (enemy.mode !== 'escaped') state.challengePerfect = false; }
+        state.enemies = [];
+      }
+    }
+    if (!state.enemies.length && ['playing', 'challenge'].includes(state.phase)) {
+      if (state.waveMode === 'challenge' && state.challengePerfect) { state.score += 1000; state.lastEvent = { type: 'challenge-perfect', score: state.score }; }
+      state.phase = 'cleared'; state.phaseRemaining = 1.3;
+      if (!state.lastEvent || !['challenge-perfect', 'rescued', 'lost-ship'].includes(state.lastEvent.type)) state.lastEvent = { type: 'wave-clear', stage: state.stage };
+    }
+  }
+
+  function launchAsteroids(container, game) {
+    const session = window.NP_GameSession.start();
+    const { listen } = session;
+    const key = 'np_asteroids_record_v1';
+    const state = createAsteroidsState((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0);
+    let best = 0, raf = null, lastFrame = 0, paused = false, lastScore = 0, announcedEvent = null;
+    const held = { left: false, right: false, thrust: false, fire: false };
+    const pointers = new Map();
+    try { best = Math.max(0, Number(JSON.parse(localStorage.getItem(key) || '{}').score) || 0); } catch (error) {}
+    container.innerHTML = `
+      <style>
+        #gameModal:has(.np-asteroids-shell) .modal-window { width:min(98vw,980px); max-width:980px; min-width:0; }
+        #gameModal:has(.np-asteroids-shell) .modal-body,#gameModal:has(.np-asteroids-shell) .modal-title-group { min-width:0; }
+        .np-asteroids-shell { width:min(100%,860px); margin:auto; display:grid; gap:8px; color:#d9edf2; font-family:Calibri,Inter,sans-serif; }
+        .np-asteroids-hud { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:42px; padding:0 10px; color:#46616a; letter-spacing:.08em; text-transform:uppercase; font-size:12px; }
+        .np-asteroids-hud strong { color:#152f38; font-size:18px; letter-spacing:.02em; }
+        .np-asteroids-lives { color:#4c781c!important; letter-spacing:.18em!important; }
+        .np-asteroids-board { display:block; width:100%; height:auto; aspect-ratio:4/3; border:1px solid #34505e; border-radius:6px; background:#07131e; touch-action:none; }
+        .np-asteroids-controls { display:grid; grid-template-columns:repeat(7,minmax(44px,1fr)); gap:7px; width:min(100%,710px); margin:auto; }
+        .np-asteroids-controls button { min-width:44px; min-height:48px; border:1px solid #4b7381; border-radius:8px; background:#142b37; color:#e2f1ed; font:700 13px Calibri,Inter,sans-serif; touch-action:none; user-select:none; }
+        .np-asteroids-controls button[data-control="fire"] { color:#07131e; background:#bef264; border-color:#d5f99a; }
+        .np-asteroids-controls button:active { transform:translateY(2px); }
+        .np-asteroids-help { min-height:18px; margin:0; color:#829ba3; text-align:center; font-size:12px; }
+        @media(max-width:560px) { .np-asteroids-hud { padding:0 2px; font-size:10px; } .np-asteroids-hud strong { font-size:15px; } .np-asteroids-controls { gap:4px; } .np-asteroids-controls button { min-height:46px; padding:2px; font-size:11px; } }
+        @media(max-width:360px) { .np-asteroids-controls { grid-template-columns:repeat(4,minmax(44px,1fr)); width:min(100%,280px); } }
+        @media(prefers-reduced-motion:reduce) { .np-asteroids-controls button { transition:none; } }
+      </style>
+      <section class="np-asteroids-shell" aria-label="Phi thuyền và vành đai thiên thạch">
+        <div class="np-asteroids-hud"><span>Điểm <strong id="asScore">0</strong></span><span>Làn sóng <strong id="asWave">1</strong></span><span class="np-asteroids-lives" id="asLives">● ● ●</span><span>Kỷ lục <strong id="asBest">0</strong></span></div>
+        <canvas id="asCanvas" class="np-asteroids-board" width="960" height="720" tabindex="0" aria-label="Điều khiển phi thuyền, phá thiên thạch lớn thành mảnh nhỏ và sống sót qua các làn sóng."></canvas>
+        <div class="np-asteroids-controls" aria-label="Điều khiển phi thuyền">
+          <button type="button" data-control="left" aria-label="Xoay trái">⟲</button><button type="button" data-control="thrust" aria-label="Tăng tốc">ĐẨY</button><button type="button" data-control="right" aria-label="Xoay phải">⟳</button><button type="button" data-control="fire" aria-label="Bắn">BẮN</button><button type="button" data-control="hyperspace" aria-label="Nhảy không gian">NHẢY</button><button type="button" id="asPause" aria-label="Tạm dừng">DỪNG</button><button type="button" id="asRestart" aria-label="Chơi lại">LẠI</button>
+        </div>
+        <p id="asHelp" class="np-asteroids-help" role="status" aria-live="polite">← → xoay · ↑ đẩy · Space bắn · Shift nhảy không gian</p>
+      </section>`;
+    const canvas = container.querySelector('#asCanvas'), ctx = canvas.getContext('2d');
+    const scoreEl = container.querySelector('#asScore'), waveEl = container.querySelector('#asWave'), livesEl = container.querySelector('#asLives'), bestEl = container.querySelector('#asBest'), help = container.querySelector('#asHelp');
+    const setRecord = () => { if (state.score <= best) return; best = state.score; try { localStorage.setItem(key, JSON.stringify({ score: best })); } catch (error) {} };
+    bestEl.textContent = String(best);
+    function drawRock(rock, offsetX = 0, offsetY = 0) {
+      ctx.save(); ctx.translate(rock.x + offsetX, rock.y + offsetY); ctx.rotate(rock.angle); ctx.beginPath();
+      for (let i = 0; i < rock.points.length; i++) { const a = i / rock.points.length * Math.PI * 2, r = rock.radius * rock.points[i]; const x = Math.cos(a) * r, y = Math.sin(a) * r; i ? ctx.lineTo(x,y) : ctx.moveTo(x,y); }
+      ctx.closePath(); ctx.strokeStyle = rock.size === 3 ? '#9bb2a9' : rock.size === 2 ? '#bdd1c2' : '#d1ded0'; ctx.lineWidth = rock.size === 1 ? 1.5 : 2; ctx.stroke(); ctx.restore();
+    }
+    function draw() {
+      ctx.clearRect(0,0,ASTEROIDS.width,ASTEROIDS.height); ctx.fillStyle='#07131e'; ctx.fillRect(0,0,ASTEROIDS.width,ASTEROIDS.height);
+      for (let i=0;i<95;i++){const x=(i*137.5+17)%ASTEROIDS.width,y=(i*83.1+11)%ASTEROIDS.height;ctx.fillStyle=i%7?'rgba(179,215,211,.32)':'rgba(190,242,100,.62)';ctx.fillRect(x,y,i%7?1:2,i%7?1:2);}
+      for (const rock of state.rocks) for (const dx of [-ASTEROIDS.width,0,ASTEROIDS.width]) for (const dy of [-ASTEROIDS.height,0,ASTEROIDS.height]) {
+        if ((dx===0||rock.x<rock.radius||rock.x>ASTEROIDS.width-rock.radius) && (dy===0||rock.y<rock.radius||rock.y>ASTEROIDS.height-rock.radius)) drawRock(rock,dx,dy);
+      }
+      ctx.fillStyle='#dff5dd'; for (const bullet of state.bullets) for (const dx of [-ASTEROIDS.width,0,ASTEROIDS.width]) for (const dy of [-ASTEROIDS.height,0,ASTEROIDS.height]) { if((dx===0||bullet.x<4||bullet.x>ASTEROIDS.width-4)&&(dy===0||bullet.y<4||bullet.y>ASTEROIDS.height-4)){ctx.beginPath();ctx.arc(bullet.x+dx,bullet.y+dy,2.2,0,Math.PI*2);ctx.fill();} }
+      ctx.fillStyle='#ff8a76'; for(const shot of state.saucerShots){ctx.beginPath();ctx.arc(shot.x,shot.y,3,0,Math.PI*2);ctx.fill();}
+      if(state.saucer&&state.saucer.x>=-28&&state.saucer.x<=988){ctx.save();ctx.translate(state.saucer.x,state.saucer.y);ctx.strokeStyle=state.saucer.size==='small'?'#ff8a76':'#ffca70';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-21,2);ctx.lineTo(-14,8);ctx.lineTo(14,8);ctx.lineTo(21,2);ctx.lineTo(11,-1);ctx.lineTo(-11,-1);ctx.closePath();ctx.stroke();ctx.beginPath();ctx.ellipse(0,-2,9,6,0,Math.PI,Math.PI*2);ctx.stroke();ctx.restore();}
+      const ship=state.ship;
+      if (state.lives>0 && !(state.invulnerable>0 && Math.floor(state.elapsed*12)%2===0)) {
+        for (const dx of [-ASTEROIDS.width,0,ASTEROIDS.width]) for (const dy of [-ASTEROIDS.height,0,ASTEROIDS.height]) { if((dx===0||ship.x<24||ship.x>ASTEROIDS.width-24)&&(dy===0||ship.y<24||ship.y>ASTEROIDS.height-24)){ctx.save();ctx.translate(ship.x+dx,ship.y+dy);ctx.rotate(ship.angle);ctx.beginPath();ctx.moveTo(19,0);ctx.lineTo(-13,-11);ctx.lineTo(-8,0);ctx.lineTo(-13,11);ctx.closePath();ctx.strokeStyle='#bff46b';ctx.lineWidth=2.5;ctx.stroke();if(held.thrust&&state.phase==='playing'){ctx.beginPath();ctx.moveTo(-11,-5);ctx.lineTo(-22+(Math.random()*5),0);ctx.lineTo(-11,5);ctx.strokeStyle='#ffab59';ctx.stroke();}ctx.restore();} }
+      }
+      const centerY=ASTEROIDS.height/2;
+      if (state.phase==='wave-clear') { ctx.fillStyle='#d8edbe';ctx.font='600 27px Calibri, sans-serif';ctx.textAlign='center';ctx.fillText('VÀNH ĐAI ĐÃ DỌN SẠCH',480,centerY-18);ctx.font='15px Calibri, sans-serif';ctx.fillStyle='#8ca9ad';ctx.fillText('LÀN SÓNG TIẾP THEO',480,centerY+18); }
+      if (state.phase==='over') { ctx.fillStyle='#ffcf8c';ctx.font='700 38px Calibri, sans-serif';ctx.textAlign='center';ctx.fillText('PHI THUYỀN MẤT TÍCH',480,centerY-18);ctx.font='16px Calibri, sans-serif';ctx.fillStyle='#9dbac2';ctx.fillText('Nhấn Enter hoặc LẠI để quay lại vành đai',480,centerY+20); }
+      if (paused) { ctx.fillStyle='rgba(3,12,19,.7)';ctx.fillRect(0,0,ASTEROIDS.width,ASTEROIDS.height);ctx.fillStyle='#dff5dd';ctx.font='700 34px Calibri, sans-serif';ctx.textAlign='center';ctx.fillText('TẠM DỪNG',480,centerY); }
+    }
+    function updateHud() { scoreEl.textContent=String(state.score); waveEl.textContent=String(state.stage); livesEl.textContent=Array.from({length:state.lives},()=> '●').join(' ') || '—'; bestEl.textContent=String(best); }
+    function pressControl(name, down) { if (name in held) held[name]=down; else if (name==='hyperspace' && down) asteroidHyperspace(state); }
+    const keyMap={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',ArrowUp:'thrust',KeyW:'thrust',Space:'fire'};
+    listen(window,'keydown',event=>{ if(event.code==='Escape'){event.preventDefault();togglePause();return;}const control=keyMap[event.code];if(control){event.preventDefault();held[control]=true;}if(event.code==='ShiftLeft'||event.code==='ShiftRight'){event.preventDefault();asteroidHyperspace(state);}if(event.code==='Enter'&&state.phase==='over'){event.preventDefault();reset();} });
+    listen(window,'keyup',event=>{const control=keyMap[event.code];if(control){event.preventDefault();held[control]=false;}});
+    listen(window,'blur',()=>{for(const key of Object.keys(held))held[key]=false;pointers.clear();});
+    container.querySelectorAll('[data-control]').forEach(button=>{
+      const name=button.dataset.control;
+      listen(button,'pointerdown',event=>{event.preventDefault();button.setPointerCapture?.(event.pointerId);pointers.set(event.pointerId,name);pressControl(name,true);});
+      const release=event=>{if(pointers.get(event.pointerId)!==name)return;pointers.delete(event.pointerId);if(name in held)held[name]=Array.from(pointers.values()).includes(name);};
+      listen(button,'pointerup',release);listen(button,'pointercancel',release);listen(button,'lostpointercapture',release);
+    });
+    function reset(){Object.assign(state,createAsteroidsState((Date.now()^Math.floor(Math.random()*0xffffffff))>>>0));for(const key of Object.keys(held))held[key]=false;paused=false;lastScore=0;announcedEvent=null;pauseButton.textContent='DỪNG';help.textContent='← → xoay · ↑ đẩy · Space bắn · Shift nhảy không gian';updateHud();}
+    listen(container.querySelector('#asRestart'),'click',reset);
+    const pauseButton=container.querySelector('#asPause');
+    const togglePause=()=>{if(state.phase==='over')return;paused=!paused;for(const key of Object.keys(held))held[key]=false;pauseButton.textContent=paused?'TIẾP':'DỪNG';help.textContent=paused?'Tạm dừng':'← → xoay · ↑ đẩy · Space bắn · Shift nhảy không gian';};
+    listen(pauseButton,'click',togglePause);
+    function frame(timestamp){const dt=lastFrame?Math.min(.05,Math.max(0,(timestamp-lastFrame)/1000)):1/60;lastFrame=timestamp;const prior=state.phase;if(!paused)asteroidTick(state,held,dt);setRecord();updateHud();if(state.score>lastScore){if(window.NP_Audio&&typeof window.NP_Audio.explosion==='function')window.NP_Audio.explosion(false);lastScore=state.score;}if(state.lastEvent&&state.lastEvent!==announcedEvent){announcedEvent=state.lastEvent;if(state.lastEvent.type==='lost-ship'){help.textContent=state.lives?'Tàu bị phá hủy · còn '+state.lives:'Mất tàu · Enter hoặc LẠI để thử lại';if(window.NP_Audio&&typeof window.NP_Audio.alarm==='function')window.NP_Audio.alarm();}if(state.lastEvent.type==='wave-start'){help.textContent='Làn sóng '+state.stage+' · tốc độ thiên thạch tăng';if(window.NP_Audio&&typeof window.NP_Audio.win==='function')window.NP_Audio.win();}}if(state.phase!==prior&&state.phase==='over')help.textContent='Mất tàu · Enter hoặc LẠI để thử lại';draw();raf=session.requestAnimationFrame(frame);}
+    updateHud();draw();raf=session.requestAnimationFrame(frame);
+    session.onCleanup(()=>{if(raf!==null)session.cancelAnimationFrame(raf);for(const key of Object.keys(held))held[key]=false;pointers.clear();setRecord();});
+  }
+
+  function launchGalaga(container, game) {
+    const session = window.NP_GameSession.start();
+    const { listen } = session;
+    const storageKey = 'np_galaga_record_v1';
+    const state = createGalagaState((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0);
+    const keys = { left: false, right: false, fire: false };
+    const pointers = new Map();
+    let best = 0, raf = null, lastFrame = 0, paused = false, pointerX = null, announcedEvent = null;
+    try { best = Math.max(0, Number(JSON.parse(localStorage.getItem(storageKey) || '{}').score) || 0); } catch (error) {}
+    container.innerHTML = `
+      <style>
+        #gameModal:has(.np-galaga-shell) .modal-window { width:min(98vw,720px); max-width:720px; min-width:0; }
+        #gameModal:has(.np-galaga-shell) .modal-body,#gameModal:has(.np-galaga-shell) .modal-title-group { min-width:0; }
+        .np-galaga-shell { width:min(100%,660px); margin:auto; display:grid; justify-items:center; gap:8px; color:#dce8f0; font-family:Calibri,Inter,sans-serif; }
+        .np-galaga-hud { width:min(100%,500px); display:grid; grid-template-columns:1fr auto auto 1fr; align-items:center; gap:8px; color:#55717c; font-size:12px; letter-spacing:.08em; text-transform:uppercase; }
+        .np-galaga-hud span:last-child { text-align:right; }
+        .np-galaga-hud strong { color:#122c3d; font-size:16px; letter-spacing:0; }
+        .np-galaga-board { display:block; width:min(100%,470px); height:auto; max-height:68vh; aspect-ratio:10/13; border:1px solid #496477; border-radius:5px; background:#06121e; touch-action:none; }
+        .np-galaga-controls { width:min(100%,500px); display:grid; grid-template-columns:repeat(5,minmax(44px,1fr)); gap:6px; }
+        .np-galaga-controls button { min-width:44px; min-height:46px; border:1px solid #31536a; border-radius:7px; background:#10293a; color:#e3edf0; font:700 12px Calibri,Inter,sans-serif; touch-action:none; user-select:none; }
+        .np-galaga-controls button[data-galaga-control="fire"] { color:#071421; background:#e9bb61; border-color:#f3d58c; }
+        .np-galaga-controls button:active { transform:translateY(2px); }
+        .np-galaga-status { min-height:18px; margin:0; color:#81949c; text-align:center; font-size:12px; }
+        @media(max-width:560px) { .np-galaga-shell { gap:6px; } .np-galaga-hud { font-size:10px; } .np-galaga-hud strong { font-size:14px; } .np-galaga-controls { gap:4px; } .np-galaga-controls button { padding:2px; font-size:11px; } }
+        @media(prefers-reduced-motion:reduce) { .np-galaga-controls button { transition:none; } }
+      </style>
+      <section class="np-galaga-shell" aria-label="Phi đội Galaga">
+        <div class="np-galaga-hud"><span>Điểm <strong id="gaScore">0</strong></span><span>Đợt <strong id="gaStage">1</strong></span><span>Tàu <strong id="gaLives">3</strong></span><span>Kỷ lục <strong id="gaBest">0</strong></span></div>
+        <canvas id="gaCanvas" class="np-galaga-board" width="600" height="780" tabindex="0" aria-label="Di chuyển ngang, bắn tối đa hai đạn, giải cứu tàu bị Boss Galaga bắt để tăng hỏa lực."></canvas>
+        <div class="np-galaga-controls" aria-label="Điều khiển phi thuyền">
+          <button type="button" data-galaga-control="left" aria-label="Di chuyển trái">←</button><button type="button" data-galaga-control="fire" aria-label="Bắn liên tục">BẮN</button><button type="button" data-galaga-control="right" aria-label="Di chuyển phải">→</button><button type="button" id="gaPause" aria-label="Tạm dừng">DỪNG</button><button type="button" id="gaRestart" aria-label="Chơi lại">LẠI</button>
+        </div>
+        <p id="gaStatus" class="np-galaga-status" role="status" aria-live="polite">← → di chuyển · Space bắn · chạm/kéo để lái</p>
+      </section>`;
+
+    const canvas = container.querySelector('#gaCanvas'), ctx = canvas.getContext('2d');
+    const scoreEl = container.querySelector('#gaScore'), stageEl = container.querySelector('#gaStage'), livesEl = container.querySelector('#gaLives'), bestEl = container.querySelector('#gaBest'), status = container.querySelector('#gaStatus');
+    const pauseButton = container.querySelector('#gaPause');
+    const setRecord = () => {
+      if (state.score <= best) return;
+      best = state.score;
+      try { localStorage.setItem(storageKey, JSON.stringify({ score: best })); } catch (error) {}
+    };
+    function syncHeld() {
+      const down = [...pointers.values()];
+      state.input = { left: keys.left || down.includes('left'), right: keys.right || down.includes('right'),
+        fire: keys.fire || down.includes('fire') || down.includes('board'), pointerX: pointerX === null ? undefined : pointerX };
+    }
+    function eventPoint(event) {
+      const rect = canvas.getBoundingClientRect();
+      pointerX = Math.max(22, Math.min(GALAGA.width - 22, (event.clientX - rect.left) / Math.max(1, rect.width) * GALAGA.width));
+    }
+    listen(canvas, 'pointerdown', event => { event.preventDefault(); canvas.setPointerCapture?.(event.pointerId); pointers.set(event.pointerId, 'board'); eventPoint(event); syncHeld(); });
+    listen(canvas, 'pointermove', event => { if (pointers.get(event.pointerId) === 'board') { event.preventDefault(); eventPoint(event); syncHeld(); } });
+    const releasePointer = event => {
+      if (!pointers.has(event.pointerId)) return;
+      const wasBoard = pointers.get(event.pointerId) === 'board';
+      pointers.delete(event.pointerId);
+      if (wasBoard && ![...pointers.values()].includes('board')) pointerX = null;
+      syncHeld();
+    };
+    listen(canvas, 'pointerup', releasePointer); listen(canvas, 'pointercancel', releasePointer); listen(canvas, 'lostpointercapture', releasePointer);
+    container.querySelectorAll('[data-galaga-control]').forEach(button => {
+      const name = button.dataset.galagaControl;
+      listen(button, 'pointerdown', event => { event.preventDefault(); button.setPointerCapture?.(event.pointerId); pointers.set(event.pointerId, name); syncHeld(); });
+      listen(button, 'pointerup', releasePointer); listen(button, 'pointercancel', releasePointer); listen(button, 'lostpointercapture', releasePointer);
+    });
+    const keyMap = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', Space: 'fire' };
+    listen(window, 'keydown', event => {
+      if (event.code === 'Escape') { event.preventDefault(); togglePause(); return; }
+      const action = keyMap[event.code];
+      if (action) { event.preventDefault(); keys[action] = true; syncHeld(); }
+      if (event.code === 'Enter' && state.phase === 'over') { event.preventDefault(); reset(); }
+    });
+    listen(window, 'keyup', event => { const action = keyMap[event.code]; if (action) { event.preventDefault(); keys[action] = false; syncHeld(); } });
+    listen(window, 'blur', () => { for (const key of Object.keys(keys)) keys[key] = false; pointers.clear(); pointerX = null; syncHeld(); });
+
+    function drawFighter(x, y) {
+      ctx.save(); ctx.translate(x, y); ctx.beginPath();
+      ctx.moveTo(0, -18); ctx.lineTo(9, -2); ctx.lineTo(21, 8); ctx.lineTo(18, 12); ctx.lineTo(5, 8); ctx.lineTo(0, 15);
+      ctx.lineTo(-5, 8); ctx.lineTo(-18, 12); ctx.lineTo(-21, 8); ctx.lineTo(-9, -2); ctx.closePath();
+      ctx.fillStyle = '#62d4df'; ctx.fill(); ctx.strokeStyle = '#d7f4ea'; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, -12); ctx.lineTo(3, 1); ctx.lineTo(-3, 1); ctx.closePath(); ctx.fillStyle = '#f2cd76'; ctx.fill(); ctx.restore();
+    }
+    function drawEnemy(enemy) {
+      const colors = { boss: '#ed7898', guard: '#edbd67', grunt: '#72d4bc' };
+      ctx.save(); ctx.translate(enemy.x, enemy.y); ctx.rotate(enemy.mode === 'diving' ? Math.sin(enemy.modeTime * 4 + enemy.phase) * 0.28 : 0);
+      ctx.fillStyle = colors[enemy.type]; ctx.strokeStyle = '#f1ecd7'; ctx.lineWidth = 1.3; ctx.beginPath();
+      if (enemy.type === 'boss') {
+        ctx.moveTo(0, 13); ctx.lineTo(-8, 7); ctx.lineTo(-18, 10); ctx.lineTo(-20, 3); ctx.lineTo(-12, -5); ctx.lineTo(-7, -10); ctx.lineTo(0, -6); ctx.lineTo(7, -10); ctx.lineTo(12, -5); ctx.lineTo(20, 3); ctx.lineTo(18, 10); ctx.lineTo(8, 7); ctx.closePath();
+      } else if (enemy.type === 'guard') {
+        ctx.moveTo(0, 11); ctx.lineTo(-7, 6); ctx.lineTo(-17, 10); ctx.lineTo(-13, 0); ctx.lineTo(-9, -8); ctx.lineTo(0, -5); ctx.lineTo(9, -8); ctx.lineTo(13, 0); ctx.lineTo(17, 10); ctx.lineTo(7, 6); ctx.closePath();
+      } else {
+        ctx.moveTo(0, 10); ctx.lineTo(-6, 5); ctx.lineTo(-13, 9); ctx.lineTo(-10, 0); ctx.lineTo(-7, -7); ctx.lineTo(0, -3); ctx.lineTo(7, -7); ctx.lineTo(10, 0); ctx.lineTo(13, 9); ctx.lineTo(6, 5); ctx.closePath();
+      }
+      ctx.fill(); ctx.stroke(); ctx.fillStyle = '#102a40'; ctx.fillRect(-4, -1, 2, 3); ctx.fillRect(2, -1, 2, 3);
+      if (enemy.carrying) { ctx.strokeStyle = '#f6dc91'; ctx.beginPath(); ctx.moveTo(0, 12); ctx.lineTo(0, 22); ctx.stroke(); ctx.fillStyle = '#62d4df'; ctx.fillRect(-3, 19, 6, 4); }
+      if (enemy.beamTime > 0) { ctx.strokeStyle = 'rgba(245,219,132,.58)'; ctx.lineWidth = 12; ctx.beginPath(); ctx.moveTo(0, 14); ctx.lineTo(state.player.x - enemy.x, state.player.y - enemy.y); ctx.stroke(); }
+      ctx.restore();
+    }
+    function draw() {
+      ctx.fillStyle = '#06121e'; ctx.fillRect(0, 0, GALAGA.width, GALAGA.height);
+      for (let i = 0; i < 72; i++) { const x = (i * 157 + 29) % GALAGA.width, y = (i * 89 + 17) % GALAGA.height; ctx.fillStyle = i % 8 === 0 ? 'rgba(242,205,118,.8)' : 'rgba(179,218,228,.38)'; ctx.fillRect(x, y, i % 8 === 0 ? 2 : 1, i % 8 === 0 ? 2 : 1); }
+      ctx.fillStyle = 'rgba(53,111,135,.12)'; ctx.fillRect(26, 38, GALAGA.width - 52, GALAGA.height - 76); ctx.strokeStyle = 'rgba(102,160,176,.16)'; ctx.strokeRect(26, 38, GALAGA.width - 52, GALAGA.height - 76);
+      for (const enemy of state.enemies) if (enemy.mode !== 'escaped') drawEnemy(enemy);
+      ctx.fillStyle = '#f7d982'; for (const shot of state.shots) ctx.fillRect(shot.x - 2, shot.y - 8, 4, 13);
+      ctx.fillStyle = '#ff8d82'; for (const shot of state.enemyShots) { ctx.beginPath(); ctx.ellipse(shot.x, shot.y, 3.2, 5.5, 0, 0, Math.PI * 2); ctx.fill(); }
+      if (state.lives > 0 && !(state.invulnerable > 0 && Math.floor(state.elapsed * 12) % 2 === 0)) {
+        if (state.dual) { drawFighter(state.player.x - 13, state.player.y); drawFighter(state.player.x + 13, state.player.y); }
+        else drawFighter(state.player.x, state.player.y);
+      }
+      ctx.textAlign = 'center';
+      if (state.phase === 'entry') { ctx.fillStyle = '#e8d28e'; ctx.font = '600 18px Calibri,sans-serif'; ctx.fillText(state.waveMode === 'challenge' ? 'ĐỢT THỬ THÁCH' : 'PHI ĐỘI ĐANG TIẾN VÀO', GALAGA.width / 2, 48); }
+      if (state.phase === 'challenge') { ctx.fillStyle = '#e8d28e'; ctx.font = '600 15px Calibri,sans-serif'; ctx.fillText('ĐỢT THỬ THÁCH · HẠ CÀNG NHIỀU CÀNG TỐT', GALAGA.width / 2, 48); }
+      if (state.phase === 'cleared') { ctx.fillStyle = '#f1dda2'; ctx.font = '700 25px Calibri,sans-serif'; ctx.fillText('ĐÃ DỌN SẠCH PHI ĐỘI', GALAGA.width / 2, GALAGA.height / 2); }
+      if (state.phase === 'over') { ctx.fillStyle = '#ffb0a2'; ctx.font = '700 30px Calibri,sans-serif'; ctx.fillText('HẾT PHI THUYỀN', GALAGA.width / 2, GALAGA.height / 2 - 12); ctx.font = '15px Calibri,sans-serif'; ctx.fillStyle = '#aac2ca'; ctx.fillText('Nhấn Enter hoặc LẠI để chơi tiếp', GALAGA.width / 2, GALAGA.height / 2 + 23); }
+      if (paused) { ctx.fillStyle = 'rgba(2,10,17,.74)'; ctx.fillRect(0, 0, GALAGA.width, GALAGA.height); ctx.fillStyle = '#e6f3e8'; ctx.font = '700 31px Calibri,sans-serif'; ctx.fillText('TẠM DỪNG', GALAGA.width / 2, GALAGA.height / 2); }
+    }
+    function updateHud() { scoreEl.textContent = String(state.score); stageEl.textContent = String(state.stage); livesEl.textContent = String(state.lives) + (state.dual ? ' · ĐÔI' : ''); bestEl.textContent = String(best); }
+    function reset() {
+      Object.assign(state, createGalagaState((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0));
+      for (const key of Object.keys(keys)) keys[key] = false;
+      pointers.clear(); pointerX = null; paused = false; announcedEvent = null; pauseButton.textContent = 'DỪNG';
+      status.textContent = '← → di chuyển · Space bắn · chạm/kéo để lái'; syncHeld(); updateHud();
+    }
+    const togglePause = () => { if (state.phase === 'over') return; paused = !paused; for (const key of Object.keys(keys)) keys[key] = false; pointers.clear(); pointerX = null; syncHeld(); pauseButton.textContent = paused ? 'TIẾP' : 'DỪNG'; status.textContent = paused ? 'Tạm dừng' : '← → di chuyển · Space bắn · chạm/kéo để lái'; };
+    listen(container.querySelector('#gaRestart'), 'click', reset); listen(pauseButton, 'click', togglePause);
+    function frame(timestamp) {
+      const dt = lastFrame ? Math.min(0.05, Math.max(0, (timestamp - lastFrame) / 1000)) : 1 / 60;
+      lastFrame = timestamp;
+      const before = state.phase;
+      if (!paused) galagaTick(state, state.input || {}, dt);
+      setRecord(); updateHud();
+      if (state.lastEvent && state.lastEvent !== announcedEvent) {
+        announcedEvent = state.lastEvent;
+        if (state.lastEvent.type === 'captured') { status.textContent = 'Tàu bị Boss bắt · hạ Boss đang giữ tàu để mở hỏa lực đôi'; if (window.NP_Audio?.alarm) window.NP_Audio.alarm(); }
+        if (state.lastEvent.type === 'rescued') { status.textContent = 'Đã giải cứu tàu · hỏa lực đôi, nhưng thân tàu lớn hơn'; if (window.NP_Audio?.powerup) window.NP_Audio.powerup(); }
+        if (state.lastEvent.type === 'lost-ship') { status.textContent = state.lives ? 'Mất một phi thuyền · còn ' + state.lives : 'Hết phi thuyền · Enter hoặc LẠI'; if (window.NP_Audio?.alarm) window.NP_Audio.alarm(); }
+        if (state.lastEvent.type === 'enemy-hit' && window.NP_Audio?.hit) window.NP_Audio.hit();
+        if (state.lastEvent.type === 'challenge-perfect') status.textContent = 'Hoàn hảo · thưởng 1.000 điểm';
+        if (state.lastEvent.type === 'wave-clear' || state.lastEvent.type === 'challenge-perfect' || state.lastEvent.type === 'rescued' && state.phase === 'cleared') { if (window.NP_Audio?.win) window.NP_Audio.win(); }
+        if (state.lastEvent.type === 'wave-start' && state.stage > 1) status.textContent = 'Đợt ' + state.stage + ' · phi đội mới đang vào vị trí';
+      }
+      if (before !== 'over' && state.phase === 'over') status.textContent = 'Hết phi thuyền · Enter hoặc LẠI để chơi lại';
+      draw(); raf = session.requestAnimationFrame(frame);
+    }
+    updateHud(); draw(); raf = session.requestAnimationFrame(frame);
+    session.onCleanup(() => { if (raf !== null) session.cancelAnimationFrame(raf); for (const key of Object.keys(keys)) keys[key] = false; pointers.clear(); pointerX = null; setRecord(); });
+  }
+
   const descriptions = {
     shooter: 'A/D hoặc phím trái/phải để di chuyển, giữ Space để bắn. Chạm hoặc kéo tàu trên điện thoại.',
     runner: 'Trái/phải đổi làn, Space kích hoạt khiên. Né vật cản, vượt chướng ngại để qua màn.',
@@ -33,6 +692,246 @@
     quiz: 'Chọn đáp án bằng trái/phải, nhấn Space xác nhận hoặc chạm trực tiếp.',
     duel: 'Chọn Tấn công, Phòng thủ hoặc Hồi phục rồi nhấn Space. Thắng đối thủ để sang vòng tiếp.'
   };
+
+  // Frogger is a lane-crossing game, not the shared three-lane runner below.
+  // Keep its rules in a small deterministic model so the renderer stays thin
+  // and the arcade loop can be checked without a browser.
+  const FROGGER = Object.freeze({
+    cols: 11, rows: 11, cellW: 60, cellH: 50,
+    width: 660, height: 550, homes: [1, 3, 5, 7, 9],
+    timeLimit: 28, maxLives: 5
+  });
+
+  function froggerWrap(value, span) {
+    return ((value % span) + span) % span;
+  }
+
+  function froggerRandom(state) {
+    state.rng = (Math.imul(state.rng, 1664525) + 1013904223) >>> 0;
+    return state.rng / 0x100000000;
+  }
+
+  function froggerLane(state, row) {
+    return state.lanes.find(lane => lane.row === row) || null;
+  }
+
+  function froggerTimeLimit(stage) {
+    return Math.max(18, FROGGER.timeLimit - (stage - 1) * 0.6);
+  }
+
+  function froggerContains(lane, x, padding = 0) {
+    for (const item of lane.items) {
+      for (const shift of [-lane.wrap, 0, lane.wrap]) {
+        if (x >= item.x + shift - padding && x <= item.x + shift + item.width + padding) return item;
+      }
+    }
+    return null;
+  }
+
+  function createFroggerState(seed = 0x4f1bbcdc) {
+    const state = {
+      rng: (Number(seed) >>> 0) || 1,
+      stage: 1, score: 0, lives: 3, phase: 'playing',
+      homes: Array(FROGGER.homes.length).fill(false),
+      frog: { x: FROGGER.cellW * 5.5, row: FROGGER.rows - 1 },
+      hopAnimation: null,
+      highestRow: FROGGER.rows - 1,
+      remaining: FROGGER.timeLimit, hopCooldown: 0, invulnerable: 1.45,
+      transitionRemaining: 0, lastClearedStage: 0, lastEvent: null,
+      nextExtraLife: 10000, elapsed: 0, lanes: []
+    };
+
+    const logSpeeds = [-34, 39, -46, 52];
+    for (let i = 0; i < 4; i++) {
+      const row = i + 1;
+      const width = FROGGER.cellW * [2.35, 2.05, 2.55, 2.2][i];
+      const count = 3;
+      const gap = FROGGER.width / count;
+      const items = Array.from({ length: count }, (_, index) => ({
+        x: index * gap + (index % 2 ? 14 : -width * 0.35),
+        width,
+        color: ['#9b6746', '#bb8452', '#a86d47'][index]
+      }));
+      state.lanes.push({ kind: 'river', row, speed: logSpeeds[i], wrap: FROGGER.width, items });
+    }
+
+    const roadSpecs = [
+      { speed: 72, widths: [76, 104, 82] },
+      { speed: -91, widths: [92, 70, 112] },
+      { speed: 108, widths: [106, 74, 92] },
+      { speed: -78, widths: [78, 116, 86] }
+    ];
+    for (let i = 0; i < roadSpecs.length; i++) {
+      const row = i + 6;
+      const spec = roadSpecs[i];
+      const gap = FROGGER.width / spec.widths.length;
+      const items = spec.widths.map((width, index) => ({
+        x: index * gap + (index % 2 ? 16 : -width * 0.4),
+        width,
+        color: ['#f17663', '#f4cb62', '#60c8bd', '#c68bd7', '#e6eee1'][(row + index) % 5],
+        cabin: index % 2 === 0
+      }));
+      state.lanes.push({ kind: 'road', row, speed: spec.speed, wrap: FROGGER.width, items });
+    }
+    return state;
+  }
+
+  function froggerResetFrog(state) {
+    state.frog.x = FROGGER.cellW * 5.5;
+    state.frog.row = FROGGER.rows - 1;
+    state.highestRow = FROGGER.rows - 1;
+    state.remaining = froggerTimeLimit(state.stage);
+    state.hopCooldown = 0;
+    state.invulnerable = 0.9;
+    state.hopAnimation = null;
+  }
+
+  function froggerLoseLife(state, reason) {
+    if (state.phase !== 'playing') return false;
+    state.lives = Math.max(0, state.lives - 1);
+    state.lastEvent = { type: 'lost-life', reason, lives: state.lives };
+    if (state.lives === 0) {
+      state.phase = 'over';
+      return true;
+    }
+    froggerResetFrog(state);
+    return true;
+  }
+
+  function froggerAward(state, points) {
+    state.score += Math.max(0, Math.floor(points));
+    let extraLives = 0;
+    while (state.score >= state.nextExtraLife) {
+      if (state.lives < FROGGER.maxLives) {
+        state.lives++;
+        extraLives++;
+      }
+      state.nextExtraLife += 10000;
+    }
+    return extraLives;
+  }
+
+  function froggerHomeAt(x) {
+    const column = Math.round(x / FROGGER.cellW - 0.5);
+    const index = FROGGER.homes.indexOf(column);
+    if (index < 0 || Math.abs(x - FROGGER.cellW * (column + 0.5)) > 17) return -1;
+    return index;
+  }
+
+  function froggerHop(state, dx, dy) {
+    if (state.phase !== 'playing' || state.hopCooldown > 0) return false;
+    if (Math.abs(dx) + Math.abs(dy) !== 1) return false;
+    const nextX = state.frog.x + dx * FROGGER.cellW;
+    const nextRow = state.frog.row + dy;
+    if (nextX < FROGGER.cellW * 0.5 || nextX > FROGGER.width - FROGGER.cellW * 0.5 ||
+        nextRow < 0 || nextRow >= FROGGER.rows) return false;
+
+    const fromX = state.frog.x;
+    const fromRow = state.frog.row;
+    state.hopCooldown = 0.105;
+    state.frog.x = nextX;
+    state.frog.row = nextRow;
+
+    if (nextRow === 0) {
+      const home = froggerHomeAt(nextX);
+      if (home < 0 || state.homes[home]) {
+        froggerLoseLife(state, home < 0 ? 'Sai ổ' : 'Ổ đã kín');
+        return true;
+      }
+      state.homes[home] = true;
+      const extraLives = froggerAward(state, 50 + Math.floor(state.remaining * 5));
+      state.lastEvent = { type: 'home', home: home + 1, filled: state.homes.filter(Boolean).length, extraLives };
+      if (state.homes.every(Boolean)) {
+        state.lastClearedStage = state.stage;
+        state.phase = 'stage-clear';
+        state.transitionRemaining = 1.15;
+        state.lastEvent = { type: 'stage-clear', stage: state.stage, extraLives };
+      } else {
+        froggerResetFrog(state);
+      }
+      return true;
+    }
+
+    if (nextRow < state.highestRow) {
+      state.highestRow = nextRow;
+      const extraLives = froggerAward(state, 10);
+      state.lastEvent = { type: 'hop', row: nextRow, score: state.score, extraLives };
+    }
+
+    if (nextRow >= 1 && nextRow <= 4) {
+      const lane = froggerLane(state, nextRow);
+      if (!lane || !froggerContains(lane, nextX, 12)) {
+        froggerLoseLife(state, 'Rơi xuống nước');
+      }
+    } else if (nextRow >= 6 && nextRow <= 9 && state.invulnerable <= 0) {
+      const lane = froggerLane(state, nextRow);
+      if (lane && froggerContains(lane, nextX, 18)) froggerLoseLife(state, 'Va vào xe');
+    }
+    if (state.phase === 'playing' && state.frog.x === nextX && state.frog.row === nextRow) {
+      state.hopAnimation = {
+        fromX, fromRow, toX: nextX, toRow: nextRow, elapsed: 0, duration: 0.095
+      };
+    }
+    return true;
+  }
+
+  function tickFrogger(state, dt) {
+    const seconds = Math.max(0, Number(dt) || 0);
+    if (state.phase === 'stage-clear') {
+      state.transitionRemaining -= seconds;
+      if (state.transitionRemaining <= 0) {
+        state.stage++;
+        state.homes.fill(false);
+        state.phase = 'playing';
+        froggerResetFrog(state);
+        state.lastEvent = { type: 'stage-start', stage: state.stage };
+      }
+      return;
+    }
+    if (state.phase !== 'playing' || !seconds) return;
+
+    state.elapsed += seconds;
+    state.hopCooldown = Math.max(0, state.hopCooldown - seconds);
+    state.invulnerable = Math.max(0, state.invulnerable - seconds);
+    state.remaining -= seconds;
+    if (state.hopAnimation) {
+      state.hopAnimation.elapsed += seconds;
+      if (state.hopAnimation.elapsed >= state.hopAnimation.duration) state.hopAnimation = null;
+    }
+
+    const speedScale = 1 + Math.min(20, state.stage - 1) * 0.075;
+    for (const lane of state.lanes) {
+      const wrap = lane.wrap;
+      for (const item of lane.items) {
+        item.x = froggerWrap(item.x + lane.speed * speedScale * seconds + item.width * 0.4, wrap) - item.width * 0.4;
+      }
+    }
+
+    const row = state.frog.row;
+    if (row >= 1 && row <= 4) {
+      const lane = froggerLane(state, row);
+      const platform = lane && froggerContains(lane, state.frog.x, 10);
+      if (!platform) {
+        froggerLoseLife(state, 'Rơi khỏi bè');
+        return;
+      }
+      state.frog.x += lane.speed * speedScale * seconds;
+      if (state.hopAnimation) state.hopAnimation.toX = state.frog.x;
+      if (state.frog.x < 10 || state.frog.x > FROGGER.width - 10 ||
+          !froggerContains(lane, state.frog.x, 8)) {
+        froggerLoseLife(state, 'Trôi khỏi bè');
+        return;
+      }
+    } else if (row >= 6 && row <= 9 && state.invulnerable <= 0) {
+      const lane = froggerLane(state, row);
+      if (lane && froggerContains(lane, state.frog.x, 17)) {
+        froggerLoseLife(state, 'Va vào xe');
+        return;
+      }
+    }
+
+    if (state.remaining <= 0) froggerLoseLife(state, 'Hết giờ');
+  }
 
   const QUESTIONS = [
     ['Số tiếp theo của dãy 2, 4, 8, 16 là?', ['20', '24', '32', '36'], 2],
@@ -57,7 +956,443 @@
     ['Việt Nam nằm ở châu lục nào?', ['Châu Á', 'Châu Âu', 'Châu Phi', 'Châu Mỹ'], 0]
   ];
 
+  function launchFrogger(container, game) {
+    const session = window.NP_GameSession.start();
+    const { listen } = session;
+    const model = {
+      create: createFroggerState,
+      hop: froggerHop,
+      tick: tickFrogger,
+      constants: FROGGER
+    };
+    const gameId = String(game.id || 'frogger-ech-bang-qua-duong');
+    const storeKey = 'np_frogger_record_v1_' + gameId.replace(/[^a-z0-9_-]/gi, '');
+    const state = model.create((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0);
+    let bestScore = 0;
+    let bestStage = 1;
+    let frameId = null;
+    let lastFrame = 0;
+    const pointers = new Map();
+
+    try {
+      const saved = JSON.parse(localStorage.getItem(storeKey) || '{}');
+      bestScore = Math.max(0, Number(saved.score) || 0);
+      bestStage = Math.max(1, Number(saved.stage) || 1);
+    } catch (error) { /* local storage may be disabled or contain old data */ }
+
+    container.innerHTML = `
+      <style>
+        #gameModal:has(.np-frogger-shell) .modal-window { width:min(98vw,900px); max-width:900px; min-width:0; }
+        #gameModal:has(.np-frogger-shell) .modal-header,
+        #gameModal:has(.np-frogger-shell) .modal-title-group,
+        #gameModal:has(.np-frogger-shell) .modal-body { min-width:0; }
+        #gameModal:has(.np-frogger-shell) .modal-game-title { white-space:normal; overflow-wrap:anywhere; }
+        @media(max-width:700px) {
+          #gameModal:has(.np-frogger-shell) .modal-window { width:100vw; max-width:100vw; min-width:0; }
+          #gameModal:has(.np-frogger-shell) .modal-header { gap:6px; }
+          #gameModal:has(.np-frogger-shell) .modal-header-actions { flex:0 0 auto; }
+          #gameModal:has(.np-frogger-shell) .modal-title-group { flex:1 1 auto; }
+          #gameModal:has(.np-frogger-shell) .modal-game-title { font-size:clamp(15px,4.2vw,21px); }
+        }
+        .np-frogger-shell { display:flex; flex-direction:column; align-items:center; gap:8px; width:100%; max-width:780px; min-width:0; margin:0 auto; color:#f4f6e8; font-family:Calibri,Inter,-apple-system,sans-serif; }
+        .np-frogger-hud { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; width:100%; }
+        .np-frogger-stat { min-width:0; padding:7px 10px; border:1px solid rgba(235,248,215,.16); border-radius:9px; background:#20392f; text-align:center; color:#b8d4b4; font-size:12px; letter-spacing:.035em; }
+        .np-frogger-stat strong { display:block; color:#fff8d5; font-size:17px; line-height:1.15; font-weight:800; }
+        .np-frogger-time { display:flex; align-items:center; gap:9px; width:100%; color:#d4e1c5; font-size:12px; }
+        .np-frogger-time-track { flex:1; height:7px; overflow:hidden; border-radius:999px; background:#243c40; }
+        .np-frogger-time-fill { width:100%; height:100%; border-radius:inherit; background:#c4dd64; transition:width .12s linear; }
+        .np-frogger-board { display:block; width:min(100%,780px); max-width:100%; height:auto; aspect-ratio:6/5; border:2px solid #c7df9a; border-radius:12px; background:#24734e; box-shadow:0 12px 32px rgba(8,27,20,.24); touch-action:none; }
+        .np-frogger-controls { display:grid; grid-template-columns:repeat(6,minmax(44px,1fr)); gap:6px; width:min(100%,432px); }
+        .np-frogger-controls button { min-width:44px; min-height:48px; padding:4px; border:1px solid #a7c774; border-radius:12px; background:#f0f2d8; color:#234433; font:700 24px/1 Calibri,Inter,sans-serif; box-shadow:0 3px 0 #a2b96f; touch-action:manipulation; }
+        .np-frogger-controls button:active { transform:translateY(2px); box-shadow:0 1px 0 #a2b96f; }
+        .np-frogger-controls button:focus-visible { outline:3px solid #efa85a; outline-offset:2px; }
+        .np-frogger-status { min-height:20px; margin:0; color:#476a4d; font-size:13px; text-align:center; }
+        .np-frogger-sr { position:absolute!important; width:1px!important; height:1px!important; padding:0!important; margin:-1px!important; overflow:hidden!important; clip:rect(0,0,0,0)!important; white-space:nowrap!important; border:0!important; }
+        @media(max-width:520px) { .np-frogger-hud { gap:4px; } .np-frogger-stat { padding:6px 3px; font-size:11px; } .np-frogger-stat strong { font-size:15px; } .np-frogger-controls { gap:5px; } }
+        @media(prefers-reduced-motion:reduce) { .np-frogger-time-fill,.np-frogger-controls button { transition:none; } }
+      </style>
+      <section class="np-frogger-shell" aria-label="Chú Ếch Sang Sông">
+        <div class="np-frogger-hud" aria-label="Trạng thái ván chơi">
+          <div class="np-frogger-stat">Màn<strong id="arcLevel">1</strong></div>
+          <div class="np-frogger-stat">Điểm<strong id="arcScore">0</strong><span id="arcBest" class="np-frogger-sr"></span></div>
+          <div class="np-frogger-stat">Mạng<strong id="arcLives">3</strong></div>
+          <div class="np-frogger-stat">Ổ<strong id="arcProgress">0/5</strong></div>
+        </div>
+        <div class="np-frogger-time"><span>Giờ</span><div class="np-frogger-time-track" id="froggerTimeTrack" role="progressbar" aria-label="Thời gian còn lại" aria-valuemin="0" aria-valuemax="28" aria-valuenow="28"><div class="np-frogger-time-fill" id="froggerTimeFill"></div></div><strong id="froggerTime">28s</strong></div>
+        <canvas class="np-frogger-board" id="arcCanvas" width="660" height="550" tabindex="0" aria-label="Bàn chơi Frogger: đi lên từng ô, tránh xe, cưỡi bè qua sông và đưa ếch vào năm ổ trên cùng."></canvas>
+        <div class="np-frogger-controls" aria-label="Điều khiển">
+          <button type="button" data-hop="left" aria-label="Nhảy sang trái">←</button>
+          <button type="button" data-hop="up" aria-label="Nhảy lên">↑</button>
+          <button type="button" data-hop="down" aria-label="Nhảy xuống">↓</button>
+          <button type="button" data-hop="right" aria-label="Nhảy sang phải">→</button>
+          <button type="button" id="arcPause" aria-label="Tạm dừng">Ⅱ</button>
+          <button type="button" id="arcRestart" aria-label="Chơi lại">↻</button>
+        </div>
+        <p class="np-frogger-status" id="froggerStatus" role="status" aria-live="polite">Né xe, nhảy lên bè, lấp năm ổ.</p>
+        <span class="np-frogger-sr" id="arcHelp">Dùng phím mũi tên hoặc W A S D để nhảy một ô. Trên màn hình cảm ứng, vuốt để đổi hướng hoặc dùng các nút điều khiển. Mỗi lượt có thời hạn; tránh xe và đứng trên bè khi qua sông.</span>
+      </section>`;
+
+    const canvas = container.querySelector('#arcCanvas');
+    const ctx = canvas.getContext('2d');
+    const status = container.querySelector('#froggerStatus');
+    const timeTrack = container.querySelector('#froggerTimeTrack');
+    const timeFill = container.querySelector('#froggerTimeFill');
+    const setText = (selector, value) => {
+      const element = container.querySelector(selector);
+      const next = String(value);
+      if (element && element.textContent !== next) element.textContent = next;
+    };
+    canvas.style.touchAction = 'none';
+
+    function persist() {
+      const nextScore = Math.max(bestScore, state.score);
+      const nextStage = Math.max(bestStage, state.stage);
+      if (nextScore === bestScore && nextStage === bestStage) return;
+      bestScore = nextScore;
+      bestStage = nextStage;
+      try { localStorage.setItem(storeKey, JSON.stringify({ score: bestScore, stage: bestStage })); }
+      catch (error) { /* score chase remains playable in private browsing */ }
+    }
+
+    function sound(name) {
+      if (window.NP_Audio && typeof window.NP_Audio[name] === 'function') window.NP_Audio[name]();
+    }
+
+    function announce(event) {
+      if (!event) return;
+      if (event.type === 'lost-life') {
+        status.textContent = event.lives ? event.reason + ' · còn ' + event.lives + ' mạng' : event.reason + ' · hết mạng';
+        sound('alarm');
+        if (window.NP_Juice) window.NP_Juice.vibrate([25, 35, 35]);
+      } else if (event.type === 'hop') {
+        sound('pop');
+      } else if (event.type === 'home') {
+        status.textContent = 'Về ổ ' + event.home + ' · ' + event.filled + '/5';
+        sound('coin');
+        if (window.NP_Juice) window.NP_Juice.vibrate(14);
+      } else if (event.type === 'stage-clear') {
+        status.textContent = 'Qua màn ' + event.stage + ' · xe chạy nhanh hơn';
+        sound('win');
+        if (window.NP_Juice) window.NP_Juice.vibrate([20, 30, 20]);
+      } else if (event.type === 'stage-start') {
+        status.textContent = 'Màn ' + event.stage;
+      }
+      if (event.extraLives > 0) {
+        status.textContent = 'Thêm ' + event.extraLives + ' mạng';
+        sound('powerup');
+      }
+    }
+
+    function updateHud() {
+      setText('#arcLevel', state.stage);
+      setText('#arcScore', state.score);
+      setText('#arcLives', state.lives);
+      let filledHomes = 0;
+      for (const filled of state.homes) if (filled) filledHomes++;
+      setText('#arcProgress', filledHomes + '/5');
+      setText('#froggerTime', Math.ceil(state.remaining) + 's');
+      setText('#arcBest', 'Kỷ lục ' + bestScore + ' · màn ' + bestStage);
+      const stageTime = froggerTimeLimit(state.stage);
+      const percent = Math.max(0, Math.min(100, state.remaining / stageTime * 100));
+      timeFill.style.width = percent + '%';
+      timeTrack.setAttribute('aria-valuemax', String(Math.ceil(stageTime)));
+      timeTrack.setAttribute('aria-valuenow', String(Math.max(0, Math.ceil(state.remaining))));
+      const pause = container.querySelector('#arcPause');
+      if (pause) pause.setAttribute('aria-label', state.phase === 'paused' ? 'Tiếp tục' : 'Tạm dừng');
+      if (pause) pause.textContent = state.phase === 'paused' ? '▶' : 'Ⅱ';
+    }
+
+    function restart() {
+      const fresh = model.create((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0);
+      Object.assign(state, fresh);
+      status.textContent = 'Né xe, nhảy lên bè, lấp năm ổ.';
+      updateHud();
+      canvas.focus({ preventScroll: true });
+    }
+
+    function togglePause() {
+      if (state.phase === 'over') return;
+      if (state.phase === 'paused') {
+        state.phase = state.pauseReturnPhase || 'playing';
+        state.lastEvent = { type: 'resume' };
+        lastFrame = 0;
+        status.textContent = 'Tiếp tục.';
+      } else if (state.phase === 'playing' || state.phase === 'stage-clear') {
+        state.pauseReturnPhase = state.phase;
+        state.phase = 'paused';
+        status.textContent = 'Đã tạm dừng.';
+      }
+      updateHud();
+    }
+
+    function act(dx, dy) {
+      if (state.phase !== 'playing') return;
+      const previous = state.lastEvent;
+      const moved = model.hop(state, dx, dy);
+      if (!moved) return;
+      if (state.lastEvent !== previous) announce(state.lastEvent);
+      else sound('pop');
+      persist();
+      updateHud();
+      draw();
+    }
+
+    function roundRect(x, y, width, height, radius, fill, stroke) {
+      const r = Math.min(radius, width / 2, height / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + r, y); ctx.lineTo(x + width - r, y); ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+      ctx.lineTo(x + width, y + height - r); ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+      ctx.lineTo(x + r, y + height); ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+      ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath();
+      if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+      if (stroke) { ctx.strokeStyle = stroke; ctx.stroke(); }
+    }
+
+    function ellipse(x, y, rx, ry, color) {
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
+    }
+
+    function drawRoad(row) {
+      const y = row * FROGGER.cellH;
+      ctx.fillStyle = row % 2 ? '#34434a' : '#3b4850';
+      ctx.fillRect(0, y, FROGGER.width, FROGGER.cellH);
+      ctx.fillStyle = 'rgba(231,218,162,.68)';
+      for (let x = 0; x < FROGGER.width; x += 94) ctx.fillRect(x + 13, y + 24, 34, 2);
+      ctx.fillStyle = 'rgba(16,29,30,.35)';
+      ctx.fillRect(0, y, FROGGER.width, 1);
+    }
+
+    function drawWater(row) {
+      const lane = froggerLane(state, row);
+      const y = row * FROGGER.cellH;
+      ctx.fillStyle = row % 2 ? '#177f99' : '#16849b';
+      ctx.fillRect(0, y, FROGGER.width, FROGGER.cellH);
+      ctx.strokeStyle = 'rgba(158,237,224,.22)';
+      ctx.lineWidth = 1.5;
+      const drift = state.elapsed * 18 * (lane ? Math.sign(lane.speed) : 1);
+      for (let x = -42; x < FROGGER.width + 55; x += 92) {
+        const waveX = froggerWrap(x + drift, FROGGER.width + 92) - 46;
+        ctx.beginPath(); ctx.moveTo(waveX, y + 13); ctx.quadraticCurveTo(waveX + 16, y + 8, waveX + 34, y + 13); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(waveX + 38, y + 37); ctx.quadraticCurveTo(waveX + 54, y + 32, waveX + 73, y + 37); ctx.stroke();
+      }
+    }
+
+    function drawPlatform(lane) {
+      const y = lane.row * FROGGER.cellH + 8;
+      for (const item of lane.items) {
+        for (const shift of [-lane.wrap, 0, lane.wrap]) {
+          const x = item.x + shift;
+          if (x > FROGGER.width || x + item.width < 0) continue;
+          roundRect(x, y + 4, item.width, 31, 13, item.color, '#714d39');
+          ctx.strokeStyle = 'rgba(68,45,34,.52)'; ctx.lineWidth = 2;
+          for (let mark = 18; mark < item.width - 12; mark += 30) {
+            ctx.beginPath(); ctx.moveTo(x + mark, y + 9); ctx.lineTo(x + mark - 3, y + 31); ctx.stroke();
+          }
+          ellipse(x + 12, y + 20, 4, 8, '#80543c');
+          ellipse(x + item.width - 12, y + 20, 4, 8, '#80543c');
+        }
+      }
+    }
+
+    function drawCar(lane, item) {
+      const y = lane.row * FROGGER.cellH + 8;
+      for (const shift of [-lane.wrap, 0, lane.wrap]) {
+        const x = item.x + shift;
+        if (x > FROGGER.width || x + item.width < 0) continue;
+        roundRect(x + 2, y + 7, item.width - 4, 27, 7, item.color, 'rgba(19,39,42,.7)');
+        if (item.cabin) {
+          const cabinW = Math.max(22, item.width * 0.39);
+          roundRect(x + item.width * 0.32, y + 10, cabinW, 16, 4, '#d8eee1', 'rgba(26,57,54,.35)');
+          ctx.fillStyle = 'rgba(22,52,57,.42)';
+          ctx.fillRect(x + item.width * 0.32 + cabinW * 0.52, y + 11, 2, 14);
+        } else {
+          ctx.fillStyle = 'rgba(255,244,204,.75)';
+          ctx.fillRect(x + 8, y + 13, 5, 3);
+          ctx.fillRect(x + item.width - 13, y + 13, 5, 3);
+        }
+        ctx.fillStyle = '#1c292d';
+        ctx.fillRect(x + 11, y + 29, 13, 6);
+        ctx.fillRect(x + item.width - 24, y + 29, 13, 6);
+      }
+    }
+
+    function drawHome(index) {
+      const x = FROGGER.cellW * (FROGGER.homes[index] + 0.5);
+      const y = FROGGER.cellH * 0.5;
+      ellipse(x, y + 2, 22, 15, state.homes[index] ? '#b8d55c' : '#4a9154');
+      ctx.strokeStyle = state.homes[index] ? '#eef6a0' : '#9bcf72';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(x, y + 2, 16, Math.PI * 0.12, Math.PI * 1.82); ctx.stroke();
+      if (state.homes[index]) drawFrog(x, y - 2, 0.32, false);
+      else {
+        ctx.strokeStyle = 'rgba(232,247,177,.75)'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(x - 4, y + 4); ctx.lineTo(x + 2, y - 2); ctx.lineTo(x + 8, y + 4); ctx.stroke();
+      }
+    }
+
+    function drawFrog(x, y, scale = 1, flash = false, stretchX = 1, stretchY = 1) {
+      const blink = flash && state.invulnerable > 0 && Math.floor(state.elapsed * 12) % 2 === 0;
+      if (blink) return;
+      ctx.save(); ctx.translate(x, y); ctx.scale(scale * stretchX, scale * stretchY);
+      ellipse(0, 7, 17, 12, '#38774c');
+      ellipse(0, 1, 15, 13, '#8cce62');
+      ellipse(-8, -8, 6.5, 7, '#9bdb6a'); ellipse(8, -8, 6.5, 7, '#9bdb6a');
+      ellipse(-8, -9, 3.2, 3.8, '#f7f5dc'); ellipse(8, -9, 3.2, 3.8, '#f7f5dc');
+      ellipse(-7.5, -9, 1.5, 2.2, '#21392e'); ellipse(8.5, -9, 1.5, 2.2, '#21392e');
+      ctx.strokeStyle = '#4b8a4d'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(-12, 9); ctx.lineTo(-19, 13); ctx.moveTo(12, 9); ctx.lineTo(19, 13); ctx.stroke();
+      ctx.restore();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, FROGGER.width, FROGGER.height);
+      ctx.fillStyle = '#5b9852'; ctx.fillRect(0, 0, FROGGER.width, FROGGER.cellH);
+      for (let row = 1; row <= 4; row++) drawWater(row);
+      ctx.fillStyle = '#75af5a'; ctx.fillRect(0, FROGGER.cellH * 5, FROGGER.width, FROGGER.cellH);
+      for (let row = 6; row <= 9; row++) drawRoad(row);
+      ctx.fillStyle = '#71ad5a'; ctx.fillRect(0, FROGGER.cellH * 10, FROGGER.width, FROGGER.cellH);
+      ctx.fillStyle = 'rgba(242,252,178,.24)';
+      for (let x = 16; x < FROGGER.width; x += 48) {
+        ctx.beginPath(); ctx.arc(x, FROGGER.cellH * 5 + 12 + (x % 3) * 7, 2, 0, Math.PI * 2); ctx.fill();
+      }
+      for (const lane of state.lanes) {
+        if (lane.kind === 'river') drawPlatform(lane);
+        else for (const item of lane.items) drawCar(lane, item);
+      }
+      for (let i = 0; i < FROGGER.homes.length; i++) drawHome(i);
+      if (state.phase !== 'stage-clear' && state.phase !== 'over') {
+        let frogX = state.frog.x;
+        let frogY = state.frog.row * FROGGER.cellH + FROGGER.cellH * 0.5;
+        let stretchX = 1;
+        let stretchY = 1;
+        if (state.hopAnimation) {
+          const progress = clamp(state.hopAnimation.elapsed / state.hopAnimation.duration, 0, 1);
+          const eased = progress * progress * (3 - 2 * progress);
+          const sourceY = state.hopAnimation.fromRow * FROGGER.cellH + FROGGER.cellH * 0.5;
+          const targetY = state.hopAnimation.toRow * FROGGER.cellH + FROGGER.cellH * 0.5;
+          frogX = state.hopAnimation.fromX + (state.hopAnimation.toX - state.hopAnimation.fromX) * eased;
+          frogY = sourceY + (targetY - sourceY) * eased - Math.sin(progress * Math.PI) * 11;
+          stretchX = 1 + Math.sin(progress * Math.PI) * 0.1;
+          stretchY = 1 - Math.sin(progress * Math.PI) * 0.08;
+        }
+        drawFrog(frogX, frogY, 1, true, stretchX, stretchY);
+      }
+
+      if (state.phase === 'paused' || state.phase === 'stage-clear' || state.phase === 'over') {
+        ctx.fillStyle = 'rgba(13,31,32,.76)'; ctx.fillRect(0, 0, FROGGER.width, FROGGER.height);
+        ctx.textAlign = 'center'; ctx.fillStyle = '#f5f4dc'; ctx.font = '800 32px Calibri, sans-serif';
+        const headline = state.phase === 'paused' ? 'TẠM DỪNG' : state.phase === 'over' ? 'HẾT MẠNG' : 'QUA MÀN ' + state.lastClearedStage;
+        ctx.fillText(headline, FROGGER.width / 2, 262);
+        ctx.fillStyle = '#d5e8bc'; ctx.font = '17px Calibri, sans-serif';
+        const subline = state.phase === 'over' ? 'Nhấn ↻ để sang đường lần nữa' : state.phase === 'paused' ? 'Nhấn ▶ để tiếp tục' : 'Bè và xe sẽ chạy nhanh hơn';
+        ctx.fillText(subline, FROGGER.width / 2, 296);
+      }
+    }
+
+    function frame(timestamp) {
+      const dt = lastFrame ? Math.min(0.05, Math.max(0, (timestamp - lastFrame) / 1000)) : 0;
+      lastFrame = timestamp || 0;
+      const previous = state.lastEvent;
+      model.tick(state, dt);
+      if (state.lastEvent !== previous) {
+        announce(state.lastEvent);
+        persist();
+      }
+      updateHud();
+      draw();
+      frameId = session.requestAnimationFrame(frame);
+    }
+
+    const directions = {
+      left: [-1, 0], up: [0, -1], down: [0, 1], right: [1, 0]
+    };
+    for (const button of container.querySelectorAll('[data-hop]')) {
+      const direction = directions[button.getAttribute('data-hop')];
+      listen(button, 'pointerdown', event => {
+        event.preventDefault();
+        if (button.setPointerCapture && event.pointerId !== undefined) {
+          try { button.setPointerCapture(event.pointerId); } catch (error) { /* pointer may already be canceled */ }
+        }
+        act(direction[0], direction[1]);
+      });
+      listen(button, 'click', event => {
+        if (event.detail !== 0) return;
+        act(direction[0], direction[1]);
+      });
+    }
+    listen(container.querySelector('#arcPause'), 'click', togglePause);
+    listen(container.querySelector('#arcRestart'), 'click', restart);
+    listen(window, 'keydown', event => {
+      const key = String(event.key || '');
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target && event.target.tagName)) return;
+      if (key === 'p' || key === 'P') {
+        if (!event.repeat) togglePause();
+        return;
+      }
+      const direction = ({ ArrowLeft: 'left', a: 'left', A: 'left', ArrowUp: 'up', w: 'up', W: 'up',
+        ArrowDown: 'down', s: 'down', S: 'down', ArrowRight: 'right', d: 'right', D: 'right' })[key];
+      if (direction && !event.repeat) {
+        event.preventDefault();
+        const [dx, dy] = directions[direction];
+        act(dx, dy);
+      } else if ((key === ' ' || event.code === 'Space' || key === 'Enter') &&
+                 !(event.target && event.target.tagName === 'BUTTON')) {
+        event.preventDefault();
+        act(0, -1);
+      }
+    });
+    listen(document, 'visibilitychange', () => {
+      if (document.hidden && state.phase !== 'paused' && state.phase !== 'over') togglePause();
+    });
+    listen(window, 'blur', () => {
+      if (state.phase === 'playing' || state.phase === 'stage-clear') togglePause();
+    });
+    listen(canvas, 'pointerdown', event => {
+      event.preventDefault();
+      pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (canvas.setPointerCapture && event.pointerId !== undefined) {
+        try { canvas.setPointerCapture(event.pointerId); } catch (error) { /* pointer may have left the canvas */ }
+      }
+    });
+    listen(canvas, 'pointerup', event => {
+      const start = pointers.get(event.pointerId);
+      pointers.delete(event.pointerId);
+      if (!start) return;
+      const dx = event.clientX - start.x;
+      const dy = event.clientY - start.y;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) act(0, -1);
+      else if (Math.abs(dx) > Math.abs(dy)) act(dx < 0 ? -1 : 1, 0);
+      else act(0, dy < 0 ? -1 : 1);
+    });
+    for (const name of ['pointercancel', 'lostpointercapture']) {
+      listen(canvas, name, event => pointers.delete(event.pointerId));
+    }
+
+    updateHud();
+    draw();
+    frameId = session.requestAnimationFrame(frame);
+    session.onCleanup(() => {
+      if (frameId !== null) session.cancelAnimationFrame(frameId);
+      pointers.clear();
+      persist();
+    });
+  }
+
   function launch(container, game) {
+    const id = String(game && game.id || '').toLowerCase();
+    if (id === 'frogger-ech-bang-qua-duong') {
+      launchFrogger(container, game);
+      return;
+    }
+    if (id === 'asteroids-tau-ban-thien-thach') {
+      launchAsteroids(container, game);
+      return;
+    }
+    if (id === 'ban-ruoi-galaga') {
+      launchGalaga(container, game);
+      return;
+    }
     const session = window.NP_GameSession.start();
     const { listen, requestAnimationFrame, cancelAnimationFrame, setTimeout } = session;
     const kind = kindFor(game);
@@ -710,5 +2045,11 @@
     });
   }
 
-  window.NP_Archetypes = { launch, kindFor };
+  window.NP_Archetypes = {
+    launch,
+    kindFor,
+    froggerModel: { create: createFroggerState, hop: froggerHop, tick: tickFrogger, constants: FROGGER },
+    asteroidsModel: { create: createAsteroidsState, fire: asteroidFire, hyperspace: asteroidHyperspace, tick: asteroidTick, constants: ASTEROIDS },
+    galagaModel: { create: createGalagaState, fire: galagaFire, capture: galagaCapture, tick: galagaTick, constants: GALAGA }
+  };
 })();

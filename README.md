@@ -118,4 +118,8 @@ Nét vẽ được lưu trong [`scripts/game-art.js`](./scripts/game-art.js), kh
 ## 6. Bản quyền & Tài nguyên
 
 - Mã nguồn: Giấy phép [MIT License](./LICENSE).
-- Tài nguyên đồ họa & âm thanh: Được xây dựng từ Kenney Game Assets chuẩn **CC0 1.0 Universal (Public Domain)** và ảnh minh họa tự sáng tạo. Chi tiết ghi nhận tại [`assets/ASSET_MANIFEST.json`](./assets/ASSET_MANIFEST.json).
+- Tài nguyên gồm Kenney assets và ảnh minh họa; cần rà quyền/nguồn từng file trước release, không suy ra toàn bộ assets có chung license. Manifest hiện tại ở [`assets/ASSET_MANIFEST.json`](./assets/ASSET_MANIFEST.json).
+
+## Nghiên cứu và bao phủ gameplay theo từng tựa
+
+Danh mục 150 game chưa đồng nghĩa với 150 gameplay đã được đối chiếu hoặc chơi thử. Ở snapshot code này, ma trận router ghi nhận 67 vòng riêng theo title và 83 mục còn dùng archetype chung; riêng dispatcher không chứng minh fidelity. Hãy đọc [hướng dẫn nghiên cứu và nghiệm thu](./docs/GAME_DEVELOPMENT_GUIDELINES.md), xem [sổ bao phủ 150 tựa](./docs/GAME_COVERAGE.md), và dùng [ma trận engine/router](./docs/GAMEPLAY_COMPLETENESS_AUDIT.md) như inventory kỹ thuật, không phải chứng nhận fidelity. Hồ sơ nguồn, phạm vi, screenshot và giới hạn của các đợt đã chạy nằm trong [`docs/game-profiles/`](./docs/game-profiles/) và [`docs/qa/`](./docs/qa/).

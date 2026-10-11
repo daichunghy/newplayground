@@ -940,7 +940,9 @@
           window.NP_Engines.launchDanhBaiUno(container, game);
         } else if (gId.includes('plants') || gId.includes('zombie') || gId.includes('bloons') || gId.includes('thu-thanh')) {
           window.NP_Engines.launchPvZ(container, game);
-        } else if (gId.includes('ban-ga') || gId.includes('galaga') || gId.includes('ban-ruoi') || gId.includes('chicken')) {
+        } else if (gId.includes('galaga') || gId.includes('ban-ruoi')) {
+          window.NP_Engines.launchRetroArcade(container, game);
+        } else if (gId.includes('ban-ga') || gId.includes('chicken')) {
           window.NP_Engines.launchChickenInvaders(container, game);
         } else if (gId.includes('pha-gach') || gId.includes('dx-ball') || gId.includes('arkanoid') || gId.includes('peggle')) {
           window.NP_Engines.launchDXBall(container, game);

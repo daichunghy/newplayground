@@ -1,10 +1,14 @@
-# Kiểm kê gameplay NewPlayground — 10/10/2026
+# Kiểm kê gameplay NewPlayground — 11/10/2026
+
+Sổ bao phủ theo từng catalog title: [docs/GAME_COVERAGE.md](./GAME_COVERAGE.md). Bản này theo dõi engine/dispatcher từ code; các con số không phải số game đã chơi thử.
 
 Tài liệu này phân biệt **game mở được**, **có vòng chơi và tiến trình**, và **tái hiện đầy đủ luật đặc trưng**. Không dùng việc mở canvas thành công để suy diễn game đã hoàn thiện.
 
 - Danh mục trong `data/games.json`: **150** tựa.
-- Định tuyến sang engine chuyên biệt: **64** tựa (có thể chia sẻ cùng một engine, cần kiểm thử riêng từng biến thể).
-- Định tuyến sang 7 archetype đang chơi được nhưng **chưa đúng toàn bộ luật gốc**: **86** tựa.
+- Vòng chơi riêng theo từng game: **67** tựa (63 route engine chuyên biệt hiện có, cùng Typer Shark, Frogger, Asteroids và Galaga được chuyển đúng ID sang vòng riêng trong `launchRetroArcade`; một engine có thể được chia sẻ giữa những tựa liên quan).
+- **83** tựa còn dùng một trong 7 archetype chung; các mode này chưa mô phỏng đầy đủ luật gốc.
+- Galaga trước đây đã nằm ngoài fallback chung nhưng bị chạy nhầm engine Chicken Invaders. Đợt này đổi sang vòng Galaga riêng; số 67/83 không đổi vì đây là thay một route riêng đã có, không lấy một tựa từ nhóm 83 archetype.
+- Typer Shark, Frogger, Asteroids và Galaga đi qua `launchRetroArcade`, nhưng dispatcher chuyển đúng ID sang vòng riêng theo title. Không tính các tựa này là gameplay archetype chung.
 - Kiểm thử mô phỏng đã đạt màn 2 ở 7 archetype. Điều này **không xác nhận** toàn bộ chiến dịch của từng game chuyên biệt có thể hoàn thành, hoặc gameplay đã trung thành với tên game.
 - `tests/game-flow.test.cjs` kiểm tra 150 lượt mở, đóng, cleanup và các kịch bản qua màn minh họa; cần bổ sung test theo đặc tả riêng và QA trên máy thật.
 - Cần QA thủ công với chuột, bàn phím, Android Chrome và iPhone Safari; kiểm tra 60/90/120 Hz, màn cuối, khởi động lại, lưu trữ, cảm ứng đa điểm.
@@ -13,12 +17,12 @@ Tài liệu này phân biệt **game mở được**, **có vòng chơi và ti�
 
 | Chế độ | Số tựa fallback | Tiến trình |
 | --- | ---: | --- |
-| `shooter` | 11 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
-| `runner` | 19 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
+| `shooter` | 10 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
+| `runner` | 18 | Các game còn lại dùng vòng chạy chung; Frogger đã có vòng sang đường riêng |
 | `reflex` | 11 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
 | `puzzle` | 16 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
 | `management` | 5 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
-| `quiz` | 7 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
+| `quiz` | 6 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
 | `duel` | 17 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
 
 **Hạn chế quan trọng**: Game được gắn nhãn `launchRetroArcade` chỉ là trò chơi mini theo thể loại tương ứng, chưa phải bản tái dựng đầy đủ hệ thống nhân vật, nhiệm vụ, vật phẩm, luật và cấp độ riêng của tựa game được đặt tên. Các mục này không nên được đánh dấu là “đã hoàn thành gameplay gốc” trong backlog.
@@ -53,7 +57,7 @@ Tài liệu này phân biệt **game mở được**, **có vòng chơi và ti�
 | 24 | `lemonade-tycoon` | Lemonade Tycoon | `launchRetroArcade` | `management` |
 | 25 | `pizza-frenzy` | Pizza Frenzy Giao Bánh | `launchRetroArcade` | `management` |
 | 26 | `heavy-weapon` | Heavy Weapon Xe Tăng | `launchXeTang1990` | — |
-| 27 | `typer-shark` | Typer Shark Luyện Gõ | `launchRetroArcade` | `quiz` |
+| 27 | `typer-shark` | Typer Shark Luyện Gõ | `launchRetroArcade` → `NP_TyperShark.launch` | Vòng chơi riêng |
 | 28 | `chuzzle` | Chuzzle Sinh Vật Lông | `launchKimCuong` | — |
 | 29 | `flappy-bird` | Flappy Bird | `launchFlappyBird` | — |
 | 30 | `chem-hoa-qua` | Chém Hoa Quả (Fruit Ninja) | `launchFruitNinja` | — |
@@ -62,7 +66,7 @@ Tài liệu này phân biệt **game mở được**, **có vòng chơi và ti�
 | 33 | `nguoi-tuyet-snow-bros` | Người Tuyết (Snow Bros) | `launchRetroArcade` | `shooter` |
 | 34 | `angry-birds-mini` | Bắn Chim Angry Birds | `launchGunny` | — |
 | 35 | `cut-the-rope` | Cắt Dây Cho Ếch Om Nom | `launchRetroArcade` | `puzzle` |
-| 36 | `ban-ruoi-galaga` | Bắn Ruồi (Galaga) | `launchChickenInvaders` | — |
+| 36 | `ban-ruoi-galaga` | Bắn Ruồi (Galaga) | `launchRetroArcade` → Galaga loop (exact ID) | — |
 | 37 | `pha-gach-dx-ball` | Phá Gạch DX-Ball | `launchDXBall` | — |
 | 38 | `day-thung-sokoban` | Đẩy Thùng Sokoban | `launchSokoban` | — |
 | 39 | `noi-ong-nuoc-pipemania` | Nối Ống Nước Pipemania | `launchRetroArcade` | `puzzle` |
@@ -146,8 +150,8 @@ Tài liệu này phân biệt **game mở được**, **có vòng chơi và ti�
 | 117 | `dig-dug-dao-dat-bom-quai` | Đào Hầm Bơm Bong Bóng (Dig Dug) | `launchDatBom` | — |
 | 118 | `pooyan-lon-me-ban-bong` | Heo Mẹ Bắn Nỏ (Pooyan) | `launchRetroArcade` | `reflex` |
 | 119 | `yie-ar-kung-fu-vo-dai` | Đấu Võ Đường Thiếu Lâm | `launchRetroArcade` | `duel` |
-| 120 | `asteroids-tau-ban-thien-thach` | Phi Thuyền Bắn Thiên Thạch | `launchRetroArcade` | `shooter` |
-| 121 | `frogger-ech-bang-qua-duong` | Chú Ếch Sang Sông (Frogger) | `launchRetroArcade` | `runner` |
+| 120 | `asteroids-tau-ban-thien-thach` | Phi Thuyền Bắn Thiên Thạch | `launchRetroArcade` → loop thiên thạch riêng | Xoay, lực đẩy quán tính, bắn vỡ đá, saucer, hyperspace và qua wave |
+| 121 | `frogger-ech-bang-qua-duong` | Chú Ếch Sang Sông (Frogger) | `launchRetroArcade` → vòng sang đường riêng | 5 ổ đích, xe và bè trôi |
 | 122 | `elevator-action-diep-vien-thang-may` | Điệp Viên Thang Máy | `launchRetroArcade` | `runner` |
 | 123 | `double-dragon-hiep-si-rong-doi` | Rồng Đôi Song Thủ | `launchRetroArcade` | `duel` |
 | 124 | `golden-axe-riu-vang` | Rìu Vàng Cổ Đại (Golden Axe) | `launchRetroArcade` | `duel` |

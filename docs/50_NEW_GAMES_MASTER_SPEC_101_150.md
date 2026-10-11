@@ -2,7 +2,7 @@
 ## HỆ SINH THÁI NEWPLAYGROUND • NES • ARCADE THÙNG • POPCAP • FLASH • PC 1980-2000s
 **Slogan:** Play a little. Feel a little happier.  
 **Tiêu chuẩn văn bản:** Ưu tiên font Calibri (cỡ 10-12pt cho nội dung, 12-16pt cho đề mục), hiển thị sắc nét, thoáng mắt, chuẩn dấu tiếng Việt tuyệt đối trên mọi nền tảng.  
-**Trạng thái:** Sẵn sàng tích hợp 100% vào `data/games.json`, `games-data.js` và phát triển các Engine Canvas 2D / Web Audio.
+**Trạng thái:** Bản ý tưởng lịch sử; chưa xác minh toàn bộ phiên bản, luật, asset, routing hoặc khả năng tích hợp. Dùng cùng [guideline phát triển theo game](./GAME_DEVELOPMENT_GUIDELINES.md) và [sổ bao phủ](./GAME_COVERAGE.md). Không xem phần mô tả hoặc catalog là nghiệm thu gameplay.
 
 ---
 
@@ -19,7 +19,7 @@ Mỗi trò chơi được đặc tả cặn kẽ 4 yếu tố xúc giác:
 - **Responsive Controls:** Phím điều khiển nhạy bén, bố trí phím công thái học, hỗ trợ D-pad cảm ứng và vuốt màn hình.
 - **Screenshake Physics:** Cường độ rung chấn (Trauma system với công thức suy giảm $Trauma = \max(0, Trauma - \Delta t 	imes 	ext{decay})$).
 - **Hitstop (Khựng hình tác động):** Tạm dừng cập nhật logic (Micro-freeze 20-100ms) tạo độ nặng, độ đầm và độ dứt khoát của cú va chạm.
-- **Procedural Web Audio SFX:** 100% âm thanh tổng hợp thời gian thực từ Web Audio API (không phụ thuộc asset audio ngoài, chống vi phạm bản quyền và giảm dung lượng tải).
+- **Procedural Web Audio SFX:** âm thanh tổng hợp có thể tránh nhập file audio ngoài cho phần hiệu ứng tự tạo; điều đó không phải kết luận về quyền pháp lý của mọi âm thanh, code hay nội dung trong repo.
 - **Particle Sparks / Bursts:** Hệ thống hạt vật lý bung tỏa đa hướng (vận tốc ngẫu nhiên, lực cản không khí, trọng lực, phai màu theo thời gian).
 
 
@@ -1360,18 +1360,18 @@ Mỗi trò chơi được đặc tả cặn kẽ 4 yếu tố xúc giác:
 
 ## 4. HƯỚNG DẪN TÍCH HỢP CODEBASE & BỘ ENGINE DÙNG CHUNG
 
-Toàn bộ 50 tựa game trên được thiết kế để tương thích hoàn toàn với kiến trúc hiện có của NewPlayground:
+Các gợi ý dưới đây ghi lại một ý định tích hợp từ thời điểm viết tài liệu. Chúng chưa được kiểm chứng với từng tựa và không phải cam kết kiến trúc hiện tại. Hãy giữ router/session vanilla hiện có và xem `docs/GAMEPLAY_COMPLETENESS_AUDIT.md` cùng `docs/GAME_COVERAGE.md` để biết trạng thái đã kiểm tra:
 1. **Tích hợp vào `data/games.json`:** Nối mảng 50 đối tượng từ file `games-101-150.json` vào cuối `data/games.json`.
 2. **Tích hợp vào `games-data.js`:** Cập nhật biến `window.__NP_GAMES_CACHE__` để đảm bảo game chạy offline ngay cả khi không có HTTP server.
 3. **Tương thích `scripts/game-feel.js`:** Mọi âm thanh procedural audio và hiệu ứng hạt mô tả ở trên đều ánh xạ trực tiếp với các hàm có sẵn:
    - `NP_Audio.tone()`, `NP_Audio.explosion()`, `NP_Audio.thud()`, `NP_Audio.splash()`, `NP_Audio.pop()`, `NP_Audio.clack()`, `NP_Audio.whoosh()`, `NP_Audio.metalClank()`.
    - `NP_Juice.screenShake(intensity, duration)`, `NP_Juice.triggerHitstop(ms)`, `NP_Juice.createParticleSystem()`.
-4. **Phân nhóm Engine tái sử dụng:**
+4. **Các nhóm thành phần có thể tái sử dụng (không phải engine hoàn chỉnh hay trạng thái nghiệm thu):**
    - **Grid & Board Engine:** Bloxorz, Q*bert, Bookworm, Atomix, The Impossible Quiz.
-   - **Physics & Projectile Engine:** Raft Wars, Bowman, Snowcraft, Line Rider, Hamsterball, Asteroids.
+   - **Physics & Projectile components:** Raft Wars, Bowman, Snowcraft, Line Rider, Hamsterball. Asteroids có loop nhiều hướng riêng trong `engines-archetypes.js`; không xếp vào một engine bắn đạn dùng chung.
    - **Arcade & Patrol Action Engine:** Boom Online, Mega Man, Duck Hunt, Adventure Island, Street Fighter II, Prince of Persia, Bubble Bobble, Donkey Kong, Dig Dug, Pooyan, Yie Ar Kung-Fu, Frogger, Elevator Action, Double Dragon, Golden Axe, Cadillacs and Dinosaurs, Gun Mayhem, Electric Man 2, Fancy Pants, Centipede, 1942, Shinobi, Chip 'n Dale, Tiny Toon, Balloon Fight, Ice Climber, Mappy, TwinBee, Worms, Digger, Icy Tower.
    - **Management & Rhythm Engine:** Audition 4 Phím Space, Papa's Pizzeria, Age of War, Stick War, Defend Your Castle, Moorhuhn.
 
 
 ---
-*Tài liệu được biên soạn tự động và nghiệm thu hoàn tất theo tiêu chuẩn kỹ thuật NewPlayground.*
+*Tài liệu này là bản draft/ý tưởng. Chưa có ý nghĩa nghiên cứu chính xác, triển khai, kiểm chứng license hoặc nghiệm thu từng game.*

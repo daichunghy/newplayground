@@ -1,22 +1,21 @@
 # TÀI LIỆU ĐẶC TẢ & THU THẬP DỮ LIỆU 50 TRÒ CHƠI KINH ĐIỂN
-## BỘ DỮ LIỆU THIẾT KẾ CƠ CHẾ, TÍNH NĂNG, VẬT PHẨM & TÀI SẢN NGUỒN MỞ HỢP PHÁP
+## DANH SÁCH Ý TƯỞNG, CÂU HỎI NGHIÊN CỨU VÀ NGUỒN THAM KHẢO TÀI SẢN
 **Dự án:** NewPlayground (Hệ sinh thái game web hoài niệm & nguyên bản)  
 **Tiêu chuẩn văn bản:** Font Calibri, chuẩn hóa hiển thị đa nền tảng, thiết kế rõ ràng và chuyên nghiệp.
 
 ---
 
-## NGUYÊN TẮC THU THẬP & SẠCH BẢN QUYỀN (CLEAN-ROOM SPECIFICATION)
+## CÁCH DÙNG TÀI LIỆU NÀY
 
-Để đảm bảo NewPlayground **không bao giờ bị khiếu kiện bản quyền (DMCA), không bị khóa kho mã nguồn GitHub hay chặn tên miền**, toàn bộ dữ liệu 50 tựa game dưới đây được thu thập và chuẩn hóa theo phương pháp **Clean-room Reverse Engineering**:
-1. **Bóc tách Cơ chế (Mechanics & Logic):** Trích xuất toàn bộ công thức toán học, vòng lặp chơi (Core Loop), danh mục vật phẩm, hành vi nhân vật và cơ chế điều khiển của 50 tựa game hoài niệm.
-2. **Chuẩn hóa Luật chơi (Game Rules & Economy):** Tái tạo trọn vẹn trải nghiệm quen thuộc của người chơi mà không vi phạm sở hữu trí tuệ (luật bản quyền không bảo hộ cơ chế trò chơi trừu tượng).
-3. **Liên kết Tài sản Mở Hợp pháp (Legal & CC0 Assets):** Thay vì trích xuất tệp ảnh/âm thanh lậu có bản quyền của game cũ, tài liệu cung cấp sẵn đường dẫn và tên gọi của các bộ Sprite, Tileset và Âm thanh thuộc bản quyền miễn phí thương mại (**CC0 / Public Domain / MIT** từ *Kenney.nl*, *OpenGameArt*, v.v.) tương thích 1:1 với từng cơ chế trò chơi.
+Các hàng bên dưới là gợi ý định hướng, không phải ghi nhận một phiên bản đã nghiên cứu, luật đã xác minh, asset đã được cleared, hay game đã triển khai. Trước khi sửa một tựa, xác định đúng edition/build, nền tảng, mode và nguồn; ghi chứng cứ, quan sát, sai khác, test và browser playtest trong [hồ sơ game](./GAME_DEVELOPMENT_GUIDELINES.md) và [sổ bao phủ theo từng tựa](./GAME_COVERAGE.md).
+
+Nghiên cứu hành vi chơi và quyền dùng nội dung là hai việc tách biệt. Việc tham khảo cơ chế không phải ý kiến pháp lý hoặc bảo đảm không có khiếu nại. Các link asset ở bảng chỉ là đầu mối để xem xét; kiểm chứng license, quyền của từng file, điều kiện sử dụng, attribution và các quyền liên quan trước khi thêm vào repo. Không suy quyền từ tên pack hay vendor sang từng file.
 
 ---
 
 ## DANH MỤC TỔNG HỢP 50 TRÒ CHƠI KINH ĐIỂN
 
-| ID | Tên Game Kinh Điển | Thể Loại | Cơ Chế Cốt Lõi | Hệ Thống Vật Phẩm / Nâng Cấp | Bộ Asset Mở Khuyên Dùng (CC0/MIT) |
+| ID | Tên Game Kinh Điển | Thể Loại | Cơ Chế Cốt Lõi | Hệ Thống Vật Phẩm / Nâng Cấp | Nguồn asset cần kiểm chứng |
 | :---: | :--- | :--- | :--- | :--- | :--- |
 | **01** | **Hàng Rong (Street Stall)** | Quản lý thời gian | Nấu món $\rightarrow$ Chờ $\rightarrow$ Giao khách $\rightarrow$ Thu tiền $\rightarrow$ Nâng cấp | Khay thêm, bếp nhanh, biển hiệu, gia vị | Kenney Food Kit / Urban 2D Packs |
 | **02** | **Diner Dash (Phục vụ bàn)** | Quản lý nhà hàng | Xếp bàn $\rightarrow$ Nhận order $\rightarrow$ Bưng đồ $\rightarrow$ Dọn bàn | Giày trượt, cà phê tăng tốc, hoa bàn | Kenney Restaurant & Character Sprites |
@@ -71,9 +70,9 @@
 
 ---
 
-## 4 BỘ ENGINE CHUNG (REUSABLE GAME ENGINES) CHO CẢ 50 GAME
+## NHÓM CƠ CHẾ CÓ THỂ TÁI SỬ DỤNG — KHÔNG PHẢI CAM KẾT ENGINE HAY NGHIỆM THU
 
-Nhờ việc chuẩn hóa kiến trúc Headless Core (như đã xây dựng trong tài liệu `docs/ARCHITECTURE.md`), chúng ta **không cần viết 50 codebase riêng biệt**. Cả 50 trò chơi trên được gom vào **4 bộ Engine dùng chung**:
+Các nhóm dưới đây là cách phân loại ý tưởng kiến trúc trong bản đặc tả. Chúng không mô tả chính xác kiến trúc repo hiện tại, không có nghĩa một engine đã được triển khai, và không chứng minh game khác nhau có luật riêng. Giữ router/session vanilla hiện hữu; chỉ dùng chung code khi hành vi thực sự trùng nhau. Mỗi game vẫn cần hồ sơ tham chiếu, logic đúng luật trong phạm vi, và nghiệm thu riêng theo [guideline](./GAME_DEVELOPMENT_GUIDELINES.md).
 
 ```mermaid
 flowchart TD
@@ -100,18 +99,17 @@ flowchart TD
 
 ---
 
-## KHO TÀI SẢN NGUỒN MỞ SẠCH ĐÃ ĐƯỢC KIỂM ĐỊNH (VERIFIED CC0 ASSETS)
+## ĐẦU MỐI TÌM ASSET — CẦN XÁC MINH THEO FILE
 
-Toàn bộ các bộ tài sản sau đây được cấp theo giấy phép **Creative Commons Zero (CC0 1.0 Universal - Public Domain)** hoặc **MIT**, cho phép sử dụng miễn phí cho mục đích cá nhân lẫn thương mại, chỉnh sửa và phân phối lại mà không sợ bất kỳ vi phạm bản quyền nào:
+Các liên kết sau chỉ là nơi để bắt đầu nghiên cứu. Tài liệu này chưa kiểm tra phiên bản tải, từng file, điều khoản hiện hành, quyền bên thứ ba, hoặc attribution; vì vậy không được coi đây là danh sách asset đã duyệt. Trước khi dùng bất kỳ file nào, xác minh license/permission của chính file đó và ghi provenance trong `assets/ASSET_MANIFEST.json`. Tự vẽ hình học mới trong code cũng phải được ghi nhận là artwork nguyên bản của dự án, không mượn screenshot hoặc sprite tham chiếu.
 
 1. **Kenney Game Assets (Thư viện toàn diện nhất):**
    * *Kenney Food Kit & Restaurant:* [https://kenney.nl/assets/food-kit](https://kenney.nl/assets/food-kit) (Phục vụ nhóm game Quản lý quầy ăn, Hàng Rong, Ca Phố).
    * *Kenney Platformer Complete:* [https://kenney.nl/assets/platformer-art-complete-pack](https://kenney.nl/assets/platformer-art-complete-pack) (Phục vụ Mario, Lửa Nước, Người Tuyết).
    * *Kenney Top-Down Tanks & City:* [https://kenney.nl/assets/top-down-tanks](https://kenney.nl/assets/top-down-tanks) (Phục vụ Bắn Xe Tăng 1990, Đua xe 2D).
    * *Kenney Puzzle & Gem Match:* [https://kenney.nl/assets/puzzle-pack](https://kenney.nl/assets/puzzle-pack) (Phục vụ Kim Cương, Line 98, Bắn Trứng).
-   * *Kenney Sound Effects (Audio Packs):* Hơn 1.000 âm thanh SFX chuẩn 16-bit / 44.1kHz (tiếng tiền kêu, tiếng nấu nướng, tiếng nổ, tiếng nhảy) không bản quyền.
-2. **OpenGameArt.org (Cộng đồng đồ họa độc lập):**
-   * Hàng ngàn bộ Sprite 2D pixel và vector minh họa được kiểm duyệt bản quyền sạch.
+   * *Kenney Sound Effects (Audio Packs):* kiểm tra trang pack và license cho bản tải/file cụ thể trước khi nhập.
+2. **OpenGameArt.org (Cộng đồng đồ họa độc lập):** kiểm tra license và attribution của từng tác giả/file; các license trong kho có thể khác nhau.
 
 ---
-*Tài liệu này là bộ từ điển đặc tả kỹ thuật và nguồn tài nguyên phục vụ việc mở rộng toàn diện danh mục 50 trò chơi của NewPlayground.*
+*Tài liệu này là danh sách gợi ý và không thay cho profile, kiểm chứng quyền, implementation hoặc QA từng game.*
