@@ -2278,6 +2278,11 @@
     let selectedCell = null;
     let previousState = null; // For Undo
     let gameOver = false;
+    let moving=false, moveTimer=null, movingCell=null;
+    function stopMoving() {
+      if (moveTimer!==null) { clearTimeout(moveTimer);moveTimer=null; }
+      moving=false;movingCell=null;
+    }
 
     const COLORS = [
       '#EF4444', // Red
@@ -2350,6 +2355,7 @@
       return true;
     }
     function restart() {
+      stopMoving();
       board = Array.from({ length: 9 }, () => Array(9).fill(0));
       score = 0; nextColors = []; selectedCell = null;
       previousState = null; gameOver = false;
@@ -2383,30 +2389,35 @@
       endIfFull();
     }
 
-    // BFS Pathfinding
-    function hasPath(startR, startC, targetR, targetC) {
-      if (board[targetR][targetC] !== 0) return false;
-      const visited = Array(9).fill(false).map(() => Array(9).fill(false));
-      const queue = [{ r: startR, c: startC }];
-      visited[startR][startC] = true;
-
-      const dr = [-1, 1, 0, 0];
-      const dc = [0, 0, -1, 1];
-
-      while (queue.length > 0) {
-        const curr = queue.shift();
-        if (curr.r === targetR && curr.c === targetC) return true;
-
-        for (let i = 0; i < 4; i++) {
-          const nr = curr.r + dr[i];
-          const nc = curr.c + dc[i];
-          if (nr >= 0 && nr < 9 && nc >= 0 && nc < 9 && !visited[nr][nc] && board[nr][nc] === 0) {
-            visited[nr][nc] = true;
-            queue.push({ r: nr, c: nc });
+    // Shortest traversable route, reconstructed for visible ball movement.
+    function findPath(startR,startC,targetR,targetC) {
+      if(board[targetR]?.[targetC]!==0)return null;
+      const seen=Array.from({length:9},()=>Array(9).fill(false));
+      const parents=Array.from({length:9},()=>Array(9).fill(null));
+      const q=[{r:startR,c:startC}],dirs=[[-1,0],[1,0],[0,-1],[0,1]];
+      seen[startR][startC]=true;
+      for(let head=0;head<q.length;head++) {
+        const point=q[head];
+        if(point.r===targetR && point.c===targetC) {
+          const path=[];
+          let r=targetR,c=targetC;
+          while(r!==startR||c!==startC) {
+            path.push({r,c});
+            const p=parents[r][c];
+            if(!p)return null;
+            r=p.r;c=p.c;
           }
+          return path.reverse();
+        }
+        for(const [dr,dc] of dirs) {
+          const nr=point.r+dr,nc=point.c+dc;
+          if(nr<0||nr>=9||nc<0||nc>=9||seen[nr][nc]||board[nr][nc]!==0)continue;
+          seen[nr][nc]=true;
+          parents[nr][nc]=point;
+          q.push({r:nr,c:nc});
         }
       }
-      return false;
+      return null;
     }
 
     // Line Matching (5 in a row)
@@ -2481,38 +2492,42 @@
     }
 
     function renderGrid() {
-      const grid = container.querySelector('#l98Grid');
-      if (!grid) return;
-
-      grid.innerHTML = '';
-      for (let r = 0; r < 9; r++) {
-        for (let c = 0; c < 9; c++) {
-          const cellVal = board[r][c];
-          const isSelected = selectedCell && selectedCell.r === r && selectedCell.c === c;
-
-          const cellEl = document.createElement('div');
-          cellEl.className = `line98-cell ${isSelected ? 'selected' : ''}`;
-          cellEl.setAttribute('data-r', r);
-          cellEl.setAttribute('data-c', c);
-
-          if (cellVal > 0) {
-            const ballEl = document.createElement('div');
-            ballEl.className = `line98-ball ${isSelected ? 'selected-ball' : ''}`;
-            ballEl.style.backgroundColor = COLORS[cellVal - 1];
-            cellEl.appendChild(ballEl);
-          }
-
-          // Native click supports touch and keyboard activation without duplicate taps.
-          cellEl.setAttribute('role', 'button');
-          cellEl.setAttribute('tabindex', '0');
-          cellEl.setAttribute('aria-label', cellVal ? 'Bóng màu ' + cellVal : 'Ô trống');
-          cellEl.style.touchAction = 'manipulation';
-          cellEl.addEventListener('click', () => onCellClick(r, c));
-          cellEl.addEventListener('keydown', evt => {
-            if (evt.key === 'Enter' || evt.key === ' ') { evt.preventDefault(); onCellClick(r, c); }
+      const grid=container.querySelector('#l98Grid');
+      if(!grid)return;
+      const build=grid.children.length!==81;
+      if(build)grid.innerHTML='';
+      for(let r=0;r<9;r++)for(let c=0;c<9;c++){
+        const val=board[r][c];
+        const isSelected=(selectedCell&&selectedCell.r===r&&selectedCell.c===c)||
+          (movingCell&&movingCell.r===r&&movingCell.c===c);
+        const cell=build?document.createElement('div'):grid.children[r*9+c];
+        if(build){
+          cell.className='line98-cell';
+          cell.setAttribute('data-r',r);
+          cell.setAttribute('data-c',c);
+          cell.setAttribute('role','button');
+          cell.setAttribute('tabindex','0');
+          cell.style.touchAction='manipulation';
+          cell.addEventListener('click',()=>onCellClick(r,c));
+          cell.addEventListener('keydown',e=>{
+            if(e.key==='Enter'||e.key===' '){e.preventDefault();onCellClick(r,c);}
           });
-          grid.appendChild(cellEl);
+          grid.appendChild(cell);
         }
+        cell.className=isSelected?'line98-cell selected':'line98-cell';
+        cell.setAttribute('aria-label',val?'Bóng màu '+val:'Ô trống');
+        if(cell.dataset.color!==String(val)){
+          cell.dataset.color=String(val);
+          cell.innerHTML='';
+          if(val>0){
+            const ball=document.createElement('div');
+            ball.className='line98-ball';
+            ball.style.backgroundColor=COLORS[val-1];
+            cell.appendChild(ball);
+          }
+        }
+        const ball=cell.querySelector('.line98-ball');
+        if(ball)ball.className=isSelected?'line98-ball selected-ball':'line98-ball';
       }
     }
 
