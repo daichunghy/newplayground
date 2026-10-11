@@ -3038,3 +3038,142 @@ body.dark-theme .filter-pill.active {
   #modalGameContainer:has(.np-typer-shark) { align-items:flex-start; overflow-y:auto; }
   .np-typer-shark { width:min(100%, 600px); }
 }
+
+
+/* Deep gameplay viewport and touch affordances, 11 Oct 2026 */
+/* Keep the playfield dominant; preserve original native canvas aspect ratio. */
+#gameModal .canvas-game-box:has(#pongCanvas),
+#gameModal .canvas-game-box:has(#dxCanvas),
+#gameModal .canvas-game-box:has(#snkCanvas),
+#gameModal .canvas-game-box:has(#fbCanvas),
+#gameModal .canvas-game-box:has(#g2048Grid),
+#gameModal .canvas-game-box:has(#tetCanvas),
+#gameModal .canvas-game-box:has(#skBoard) {
+  width: 100%;
+  max-width: 820px !important;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+#gameModal .canvas-game-box:has(#pongCanvas),
+#gameModal .canvas-game-box:has(#dxCanvas),
+#gameModal .canvas-game-box:has(#snkCanvas) {
+  padding-bottom: 10px;
+}
+#gameModal #pongCanvas,
+#gameModal #dxCanvas,
+#gameModal #snkCanvas {
+  width: min(100%, 780px);
+  max-width: 780px;
+  height: auto;
+  touch-action: none;
+}
+#gameModal .line98-board-wrapper:has(#l98Grid) {
+  width: 100%;
+  max-width: 660px;
+  margin: 0 auto;
+}
+#gameModal #l98Grid {
+  width: min(100%, 580px);
+  max-width: 580px;
+}
+#gameModal .line98-board-wrapper:has(#caroGrid) {
+  max-width: 760px !important;
+  width: 100%;
+  margin: auto;
+}
+#gameModal #caroGrid {
+  max-width: 690px !important;
+  width: 100%;
+}
+#gameModal #g2048Grid {
+  width: min(450px, 88vw) !important;
+  max-width: 100%;
+}
+#gameModal .canvas-game-box:has(#tetCanvas) > div:nth-child(2) {
+  max-width: 100%;
+}
+#gameModal #tetCanvas {
+  width: min(290px, 70vw);
+  max-width: 290px !important;
+  height: auto;
+  touch-action: none;
+}
+#gameModal #fbCanvas {
+  max-width: 460px;
+  width: min(100%, 460px);
+  height: auto;
+}
+#gameModal #skBoard {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+#gameModal .np-sk-cell {
+  outline-offset: -3px;
+}
+#gameModal .np-sk-cell:focus-visible,
+#gameModal .line98-cell:focus-visible,
+#gameModal .caro-cell:focus-visible {
+  outline: 3px solid #FBBF24;
+}
+#gameModal .canvas-controls-bar button,
+#gameModal .canvas-game-hud button,
+#gameModal .np-deep-mines button {
+  min-height: 44px;
+}
+#gameModal .np-deep-mines #dmGridWrap {
+  touch-action: pan-x pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+#gameModal .np-deep-mines #dmGrid button {
+  min-height: 38px;
+  min-width: 38px;
+}
+@media (max-width: 640px) {
+  #gameModal .modal-body {
+    padding: 9px;
+  }
+  #gameModal .canvas-game-hud {
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 7px;
+    gap: 5px;
+  }
+  #gameModal .canvas-game-box:has(#tetCanvas) > div:nth-child(2) {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, max-content));
+    grid-template-areas: "board board" "hold next";
+    justify-content: center !important;
+    align-items: center;
+    gap: 7px !important;
+  }
+  #gameModal .canvas-game-box:has(#tetCanvas) > div:nth-child(2) > div:first-child {
+    grid-area: hold;
+  }
+  #gameModal .canvas-game-box:has(#tetCanvas) > div:nth-child(2) > div:nth-child(2) {
+    grid-area: board;
+    justify-self: center;
+  }
+  #gameModal .canvas-game-box:has(#tetCanvas) > div:nth-child(2) > div:last-child {
+    grid-area: next;
+  }
+  #gameModal #tetCanvas {
+    width: min(280px, 82vw);
+    max-width: 82vw !important;
+  }
+  #gameModal .line98-board-wrapper:has(#caroGrid) {
+    overflow-x: auto;
+    align-items: flex-start;
+    -webkit-overflow-scrolling: touch;
+  }
+  #gameModal #caroGrid {
+    min-width: 615px;
+    max-width: none !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #gameModal #g2048Grid > div,
+  #gameModal .caro-cell.winning-cell {
+    animation: none !important;
+  }
+}
