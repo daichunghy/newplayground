@@ -4383,6 +4383,7 @@
     let score = 0;
     let mergedPositions = [];
     let undoState = null;
+    let largestMerge = 0;
 
     container.innerHTML = `
       <div class="canvas-game-box" style="max-width: 380px; margin: 0 auto; padding-bottom: 12px;">
@@ -4461,12 +4462,13 @@
       }
     }
 
-    let highScore = parseInt(localStorage.getItem('np_2048_high') || '0') || 0;
+    let highScore = 0;
+    try { highScore = Math.max(0,parseInt(localStorage.getItem('np_2048_high') || '0') || 0); } catch (_) {}
     let hasWon = false;
     let gameOver = false;
 
     function save() {
-      try { localStorage.setItem('np_2048_state', JSON.stringify({ board, score, hasWon })); } catch (_) {}
+      try { localStorage.setItem('np_2048_state', JSON.stringify({board,score,hasWon,undoState})); } catch (_) {}
     }
     function reset() {
       board = Array.from({ length: 4 }, () => [0, 0, 0, 0]);
@@ -4492,18 +4494,7 @@
             highScore = score;
             try { localStorage.setItem('np_2048_high', String(highScore)); } catch (e) {}
           }
-          const tier = Math.min(8, Math.round(Math.log2(arr[i])));
-          if (window.NP_Audio && typeof window.NP_Audio.combo === 'function') {
-            window.NP_Audio.combo(tier);
-          }
-          if (window.NP_Juice && typeof window.NP_Juice.screenShake === 'function') {
-            window.NP_Juice.screenShake(container.querySelector('#g2048Grid'), arr[i] >= 256 ? 6 : 3, 120);
-          }
-          if (window.NP_Juice) {
-            if (arr[i] >= 1024) NP_Juice.vibrate.heavy();
-            else if (arr[i] >= 128) NP_Juice.vibrate.combo();
-            else NP_Juice.vibrate.medium();
-          }
+          largestMerge=Math.max(largestMerge,arr[i]);
           // Fix: Record merged position for tactile pop animation
           const dst = direction === 'right' || direction === 'down' ? 3 - i : i;
           mergedPositions.push({
@@ -4532,6 +4523,8 @@
       if (gameOver) return;
       const old = JSON.stringify(board);
       const snapshot = { board: board.map(row => row.slice()), score, hasWon };
+      mergedPositions=[];
+      largestMerge=0;
 
       if (dir === 'left') {
         for (let r = 0; r < 4; r++) board[r] = slide(board[r], r, true, 'left');
@@ -4552,11 +4545,20 @@
       }
 
       if (old !== JSON.stringify(board)) {
-        undoState = snapshot;
-        if (window.NP_Audio && typeof window.NP_Audio.pop === 'function') window.NP_Audio.pop();
-        if (window.NP_Juice) NP_Juice.vibrate.light();
+        undoState=snapshot;
+        if (largestMerge) {
+          if (window.NP_Audio?.combo) window.NP_Audio.combo(Math.min(8,Math.round(Math.log2(largestMerge))));
+          if (window.NP_Juice) {
+            if (largestMerge >= 1024) NP_Juice.vibrate.heavy();
+            else if (largestMerge >= 128) NP_Juice.vibrate.combo();
+            else NP_Juice.vibrate.medium();
+            if (largestMerge >= 256 && NP_Juice.screenShake) NP_Juice.screenShake(container.querySelector('#g2048Grid'), 3, 105);
+          }
+        } else {
+          if (window.NP_Audio?.pop) window.NP_Audio.pop();
+          if (window.NP_Juice) NP_Juice.vibrate.light();
+        }
         spawnTile();
-        render();
         if (!hasWon && board.some(row => row.some(value => value >= 2048))) {
           hasWon = true;
           if (typeof window.showToastNotification === 'function') {
@@ -4564,17 +4566,16 @@
           }
         }
 
-        gameOver = checkGameOver();
+        gameOver=checkGameOver();
         save();
-        if (gameOver) {
-          if (window.NP_Audio) window.NP_Audio.alarm();
-          render();
-        }
+        if (gameOver && window.NP_Audio?.alarm) window.NP_Audio.alarm();
+        render();
       }
     }
 
     const keyHandler = (e) => {
       if (e.altKey || e.metaKey || e.ctrlKey || /INPUT|TEXTAREA|SELECT/.test(e.target?.tagName || '')) return;
+      if (e.key==='z' || e.key==='Z' || e.key==='Backspace') { e.preventDefault();undo();return; }
       if (['ArrowLeft', 'a', 'A'].includes(e.key)) { move('left'); e.preventDefault(); }
       if (['ArrowRight', 'd', 'D'].includes(e.key)) { move('right'); e.preventDefault(); }
       if (['ArrowUp', 'w', 'W'].includes(e.key)) { move('up'); e.preventDefault(); }
@@ -4614,6 +4615,15 @@
         board = saved.board.map(row => row.slice());
         score = saved.score;
         hasWon = !!saved.hasWon; gameOver = checkGameOver();
+        if (saved.undoState && typeof saved.undoState==='object') {
+          const u=saved.undoState;
+          if (Array.isArray(u.board)&&u.board.length===4 &&
+              u.board.every(row=>Array.isArray(row)&&row.length===4 &&
+                row.every(v=>Number.isSafeInteger(v)&&(v===0||(v>=2&&(v&(v-1))===0)))) &&
+              Number.isSafeInteger(u.score)&&u.score>=0&&u.score<=score) {
+            undoState={board:u.board.map(row=>row.slice()),score:u.score,hasWon:!!u.hasWon};
+          }
+        }
         restored = true;
       }
     } catch (_) {}
