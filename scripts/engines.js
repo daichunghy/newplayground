@@ -7123,7 +7123,7 @@ function launchTetris(container, game) {
     const dt = Math.max(0, Math.min(70, timestamp - lastDrop));
     lastDrop = timestamp;
     if (!paused && !gameOver) {
-      gravityBudget = Math.min(220, gravityBudget + dt);
+      gravityBudget = Math.min(1800, gravityBudget + dt);
       let drops = 0;
       while (!gameOver && drops++ < 3 && gravityBudget >= dropInterval) {
         gravityBudget -= dropInterval;
