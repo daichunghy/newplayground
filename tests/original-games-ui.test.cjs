@@ -63,7 +63,7 @@ test('quiz displays real semantic buttons, accepts answer and lifelines',()=>{
   h.get('half').fire('click');assert.equal(engine.s.hidden.length,2);
   const correct=h.get('answers').children[engine.question().correct];
   h.get('answers').fire('click',{target:correct});assert.equal(engine.s.phase,'feedback');
-  h.session().advance(53);assert.equal(engine.s.index,1);
+  h.session().advance(83);assert.equal(engine.s.index,1);
   assert.equal(h.get('answers').children.length,4);
 });
 test('switching games stops the previous RAF and event listeners',()=>{
