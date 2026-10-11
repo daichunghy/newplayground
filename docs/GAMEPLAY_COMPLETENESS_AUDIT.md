@@ -1,10 +1,11 @@
-# Kiểm kê gameplay NewPlayground — 10/10/2026
+# Kiểm kê gameplay NewPlayground — 11/10/2026
 
 Tài liệu này phân biệt **game mở được**, **có vòng chơi và tiến trình**, và **tái hiện đầy đủ luật đặc trưng**. Không dùng việc mở canvas thành công để suy diễn game đã hoàn thiện.
 
 - Danh mục trong `data/games.json`: **150** tựa.
-- Định tuyến sang engine chuyên biệt: **64** tựa (có thể chia sẻ cùng một engine, cần kiểm thử riêng từng biến thể).
-- Định tuyến sang 7 archetype đang chơi được nhưng **chưa đúng toàn bộ luật gốc**: **86** tựa.
+- Vòng chơi riêng theo từng game: **66** tựa (64 engine chuyên biệt hiện có, Typer Shark và Frogger; các engine vẫn có thể được chia sẻ giữa những tựa liên quan).
+- **84** tựa còn dùng một trong 7 archetype chung; các mode này chưa mô phỏng đầy đủ luật gốc.
+- Typer Shark và Frogger vẫn đi qua `launchRetroArcade`, nhưng dispatcher chuyển đúng ID sang vòng chơi riêng của từng game. Không tính hai tựa này là gameplay archetype chung.
 - Kiểm thử mô phỏng đã đạt màn 2 ở 7 archetype. Điều này **không xác nhận** toàn bộ chiến dịch của từng game chuyên biệt có thể hoàn thành, hoặc gameplay đã trung thành với tên game.
 - `tests/game-flow.test.cjs` kiểm tra 150 lượt mở, đóng, cleanup và các kịch bản qua màn minh họa; cần bổ sung test theo đặc tả riêng và QA trên máy thật.
 - Cần QA thủ công với chuột, bàn phím, Android Chrome và iPhone Safari; kiểm tra 60/90/120 Hz, màn cuối, khởi động lại, lưu trữ, cảm ứng đa điểm.
@@ -14,11 +15,11 @@ Tài liệu này phân biệt **game mở được**, **có vòng chơi và ti�
 | Chế độ | Số tựa fallback | Tiến trình |
 | --- | ---: | --- |
 | `shooter` | 11 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
-| `runner` | 19 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
+| `runner` | 18 | Các game còn lại dùng vòng chạy chung; Frogger đã có vòng sang đường riêng |
 | `reflex` | 11 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
 | `puzzle` | 16 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
 | `management` | 5 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
-| `quiz` | 7 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
+| `quiz` | 6 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
 | `duel` | 17 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
 
 **Hạn chế quan trọng**: Game được gắn nhãn `launchRetroArcade` chỉ là trò chơi mini theo thể loại tương ứng, chưa phải bản tái dựng đầy đủ hệ thống nhân vật, nhiệm vụ, vật phẩm, luật và cấp độ riêng của tựa game được đặt tên. Các mục này không nên được đánh dấu là “đã hoàn thành gameplay gốc” trong backlog.
@@ -53,7 +54,7 @@ Tài liệu này phân biệt **game mở được**, **có vòng chơi và ti�
 | 24 | `lemonade-tycoon` | Lemonade Tycoon | `launchRetroArcade` | `management` |
 | 25 | `pizza-frenzy` | Pizza Frenzy Giao Bánh | `launchRetroArcade` | `management` |
 | 26 | `heavy-weapon` | Heavy Weapon Xe Tăng | `launchXeTang1990` | — |
-| 27 | `typer-shark` | Typer Shark Luyện Gõ | `launchRetroArcade` | `quiz` |
+| 27 | `typer-shark` | Typer Shark Luyện Gõ | `launchRetroArcade` → `NP_TyperShark.launch` | Vòng chơi riêng |
 | 28 | `chuzzle` | Chuzzle Sinh Vật Lông | `launchKimCuong` | — |
 | 29 | `flappy-bird` | Flappy Bird | `launchFlappyBird` | — |
 | 30 | `chem-hoa-qua` | Chém Hoa Quả (Fruit Ninja) | `launchFruitNinja` | — |
@@ -147,7 +148,7 @@ Tài liệu này phân biệt **game mở được**, **có vòng chơi và ti�
 | 118 | `pooyan-lon-me-ban-bong` | Heo Mẹ Bắn Nỏ (Pooyan) | `launchRetroArcade` | `reflex` |
 | 119 | `yie-ar-kung-fu-vo-dai` | Đấu Võ Đường Thiếu Lâm | `launchRetroArcade` | `duel` |
 | 120 | `asteroids-tau-ban-thien-thach` | Phi Thuyền Bắn Thiên Thạch | `launchRetroArcade` | `shooter` |
-| 121 | `frogger-ech-bang-qua-duong` | Chú Ếch Sang Sông (Frogger) | `launchRetroArcade` | `runner` |
+| 121 | `frogger-ech-bang-qua-duong` | Chú Ếch Sang Sông (Frogger) | `launchRetroArcade` → vòng sang đường riêng | 5 ổ đích, xe và bè trôi |
 | 122 | `elevator-action-diep-vien-thang-may` | Điệp Viên Thang Máy | `launchRetroArcade` | `runner` |
 | 123 | `double-dragon-hiep-si-rong-doi` | Rồng Đôi Song Thủ | `launchRetroArcade` | `duel` |
 | 124 | `golden-axe-riu-vang` | Rìu Vàng Cổ Đại (Golden Axe) | `launchRetroArcade` | `duel` |

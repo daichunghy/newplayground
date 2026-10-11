@@ -34,6 +34,232 @@
     duel: 'Chọn Tấn công, Phòng thủ hoặc Hồi phục rồi nhấn Space. Thắng đối thủ để sang vòng tiếp.'
   };
 
+  // Frogger is a lane-crossing game, not the shared three-lane runner below.
+  // Keep its rules in a small deterministic model so the renderer stays thin
+  // and the arcade loop can be checked without a browser.
+  const FROGGER = Object.freeze({
+    cols: 11, rows: 11, cellW: 60, cellH: 50,
+    width: 660, height: 550, homes: [1, 3, 5, 7, 9],
+    timeLimit: 28, maxLives: 5
+  });
+
+  function froggerWrap(value, span) {
+    return ((value % span) + span) % span;
+  }
+
+  function froggerRandom(state) {
+    state.rng = (Math.imul(state.rng, 1664525) + 1013904223) >>> 0;
+    return state.rng / 0x100000000;
+  }
+
+  function froggerLane(state, row) {
+    return state.lanes.find(lane => lane.row === row) || null;
+  }
+
+  function froggerTimeLimit(stage) {
+    return Math.max(18, FROGGER.timeLimit - (stage - 1) * 0.6);
+  }
+
+  function froggerContains(items, x, padding = 0) {
+    for (const item of items) {
+      for (const shift of [-FROGGER.width, 0, FROGGER.width]) {
+        if (x >= item.x + shift - padding && x <= item.x + shift + item.width + padding) return item;
+      }
+    }
+    return null;
+  }
+
+  function createFroggerState(seed = 0x4f1bbcdc) {
+    const state = {
+      rng: (Number(seed) >>> 0) || 1,
+      stage: 1, score: 0, lives: 3, phase: 'playing',
+      homes: Array(FROGGER.homes.length).fill(false),
+      frog: { x: FROGGER.cellW * 5.5, row: FROGGER.rows - 1 },
+      highestRow: FROGGER.rows - 1,
+      remaining: FROGGER.timeLimit, hopCooldown: 0, invulnerable: 1.45,
+      transitionRemaining: 0, lastClearedStage: 0, lastEvent: null,
+      nextExtraLife: 10000, elapsed: 0, lanes: []
+    };
+
+    const logSpeeds = [-34, 39, -46, 52];
+    for (let i = 0; i < 4; i++) {
+      const row = i + 1;
+      const width = FROGGER.cellW * [2.35, 2.05, 2.55, 2.2][i];
+      const count = 3;
+      const gap = FROGGER.width / count;
+      const items = Array.from({ length: count }, (_, index) => ({
+        x: index * gap + (index % 2 ? 14 : -width * 0.35),
+        width,
+        color: ['#9b6746', '#bb8452', '#a86d47'][index]
+      }));
+      state.lanes.push({ kind: 'river', row, speed: logSpeeds[i], wrap: FROGGER.width + width, items });
+    }
+
+    const roadSpecs = [
+      { speed: 72, widths: [76, 104, 82] },
+      { speed: -91, widths: [92, 70, 112] },
+      { speed: 108, widths: [106, 74, 92] },
+      { speed: -78, widths: [78, 116, 86] }
+    ];
+    for (let i = 0; i < roadSpecs.length; i++) {
+      const row = i + 6;
+      const spec = roadSpecs[i];
+      const gap = FROGGER.width / spec.widths.length;
+      const items = spec.widths.map((width, index) => ({
+        x: index * gap + (index % 2 ? 16 : -width * 0.4),
+        width,
+        color: ['#f17663', '#f4cb62', '#60c8bd', '#c68bd7', '#e6eee1'][(row + index) % 5],
+        cabin: index % 2 === 0
+      }));
+      state.lanes.push({ kind: 'road', row, speed: spec.speed, wrap: FROGGER.width + Math.max(...spec.widths), items });
+    }
+    return state;
+  }
+
+  function froggerResetFrog(state) {
+    state.frog.x = FROGGER.cellW * 5.5;
+    state.frog.row = FROGGER.rows - 1;
+    state.highestRow = FROGGER.rows - 1;
+    state.remaining = froggerTimeLimit(state.stage);
+    state.hopCooldown = 0;
+    state.invulnerable = 0.9;
+  }
+
+  function froggerLoseLife(state, reason) {
+    if (state.phase !== 'playing') return false;
+    state.lives = Math.max(0, state.lives - 1);
+    state.lastEvent = { type: 'lost-life', reason, lives: state.lives };
+    if (state.lives === 0) {
+      state.phase = 'over';
+      return true;
+    }
+    froggerResetFrog(state);
+    return true;
+  }
+
+  function froggerAward(state, points) {
+    state.score += Math.max(0, Math.floor(points));
+    let extraLives = 0;
+    while (state.score >= state.nextExtraLife) {
+      if (state.lives < FROGGER.maxLives) {
+        state.lives++;
+        extraLives++;
+      }
+      state.nextExtraLife += 10000;
+    }
+    return extraLives;
+  }
+
+  function froggerHomeAt(x) {
+    const column = Math.round(x / FROGGER.cellW - 0.5);
+    const index = FROGGER.homes.indexOf(column);
+    if (index < 0 || Math.abs(x - FROGGER.cellW * (column + 0.5)) > 17) return -1;
+    return index;
+  }
+
+  function froggerHop(state, dx, dy) {
+    if (state.phase !== 'playing' || state.hopCooldown > 0) return false;
+    if (Math.abs(dx) + Math.abs(dy) !== 1) return false;
+    const nextX = state.frog.x + dx * FROGGER.cellW;
+    const nextRow = state.frog.row + dy;
+    if (nextX < FROGGER.cellW * 0.5 || nextX > FROGGER.width - FROGGER.cellW * 0.5 ||
+        nextRow < 0 || nextRow >= FROGGER.rows) return false;
+
+    state.hopCooldown = 0.105;
+    state.frog.x = nextX;
+    state.frog.row = nextRow;
+
+    if (nextRow === 0) {
+      const home = froggerHomeAt(nextX);
+      if (home < 0 || state.homes[home]) {
+        froggerLoseLife(state, home < 0 ? 'Sai ổ' : 'Ổ đã kín');
+        return true;
+      }
+      state.homes[home] = true;
+      const extraLives = froggerAward(state, 50 + Math.floor(state.remaining * 5));
+      state.lastEvent = { type: 'home', home: home + 1, filled: state.homes.filter(Boolean).length, extraLives };
+      if (state.homes.every(Boolean)) {
+        state.lastClearedStage = state.stage;
+        state.phase = 'stage-clear';
+        state.transitionRemaining = 1.15;
+        state.lastEvent = { type: 'stage-clear', stage: state.stage, extraLives };
+      } else {
+        froggerResetFrog(state);
+      }
+      return true;
+    }
+
+    if (nextRow < state.highestRow) {
+      state.highestRow = nextRow;
+      const extraLives = froggerAward(state, 10);
+      state.lastEvent = { type: 'hop', row: nextRow, score: state.score, extraLives };
+    }
+
+    if (nextRow >= 1 && nextRow <= 4) {
+      const lane = froggerLane(state, nextRow);
+      if (!lane || !froggerContains(lane.items, nextX, 12)) {
+        froggerLoseLife(state, 'Rơi xuống nước');
+      }
+    } else if (nextRow >= 6 && nextRow <= 9 && state.invulnerable <= 0) {
+      const lane = froggerLane(state, nextRow);
+      if (lane && froggerContains(lane.items, nextX, 18)) froggerLoseLife(state, 'Va vào xe');
+    }
+    return true;
+  }
+
+  function tickFrogger(state, dt) {
+    const seconds = Math.max(0, Number(dt) || 0);
+    if (state.phase === 'stage-clear') {
+      state.transitionRemaining -= seconds;
+      if (state.transitionRemaining <= 0) {
+        state.stage++;
+        state.homes.fill(false);
+        state.phase = 'playing';
+        froggerResetFrog(state);
+        state.lastEvent = { type: 'stage-start', stage: state.stage };
+      }
+      return;
+    }
+    if (state.phase !== 'playing' || !seconds) return;
+
+    state.elapsed += seconds;
+    state.hopCooldown = Math.max(0, state.hopCooldown - seconds);
+    state.invulnerable = Math.max(0, state.invulnerable - seconds);
+    state.remaining -= seconds;
+
+    const speedScale = 1 + Math.min(20, state.stage - 1) * 0.075;
+    for (const lane of state.lanes) {
+      const wrap = lane.wrap;
+      for (const item of lane.items) {
+        item.x = froggerWrap(item.x + lane.speed * speedScale * seconds + item.width * 0.4, wrap) - item.width * 0.4;
+      }
+    }
+
+    const row = state.frog.row;
+    if (row >= 1 && row <= 4) {
+      const lane = froggerLane(state, row);
+      const platform = lane && froggerContains(lane.items, state.frog.x, 10);
+      if (!platform) {
+        froggerLoseLife(state, 'Rơi khỏi bè');
+        return;
+      }
+      state.frog.x += lane.speed * speedScale * seconds;
+      if (state.frog.x < 10 || state.frog.x > FROGGER.width - 10 ||
+          !froggerContains(lane.items, state.frog.x, 8)) {
+        froggerLoseLife(state, 'Trôi khỏi bè');
+        return;
+      }
+    } else if (row >= 6 && row <= 9 && state.invulnerable <= 0) {
+      const lane = froggerLane(state, row);
+      if (lane && froggerContains(lane.items, state.frog.x, 17)) {
+        froggerLoseLife(state, 'Va vào xe');
+        return;
+      }
+    }
+
+    if (state.remaining <= 0) froggerLoseLife(state, 'Hết giờ');
+  }
+
   const QUESTIONS = [
     ['Số tiếp theo của dãy 2, 4, 8, 16 là?', ['20', '24', '32', '36'], 2],
     ['Một giờ có bao nhiêu giây?', ['600', '1800', '3600', '6000'], 2],
@@ -57,7 +283,437 @@
     ['Việt Nam nằm ở châu lục nào?', ['Châu Á', 'Châu Âu', 'Châu Phi', 'Châu Mỹ'], 0]
   ];
 
+  function launchFrogger(container, game) {
+    const session = window.NP_GameSession.start();
+    const { listen } = session;
+    const model = {
+      create: createFroggerState,
+      hop: froggerHop,
+      tick: tickFrogger,
+      constants: FROGGER
+    };
+    const gameId = String(game.id || 'frogger-ech-bang-qua-duong');
+    const storeKey = 'np_frogger_record_v1_' + gameId.replace(/[^a-z0-9_-]/gi, '');
+    const state = model.create((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0);
+    let bestScore = 0;
+    let bestStage = 1;
+    let frameId = null;
+    let lastFrame = 0;
+    const pointers = new Map();
+    const modal = document.getElementById('gameModal');
+    const previousModalGeometry = modal ? {
+      width: modal.style.width, left: modal.style.left, right: modal.style.right
+    } : null;
+    const viewportWidth = (document.documentElement && document.documentElement.clientWidth) || window.innerWidth || W;
+    if (modal && Number(window.innerWidth) > viewportWidth + 1) {
+      // The catalog header can widen the layout viewport on narrow phones.
+      // Clamp this game modal to the visual content width and restore it on close.
+      modal.style.width = viewportWidth + 'px';
+      modal.style.left = '0px';
+      modal.style.right = 'auto';
+    }
+
+    try {
+      const saved = JSON.parse(localStorage.getItem(storeKey) || '{}');
+      bestScore = Math.max(0, Number(saved.score) || 0);
+      bestStage = Math.max(1, Number(saved.stage) || 1);
+    } catch (error) { /* local storage may be disabled or contain old data */ }
+
+    container.innerHTML = `
+      <style>
+        #gameModal:has(.np-frogger-shell) .modal-window { width:min(98vw,900px); max-width:900px; min-width:0; }
+        #gameModal:has(.np-frogger-shell) .modal-header,
+        #gameModal:has(.np-frogger-shell) .modal-title-group,
+        #gameModal:has(.np-frogger-shell) .modal-body { min-width:0; }
+        #gameModal:has(.np-frogger-shell) .modal-game-title { white-space:normal; overflow-wrap:anywhere; }
+        @media(max-width:700px) {
+          #gameModal:has(.np-frogger-shell) .modal-window { width:100vw; max-width:100vw; min-width:0; }
+          #gameModal:has(.np-frogger-shell) .modal-header { gap:6px; }
+          #gameModal:has(.np-frogger-shell) .modal-header-actions { flex:0 0 auto; }
+          #gameModal:has(.np-frogger-shell) .modal-title-group { flex:1 1 auto; }
+          #gameModal:has(.np-frogger-shell) .modal-game-title { font-size:clamp(15px,4.2vw,21px); }
+        }
+        .np-frogger-shell { display:flex; flex-direction:column; align-items:center; gap:8px; width:100%; max-width:780px; min-width:0; margin:0 auto; color:#f4f6e8; font-family:Calibri,Inter,-apple-system,sans-serif; }
+        .np-frogger-hud { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; width:100%; }
+        .np-frogger-stat { min-width:0; padding:7px 10px; border:1px solid rgba(235,248,215,.16); border-radius:9px; background:#20392f; text-align:center; color:#b8d4b4; font-size:12px; letter-spacing:.035em; }
+        .np-frogger-stat strong { display:block; color:#fff8d5; font-size:17px; line-height:1.15; font-weight:800; }
+        .np-frogger-time { display:flex; align-items:center; gap:9px; width:100%; color:#d4e1c5; font-size:12px; }
+        .np-frogger-time-track { flex:1; height:7px; overflow:hidden; border-radius:999px; background:#243c40; }
+        .np-frogger-time-fill { width:100%; height:100%; border-radius:inherit; background:#c4dd64; transition:width .12s linear; }
+        .np-frogger-board { display:block; width:min(100%,780px); max-width:100%; height:auto; aspect-ratio:6/5; border:2px solid #c7df9a; border-radius:12px; background:#24734e; box-shadow:0 12px 32px rgba(8,27,20,.24); touch-action:none; }
+        .np-frogger-controls { display:grid; grid-template-columns:repeat(6,minmax(44px,1fr)); gap:6px; width:min(100%,432px); }
+        .np-frogger-controls button { min-width:44px; min-height:48px; padding:4px; border:1px solid #a7c774; border-radius:12px; background:#f0f2d8; color:#234433; font:700 24px/1 Calibri,Inter,sans-serif; box-shadow:0 3px 0 #a2b96f; touch-action:manipulation; }
+        .np-frogger-controls button:active { transform:translateY(2px); box-shadow:0 1px 0 #a2b96f; }
+        .np-frogger-controls button:focus-visible { outline:3px solid #efa85a; outline-offset:2px; }
+        .np-frogger-status { min-height:20px; margin:0; color:#476a4d; font-size:13px; text-align:center; }
+        .np-frogger-sr { position:absolute!important; width:1px!important; height:1px!important; padding:0!important; margin:-1px!important; overflow:hidden!important; clip:rect(0,0,0,0)!important; white-space:nowrap!important; border:0!important; }
+        @media(max-width:520px) { .np-frogger-hud { gap:4px; } .np-frogger-stat { padding:6px 3px; font-size:11px; } .np-frogger-stat strong { font-size:15px; } .np-frogger-controls { gap:5px; } }
+        @media(prefers-reduced-motion:reduce) { .np-frogger-time-fill,.np-frogger-controls button { transition:none; } }
+      </style>
+      <section class="np-frogger-shell" aria-label="Chú Ếch Sang Sông">
+        <div class="np-frogger-hud" aria-label="Trạng thái ván chơi">
+          <div class="np-frogger-stat">Màn<strong id="arcLevel">1</strong></div>
+          <div class="np-frogger-stat">Điểm<strong id="arcScore">0</strong><span id="arcBest" class="np-frogger-sr"></span></div>
+          <div class="np-frogger-stat">Mạng<strong id="arcLives">3</strong></div>
+          <div class="np-frogger-stat">Ổ<strong id="arcProgress">0/5</strong></div>
+        </div>
+        <div class="np-frogger-time"><span>Giờ</span><div class="np-frogger-time-track" id="froggerTimeTrack" role="progressbar" aria-label="Thời gian còn lại" aria-valuemin="0" aria-valuemax="28" aria-valuenow="28"><div class="np-frogger-time-fill" id="froggerTimeFill"></div></div><strong id="froggerTime">28s</strong></div>
+        <canvas class="np-frogger-board" id="arcCanvas" width="660" height="550" tabindex="0" aria-label="Bàn chơi Frogger: đi lên từng ô, tránh xe, cưỡi bè qua sông và đưa ếch vào năm ổ trên cùng."></canvas>
+        <div class="np-frogger-controls" aria-label="Điều khiển">
+          <button type="button" data-hop="left" aria-label="Nhảy sang trái">←</button>
+          <button type="button" data-hop="up" aria-label="Nhảy lên">↑</button>
+          <button type="button" data-hop="down" aria-label="Nhảy xuống">↓</button>
+          <button type="button" data-hop="right" aria-label="Nhảy sang phải">→</button>
+          <button type="button" id="arcPause" aria-label="Tạm dừng">Ⅱ</button>
+          <button type="button" id="arcRestart" aria-label="Chơi lại">↻</button>
+        </div>
+        <p class="np-frogger-status" id="froggerStatus" role="status" aria-live="polite">Né xe, nhảy lên bè, lấp năm ổ.</p>
+        <span class="np-frogger-sr" id="arcHelp">Dùng phím mũi tên hoặc W A S D để nhảy một ô. Trên màn hình cảm ứng, vuốt để đổi hướng hoặc dùng các nút điều khiển. Mỗi lượt có thời hạn; tránh xe và đứng trên bè khi qua sông.</span>
+      </section>`;
+
+    const canvas = container.querySelector('#arcCanvas');
+    const ctx = canvas.getContext('2d');
+    const status = container.querySelector('#froggerStatus');
+    const timeTrack = container.querySelector('#froggerTimeTrack');
+    const timeFill = container.querySelector('#froggerTimeFill');
+    const setText = (selector, value) => {
+      const element = container.querySelector(selector);
+      const next = String(value);
+      if (element && element.textContent !== next) element.textContent = next;
+    };
+    canvas.style.touchAction = 'none';
+
+    function persist() {
+      const nextScore = Math.max(bestScore, state.score);
+      const nextStage = Math.max(bestStage, state.stage);
+      if (nextScore === bestScore && nextStage === bestStage) return;
+      bestScore = nextScore;
+      bestStage = nextStage;
+      try { localStorage.setItem(storeKey, JSON.stringify({ score: bestScore, stage: bestStage })); }
+      catch (error) { /* score chase remains playable in private browsing */ }
+    }
+
+    function sound(name) {
+      if (window.NP_Audio && typeof window.NP_Audio[name] === 'function') window.NP_Audio[name]();
+    }
+
+    function announce(event) {
+      if (!event) return;
+      if (event.type === 'lost-life') {
+        status.textContent = event.lives ? event.reason + ' · còn ' + event.lives + ' mạng' : event.reason + ' · hết mạng';
+        sound('alarm');
+        if (window.NP_Juice) window.NP_Juice.vibrate([25, 35, 35]);
+      } else if (event.type === 'hop') {
+        sound('pop');
+      } else if (event.type === 'home') {
+        status.textContent = 'Về ổ ' + event.home + ' · ' + event.filled + '/5';
+        sound('coin');
+        if (window.NP_Juice) window.NP_Juice.vibrate(14);
+      } else if (event.type === 'stage-clear') {
+        status.textContent = 'Qua màn ' + event.stage + ' · xe chạy nhanh hơn';
+        sound('win');
+        if (window.NP_Juice) window.NP_Juice.vibrate([20, 30, 20]);
+      } else if (event.type === 'stage-start') {
+        status.textContent = 'Màn ' + event.stage;
+      }
+      if (event.extraLives > 0) {
+        status.textContent = 'Thêm ' + event.extraLives + ' mạng';
+        sound('powerup');
+      }
+    }
+
+    function updateHud() {
+      setText('#arcLevel', state.stage);
+      setText('#arcScore', state.score);
+      setText('#arcLives', state.lives);
+      let filledHomes = 0;
+      for (const filled of state.homes) if (filled) filledHomes++;
+      setText('#arcProgress', filledHomes + '/5');
+      setText('#froggerTime', Math.ceil(state.remaining) + 's');
+      setText('#arcBest', 'Kỷ lục ' + bestScore + ' · màn ' + bestStage);
+      const stageTime = froggerTimeLimit(state.stage);
+      const percent = Math.max(0, Math.min(100, state.remaining / stageTime * 100));
+      timeFill.style.width = percent + '%';
+      timeTrack.setAttribute('aria-valuemax', String(Math.ceil(stageTime)));
+      timeTrack.setAttribute('aria-valuenow', String(Math.max(0, Math.ceil(state.remaining))));
+      const pause = container.querySelector('#arcPause');
+      if (pause) pause.setAttribute('aria-label', state.phase === 'paused' ? 'Tiếp tục' : 'Tạm dừng');
+      if (pause) pause.textContent = state.phase === 'paused' ? '▶' : 'Ⅱ';
+    }
+
+    function restart() {
+      const fresh = model.create((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0);
+      Object.assign(state, fresh);
+      status.textContent = 'Né xe, nhảy lên bè, lấp năm ổ.';
+      updateHud();
+      canvas.focus({ preventScroll: true });
+    }
+
+    function togglePause() {
+      if (state.phase === 'over') return;
+      if (state.phase === 'paused') {
+        state.phase = state.pauseReturnPhase || 'playing';
+        state.lastEvent = { type: 'resume' };
+        lastFrame = 0;
+        status.textContent = 'Tiếp tục.';
+      } else if (state.phase === 'playing' || state.phase === 'stage-clear') {
+        state.pauseReturnPhase = state.phase;
+        state.phase = 'paused';
+        status.textContent = 'Đã tạm dừng.';
+      }
+      updateHud();
+    }
+
+    function act(dx, dy) {
+      if (state.phase !== 'playing') return;
+      const previous = state.lastEvent;
+      const moved = model.hop(state, dx, dy);
+      if (!moved) return;
+      if (state.lastEvent !== previous) announce(state.lastEvent);
+      else sound('pop');
+      persist();
+      updateHud();
+      draw();
+    }
+
+    function roundRect(x, y, width, height, radius, fill, stroke) {
+      const r = Math.min(radius, width / 2, height / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + r, y); ctx.lineTo(x + width - r, y); ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+      ctx.lineTo(x + width, y + height - r); ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+      ctx.lineTo(x + r, y + height); ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+      ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath();
+      if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+      if (stroke) { ctx.strokeStyle = stroke; ctx.stroke(); }
+    }
+
+    function ellipse(x, y, rx, ry, color) {
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
+    }
+
+    function drawRoad(row) {
+      const y = row * FROGGER.cellH;
+      ctx.fillStyle = row % 2 ? '#34434a' : '#3b4850';
+      ctx.fillRect(0, y, FROGGER.width, FROGGER.cellH);
+      ctx.fillStyle = 'rgba(231,218,162,.68)';
+      for (let x = 0; x < FROGGER.width; x += 94) ctx.fillRect(x + 13, y + 24, 34, 2);
+      ctx.fillStyle = 'rgba(16,29,30,.35)';
+      ctx.fillRect(0, y, FROGGER.width, 1);
+    }
+
+    function drawWater(row) {
+      const lane = froggerLane(state, row);
+      const y = row * FROGGER.cellH;
+      ctx.fillStyle = row % 2 ? '#177f99' : '#16849b';
+      ctx.fillRect(0, y, FROGGER.width, FROGGER.cellH);
+      ctx.strokeStyle = 'rgba(158,237,224,.22)';
+      ctx.lineWidth = 1.5;
+      const drift = state.elapsed * 18 * (lane ? Math.sign(lane.speed) : 1);
+      for (let x = -42; x < FROGGER.width + 55; x += 92) {
+        const waveX = froggerWrap(x + drift, FROGGER.width + 92) - 46;
+        ctx.beginPath(); ctx.moveTo(waveX, y + 13); ctx.quadraticCurveTo(waveX + 16, y + 8, waveX + 34, y + 13); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(waveX + 38, y + 37); ctx.quadraticCurveTo(waveX + 54, y + 32, waveX + 73, y + 37); ctx.stroke();
+      }
+    }
+
+    function drawPlatform(lane) {
+      const y = lane.row * FROGGER.cellH + 8;
+      for (const item of lane.items) {
+        for (const shift of [-FROGGER.width, 0, FROGGER.width]) {
+          const x = item.x + shift;
+          if (x > FROGGER.width || x + item.width < 0) continue;
+          roundRect(x, y + 4, item.width, 31, 13, item.color, '#714d39');
+          ctx.strokeStyle = 'rgba(68,45,34,.52)'; ctx.lineWidth = 2;
+          for (let mark = 18; mark < item.width - 12; mark += 30) {
+            ctx.beginPath(); ctx.moveTo(x + mark, y + 9); ctx.lineTo(x + mark - 3, y + 31); ctx.stroke();
+          }
+          ellipse(x + 12, y + 20, 4, 8, '#80543c');
+          ellipse(x + item.width - 12, y + 20, 4, 8, '#80543c');
+        }
+      }
+    }
+
+    function drawCar(lane, item) {
+      const y = lane.row * FROGGER.cellH + 8;
+      for (const shift of [-FROGGER.width, 0, FROGGER.width]) {
+        const x = item.x + shift;
+        if (x > FROGGER.width || x + item.width < 0) continue;
+        roundRect(x + 2, y + 7, item.width - 4, 27, 7, item.color, 'rgba(19,39,42,.7)');
+        if (item.cabin) {
+          const cabinW = Math.max(22, item.width * 0.39);
+          roundRect(x + item.width * 0.32, y + 10, cabinW, 16, 4, '#d8eee1', 'rgba(26,57,54,.35)');
+          ctx.fillStyle = 'rgba(22,52,57,.42)';
+          ctx.fillRect(x + item.width * 0.32 + cabinW * 0.52, y + 11, 2, 14);
+        } else {
+          ctx.fillStyle = 'rgba(255,244,204,.75)';
+          ctx.fillRect(x + 8, y + 13, 5, 3);
+          ctx.fillRect(x + item.width - 13, y + 13, 5, 3);
+        }
+        ctx.fillStyle = '#1c292d';
+        ctx.fillRect(x + 11, y + 29, 13, 6);
+        ctx.fillRect(x + item.width - 24, y + 29, 13, 6);
+      }
+    }
+
+    function drawHome(index) {
+      const x = FROGGER.cellW * (FROGGER.homes[index] + 0.5);
+      const y = FROGGER.cellH * 0.5;
+      ellipse(x, y + 2, 22, 15, state.homes[index] ? '#b8d55c' : '#4a9154');
+      ctx.strokeStyle = state.homes[index] ? '#eef6a0' : '#9bcf72';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(x, y + 2, 16, Math.PI * 0.12, Math.PI * 1.82); ctx.stroke();
+      if (state.homes[index]) drawFrog(x, y - 2, 0.32, false);
+      else {
+        ctx.strokeStyle = 'rgba(232,247,177,.75)'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(x - 4, y + 4); ctx.lineTo(x + 2, y - 2); ctx.lineTo(x + 8, y + 4); ctx.stroke();
+      }
+    }
+
+    function drawFrog(x, y, scale = 1, flash = false) {
+      const blink = flash && state.invulnerable > 0 && Math.floor(state.elapsed * 12) % 2 === 0;
+      if (blink) return;
+      ctx.save(); ctx.translate(x, y); ctx.scale(scale, scale);
+      ellipse(0, 7, 17, 12, '#38774c');
+      ellipse(0, 1, 15, 13, '#8cce62');
+      ellipse(-8, -8, 6.5, 7, '#9bdb6a'); ellipse(8, -8, 6.5, 7, '#9bdb6a');
+      ellipse(-8, -9, 3.2, 3.8, '#f7f5dc'); ellipse(8, -9, 3.2, 3.8, '#f7f5dc');
+      ellipse(-7.5, -9, 1.5, 2.2, '#21392e'); ellipse(8.5, -9, 1.5, 2.2, '#21392e');
+      ctx.strokeStyle = '#4b8a4d'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(-12, 9); ctx.lineTo(-19, 13); ctx.moveTo(12, 9); ctx.lineTo(19, 13); ctx.stroke();
+      ctx.restore();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, FROGGER.width, FROGGER.height);
+      ctx.fillStyle = '#5b9852'; ctx.fillRect(0, 0, FROGGER.width, FROGGER.cellH);
+      for (let row = 1; row <= 4; row++) drawWater(row);
+      ctx.fillStyle = '#75af5a'; ctx.fillRect(0, FROGGER.cellH * 5, FROGGER.width, FROGGER.cellH);
+      for (let row = 6; row <= 9; row++) drawRoad(row);
+      ctx.fillStyle = '#71ad5a'; ctx.fillRect(0, FROGGER.cellH * 10, FROGGER.width, FROGGER.cellH);
+      ctx.fillStyle = 'rgba(242,252,178,.24)';
+      for (let x = 16; x < FROGGER.width; x += 48) {
+        ctx.beginPath(); ctx.arc(x, FROGGER.cellH * 5 + 12 + (x % 3) * 7, 2, 0, Math.PI * 2); ctx.fill();
+      }
+      for (const lane of state.lanes) {
+        if (lane.kind === 'river') drawPlatform(lane);
+        else for (const item of lane.items) drawCar(lane, item);
+      }
+      for (let i = 0; i < FROGGER.homes.length; i++) drawHome(i);
+      if (state.phase !== 'stage-clear' && state.phase !== 'over') {
+        drawFrog(state.frog.x, state.frog.row * FROGGER.cellH + FROGGER.cellH * 0.5, 1, true);
+      }
+
+      if (state.phase === 'paused' || state.phase === 'stage-clear' || state.phase === 'over') {
+        ctx.fillStyle = 'rgba(13,31,32,.76)'; ctx.fillRect(0, 0, FROGGER.width, FROGGER.height);
+        ctx.textAlign = 'center'; ctx.fillStyle = '#f5f4dc'; ctx.font = '800 32px Calibri, sans-serif';
+        const headline = state.phase === 'paused' ? 'TẠM DỪNG' : state.phase === 'over' ? 'HẾT MẠNG' : 'QUA MÀN ' + state.lastClearedStage;
+        ctx.fillText(headline, FROGGER.width / 2, 262);
+        ctx.fillStyle = '#d5e8bc'; ctx.font = '17px Calibri, sans-serif';
+        const subline = state.phase === 'over' ? 'Nhấn ↻ để sang đường lần nữa' : state.phase === 'paused' ? 'Nhấn ▶ để tiếp tục' : 'Bè và xe sẽ chạy nhanh hơn';
+        ctx.fillText(subline, FROGGER.width / 2, 296);
+      }
+    }
+
+    function frame(timestamp) {
+      const dt = lastFrame ? Math.min(0.05, Math.max(0, (timestamp - lastFrame) / 1000)) : 0;
+      lastFrame = timestamp || 0;
+      const previous = state.lastEvent;
+      model.tick(state, dt);
+      if (state.lastEvent !== previous) {
+        announce(state.lastEvent);
+        persist();
+      }
+      updateHud();
+      draw();
+      frameId = session.requestAnimationFrame(frame);
+    }
+
+    const directions = {
+      left: [-1, 0], up: [0, -1], down: [0, 1], right: [1, 0]
+    };
+    for (const button of container.querySelectorAll('[data-hop]')) {
+      const direction = directions[button.getAttribute('data-hop')];
+      listen(button, 'pointerdown', event => {
+        event.preventDefault();
+        if (button.setPointerCapture && event.pointerId !== undefined) {
+          try { button.setPointerCapture(event.pointerId); } catch (error) { /* pointer may already be canceled */ }
+        }
+        act(direction[0], direction[1]);
+      });
+      listen(button, 'click', event => {
+        if (event.detail !== 0) return;
+        act(direction[0], direction[1]);
+      });
+    }
+    listen(container.querySelector('#arcPause'), 'click', togglePause);
+    listen(container.querySelector('#arcRestart'), 'click', restart);
+    listen(window, 'keydown', event => {
+      const key = String(event.key || '');
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target && event.target.tagName)) return;
+      if (key === 'p' || key === 'P') {
+        if (!event.repeat) togglePause();
+        return;
+      }
+      const direction = ({ ArrowLeft: 'left', a: 'left', A: 'left', ArrowUp: 'up', w: 'up', W: 'up',
+        ArrowDown: 'down', s: 'down', S: 'down', ArrowRight: 'right', d: 'right', D: 'right' })[key];
+      if (direction && !event.repeat) {
+        event.preventDefault();
+        const [dx, dy] = directions[direction];
+        act(dx, dy);
+      } else if ((key === ' ' || event.code === 'Space' || key === 'Enter') &&
+                 !(event.target && event.target.tagName === 'BUTTON')) {
+        event.preventDefault();
+        act(0, -1);
+      }
+    });
+    listen(document, 'visibilitychange', () => {
+      if (document.hidden && state.phase !== 'paused' && state.phase !== 'over') togglePause();
+    });
+    listen(window, 'blur', () => {
+      if (state.phase === 'playing' || state.phase === 'stage-clear') togglePause();
+    });
+    listen(canvas, 'pointerdown', event => {
+      event.preventDefault();
+      pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (canvas.setPointerCapture && event.pointerId !== undefined) {
+        try { canvas.setPointerCapture(event.pointerId); } catch (error) { /* pointer may have left the canvas */ }
+      }
+    });
+    listen(canvas, 'pointerup', event => {
+      const start = pointers.get(event.pointerId);
+      pointers.delete(event.pointerId);
+      if (!start) return;
+      const dx = event.clientX - start.x;
+      const dy = event.clientY - start.y;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) act(0, -1);
+      else if (Math.abs(dx) > Math.abs(dy)) act(dx < 0 ? -1 : 1, 0);
+      else act(0, dy < 0 ? -1 : 1);
+    });
+    for (const name of ['pointercancel', 'lostpointercapture']) {
+      listen(canvas, name, event => pointers.delete(event.pointerId));
+    }
+
+    updateHud();
+    draw();
+    frameId = session.requestAnimationFrame(frame);
+    session.onCleanup(() => {
+      if (frameId !== null) session.cancelAnimationFrame(frameId);
+      pointers.clear();
+      persist();
+      if (modal && previousModalGeometry) {
+        modal.style.width = previousModalGeometry.width;
+        modal.style.left = previousModalGeometry.left;
+        modal.style.right = previousModalGeometry.right;
+      }
+    });
+  }
+
   function launch(container, game) {
+    if (String(game && game.id || '').toLowerCase() === 'frogger-ech-bang-qua-duong') {
+      launchFrogger(container, game);
+      return;
+    }
     const session = window.NP_GameSession.start();
     const { listen, requestAnimationFrame, cancelAnimationFrame, setTimeout } = session;
     const kind = kindFor(game);
@@ -710,5 +1366,9 @@
     });
   }
 
-  window.NP_Archetypes = { launch, kindFor };
+  window.NP_Archetypes = {
+    launch,
+    kindFor,
+    froggerModel: { create: createFroggerState, hop: froggerHop, tick: tickFrogger, constants: FROGGER }
+  };
 })();
