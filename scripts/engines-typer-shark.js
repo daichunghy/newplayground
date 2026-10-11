@@ -48,10 +48,10 @@
       if (el) el.textContent = String(value);
     };
 
-    function spawnShark() {
+    function spawnShark(initial) {
       const word = WORDS[Math.floor(Math.random() * WORDS.length)];
       state.sharks.push({
-        x: W + 52, y: 88 + Math.random() * 292, word,
+        x: initial ? W - 70 - state.sharks.length * 110 : W - 70, y: 88 + Math.random() * 292, word,
         speed: 27 + state.level * 3 + Math.random() * 10,
         phase: Math.random() * Math.PI * 2
       });
@@ -164,8 +164,8 @@
       state.diverKick = 0;
       state.lastTime = 0;
       input.value = '';
-      spawnShark();
-      spawnShark();
+      spawnShark(true);
+      spawnShark(true);
       message('READY! Gõ đúng từ đang bơi về phía bạn.');
       updateHUD();
     }
