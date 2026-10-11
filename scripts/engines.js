@@ -5967,6 +5967,20 @@ function launchCaro(container, game) {
   }
 
   function getAIMove() {
+    // Tactics outrank positional weights. Verify actual wins under the selected
+    // Vietnamese blocked-ends rule, rather than assuming any five stones win.
+    let forcedBlock = null;
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+      if(board[r][c]!==0)continue;
+      board[r][c]=2;
+      const aiWins=!!checkWin(board,2);
+      board[r][c]=1;
+      const playerWins=!!checkWin(board,1);
+      board[r][c]=0;
+      if(aiWins)return {r,c};
+      if(playerWins&&!forcedBlock)forcedBlock={r,c};
+    }
+    if(forcedBlock)return forcedBlock;
     let bestScore = -Infinity;
     let candidates = [];
 
