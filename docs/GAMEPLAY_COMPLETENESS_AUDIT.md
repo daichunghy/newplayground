@@ -5,9 +5,10 @@ Sổ bao phủ theo từng catalog title: [docs/GAME_COVERAGE.md](./GAME_COVERAG
 Tài liệu này phân biệt **game mở được**, **có vòng chơi và tiến trình**, và **tái hiện đầy đủ luật đặc trưng**. Không dùng việc mở canvas thành công để suy diễn game đã hoàn thiện.
 
 - Danh mục trong `data/games.json`: **150** tựa.
-- Vòng chơi riêng theo từng game: **67** tựa (64 engine chuyên biệt hiện có, Typer Shark, Frogger và Asteroids; một engine có thể được chia sẻ giữa những tựa liên quan).
+- Vòng chơi riêng theo từng game: **67** tựa (63 route engine chuyên biệt hiện có, cùng Typer Shark, Frogger, Asteroids và Galaga được chuyển đúng ID sang vòng riêng trong `launchRetroArcade`; một engine có thể được chia sẻ giữa những tựa liên quan).
 - **83** tựa còn dùng một trong 7 archetype chung; các mode này chưa mô phỏng đầy đủ luật gốc.
-- Typer Shark, Frogger và Asteroids đi qua `launchRetroArcade`, nhưng dispatcher chuyển đúng ID sang vòng riêng theo title. Không tính ba tựa này là gameplay archetype chung.
+- Galaga trước đây đã nằm ngoài fallback chung nhưng bị chạy nhầm engine Chicken Invaders. Đợt này đổi sang vòng Galaga riêng; số 67/83 không đổi vì đây là thay một route riêng đã có, không lấy một tựa từ nhóm 83 archetype.
+- Typer Shark, Frogger, Asteroids và Galaga đi qua `launchRetroArcade`, nhưng dispatcher chuyển đúng ID sang vòng riêng theo title. Không tính các tựa này là gameplay archetype chung.
 - Kiểm thử mô phỏng đã đạt màn 2 ở 7 archetype. Điều này **không xác nhận** toàn bộ chiến dịch của từng game chuyên biệt có thể hoàn thành, hoặc gameplay đã trung thành với tên game.
 - `tests/game-flow.test.cjs` kiểm tra 150 lượt mở, đóng, cleanup và các kịch bản qua màn minh họa; cần bổ sung test theo đặc tả riêng và QA trên máy thật.
 - Cần QA thủ công với chuột, bàn phím, Android Chrome và iPhone Safari; kiểm tra 60/90/120 Hz, màn cuối, khởi động lại, lưu trữ, cảm ứng đa điểm.
@@ -65,7 +66,7 @@ Tài liệu này phân biệt **game mở được**, **có vòng chơi và ti�
 | 33 | `nguoi-tuyet-snow-bros` | Người Tuyết (Snow Bros) | `launchRetroArcade` | `shooter` |
 | 34 | `angry-birds-mini` | Bắn Chim Angry Birds | `launchGunny` | — |
 | 35 | `cut-the-rope` | Cắt Dây Cho Ếch Om Nom | `launchRetroArcade` | `puzzle` |
-| 36 | `ban-ruoi-galaga` | Bắn Ruồi (Galaga) | `launchChickenInvaders` | — |
+| 36 | `ban-ruoi-galaga` | Bắn Ruồi (Galaga) | `launchRetroArcade` → Galaga loop (exact ID) | — |
 | 37 | `pha-gach-dx-ball` | Phá Gạch DX-Ball | `launchDXBall` | — |
 | 38 | `day-thung-sokoban` | Đẩy Thùng Sokoban | `launchSokoban` | — |
 | 39 | `noi-ong-nuoc-pipemania` | Nối Ống Nước Pipemania | `launchRetroArcade` | `puzzle` |
