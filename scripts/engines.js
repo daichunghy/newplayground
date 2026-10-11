@@ -7909,10 +7909,22 @@ function launchFruitNinja(container, game) {
 // =========================================================================
 function launchDoMin(container, game) {
   const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
-  const ROWS = 9;
-  const COLS = 9;
+  const MODES = {
+    beginner: { rows: 9, cols: 9, mines: 10, step: 2 },
+    intermediate: { rows: 16, cols: 16, mines: 40, step: 4 },
+    expert: { rows: 16, cols: 30, mines: 99, step: 5 }
+  };
+  let difficulty = 'beginner';
+  let ROWS = 9;
+  let COLS = 9;
   let MINES = 10;
   let stage = 1;
+  let activePressTimers = new Set();
+  const recordKey = () => 'np_mine_best_' + difficulty + '_' + stage;
+  function cancelLongPresses() {
+    for (const id of activePressTimers) clearTimeout(id);
+    activePressTimers.clear();
+  }
 
   let grid = [];
   let flags = [];
@@ -7927,6 +7939,7 @@ function launchDoMin(container, game) {
   let suppressNextTap = null;
 
   function initBoard() {
+    cancelLongPresses();
     clearInterval(timerInterval);
     timer = 0;
     firstClick = true;
@@ -7941,20 +7954,37 @@ function launchDoMin(container, game) {
     revealed = Array(ROWS).fill(null).map(() => Array(COLS).fill(false));
     const nextBtn = container.querySelector('#dmNextBtn');
     if (nextBtn) nextBtn.style.display = 'none';
+    const boardEl = container.querySelector('#dmGrid');
+    if (boardEl) {
+      boardEl.style.gridTemplateColumns = 'repeat(' + COLS + ', minmax(38px, 1fr))';
+      boardEl.style.minWidth = (COLS * 39 + 2) + 'px';
+      boardEl.innerHTML = '';
+    }
     updateHUD();
     renderBoard();
   }
 
   container.innerHTML = `
-    <div style="background: #C0C0C0; padding: 14px; border: 3px solid #FFF; border-right-color: #808080; border-bottom-color: #808080; border-radius: 4px; max-width: 400px; margin: 0 auto; user-select: none; font-family: Calibri, 'Segoe UI', sans-serif;">
+    <div class="np-deep-mines" style="background:#C0C0C0;padding:12px;border:3px solid #FFF;border-right-color:#808080;border-bottom-color:#808080;border-radius:4px;width:min(100%,780px);margin:0 auto;box-sizing:border-box;user-select:none;font-family:Calibri,'Segoe UI',sans-serif;">
       <div style="display: flex; justify-content: space-between; align-items: center; background: #C0C0C0; border: 2px solid #808080; border-right-color: #FFF; border-bottom-color: #FFF; padding: 6px 14px; margin-bottom: 10px;">
         <div id="dmMineCount" style="background: #000; color: #EF4444; font-family: monospace; font-size: 1.6rem; font-weight: 900; padding: 2px 8px; border-radius: 2px; letter-spacing: 2px;">010</div>
         <button id="dmFaceBtn" aria-label="Chơi lại màn hiện tại" style="font-size: 1.7rem; background: #C0C0C0; border: 2.5px solid #FFF; border-right-color: #808080; border-bottom-color: #808080; cursor: pointer; padding: 0 6px; border-radius: 4px; touch-action: manipulation;">🙂</button>
         <div id="dmTimer" style="background: #000; color: #EF4444; font-family: monospace; font-size: 1.6rem; font-weight: 900; padding: 2px 8px; border-radius: 2px; letter-spacing: 2px;">000</div>
       </div>
 
-      <div style="font-weight:700;color:#1E293B;margin:0 0 8px;text-align:center">Màn <span id="dmStage">1</span> • Kỷ lục <span id="dmBest">—</span></div>
-      <div id="dmGrid" style="display: grid; grid-template-columns: repeat(9, 1fr); gap: 1px; background: #808080; border: 3px solid #808080; border-right-color: #FFF; border-bottom-color: #FFF; padding: 1px;"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:0 0 9px;color:#1E293B;font-weight:700;">
+        <label>Độ khó
+          <select id="dmDifficulty" aria-label="Chọn độ khó Dò Mìn" style="min-height:40px;background:#F8FAFC;border:1px solid #64748B;padding:6px;">
+            <option value="beginner">9 × 9</option>
+            <option value="intermediate">16 × 16</option>
+            <option value="expert">30 × 16</option>
+          </select>
+        </label>
+        <span>Màn <span id="dmStage">1</span> • Tốt nhất <span id="dmBest">—</span></span>
+      </div>
+      <div id="dmGridWrap" style="max-width:100%;overflow:auto;overscroll-behavior:contain;border:3px solid #808080;border-right-color:#FFF;border-bottom-color:#FFF;">
+        <div id="dmGrid" style="display:grid;grid-template-columns:repeat(9,38px);gap:1px;background:#808080;padding:1px;width:max-content;min-width:100%;box-sizing:border-box;"></div>
+      </div>
 
       <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
         <button id="dmFlagToggleBtn" class="btn-canvas-action" style="font-size: 0.85rem; padding: 6px 12px; background: #64748B; color: #FFF; font-family: Calibri, sans-serif;">
@@ -7974,10 +8004,22 @@ function launchDoMin(container, game) {
   const flagToggleBtn = container.querySelector('#dmFlagToggleBtn');
   const flagStatusEl = container.querySelector('#dmFlagStatus');
   const nextBtn = container.querySelector('#dmNextBtn');
+  const difficultySelector = container.querySelector('#dmDifficulty');
+  difficultySelector?.addEventListener('change', () => {
+    const mode = String(difficultySelector.value);
+    if (!Object.prototype.hasOwnProperty.call(MODES, mode)) return;
+    difficulty = mode;
+    stage = 1;
+    ROWS = MODES[mode].rows;
+    COLS = MODES[mode].cols;
+    MINES = MODES[mode].mines;
+    initBoard();
+  });
   nextBtn?.addEventListener('click', () => {
     if (!gameWon) return;
     stage++;
-    MINES = Math.min(25, 10 + (stage - 1) * 2);
+    const mode = MODES[difficulty];
+    MINES = Math.min(ROWS * COLS - 10, mode.mines + (stage - 1) * mode.step);
     initBoard();
   });
 
@@ -8094,8 +8136,8 @@ function launchDoMin(container, game) {
       gameWon = true;
       clearInterval(timerInterval);
       try {
-        const key = 'np_mine_best_' + stage;
-        const old = localStorage.getItem(key);
+        const key = recordKey();
+        const old = localStorage.getItem(key) ?? (difficulty === 'beginner' ? localStorage.getItem('np_mine_best_' + stage) : null);
         if (old === null || timer < Number(old)) localStorage.setItem(key, String(timer));
       } catch (_) {}
       const result = container.querySelector('#dmResult');
@@ -8117,7 +8159,10 @@ function launchDoMin(container, game) {
     const bestEl = container.querySelector('#dmBest');
     if (bestEl) {
       let best = null;
-      try { best = localStorage.getItem('np_mine_best_' + stage); } catch (_) {}
+      try {
+        best = localStorage.getItem(recordKey()) ??
+          (difficulty === 'beginner' ? localStorage.getItem('np_mine_best_' + stage) : null);
+      } catch (_) {}
       bestEl.textContent = best === null ? '—' : best + 's';
     }
     if (faceBtn) {
@@ -8291,6 +8336,7 @@ function launchDoMin(container, game) {
   initBoard();
 
   onCleanup(() => {
+    cancelLongPresses();
     clearInterval(timerInterval);
   });
 }
