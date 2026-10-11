@@ -5,10 +5,10 @@ Sổ bao phủ theo từng catalog title: [docs/GAME_COVERAGE.md](./GAME_COVERAG
 Tài liệu này phân biệt **game mở được**, **có vòng chơi và tiến trình**, và **tái hiện đầy đủ luật đặc trưng**. Không dùng việc mở canvas thành công để suy diễn game đã hoàn thiện.
 
 - Danh mục trong `data/games.json`: **150** tựa.
-- Vòng chơi riêng theo từng game: **67** tựa (63 route engine chuyên biệt hiện có, cùng Typer Shark, Frogger, Asteroids và Galaga được chuyển đúng ID sang vòng riêng trong `launchRetroArcade`; một engine có thể được chia sẻ giữa những tựa liên quan).
-- **83** tựa còn dùng một trong 7 archetype chung; các mode này chưa mô phỏng đầy đủ luật gốc.
-- Galaga trước đây đã nằm ngoài fallback chung nhưng bị chạy nhầm engine Chicken Invaders. Đợt này đổi sang vòng Galaga riêng; số 67/83 không đổi vì đây là thay một route riêng đã có, không lấy một tựa từ nhóm 83 archetype.
-- Typer Shark, Frogger, Asteroids và Galaga đi qua `launchRetroArcade`, nhưng dispatcher chuyển đúng ID sang vòng riêng theo title. Không tính các tựa này là gameplay archetype chung.
+- Vòng chơi riêng theo từng game: **68** tựa; **82** tựa còn dùng một trong 7 archetype chung. Các con số là phân loại router từ code, không phải đếm những tựa đã được chơi thử hay xác nhận fidelity.
+- Bốn loop riêng theo ID trong `engines-archetypes.js` là Frogger, Asteroids, Galaga và Piano Tiles. Mỗi loop tách khỏi canvas genre fallback; các game khác cùng một engine có thể vẫn chia sẻ cơ chế.
+- Galaga trước đây đã nằm ngoài fallback chung nhưng chạy nhầm Chicken Invaders; Piano Tiles từng dùng archetype reflex. Hai route nay mở loop đúng tựa, nên phân loại chuyển từ 67/83 sang 68/82.
+- `tests/game-flow.test.cjs` kiểm tra 82 route generic, 150 lượt mở/đóng và vài kịch bản mô phỏng; điều đó không thay thế QA browser cho từng tựa.
 - Kiểm thử mô phỏng đã đạt màn 2 ở 7 archetype. Điều này **không xác nhận** toàn bộ chiến dịch của từng game chuyên biệt có thể hoàn thành, hoặc gameplay đã trung thành với tên game.
 - `tests/game-flow.test.cjs` kiểm tra 150 lượt mở, đóng, cleanup và các kịch bản qua màn minh họa; cần bổ sung test theo đặc tả riêng và QA trên máy thật.
 - Cần QA thủ công với chuột, bàn phím, Android Chrome và iPhone Safari; kiểm tra 60/90/120 Hz, màn cuối, khởi động lại, lưu trữ, cảm ứng đa điểm.
@@ -19,7 +19,7 @@ Tài liệu này phân biệt **game mở được**, **có vòng chơi và ti�
 | --- | ---: | --- |
 | `shooter` | 10 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
 | `runner` | 18 | Các game còn lại dùng vòng chạy chung; Frogger đã có vòng sang đường riêng |
-| `reflex` | 11 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
+| `reflex` | 10 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
 | `puzzle` | 16 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
 | `management` | 5 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
 | `quiz` | 6 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
@@ -101,7 +101,7 @@ Tài liệu này phân biệt **game mở được**, **có vòng chơi và ti�
 | 68 | `duo-hinh-bat-chu` | Đoán Hình Bắt Chữ | `launchRetroArcade` | `quiz` |
 | 69 | `tim-diem-khac-biet` | Tìm Điểm Khác Biệt | `launchRetroArcade` | `puzzle` |
 | 70 | `thap-ha-noi-tower` | Tháp Hà Nội Cổ Điển | `launchSokoban` | — |
-| 71 | `piano-tiles-phim-nhac` | Phím Nhạc Rơi (Piano Tiles) | `launchRetroArcade` | `reflex` |
+| 71 | `piano-tiles-phim-nhac` | Phím Nhạc Rơi (Piano Tiles) | `launchRetroArcade` → Classic 50-key loop (exact ID) | — |
 | 72 | `among-us-impostor` | Ai Là Kẻ Giả Mạo? (Among Us) | `launchRetroArcade` | `quiz` |
 | 73 | `skribbl-ve-doan-chu` | Vẽ Hình Đoán Chữ (Skribbl) | `launchRetroArcade` | `quiz` |
 | 74 | `bi-lac-ban-go` | Bi Lắc Bàn Gỗ (Foosball) | `launchPong` | — |
