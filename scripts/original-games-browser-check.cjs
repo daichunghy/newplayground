@@ -73,7 +73,19 @@ async function run(){
             'new game owns a new session');
         }
         const pause=page.locator('[data-a="pause"]');
-        await pause.click();
+        if(view.mobile){
+          const geometry=await page.evaluate(()=>{
+            const info=q=>{const e=document.querySelector(q),r=e?.getBoundingClientRect();return e?{rect:r?{x:r.x,y:r.y,width:r.width,height:r.height}:null,scrollTop:e.scrollTop,scrollHeight:e.scrollHeight,clientHeight:e.clientHeight}:null;};
+            const r=document.querySelector('[data-a="pause"]')?.getBoundingClientRect();
+            return {viewport:{width:innerWidth,height:innerHeight},pause:info('[data-a="pause"]'),
+              header:info('.np-deep-header'),modalHeader:info('.modal-header'),
+              modalBody:info('.modal-body'),modalWindow:info('.modal-window'),
+              atPause:r?document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.className:null};
+          });
+          console.log('MOBILE_GEOMETRY',JSON.stringify(geometry));
+          await page.screenshot({path:path.join(OUT,'debug-mobile-before-'+kind+'.png')});
+        }
+        await pause.click({timeout:7000});
         assert.equal(await page.evaluate(()=>window.__npReviewEngine.s.paused),true,'pause');
         await pause.click();
         assert.equal(await page.evaluate(()=>window.__npReviewEngine.s.paused),false,'resume');
