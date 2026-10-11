@@ -5,6 +5,7 @@ on:
     paths:
       - 'scripts/original-games-batch.js'
       - 'tests/original-games-*.test.cjs'
+      - 'scripts/original-games-browser-check.cjs'
       - 'index.html'
       - '.github/workflows/original-games-review.yml'
   workflow_dispatch:
@@ -31,3 +32,26 @@ jobs:
       - name: Check integration is scoped
         run: |
           node -e 'const fs=require("fs");const x=fs.readFileSync("index.html","utf8");const tag="scripts/original-games-batch.js";if(!x.includes(tag))process.exit(1);'
+  chromium-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install review-only Playwright and Chromium
+        run: |
+          npm install --prefix "$RUNNER_TEMP/newplayground-review" --no-audit --no-fund --no-save playwright@1.56.1
+          "$RUNNER_TEMP/newplayground-review/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Play complete desktop and touch-emulated loops
+        env:
+          NODE_PATH: ${{ runner.temp }}/newplayground-review/node_modules
+        run: node scripts/original-games-browser-check.cjs
+      - name: Save six genuine Chromium screenshots and results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: original-mini-game-review
+          path: review-artifacts/original-games/
+          retention-days: 10
