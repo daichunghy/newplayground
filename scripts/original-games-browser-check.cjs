@@ -80,7 +80,16 @@ async function run(){
             return {viewport:{width:innerWidth,height:innerHeight},pause:info('[data-a="pause"]'),
               header:info('.np-deep-header'),modalHeader:info('.modal-header'),
               modalBody:info('.modal-body'),modalWindow:info('.modal-window'),
-              atPause:r?document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.className:null};
+              atPause:r?document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.className:null,
+              metaViewport:document.querySelector('meta[name="viewport"]')?.content,
+              screenWidth:screen.width,visualWidth:visualViewport?.width,
+              clientWidth:document.documentElement.clientWidth,
+              widest:[...document.querySelectorAll('body *')].map(e=>{
+                const b=e.getBoundingClientRect();return {tag:e.tagName,cls:String(e.className||'').slice(0,55),
+                  id:e.id,width:Math.round(b.width),x:Math.round(b.x),
+                  minWidth:getComputedStyle(e).minWidth,position:getComputedStyle(e).position};
+              }).filter(x=>x.width>319&&x.position!=='fixed')
+                .sort((a,b)=>b.width-a.width).slice(0,16)};
           });
           console.log('MOBILE_GEOMETRY',JSON.stringify(geometry));
           await page.screenshot({path:path.join(OUT,'debug-mobile-before-'+kind+'.png')});
