@@ -4630,17 +4630,26 @@
     let lives = 3;
     let level = 1;
     let animId = null;
+    let gameOver = false, paused = false, awaitingLaunch = true;
+    let lastFrame = 0, accumulator = 0;
+    const effects = { expand: 0, fireball: 0 };
+    const bestKey = 'np_dxball_best';
+    let best = 0;
+    try { best = Math.max(0, Number(localStorage.getItem(bestKey)) || 0); } catch (_) {}
 
     container.innerHTML = `
       <div class="canvas-game-box">
         <div class="canvas-game-hud">
-          <div class="hud-pill">Mạng: <span id="dxLives" style="color: #EF4444;">❤️❤️❤️</span></div>
+          <div class="hud-pill">Mạng: <span id="dxLives" style="color: #EF4444;">3</span></div>
+          <div class="hud-pill">Kỷ lục: <span id="dxBest">${best}</span></div>
           <div class="hud-pill">Điểm: <span id="dxScore" style="color: #10B981;">0</span></div>
           <div class="hud-pill">Màn: <span id="dxLevel" style="color: #38BDF8;">1</span></div>
         </div>
-        <canvas id="dxCanvas" width="460" height="340" class="canvas-main-viewport" style="background: #0F172A; display: block; margin: 0 auto;"></canvas>
+        <canvas id="dxCanvas" width="460" height="340" class="canvas-main-viewport" aria-label="Phá gạch. Di chuyển thanh đỡ bằng chuột hoặc chạm." style="background: #0F172A; display: block; margin: 0 auto; touch-action:none;"></canvas>
         <div class="canvas-controls-bar">
-          <small style="color: #FFF;">Rê chuột hoặc Phím Mũi tên để di chuyển thanh đỡ bóng</small>
+          <small style="color: #FFF;">Kéo tay hoặc rê chuột để đỡ bóng. Chạm sân hoặc nhấn Space để phát bóng.</small>
+          <button id="dxPauseBtn" class="btn-canvas-action">Tạm dừng</button>
+          <button id="dxRestartBtn" class="btn-canvas-action">Chơi lại</button>
         </div>
       </div>
     `;
@@ -4656,6 +4665,29 @@
     let isFireball = false;
     let laserTimer = 0;
     const dxKeys = {};
+    function saveBest() {
+      if (score <= best) return;
+      best = score;
+      try { localStorage.setItem(bestKey, String(best)); } catch (_) {}
+    }
+    function resetBall() {
+      balls = [{ x: paddle.x + paddle.w / 2, y: paddle.y - 8, vx: (Math.random() > .5 ? 1 : -1) * 3.1, vy: -3.5, r: 6 }];
+      awaitingLaunch = true;
+    }
+    function resetGame() {
+      score = 0; lives = 3; level = 1; paused = false; gameOver = false;
+      accumulator = 0; lastFrame = 0; paddle.x = 190;
+      const pauseBtn = container.querySelector('#dxPauseBtn');
+      if (pauseBtn) pauseBtn.textContent = 'Tạm dừng';
+      initBricks(); updateHUD();
+    }
+    function launchBall() { if (!gameOver && !paused) awaitingLaunch = false; }
+    function togglePause() {
+      if (gameOver) return;
+      paused = !paused;
+      const btn = container.querySelector('#dxPauseBtn');
+      if (btn) btn.textContent = paused ? 'Tiếp tục' : 'Tạm dừng';
+    }
 
     const BRICK_ROWS = 5;
     const BRICK_COLS = 8;
@@ -4679,9 +4711,13 @@
       debris = [];
       isFireball = false;
       paddle.w = 80;
+      effects.expand = effects.fireball = 0;
       for (let r = 0; r < BRICK_ROWS; r++) {
         for (let c = 0; c < BRICK_COLS; c++) {
+          if (level > 1 && (r + c * 3 + level) % 9 === 0) continue;
+          const hp = level >= 3 && r < Math.min(3, Math.floor(level / 2)) ? 2 : 1;
           bricks.push({
+            hp, maxHp: hp,
             x: 25 + c * (BRICK_W + 5),
             y: 35 + r * (BRICK_H + 5),
             w: BRICK_W,
@@ -4691,46 +4727,43 @@
           });
         }
       }
-      balls = [{
-        x: paddle.x + paddle.w / 2,
-        y: paddle.y - 10,
-        vx: (Math.random() > 0.5 ? 1 : -1) * 3,
-        vy: -3.5,
-        r: 6
-      }];
+      resetBall();
     }
 
-    canvas.addEventListener('mousemove', (e) => {
+    const aim = e => {
       const rect = canvas.getBoundingClientRect();
-      const scaleX = canvas.width / rect.width;
-      paddle.x = Math.max(10, Math.min(canvas.width - paddle.w - 10, (e.clientX - rect.left) * scaleX - paddle.w / 2));
+      if (!rect.width) return;
+      paddle.x = Math.max(10, Math.min(canvas.width - paddle.w - 10,
+        (e.clientX - rect.left) * canvas.width / rect.width - paddle.w / 2));
+      if (e.type === 'pointerdown') {
+        if (canvas.setPointerCapture) { try { canvas.setPointerCapture(e.pointerId); } catch (_) {} }
+        e.preventDefault();
+        launchBall();
+      }
+    };
+    listen(canvas, 'pointerdown', aim);
+    listen(canvas, 'pointermove', e => {
+      if (e.pointerType !== 'touch' || e.buttons) aim(e);
     });
-
-    canvas.addEventListener('touchmove', (e) => {
-      e.preventDefault();
-      if (e.touches[0]) {
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        paddle.x = Math.max(10, Math.min(canvas.width - paddle.w - 10, (e.touches[0].clientX - rect.left) * scaleX - paddle.w / 2));
+    listen(window, 'keydown', e => {
+      if ((e.key === ' ' || e.code === 'Space') && !e.repeat) {
+        e.preventDefault(); launchBall();
       }
-    }, { passive: false });
-
-    canvas.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      if (e.touches[0]) {
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        paddle.x = Math.max(10, Math.min(canvas.width - paddle.w - 10, (e.touches[0].clientX - rect.left) * scaleX - paddle.w / 2));
-      }
-    }, { passive: false });
+      if (e.key === 'p' || e.key === 'P') togglePause();
+    });
+    listen(window, 'blur', () => { if (!gameOver && !paused) togglePause(); });
+    container.querySelector('#dxPauseBtn')?.addEventListener('click', togglePause);
+    container.querySelector('#dxRestartBtn')?.addEventListener('click', resetGame);
 
     function updateHUD() {
       const lEl = container.querySelector('#dxLives');
       const sEl = container.querySelector('#dxScore');
       const lvlEl = container.querySelector('#dxLevel');
-      if (lEl) lEl.textContent = '❤️'.repeat(Math.max(0, lives));
+      if (lEl) lEl.textContent = String(Math.max(0, lives));
       if (sEl) sEl.textContent = score;
       if (lvlEl) lvlEl.textContent = level;
+      const bestEl = container.querySelector('#dxBest');
+      if (bestEl) bestEl.textContent = best;
     }
 
     function loop() {
