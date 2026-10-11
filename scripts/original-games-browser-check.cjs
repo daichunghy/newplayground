@@ -87,7 +87,7 @@ async function run(){
           for(let n=0;n<2;n++){
             const target=await page.evaluate(i=>window.__npReviewEngine.s.bottles[i],n);
             await tapCanvas(page,canvas,target.x,target.y,view.mobile);
-            await page.waitForFunction(i=>window.__npReviewEngine.s.hits>=i,{timeout:3000},n+1);
+            await page.waitForFunction(i=>window.__npReviewEngine.s.hits>=i,n+1,{timeout:3000});
           }
           assert.equal(await page.evaluate(()=>window.__npReviewEngine.s.phase),'won','ring round win');
           await page.locator('[data-a="next"]').click();
