@@ -6631,6 +6631,12 @@ function launchTetris(container, game) {
   let holdDirection = 0, holdDuration = 0, repeatBudget = 0, softDropBudget = 0;
   const DAS = 155, ARR = 38;
   function resetLockDelay() {
+    // Aerial movement must not exhaust the limited ground lock-reset budget.
+    if (!collides(currentPiece, 0, 1)) {
+      lockTimer = 0;
+      lockResets = 0;
+      return;
+    }
     if (lockResets < 12) { lockTimer = 0; lockResets++; }
   }
   function shift(dx) {
