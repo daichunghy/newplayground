@@ -115,7 +115,7 @@ function harness({ loadEngines = true, loadApp = true } = {}) {
   if (loadApp) vm.runInContext(read('app.js').replace('let allGames = [];', 'let allGames = globalThis.__testGames;'), context, { filename: 'app.js' });
   return {
     context, window, document, timers, frames, errors, vibrations, stored,
-    frame() { now += 16; for (const [id, callback] of [...frames]) { if (frames.delete(id)) callback(now); } },
+    frame(stepMs = 16) { now += stepMs; for (const [id, callback] of [...frames]) { if (frames.delete(id)) callback(now); } },
     flushTimeouts() { for (const [id, item] of [...timers]) if (!item.interval && timers.delete(id)) item.callback(...item.args); },
     container: document.getElementById('modalGameContainer')
   };
@@ -604,4 +604,121 @@ test('Diner Dash uses a concise playable intro and keeps controls active', () =>
   const engine = read('scripts/engines-popcap.js');
   assert.match(engine, /np-diner-steps/);
   assert.match(engine, /ctx\.fillText\('BẾP', 320, 42\)/);
+});
+
+
+function instrumentBoom(h) {
+  const source = read('scripts/engines-retro50.js');
+  const tail = [
+    '    updateHUD();',
+    '    animId = requestAnimationFrame(loop);',
+    '    onCleanup(() => { cancelAnimationFrame(animId); });'
+  ].join('\n');
+  assert.ok(source.includes(tail), 'Boom probe anchor exists');
+  const probe = [
+    '    window.__boomProbe = {',
+    "      snapshot: () => ({phase,currentStage,score,lives,x:player.x,y:player.y, bossHp:pirateBoss?.hp || 0}),",
+    "      setStage(n) { currentStage=n;phase='playing';buildMap(n); },",
+    "      clearEnemies() { bots.forEach(bot => { bot.alive=false; }); if(pirateBoss)pirateBoss.alive=false; },",
+    "      clearLane() { for(let c=1;c<COLS-1;c++)map[1][c]=0; },",
+    "      blast(c,r,range=2) { explodeBalloon({c,r,range}); },",
+    '      tick: stepSimulation,',
+    "      loseNow() { player.trapped=true;player.trapTimer=301;player.invuln=0;lives=1;mount='none'; },",
+    '    };'
+  ].join('\n');
+  vm.runInContext(source.replace(tail, probe + '\n' + tail), h.context);
+  assert.ok(h.context.NP_Retro50Engines);
+}
+
+test('Boom canvas uses painted sprites, compact HUD and unified pointer controls', () => {
+  const h=harness();
+  instrumentBoom(h);
+  assert.equal(h.context.openGameById('boom-online-bnb'),true);
+  const canvas=h.container.querySelector('#bnbCanvas');
+  assert.ok(canvas);
+  assert.ok(h.container.querySelector('.np-boom-game'));
+  assert.ok(h.container.querySelector('#bnbScore'));
+  assert.ok(h.container.querySelector('#bnbLives'));
+  assert.ok(h.container.querySelector('#bnbRestart'));
+  const before=h.context.__boomProbe.snapshot().x;
+  h.container.querySelector('#bnbRight').dispatch('pointerdown',{pointerId:1,button:0});
+  for(let i=0;i<14;i++)h.frame();
+  const moved=h.context.__boomProbe.snapshot().x;
+  assert.ok(moved>before,'holding pointer moves hero');
+  h.container.querySelector('#bnbRight').dispatch('pointercancel',{pointerId:1});
+  for(let i=0;i<12;i++)h.frame();
+  assert.equal(h.context.__boomProbe.snapshot().x,moved,'cancel releases movement');
+  assert.equal(h.errors.length,0);
+  h.context.closeGameModal();assertStopped(h);
+});
+
+test('Boom boss loses one HP per distinct blast and victory occurs only once', () => {
+  const h=harness();
+  instrumentBoom(h);
+  h.context.openGameById('boom-online-bnb');
+  const p=h.context.__boomProbe;
+  p.setStage(3);
+  assert.equal(p.snapshot().bossHp,5);
+  p.blast(7,3,2);
+  for(let i=0;i<14;i++)p.tick();
+  assert.equal(p.snapshot().bossHp,4,'25 frames of one area blast must not multi-hit boss');
+  p.clearEnemies();p.tick();
+  assert.equal(p.snapshot().phase,'won');
+  assert.equal(h.container.querySelector('#bnbEndOverlay').style.display,'flex');
+  const score=p.snapshot().score;
+  for(let i=0;i<20;i++)p.tick();
+  assert.equal(p.snapshot().score,score,'victory cannot repeatedly award points');
+  h.container.querySelector('#bnbRestart').dispatch('click');
+  assert.equal(p.snapshot().phase,'playing');
+  assert.equal(p.snapshot().currentStage,1);
+  p.loseNow();p.tick();
+  assert.equal(p.snapshot().phase,'lost','running out of lives must terminate the match');
+  assert.equal(h.errors.length,0);
+  h.context.closeGameModal();assertStopped(h);
+});
+
+test('Boom movement distance is stable across 60Hz and 120Hz render schedules', () => {
+  function travel(step,count) {
+    const h=harness();instrumentBoom(h);h.context.openGameById('boom-online-bnb');
+    const p=h.context.__boomProbe;
+    p.clearLane();
+    h.window.dispatch('keydown',{code:'KeyD',key:'d'});
+    for(let i=0;i<count;i++)h.frame(step);
+    const x=p.snapshot().x;
+    h.context.closeGameModal();assertStopped(h);
+    return x;
+  }
+  const x60=travel(16,50),x120=travel(8,100);
+  assert.ok(Math.abs(x60-x120)<4,
+    'equal elapsed time should produce near-identical motion, got '+x60+' vs '+x120);
+});
+
+test('Bắn Trứng uses one pointer shot, controls and sprite caching', () => {
+  const h=harness();
+  let newCanvases=0;
+  const create=h.document.createElement;
+  h.document.createElement = tag => { if(tag==='canvas')newCanvases++;return create(tag); };
+  h.context.openGameById('ban-trung-khung-long');
+  assert.ok(h.container.querySelector('.np-egg-game'));
+  assert.ok(h.container.querySelector('#btFireBtn'));
+  assert.ok(h.container.querySelector('#btSwapEggBtn'));
+  h.container.querySelector('#btStartGameBtn').dispatch('click');
+  for(let i=0;i<5;i++)h.frame();
+  const cachedBefore=newCanvases;
+  for(let i=0;i<10;i++)h.frame();
+  assert.equal(newCanvases,cachedBefore,'render loop must reuse pre-painted egg sprites');
+  assert.ok(cachedBefore>0 && cachedBefore<=9,'sprite cache creates a bounded set of sprites');
+  const canvas=h.container.querySelector('#btCanvas');
+  assert.equal((canvas.listeners.get('touchstart')||[]).length,0);
+  assert.equal((canvas.listeners.get('click')||[]).length,0);
+  assert.equal(h.container.querySelector('#btShotsLeft').textContent,'5');
+  canvas.dispatch('pointerdown',{pointerId:31,button:0,clientX:250,clientY:130});
+  canvas.dispatch('pointerup',{pointerId:31,button:0,clientX:250,clientY:130});
+  // A synthesized click after touch must not cause another shot.
+  canvas.dispatch('click',{clientX:250,clientY:130});
+  for(let i=0;i<100;i++)h.frame();
+  assert.equal(h.container.querySelector('#btShotsLeft').textContent,'4',
+    'one touch-release should count as exactly one shot');
+  assert.equal(h.errors.length,0);
+  h.context.closeGameModal();assertStopped(h);
 });

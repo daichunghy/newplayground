@@ -2592,7 +2592,9 @@
   function launchBanTrung(container, game) {
     const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
     const HIGH_SCORE_KEY = 'np_bantrung_high_score';
-    let highScore = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
+    let highScore = 0;
+    try { highScore = Math.max(0,parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0') || 0); }
+    catch (error) { /* blocked storage must not prevent play */ }
 
     let score = 0;
     let stage = 1;
@@ -2606,7 +2608,7 @@
     let animId = null;
     let gameState = 'intro'; // 'intro', 'playing', 'stageclear', 'gameover'
     let stompEffectTimer = 0;
-    let lastTime = performance.now();
+    let lastTime = 0;
 
     // Flying Pterodactyl Dinosaur & Time-Freeze
     let pterodactyl = null;
@@ -2635,11 +2637,21 @@
     let grid = [];
 
     function getRandomEggColor() {
-      if (stage >= 2 && Math.random() < 0.08) {
-        return Math.random() < 0.5 ? 99 : 98; // 99=bomb, 98=rainbow
+      if (stage >= 2 && Math.random() < 0.07) {
+        return Math.random() < 0.5 ? 99 : 98;
       }
+      const active = [...new Set(grid.flat().filter(color => color > 0 && color <= EGG_DEFS.length))];
+      // Every regular color must be useful somewhere on the current board.
+      // This prevents late stages from becoming unwinnable due to dead-color shots.
+      if (active.length) return active[Math.floor(Math.random() * active.length)];
       const numColors = Math.min(EGG_DEFS.length, 3 + stage);
       return Math.floor(Math.random() * numColors) + 1;
+    }
+    function saveHighScore() {
+      if (score <= highScore) return;
+      highScore = score;
+      try { localStorage.setItem(HIGH_SCORE_KEY,String(highScore)); }
+      catch (error) { /* private browsing */ }
     }
 
     function initStage(stg) {
@@ -2662,94 +2674,63 @@
 
       currentEggColor = getRandomEggColor();
       nextEggColor = getRandomEggColor();
+      lastTime = 0;
       updateHUD();
     }
 
     container.innerHTML = `
-      <div class="canvas-game-box" style="font-family: 'Calibri', -apple-system, sans-serif;">
-        <div class="canvas-game-hud">
-          <div class="hud-pill">Màn: <span id="btStage" style="color: #F59E0B; font-weight: 900;">${stage}</span></div>
-          <div class="hud-pill">Điểm: <span id="btScore" style="color: #10B981; font-weight: 900;">${score}</span></div>
-          <div class="hud-pill">Kỷ lục: <span id="btHighScore" style="color: #FBBF24; font-weight: 900;">${highScore}</span></div>
-          <div class="hud-pill">Kế tiếp: <span id="btNextColor" style="display: inline-block; width: 14px; height: 14px; border-radius: 50%; vertical-align: middle; border: 1px solid #FFF; margin-left: 4px;"></span></div>
-          <div class="hud-pill">Mama Dậm Chân: <span id="btShotsLeft" style="color: #EF4444; font-weight: 900;">5 phát</span></div>
+      <div class="canvas-game-box np-egg-game">
+        <header class="np-egg-head">
+          <div class="np-egg-identity"><strong>BẮN TRỨNG</strong><small>Màn <span id="btStage">${stage}</span></small></div>
+          <div class="np-egg-numbers">
+            <div><small>Điểm</small><b id="btScore">${score}</b></div>
+            <div><small>Kỷ lục</small><b id="btHighScore">${highScore}</b></div>
+          </div>
+        </header>
+        <div class="np-egg-toolbar">
+          <div class="np-egg-next">Trứng kế <span id="btNextColor" class="np-egg-swatch" aria-label="Màu trứng tiếp theo"></span></div>
+          <div class="np-egg-stomp"><span id="btShotsLabel">Trần hạ sau</span> <b id="btShotsLeft">5</b> <span id="btShotsUnit">lượt</span></div>
         </div>
-
-        <div style="position: relative; display: flex; justify-content: center;">
-          <canvas id="btCanvas" width="500" height="450" class="canvas-main-viewport" style="background: #14181E; border-radius: 8px; touch-action: none; cursor: crosshair;"></canvas>
-
-          <!-- 1. INTRO OVERLAY -->
-          <div class="game-stage-overlay" id="btIntroOverlay">
-            <div class="intro-modal-card">
-              <div class="intro-hero-wrapper">
-                <img src="assets/bantrung_intro.jpg" alt="Bắn Trứng Khủng Long" class="intro-hero-img">
-                <div class="intro-hero-overlay">
-                  <span class="intro-badge">PopCap / Sprout 2002</span>
-                  <h3 class="intro-title">Bắn Trứng Khủng Long - Dynomite</h3>
-                </div>
-              </div>
-              <div class="intro-content">
-                <p class="intro-desc">Điều khiển ná cao su tiền sử của chú Khủng Long Xanh, bắn các quả trứng cùng màu thành nhóm từ 3 quả trở lên để làm nổ tung trước khi Khủng Long Mẹ (Mama Dino) dậm chân đè nát tổ trứng!</p>
-                <div class="intro-controls-box">
-                  <div class="intro-control-row">
-                    <span class="intro-key">Rê Chuột / Vuốt Chạm</span>
-                    <span>Ngắm hướng bắn với tia định hướng dội tường chuẩn xác</span>
-                  </div>
-                  <div class="intro-control-row">
-                    <span class="intro-key">Nhấp Chuột / Thả Tay</span>
-                    <span>Bắn quả trứng vào chùm trứng treo trên trần hang đá</span>
-                  </div>
-                  <div class="intro-control-row">
-                    <span class="intro-key">Phím [Space] / Đổi Trứng</span>
-                    <span>Hoán đổi quả trứng đang chuẩn bị với quả trứng kế tiếp</span>
-                  </div>
-                  <div class="intro-control-row">
-                    <span class="intro-key">Khủng Long Bay Pterodactyl</span>
-                    <span>Bắn hạ để nhận hiệu ứng Đóng Băng Mama Dino hoặc Trứng Bom</span>
-                  </div>
-                </div>
-                <div class="intro-actions">
-                  <button class="btn-intro-start" id="btStartGameBtn">Bắt đầu bắn trứng (Màn 1)</button>
-                </div>
-              </div>
+        <div class="np-egg-field">
+          <canvas id="btCanvas" width="500" height="450" class="canvas-main-viewport np-egg-canvas"
+            aria-label="Nhắm và bắn trứng. Kết nối ít nhất ba quả trứng cùng màu." tabindex="0"></canvas>
+          <div id="btIntroOverlay" class="game-stage-overlay np-egg-intro">
+            <div class="np-egg-sheet">
+              <span class="np-egg-sheet-mark" aria-hidden="true"></span>
+              <h3>Ghép trứng cùng màu</h3>
+              <p>Gom ba trứng trở lên để làm sạch tổ trước khi trần hang hạ xuống.</p>
+              <div class="np-egg-instructions"><span>Chạm và kéo để ngắm, thả để bắn.</span>
+                <span>Đổi trứng nếu màu chưa phù hợp.</span></div>
+              <button id="btStartGameBtn" type="button">Bắt đầu</button>
             </div>
           </div>
-
-          <!-- 2. STAGE CLEAR OVERLAY -->
-          <div id="btClearOverlay" style="display: none; position: absolute; inset: 0; background: rgba(15, 23, 42, 0.92); border-radius: 8px; z-index: 10; padding: 24px; color: #FFF; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
-            
-            <h3 style="font-size: 1.4rem; color: #10B981; font-weight: 900; margin: 0 0 8px 0;">HOÀN THÀNH MÀN XUẤT SẮC!</h3>
-            <p style="font-size: 0.95rem; color: #CBD5E1; margin: 0 0 16px 0;" id="btClearMsg">Bạn đã dọn sạch toàn bộ tổ trứng và nhận thêm +1000 điểm thưởng!</p>
-            <div style="font-size: 1.1rem; color: #FBBF24; font-weight: 800; margin-bottom: 20px;">Tổng điểm hiện tại: <span id="btClearScore">0</span></div>
-            <button class="btn btn-primary" id="btNextStageBtn" style="padding: 10px 28px; font-size: 1rem; font-weight: 900; background: #10B981; border: none; cursor: pointer; border-radius: 6px;">
-              Tiếp tục Màn Kế Tiếp ➔
-            </button>
+          <div id="btClearOverlay" class="np-egg-result" style="display:none">
+            <div class="np-egg-sheet">
+              <span class="np-egg-sheet-mark win" aria-hidden="true"></span>
+              <h3>Đã dọn sạch tổ</h3>
+              <p id="btClearMsg">Hoàn thành màn chơi.</p>
+              <strong class="np-egg-result-score">Điểm <span id="btClearScore">0</span></strong>
+              <button id="btNextStageBtn" type="button">Màn tiếp theo</button>
+            </div>
           </div>
-
-          <!-- 3. GAME OVER OVERLAY -->
-          <div id="btGameOverOverlay" style="display: none; position: absolute; inset: 0; background: rgba(15, 23, 42, 0.94); border-radius: 8px; z-index: 10; padding: 24px; color: #FFF; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
-            
-            <h3 style="font-size: 1.4rem; color: #EF4444; font-weight: 900; margin: 0 0 8px 0;">TỔ TRỨNG ĐÃ BỊ ĐÈ NÁT!</h3>
-            <p style="font-size: 0.95rem; color: #CBD5E1; margin: 0 0 16px 0;">Trứng đã chạm tới vạch đỏ giới hạn an toàn của hang động.</p>
-            <div style="font-size: 1.2rem; color: #FBBF24; font-weight: 800; margin-bottom: 20px;">Điểm số chung cuộc: <span id="btFinalScore">0</span></div>
-            <button class="btn btn-primary" id="btRetryBtn" style="padding: 10px 28px; font-size: 1rem; font-weight: 900; background: #EF4444; border: none; cursor: pointer; border-radius: 6px;">
-              Chơi lại Từ Đầu
-            </button>
+          <div id="btGameOverOverlay" class="np-egg-result" style="display:none">
+            <div class="np-egg-sheet">
+              <span class="np-egg-sheet-mark lost" aria-hidden="true"></span>
+              <h3>Hết lượt</h3>
+              <p>Trứng đã chạm đến vạch giới hạn.</p>
+              <strong class="np-egg-result-score">Điểm <span id="btFinalScore">0</span></strong>
+              <button id="btRetryBtn" type="button">Chơi lại</button>
+            </div>
           </div>
         </div>
-
-        <div class="canvas-controls-bar">
-          <div style="font-size: 0.8rem; color: #FFF;">
-            Rê chuột / Chạm để ngắm • Nhấp chuột để bắn • Phím <strong>[Space]</strong> đổi trứng
-          </div>
-          <div style="display: flex; gap: 8px;">
-            <button class="btn-canvas-action" id="btSwapEggBtn" style="background: #3B82F6; color: #FFF; font-weight: 900;">Đổi trứng (Space)</button>
-            <button class="btn-canvas-action" id="btRestartInGameBtn" style="padding: 4px 12px; font-size: 0.8rem;">Chơi lại</button>
-          </div>
-        </div>
+        <footer class="np-egg-footer">
+          <small>Kéo ngắm · Thả bắn · Space đổi trứng</small>
+          <button type="button" id="btFireBtn" class="np-egg-action">Bắn</button>
+          <button type="button" id="btSwapEggBtn" class="np-egg-action secondary">Đổi trứng</button>
+          <button type="button" id="btRestartInGameBtn" class="np-egg-action quiet">Chơi lại</button>
+        </footer>
       </div>
     `;
-
     const canvas = container.querySelector('#btCanvas');
     const ctx = canvas.getContext('2d');
     const introOverlay = container.querySelector('#btIntroOverlay');
@@ -2767,28 +2748,34 @@
       if (hsEl) hsEl.textContent = highScore;
 
       if (nEl) {
+        nEl.classList.remove('special-bomb','special-rainbow');
+        nEl.textContent = '';
         if (nextEggColor === 99) {
-          nEl.textContent = '💣';
-          nEl.style.backgroundColor = 'transparent';
+          nEl.classList.add('special-bomb');
+          nEl.style.backgroundColor = '#25373b';
+          nEl.setAttribute('aria-label','Trứng nổ');
         } else if (nextEggColor === 98) {
-          nEl.textContent = '🌈';
-          nEl.style.backgroundColor = 'transparent';
+          nEl.classList.add('special-rainbow');
+          nEl.style.backgroundColor = '#f1ca75';
+          nEl.setAttribute('aria-label','Trứng đổi màu');
         } else {
-          nEl.textContent = '';
           const def = EGG_DEFS.find(d => d.id === nextEggColor);
-          nEl.style.backgroundColor = def ? def.base : '#FFF';
+          nEl.style.backgroundColor = def ? def.base : '#fff';
+          nEl.setAttribute('aria-label','Trứng ' + (def ? def.name : 'mới'));
         }
       }
-
       if (shotsEl) {
+        const label = container.querySelector('#btShotsLabel');
+        const unit = container.querySelector('#btShotsUnit');
         if (freezeTimer > 0) {
-          shotsEl.textContent = `⌛ ĐÓNG BĂNG (${freezeTimer})`;
-          shotsEl.style.color = '#38BDF8';
+          if (label) label.textContent = 'Trần đang dừng';
+          shotsEl.textContent = String(freezeTimer);
         } else {
           const left = SHOTS_PER_CEILING - (shotCounter % SHOTS_PER_CEILING);
-          shotsEl.textContent = `${left} phát`;
-          shotsEl.style.color = left === 1 ? '#EF4444' : '#F59E0B';
+          if (label) label.textContent = 'Trần hạ sau';
+          shotsEl.textContent = String(left);
         }
+        if (unit) unit.textContent = 'lượt';
       }
     }
 
@@ -2798,7 +2785,7 @@
       currentEggColor = nextEggColor;
       nextEggColor = tmp;
       if (window.NP_Audio) window.NP_Audio.pop();
-      if (popups) popups.add('🔄 ĐÃ ĐỔI TRỨNG', canvas.width / 2, canvas.height - 70, '#38BDF8', 16);
+      if (popups) popups.add('Đã đổi trứng', canvas.width / 2, canvas.height - 70, '#38BDF8', 16);
       updateHUD();
     }
 
@@ -2808,87 +2795,68 @@
       return { x, y };
     }
 
-    function drawSpeckledEgg(x, y, colorIdx, radiusX = 16, radiusY = 20) {
-      ctx.save();
-      ctx.translate(x, y);
 
+    // Cache eight small vector eggs once per type/radius. The old render path
+    // generated radial gradients and decorations for every egg every frame.
+    const eggSpriteCache = new Map();
+    function paintEggSprite(g, colorIdx, radiusX, radiusY) {
+      g.save();
       if (colorIdx === 99) {
-        // Bomb Egg
-        ctx.fillStyle = '#111827';
-        ctx.beginPath();
-        ctx.ellipse(0, 0, radiusX, radiusY, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = '#EF4444';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        ctx.fillStyle = '#EF4444';
-        ctx.font = 'bold 14px Calibri, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('💣', 0, 5);
-        ctx.restore();
-        return;
+        g.fillStyle='#32414a';
+        g.beginPath();g.ellipse(0,2,radiusX,radiusY,0,0,Math.PI*2);g.fill();
+        g.strokeStyle='#d28b67';g.lineWidth=2.5;g.stroke();
+        // Short fuse and one sparkle, drawn rather than relying on an emoji.
+        g.strokeStyle='#edd7af';g.lineWidth=2.8;g.beginPath();
+        g.moveTo(0,-radiusY+4);g.lineTo(3,-radiusY-4);g.stroke();
+        g.fillStyle='#e7aa64';g.beginPath();g.arc(4,-radiusY-5,3,0,Math.PI*2);g.fill();
+        g.fillStyle='#71838b';g.beginPath();g.ellipse(-5,-5,3,5,-.5,0,Math.PI*2);g.fill();
+      } else if (colorIdx === 98) {
+        const colors=['#e89d7e','#e9c66f','#99c795','#87b6cb','#b7a3d8'];
+        for(let i=colors.length-1;i>=0;i--) {
+          g.fillStyle=colors[i];g.beginPath();
+          g.ellipse(0,0,radiusX*(.96-i*.105),radiusY*(.96-i*.105),0,0,Math.PI*2);g.fill();
+        }
+        g.strokeStyle='#f7efdc';g.lineWidth=2;g.stroke();
+        g.fillStyle='#fff7e2';g.beginPath();
+        g.moveTo(0,-8);g.lineTo(3,-3);g.lineTo(8,0);g.lineTo(3,3);
+        g.lineTo(0,8);g.lineTo(-3,3);g.lineTo(-8,0);g.lineTo(-3,-3);g.closePath();g.fill();
+      } else {
+        const def=EGG_DEFS.find(d=>d.id===colorIdx)||EGG_DEFS[0];
+        const grad=g.createRadialGradient(-radiusX*.4,-radiusY*.43,1,0,0,radiusY);
+        grad.addColorStop(0,'#ffffff');grad.addColorStop(.27,def.base);grad.addColorStop(1,def.speckle);
+        g.fillStyle=grad;g.beginPath();g.ellipse(0,0,radiusX,radiusY,0,0,Math.PI*2);g.fill();
+        g.strokeStyle='rgba(30,46,46,.45)';g.lineWidth=1.5;g.stroke();
+        g.fillStyle=def.speckle;
+        [[-6,-6,2.4],[5,-4,1.9],[-4,7,2.2],[6,6,2.7],[0,1,1.7]].forEach(dot=>{
+          g.beginPath();g.arc(dot[0],dot[1],dot[2],0,Math.PI*2);g.fill();
+        });
+        // Small shape texture helps players distinguish colors in low saturation.
+        g.strokeStyle='rgba(255,255,255,.76)';g.lineWidth=1.5;
+        if(colorIdx%3===0){
+          g.beginPath();g.moveTo(-5,11);g.quadraticCurveTo(0,8,5,11);g.stroke();
+        } else if(colorIdx%3===1){
+          g.beginPath();g.arc(0,10,3,0,Math.PI*2);g.stroke();
+        } else {
+          g.beginPath();g.moveTo(-5,10);g.lineTo(5,10);g.stroke();
+        }
+        g.fillStyle='rgba(255,255,255,.33)';
+        g.beginPath();g.ellipse(-radiusX*.38,-radiusY*.35,radiusX*.25,radiusY*.4,-.3,0,Math.PI*2);g.fill();
       }
-
-      if (colorIdx === 98) {
-        // Rainbow Egg
-        const rGrad = ctx.createLinearGradient(-radiusX, -radiusY, radiusX, radiusY);
-        rGrad.addColorStop(0, '#EF4444');
-        rGrad.addColorStop(0.3, '#F59E0B');
-        rGrad.addColorStop(0.6, '#10B981');
-        rGrad.addColorStop(1, '#3B82F6');
-        ctx.fillStyle = rGrad;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, radiusX, radiusY, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = '#FFF';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        ctx.fillStyle = '#FFF';
-        ctx.font = 'bold 13px Calibri, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('★', 0, 4);
-        ctx.restore();
-        return;
+      g.restore();
+    }
+    function drawSpeckledEgg(x,y,colorIdx,radiusX=16,radiusY=20) {
+      const key=colorIdx+'_'+radiusX+'_'+radiusY;
+      let sprite=eggSpriteCache.get(key);
+      if(!sprite) {
+        sprite=document.createElement('canvas');
+        sprite.width=Math.ceil(radiusX*2+16);
+        sprite.height=Math.ceil(radiusY*2+16);
+        const g=sprite.getContext('2d');
+        g.translate(sprite.width/2,sprite.height/2);
+        paintEggSprite(g,colorIdx,radiusX,radiusY);
+        eggSpriteCache.set(key,sprite);
       }
-
-      const def = EGG_DEFS.find(d => d.id === colorIdx) || EGG_DEFS[0];
-
-      // Smooth egg shape
-      const grad = ctx.createRadialGradient(-radiusX * 0.3, -radiusY * 0.3, 2, 0, 0, radiusY);
-      grad.addColorStop(0, '#FFFFFF');
-      grad.addColorStop(0.25, def.base);
-      grad.addColorStop(1, def.speckle);
-      ctx.fillStyle = grad;
-
-      ctx.beginPath();
-      ctx.ellipse(0, 0, radiusX, radiusY, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      // Dinosaur Egg Speckles
-      ctx.fillStyle = def.speckle;
-      const speckleOffsets = [
-        { dx: -6, dy: -6, r: 2.5 },
-        { dx: 5, dy: -4, r: 2.0 },
-        { dx: -4, dy: 7, r: 2.2 },
-        { dx: 6, dy: 6, r: 2.8 },
-        { dx: 0, dy: 1, r: 1.8 }
-      ];
-      speckleOffsets.forEach(sp => {
-        ctx.beginPath();
-        ctx.arc(sp.dx, sp.dy, sp.r, 0, Math.PI * 2);
-        ctx.fill();
-      });
-
-      // Glossy reflection arc
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
-      ctx.beginPath();
-      ctx.ellipse(-radiusX * 0.35, -radiusY * 0.35, radiusX * 0.3, radiusY * 0.45, -Math.PI / 6, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.restore();
+      ctx.drawImage(sprite,x-sprite.width/2,y-sprite.height/2);
     }
 
     function getScaledCoords(e) {
@@ -2924,46 +2892,43 @@
       updateHUD();
     }
 
-    // Mouse Listeners
-    canvas.addEventListener('mousemove', (e) => {
-      if (gameState !== 'playing') return;
-      const pos = getScaledCoords(e);
-      updateCannonAngle(pos.x, pos.y);
-    });
 
-    canvas.addEventListener('click', (e) => {
-      if (gameState !== 'playing') return;
-      const pos = getScaledCoords(e);
-      updateCannonAngle(pos.x, pos.y);
-      fireEgg();
-    });
-
-    // Touch Listeners
-    canvas.addEventListener('touchstart', (e) => {
-      if (gameState !== 'playing') return;
+    // Single pointer path works with mouse, touch and pen without duplicate shots.
+    let activePointer = null;
+    canvas.style.touchAction = 'none';
+    listen(canvas, 'pointerdown', e => {
+      if (gameState !== 'playing' || (e.button !== undefined && e.button !== 0)) return;
       e.preventDefault();
-      if (e.touches.length > 0) {
-        const touch = e.touches[0];
-        const pos = getScaledCoords(touch);
-        updateCannonAngle(pos.x, pos.y);
+      activePointer = e.pointerId === undefined ? 'primary' : e.pointerId;
+      if (canvas.setPointerCapture && e.pointerId !== undefined) {
+        try { canvas.setPointerCapture(e.pointerId); } catch (error) {}
       }
-    }, { passive: false });
-
-    canvas.addEventListener('touchmove', (e) => {
+      const pos = getScaledCoords(e);
+      updateCannonAngle(pos.x,pos.y);
+    });
+    listen(canvas, 'pointermove', e => {
       if (gameState !== 'playing') return;
+      // Mouse hover also previews trajectory before a shot.
+      if (activePointer !== null && e.pointerId !== undefined && e.pointerId !== activePointer) return;
+      const pos = getScaledCoords(e);
+      updateCannonAngle(pos.x,pos.y);
+    });
+    listen(canvas, 'pointerup', e => {
+      if (activePointer === null || (e.pointerId !== undefined && e.pointerId !== activePointer)) return;
       e.preventDefault();
-      if (e.touches.length > 0) {
-        const touch = e.touches[0];
-        const pos = getScaledCoords(touch);
-        updateCannonAngle(pos.x, pos.y);
+      activePointer = null;
+      if (gameState === 'playing') {
+        const pos = getScaledCoords(e);
+        updateCannonAngle(pos.x,pos.y);
+        fireEgg();
       }
-    }, { passive: false });
-
-    canvas.addEventListener('touchend', (e) => {
-      if (gameState !== 'playing') return;
-      e.preventDefault();
-      fireEgg();
-    }, { passive: false });
+    });
+    listen(canvas, 'pointercancel', () => { activePointer = null; });
+    listen(canvas, 'lostpointercapture', () => { activePointer = null; });
+    listen(window, 'blur', () => { activePointer = null; });
+    listen(document, 'visibilitychange', () => {
+      if (document.hidden) { activePointer = null; lastTime = 0; }
+    });
 
     // Buttons & Keys
     const startBtn = container.querySelector('#btStartGameBtn');
@@ -2977,6 +2942,7 @@
 
     const swapBtn = container.querySelector('#btSwapEggBtn');
     if (swapBtn) swapBtn.addEventListener('click', swapCurrentAndNext);
+    listen(container.querySelector('#btFireBtn'), 'click', fireEgg);
 
     const restartInGameBtn = container.querySelector('#btRestartInGameBtn');
     if (restartInGameBtn) {
@@ -3009,9 +2975,16 @@
     }
 
     const onKey = (e) => {
-      if (e.key === ' ' || e.code === 'Space') {
+      if (gameState !== 'playing') return;
+      if (e.code === 'Space') {
         e.preventDefault();
-        swapCurrentAndNext();
+        if (!e.repeat) swapCurrentAndNext();
+      } else if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
+        e.preventDefault();
+        cannonAngle = Math.max(-Math.PI * .43,
+          Math.min(Math.PI * .43,cannonAngle + (e.code === 'ArrowLeft' ? -.055 : .055)));
+      } else if (e.code === 'Enter' && !e.repeat && e.target === canvas) {
+        e.preventDefault(); fireEgg();
       }
     };
     listen(window, 'keydown', onKey);
@@ -3088,11 +3061,8 @@
           }
         });
         score += 500;
-        if (score > highScore) {
-          highScore = score;
-          localStorage.setItem(HIGH_SCORE_KEY, highScore);
-        }
-        if (popups) popups.add('💥 BÙM TRỨNG! +500', canvas.width / 2, 100, '#EF4444', 22);
+        saveHighScore();
+        if (popups) popups.add('+500', canvas.width / 2, 100, '#EF4444', 22);
         dropFloatingEggs();
         advanceShotCounter();
         return;
@@ -3136,10 +3106,7 @@
 
         const points = matched.length * 30 * stage;
         score += points;
-        if (score > highScore) {
-          highScore = score;
-          localStorage.setItem(HIGH_SCORE_KEY, highScore);
-        }
+        saveHighScore();
         if (window.NP_Audio) window.NP_Audio.match(matched.length);
         if (window.NP_Juice) {
           if (matched.length >= 5) {
@@ -3153,7 +3120,7 @@
         if (popups) {
           const centerCell = matched[Math.floor(matched.length / 2)];
           const cPos = getEggPos(centerCell.r, centerCell.c);
-          popups.add(matched.length >= 5 ? `🔥 SIÊU COMBO! +${points}` : `+${points}`, cPos.x, cPos.y - 15, '#10B981', 20);
+          popups.add(matched.length >= 5 ? `Combo +${points}` : `+${points}`, cPos.x, cPos.y - 15, '#10B981', 20);
         }
 
         dropFloatingEggs();
@@ -3170,7 +3137,7 @@
       // Mama Dino Stomp & Ceiling Descent
       if (freezeTimer > 0) {
         freezeTimer--;
-        if (popups) popups.add('⌛ ĐANG ĐÓNG BĂNG MAMA DINO!', canvas.width / 2, 70 + ceilingOffset, '#38BDF8', 18);
+        if (popups) popups.add('Trần tạm dừng', canvas.width / 2, 70 + ceilingOffset, '#38BDF8', 18);
       } else if (shotCounter % SHOTS_PER_CEILING === 0) {
         ceilingOffset += 24;
         stompEffectTimer = 25;
@@ -3179,14 +3146,14 @@
           window.NP_Juice.screenShake(canvas, 12, 350);
           NP_Juice.vibrate.heavy();
         }
-        if (popups) popups.add('🦖 MAMA DẬM CHÂN!', canvas.width / 2, 60 + ceilingOffset, '#EF4444', 22);
+        if (popups) popups.add('Trần hạ xuống', canvas.width / 2, 60 + ceilingOffset, '#EF4444', 22);
       } else if ((shotCounter % SHOTS_PER_CEILING) === (SHOTS_PER_CEILING - 1)) {
         if (window.NP_Audio) window.NP_Audio.thud(60);
         if (window.NP_Juice) {
           window.NP_Juice.screenShake(canvas, 5, 200);
           NP_Juice.vibrate.light();
         }
-        if (popups) popups.add('⚠️ MAMA SẮP DẬM CHÂN!', canvas.width / 2, 60 + ceilingOffset, '#F59E0B', 20);
+        if (popups) popups.add('Sắp hạ trần', canvas.width / 2, 60 + ceilingOffset, '#F59E0B', 20);
       }
 
       // Check Win
@@ -3200,15 +3167,12 @@
       if (remaining === 0) {
         if (window.NP_Audio) window.NP_Audio.win();
         score += 1000 * stage;
-        if (score > highScore) {
-          highScore = score;
-          localStorage.setItem(HIGH_SCORE_KEY, highScore);
-        }
+        saveHighScore();
         updateHUD();
         gameState = 'stageclear';
         const msgEl = container.querySelector('#btClearMsg');
         const scoreEl = container.querySelector('#btClearScore');
-        if (msgEl) msgEl.textContent = `Bạn đã dọn sạch toàn bộ tổ trứng Màn ${stage}! Thưởng thêm +${1000 * stage} điểm.`;
+        if (msgEl) msgEl.textContent = `Hoàn thành màn ${stage}, nhận +${1000 * stage} điểm.`;
         if (scoreEl) scoreEl.textContent = score;
         clearOverlay.style.display = 'flex';
         return;
@@ -3274,11 +3238,8 @@
       if (droppedCount > 0) {
         const bonus = droppedCount * 50 * stage;
         score += bonus;
-        if (score > highScore) {
-          highScore = score;
-          localStorage.setItem(HIGH_SCORE_KEY, highScore);
-        }
-        if (popups) popups.add(`🌟 RƠI TỰ DO: +${bonus}!`, canvas.width / 2, 80, '#F59E0B', 22);
+        saveHighScore();
+        if (popups) popups.add(`Thưởng rơi +${bonus}`, canvas.width / 2, 80, '#F59E0B', 22);
       }
     }
 
@@ -3328,9 +3289,9 @@
       ctx.restore();
     }
 
-    function loop() {
-      const now = performance.now();
-      const dt = now - lastTime;
+    function loop(timestamp) {
+      const now = timestamp || performance.now();
+      const dt = lastTime ? Math.max(0,Math.min(48,now-lastTime)) : 16.67;
       lastTime = now;
       const dtRatio = Math.min(2.5, dt / 16.67);
 
@@ -3427,17 +3388,14 @@
           if (window.NP_Juice) window.NP_Juice.screenShake(canvas, 12, 300);
           if (particles) particles.burst(pterodactyl.x, pterodactyl.y, 22, '#F59E0B', 280, 3.5);
           score += 1000;
-          if (score > highScore) {
-            highScore = score;
-            localStorage.setItem(HIGH_SCORE_KEY, highScore);
-          }
+          saveHighScore();
 
           if (pterodactyl.bonusType === 'freeze') {
             freezeTimer = 5;
-            if (popups) popups.add('⌛ BẮN HẠ KHỦNG LONG! ĐÓNG BĂNG MAMA! +1000', canvas.width / 2, 90, '#38BDF8', 22);
+            if (popups) popups.add('Dừng trần +1000', canvas.width / 2, 90, '#38BDF8', 22);
           } else {
             nextEggColor = 99;
-            if (popups) popups.add('💣 BẮN HẠ KHỦNG LONG! NHẬN TRỨNG BÙM! +1000', canvas.width / 2, 90, '#EF4444', 22);
+            if (popups) popups.add('Trứng nổ +1000', canvas.width / 2, 90, '#EF4444', 22);
           }
 
           pterodactyl = null;
@@ -3524,7 +3482,12 @@
         ctx.fillStyle = '#FFF';
         ctx.font = 'bold 8px Calibri, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(pterodactyl.bonusType === 'freeze' ? '⌛' : '💣', 0, 14);
+        if(pterodactyl.bonusType==='freeze') {
+          ctx.beginPath();ctx.moveTo(-4,8);ctx.lineTo(4,16);
+          ctx.moveTo(4,8);ctx.lineTo(-4,16);ctx.stroke();
+        } else {
+          ctx.beginPath();ctx.arc(0,12,3.5,0,Math.PI*2);ctx.fill();
+        }
 
         ctx.restore();
 
@@ -3642,6 +3605,7 @@
     animId = requestAnimationFrame(loop);
 
     onCleanup(() => {
+      eggSpriteCache.clear();
       cancelAnimationFrame(animId);
       if (window.NP_Audio && typeof window.NP_Audio.stopBGM === 'function') {
         window.NP_Audio.stopBGM();

@@ -70,35 +70,42 @@
     const H = ROWS * TILE;
 
     container.innerHTML = `
-      <div class="canvas-game-box">
-        <div class="canvas-game-hud">
-          <div class="hud-pill" style="font-family: Calibri, sans-serif;">💣 ${game.title || 'Boom Online BnB'}</div>
-          <div class="hud-pill" style="font-family: Calibri, sans-serif;">Màn: <span id="bnbStage" style="color: #38BDF8; font-weight: bold;">1/3 Thị Trấn</span></div>
-          <div class="hud-pill" style="font-family: Calibri, sans-serif;">Mạng: <span id="bnbLives" style="color: #EF4444; font-weight: bold;">❤️❤️❤️</span></div>
-          <div class="hud-pill" style="font-family: Calibri, sans-serif;">Thú Cưỡi: <span id="bnbMount" style="color: #10B981; font-weight: bold;">Đi Bộ</span></div>
-          <div class="hud-pill" style="font-family: Calibri, sans-serif;">Kim Châm: <span id="bnbNeedles" style="color: #F59E0B; font-weight: bold;">2</span> | Bom: <span id="bnbBombs">1</span> | Nước: <span id="bnbRange">1</span></div>
-          <div class="hud-pill" style="font-family: Calibri, sans-serif;">Điểm: <span id="bnbScore" style="color: #10B981; font-weight: bold;">0</span></div>
+      <div class="canvas-game-box np-boom-game">
+        <header class="np-boom-top">
+          <div class="np-boom-identity"><strong>BOOM</strong><span id="bnbStage">1 · Thị trấn</span></div>
+          <div class="np-boom-score"><small>ĐIỂM</small><strong id="bnbScore">0</strong><small>Kỷ lục <span id="bnbBest">0</span></small></div>
+          <div class="np-boom-lives"><small>MẠNG</small><strong id="bnbLives">3</strong></div>
+        </header>
+        <div class="np-boom-gear" aria-label="Vật phẩm hiện có">
+          <span>Bóng <b id="bnbBombs">1</b></span><span>Tầm nước <b id="bnbRange">1</b></span>
+          <span>Kim <b id="bnbNeedles">2</b></span><span id="bnbMount">Đi bộ</span>
         </div>
-
-        <div style="position: relative; display: flex; justify-content: center;">
-          <canvas id="bnbCanvas" width="${W}" height="${H}" class="canvas-main-viewport" style="background: #3B82F6;"></canvas>
-        </div>
-
-        <div class="canvas-controls-bar">
-          <div style="display: flex; gap: 6px;">
-            <button class="btn-canvas-action" id="bnbLeft">◀ Trái</button>
-            <button class="btn-canvas-action" id="bnbUp">▲ Lên</button>
-            <button class="btn-canvas-action" id="bnbDown">▼ Xuống</button>
-            <button class="btn-canvas-action" id="bnbRight">Phải ▶</button>
-          </div>
-          <div style="display: flex; gap: 6px;">
-            <button class="btn-canvas-action" id="bnbDrop" style="background-color: #0284C7; color: #FFF; font-weight: bold;">💧 Thả Bóng (SPACE)</button>
-            <button class="btn-canvas-action" id="bnbUseNeedle" style="background-color: #10B981; color: #FFF; font-weight: bold;">🪡 Dùng Kim (CTRL)</button>
+        <div class="np-boom-stage">
+          <canvas id="bnbCanvas" width="${W}" height="${H}" class="canvas-main-viewport np-boom-canvas"
+            aria-label="Bản đồ Boom Online. Di chuyển bốn hướng và đặt bóng nước."></canvas>
+          <div class="np-boom-end" id="bnbEndOverlay" role="status" aria-live="polite" style="display:none">
+            <div class="np-boom-end-art" aria-hidden="true"></div>
+            <h3 id="bnbEndTitle">Kết thúc</h3><p id="bnbEndText"></p>
+            <button type="button" id="bnbRestart" class="np-boom-restart">Chơi lại</button>
           </div>
         </div>
+        <div class="np-boom-controls">
+          <div class="np-boom-dpad" role="group" aria-label="Di chuyển">
+            <button type="button" id="bnbUp" aria-label="Đi lên">▲</button>
+            <button type="button" id="bnbLeft" aria-label="Sang trái">◀</button>
+            <span aria-hidden="true"></span>
+            <button type="button" id="bnbRight" aria-label="Sang phải">▶</button>
+            <button type="button" id="bnbDown" aria-label="Đi xuống">▼</button>
+          </div>
+          <div class="np-boom-actions">
+            <button id="bnbDrop" type="button" class="np-boom-primary">Đặt bóng</button>
+            <button id="bnbUseNeedle" type="button" class="np-boom-secondary">Dùng kim</button>
+          </div>
+        </div>
+        <p class="np-boom-tip">Mũi tên hoặc WASD để đi, Space đặt bóng. Dùng kim khi bị nhốt trong bóng nước.</p>
+        <div id="bnbNotice" class="np-boom-notice" role="status" aria-live="polite"></div>
       </div>
     `;
-
     const canvas = container.querySelector('#bnbCanvas');
     const ctx = canvas.getContext('2d');
     const cameraShake = Juice.createCameraShake();
@@ -112,7 +119,17 @@
     let maxBombs = 1;
     let bombRange = 1;
     let speed = 3;
-    let mount = 'none'; // 'none', 'turtle' (chậm nhưng khiên), 'owl' (bay qua thùng)
+    let mount = 'none';
+    let phase = 'playing';
+    let stageBanner = 100;
+    let blastSerial = 0;
+    const bossHitBlasts = new Set();
+    let bestScore = 0;
+    let lastFrame = 0, accumulator = 0;
+    const STEP_MS = 1000 / 60;
+    const BEST_KEY = 'np_boom_online_best';
+    try { bestScore = Math.max(0, Number(localStorage.getItem(BEST_KEY)) || 0); }
+    catch (error) { /* blocked storage */ }
 
     const player = {
       x: 1 * TILE + 4,
@@ -142,6 +159,12 @@
       player.x = 1 * TILE + 4;
       player.y = 1 * TILE + 4;
       player.trapped = false;
+      player.trapTimer = 0;
+      player.invuln = 90;
+      player.vx = 0;
+      player.vy = 0;
+      stageBanner = 100;
+      bossHitBlasts.clear();
 
       for (let r = 0; r < ROWS; r++) {
         map[r] = [];
@@ -150,8 +173,10 @@
             map[r][c] = 1; // Border
           } else if (r % 2 === 0 && c % 2 === 0) {
             map[r][c] = 1; // Pillars
-          } else if ((r <= 2 && c <= 2) || (r >= ROWS - 3 && c >= COLS - 3)) {
-            map[r][c] = 0; // Spawn clearings
+          } else if ((r <= 2 && c <= 2) || (r >= ROWS - 3 && c >= COLS - 3) ||
+                     (r <= 2 && c >= COLS - 3) || (r >= ROWS - 3 && c <= 2) ||
+                     (stage === 3 && r <= 4 && c >= 5 && c <= 9)) {
+            map[r][c] = 0; // Clear spawn routes and fair boss arena
           } else {
             map[r][c] = Math.random() < 0.6 ? 2 : 0; // Soft crates
           }
@@ -194,31 +219,101 @@
 
     buildMap(currentStage);
 
-    const keys = {};
-    const onKey = (e, val) => {
-      keys[e.code] = val;
-      keys[e.key] = val;
-    };
-    listen(window, 'keydown', e => onKey(e, true));
-    listen(window, 'keyup', e => onKey(e, false));
 
-    const bindBtn = (id, keyName) => {
-      const el = container.querySelector(id);
-      if (!el) return;
-      el.addEventListener('mousedown', () => { keys[keyName] = true; });
-      el.addEventListener('mouseup', () => { keys[keyName] = false; });
-      el.addEventListener('touchstart', e => { e.preventDefault(); keys[keyName] = true; });
-      el.addEventListener('touchend', e => { e.preventDefault(); keys[keyName] = false; });
+    const keys = Object.create(null);
+    const moveCodes = {
+      ArrowLeft: 'ArrowLeft', KeyA: 'ArrowLeft',
+      ArrowRight: 'ArrowRight', KeyD: 'ArrowRight',
+      ArrowUp: 'ArrowUp', KeyW: 'ArrowUp',
+      ArrowDown: 'ArrowDown', KeyS: 'ArrowDown'
     };
-    bindBtn('#bnbLeft', 'ArrowLeft');
-    bindBtn('#bnbRight', 'ArrowRight');
-    bindBtn('#bnbUp', 'ArrowUp');
-    bindBtn('#bnbDown', 'ArrowDown');
-    bindBtn('#bnbDrop', 'Space');
-    bindBtn('#bnbUseNeedle', 'ControlLeft');
+    function announce(message) {
+      const el = container.querySelector('#bnbNotice');
+      if (el) el.textContent = message;
+    }
+    function persistBest() {
+      if (score <= bestScore) return;
+      bestScore = score;
+      try { localStorage.setItem(BEST_KEY, String(bestScore)); } catch (error) {}
+    }
+    function showEnd(won) {
+      if (phase !== 'playing') return;
+      phase = won ? 'won' : 'lost';
+      persistBest();
+      updateHUD();
+      const box = container.querySelector('#bnbEndOverlay');
+      if (box) box.style.display = 'flex';
+      const title = container.querySelector('#bnbEndTitle');
+      const desc = container.querySelector('#bnbEndText');
+      if (title) title.textContent = won ? 'Phố đã an toàn' : 'Hết lượt';
+      if (desc) desc.textContent = won
+        ? 'Bạn đã vượt ba màn và đánh bại thuyền trưởng. Điểm: ' + score
+        : 'Bạn đạt ' + score + ' điểm. Thử lại để đi xa hơn.';
+      announce(won ? 'Hoàn thành ba màn chơi.' : 'Đã hết mạng.');
+      playSfx(won ? 'win' : 'alarm');
+      Object.keys(keys).forEach(k => { keys[k] = false; });
+    }
+    function restart() {
+      phase = 'playing'; currentStage = 1; score = 0; lives = 3;
+      needles = 2; maxBombs = 1; bombRange = 1; speed = 3;
+      mount = 'none'; blastSerial = 0; lastFrame = 0; accumulator = 0;
+      Object.keys(keys).forEach(k => { keys[k] = false; });
+      const box = container.querySelector('#bnbEndOverlay');
+      if (box) box.style.display = 'none';
+      buildMap(1);
+      updateHUD();
+      announce('Màn 1 bắt đầu.');
+    }
+    listen(window, 'keydown', e => {
+      if (phase !== 'playing') return;
+      const moveKey = moveCodes[e.code];
+      if (moveKey) { e.preventDefault(); keys[moveKey] = true; }
+      if (e.code === 'Space') {
+        e.preventDefault();
+        if (!e.repeat) dropBalloon(player);
+      } else if ((e.code === 'ControlLeft' || e.code === 'ControlRight') && !e.repeat) {
+        e.preventDefault(); useNeedle();
+      }
+    });
+    listen(window, 'keyup', e => {
+      const moveKey = moveCodes[e.code];
+      if (moveKey) keys[moveKey] = false;
+    });
+    function bindButton(selector, keyName) {
+      const el = container.querySelector(selector);
+      if (!el) return;
+      listen(el, 'pointerdown', e => {
+        e.preventDefault();
+        if (phase !== 'playing') return;
+        if (el.setPointerCapture && e.pointerId !== undefined) {
+          try { el.setPointerCapture(e.pointerId); } catch (error) {}
+        }
+        if (keyName === 'Space') dropBalloon(player);
+        else if (keyName === 'ControlLeft') useNeedle();
+        else keys[keyName] = true;
+      });
+      for (const type of ['pointerup','pointercancel','lostpointercapture']) {
+        listen(el, type, () => { if (keyName !== 'Space' && keyName !== 'ControlLeft') keys[keyName] = false; });
+      }
+      listen(el, 'click', e => {
+        if (e.detail !== 0 || phase !== 'playing') return;
+        if (keyName === 'Space') dropBalloon(player);
+        else if (keyName === 'ControlLeft') useNeedle();
+      });
+    }
+    bindButton('#bnbLeft','ArrowLeft'); bindButton('#bnbRight','ArrowRight');
+    bindButton('#bnbUp','ArrowUp'); bindButton('#bnbDown','ArrowDown');
+    bindButton('#bnbDrop','Space'); bindButton('#bnbUseNeedle','ControlLeft');
+    listen(container.querySelector('#bnbRestart'), 'click', restart);
+    const stopMovement = () => Object.keys(keys).forEach(k => { keys[k] = false; });
+    listen(window, 'pointerup', stopMovement);
+    listen(window, 'blur', stopMovement);
+    listen(document, 'visibilitychange', () => {
+      if (document.hidden) { stopMovement(); lastFrame = 0; accumulator = 0; }
+    });
 
     function dropBalloon(owner) {
-      if (owner.trapped) return;
+      if (phase !== 'playing' || owner.trapped) return;
       const c = Math.floor((owner.x + TILE / 2) / TILE);
       const r = Math.floor((owner.y + TILE / 2) / TILE);
       if (balloons.some(b => b.c === c && b.r === r)) return;
@@ -240,7 +335,7 @@
         player.trapped = false;
         needles--;
         player.invuln = 60;
-        popupMgr.add('THOÁT BỌC NƯỚC! 🪡', player.x, player.y, '#38BDF8', 18);
+        popupMgr.add('Thoát bọc nước', player.x, player.y, '#38BDF8', 18);
         particleSys.spawn(player.x + 16, player.y + 16, 25, { colors: ['#38BDF8', '#BAE6FD', '#FFF'], speed: 4 });
         playSfx('pop');
         updateHUD();
@@ -250,7 +345,8 @@
     function explodeBalloon(b) {
       cameraShake.addTrauma(0.4);
       playSfx('explosion');
-      waterWaves.push({ c: b.c, r: b.r, life: 25 });
+      const blastId = ++blastSerial;
+      waterWaves.push({ c: b.c, r: b.r, life: 25, blastId });
 
       const dirs = [[0, -1], [0, 1], [-1, 0], [1, 0]];
       dirs.forEach(([dc, dr]) => {
@@ -266,10 +362,10 @@
               const types = ['shoe', 'range', 'bomb', 'needle', 'turtle', 'owl'];
               items.push({ c: tc, r: tr, type: types[Math.floor(Math.random() * types.length)] });
             }
-            waterWaves.push({ c: tc, r: tr, life: 25 });
+            waterWaves.push({ c: tc, r: tr, life: 25, blastId });
             break;
           }
-          waterWaves.push({ c: tc, r: tr, life: 25 });
+          waterWaves.push({ c: tc, r: tr, life: 25, blastId });
           balloons.forEach(ob => {
             if (ob.c === tc && ob.r === tr && ob.timer > 5) ob.timer = 5;
           });
@@ -278,7 +374,9 @@
     }
 
     function canMove(nx, ny, isOwl = false) {
-      const padding = 4;
+      // Hitbox follows the character silhouette, not the entire 32px tile.
+      // Full-tile corners intersect nearby pillars at the starting position.
+      const padding = 7;
       const corners = [
         [nx + padding, ny + padding],
         [nx + TILE - padding, ny + padding],
@@ -296,43 +394,38 @@
     }
 
     function updateHUD() {
-      const stEl = container.querySelector('#bnbStage');
-      if (stEl) {
-        const names = ['1/3 Thị Trấn', '2/3 Làng Băng', '3/3 Hải Tặc Trùm Cuối'];
-        stEl.textContent = names[currentStage - 1] || 'Vô Cực';
-      }
-      const lEl = container.querySelector('#bnbLives');
-      if (lEl) lEl.innerHTML = '❤️'.repeat(Math.max(0, lives));
-      const mEl = container.querySelector('#bnbMount');
-      if (mEl) {
-        const mNames = { none: 'Đi Bộ', turtle: '🐢 Rùa (Khiên)', owl: '🦉 Cú (Bay)' };
-        mEl.textContent = mNames[mount] || 'Đi Bộ';
-      }
-      const nEl = container.querySelector('#bnbNeedles');
-      if (nEl) nEl.textContent = needles;
-      const bEl = container.querySelector('#bnbBombs');
-      if (bEl) bEl.textContent = maxBombs;
-      const rEl = container.querySelector('#bnbRange');
-      if (rEl) rEl.textContent = bombRange;
-      const sEl = container.querySelector('#bnbScore');
-      if (sEl) sEl.textContent = score;
+      const values = {
+        bnbStage: ['1 · Thị trấn', '2 · Làng băng', '3 · Cảng biển'][currentStage - 1] || 'Màn đặc biệt',
+        bnbLives: String(Math.max(0, lives)),
+        bnbMount: ({ none: 'Đi bộ', turtle: 'Mai rùa', owl: 'Cánh cú' })[mount] || 'Đi bộ',
+        bnbNeedles: String(needles),
+        bnbBombs: String(maxBombs),
+        bnbRange: String(bombRange),
+        bnbScore: String(score),
+        bnbBest: String(Math.max(bestScore, score))
+      };
+      Object.entries(values).forEach(([id,value]) => {
+        const el = container.querySelector('#' + id);
+        if (el && el.textContent !== value) el.textContent = value;
+      });
     }
 
-    let animId = null;
-    function loop() {
+    function stepSimulation() {
+      if (phase !== 'playing') return;
       // 1. Controls with Corner-Sliding
       if (!player.trapped) {
         let dx = 0, dy = 0;
         const curSpeed = mount === 'turtle' ? speed * 0.75 : speed;
-        if (keys['ArrowLeft'] || keys['KeyA']) dx -= curSpeed;
-        if (keys['ArrowRight'] || keys['KeyD']) dx += curSpeed;
-        if (keys['ArrowUp'] || keys['KeyW']) dy -= curSpeed;
-        if (keys['ArrowDown'] || keys['KeyS']) dy += curSpeed;
+        if (keys['ArrowLeft']) dx -= curSpeed;
+        if (keys['ArrowRight']) dx += curSpeed;
+        if (keys['ArrowUp']) dy -= curSpeed;
+        if (keys['ArrowDown']) dy += curSpeed;
+        if (dx && dy) { dx *= Math.SQRT1_2; dy *= Math.SQRT1_2; }
 
         // Ice map sliding friction
         if (currentStage === 2) {
-          player.vx = player.vx * 0.92 + dx * 0.15;
-          player.vy = player.vy * 0.92 + dy * 0.15;
+          player.vx = player.vx * 0.8 + dx * 0.2;
+          player.vy = player.vy * 0.8 + dy * 0.2;
         } else {
           player.vx = dx;
           player.vy = dy;
@@ -342,33 +435,29 @@
         if (player.vx !== 0 && canMove(player.x + player.vx, player.y, isOwl)) player.x += player.vx;
         if (player.vy !== 0 && canMove(player.x, player.y + player.vy, isOwl)) player.y += player.vy;
 
-        if (keys['Space']) {
-          keys['Space'] = false;
-          dropBalloon(player);
-        }
+        // Bomb and needle actions fire on key/pointer down, not a later frame.
       } else {
         player.trapTimer++;
         if (player.trapTimer > 300) {
           player.trapped = false;
           if (mount !== 'none') {
-            popupMgr.add('MẤT THÚ CƯỠI! 🛡️', player.x, player.y, '#F59E0B', 20);
+            popupMgr.add('Mất thú cưỡi', player.x, player.y, '#F59E0B', 20);
             mount = 'none';
           } else {
             lives--;
             cameraShake.addTrauma(0.8);
             Juice.triggerHitstop(60);
             playSfx('explosion');
-            popupMgr.add('K.O VỠ BỌC! 💥', player.x, player.y, '#EF4444', 20);
+            popupMgr.add('Mất một mạng', player.x, player.y, '#EF4444', 20);
             player.x = 1 * TILE + 4;
             player.y = 1 * TILE + 4;
             player.invuln = 120;
+            if (lives <= 0) showEnd(false);
           }
+          player.trapTimer = 0;
           updateHUD();
         }
-        if (keys['ControlLeft'] || keys['ControlRight']) {
-          keys['ControlLeft'] = false;
-          useNeedle();
-        }
+        // Needle is handled immediately by its action input.
       }
 
       if (player.invuln > 0) player.invuln--;
@@ -393,7 +482,7 @@
             cameraShake.addTrauma(0.6);
             Juice.triggerHitstop(50);
             playSfx('hit');
-            popupMgr.add('+600 ĐÁ VỠ BỌC! ⚽', b.x, b.y, '#FBBF24', 20);
+            popupMgr.add('+600', b.x, b.y, '#FBBF24', 20);
             updateHUD();
           }
           return;
@@ -435,7 +524,7 @@
             pulse: 0
           });
           playSfx('alarm');
-          popupMgr.add('TRÙM NÉM ĐẠN PHÁO! 💣', pirateBoss.x, pirateBoss.y, '#EF4444', 18);
+          popupMgr.add('Đạn pháo!', pirateBoss.x, pirateBoss.y, '#EF4444', 18);
         }
       }
 
@@ -463,7 +552,7 @@
             player.trapTimer = 0;
             cameraShake.addTrauma(0.6);
             playSfx('pop');
-            popupMgr.add('KẸT BỌC NƯỚC! 💦', player.x, player.y, '#38BDF8', 20);
+            popupMgr.add('Bị giữ lại!', player.x, player.y, '#38BDF8', 20);
           }
         }
 
@@ -479,8 +568,11 @@
 
         // Boss damage from wave
         if (pirateBoss && pirateBoss.alive) {
-          if (Math.hypot(pirateBoss.x + 24 - wx, pirateBoss.y + 24 - wy) < 32) {
-            pirateBoss.hp--;
+          // A single blast can cover several tiles over many frames.
+          // Only the first contact with that blast damages the boss.
+          if (!bossHitBlasts.has(w.blastId) && Math.hypot(pirateBoss.x + 24 - wx, pirateBoss.y + 24 - wy) < 32) {
+            bossHitBlasts.add(w.blastId);
+            pirateBoss.hp = Math.max(0, pirateBoss.hp - 1);
             cameraShake.addTrauma(0.7);
             Juice.triggerHitstop(60);
             playSfx('hit');
@@ -489,7 +581,7 @@
               pirateBoss.alive = false;
               score += 5000;
               playSfx('win');
-              popupMgr.add('TIÊU DIỆT TRÙM HẢI TẶC! 👑', W / 2, H / 2, '#FBBF24', 28);
+              popupMgr.add('Hạ thuyền trưởng', W / 2, H / 2, '#FBBF24', 28);
             }
           }
         }
@@ -506,22 +598,22 @@
           playSfx('coin');
           if (it.type === 'shoe') {
             speed = Math.min(6, speed + 0.6);
-            popupMgr.add('+TỐC ĐỘ! 👟', player.x, player.y, '#F59E0B', 18);
+            popupMgr.add('Nhanh hơn', player.x, player.y, '#F59E0B', 18);
           } else if (it.type === 'range') {
             bombRange = Math.min(5, bombRange + 1);
-            popupMgr.add('+TẦM NƯỚC! 💧', player.x, player.y, '#06B6D4', 18);
+            popupMgr.add('Tầm xa hơn', player.x, player.y, '#06B6D4', 18);
           } else if (it.type === 'bomb') {
             maxBombs = Math.min(6, maxBombs + 1);
-            popupMgr.add('+BÓNG NƯỚC! 💣', player.x, player.y, '#EF4444', 18);
+            popupMgr.add('Thêm bóng', player.x, player.y, '#EF4444', 18);
           } else if (it.type === 'needle') {
             needles++;
-            popupMgr.add('+1 KIM CHÂM! 🪡', player.x, player.y, '#10B981', 18);
+            popupMgr.add('Thêm kim', player.x, player.y, '#10B981', 18);
           } else if (it.type === 'turtle') {
             mount = 'turtle';
-            popupMgr.add('CƯỠI RÙA PHÒNG THỦ! 🐢', player.x, player.y, '#10B981', 20);
+            popupMgr.add('Mai rùa', player.x, player.y, '#10B981', 20);
           } else if (it.type === 'owl') {
             mount = 'owl';
-            popupMgr.add('CƯỠI CÚ BAY QUA HỘP! 🦉', player.x, player.y, '#8B5CF6', 20);
+            popupMgr.add('Cánh cú', player.x, player.y, '#8B5CF6', 20);
           }
           score += 150;
           particleSys.spawn(ix, iy, 15, { colors: ['#FBBF24', '#FFF'], speed: 4 });
@@ -532,175 +624,189 @@
 
       // 7. Check Stage Completion / Next Stage
       const stageWon = bots.every(b => !b.alive) && (!pirateBoss || !pirateBoss.alive);
-      if (stageWon) {
+      if (stageWon && phase === 'playing') {
         if (currentStage < 3) {
           currentStage++;
           score += 1500;
-          popupMgr.add(`QUA MÀN ${currentStage}! TIẾN LÊN! 🏆`, W / 2, H / 2, '#FBBF24', 26);
+          popupMgr.add('Màn ' + currentStage, W / 2, H / 2, '#FBBF24', 24);
           playSfx('win');
           buildMap(currentStage);
         } else {
-          popupMgr.add('CHIẾN THẮNG TRỌN VẸN BOOM ONLINE! 👑', W / 2, H / 2, '#FBBF24', 28);
+          showEnd(true);
         }
       }
+      if (stageBanner > 0) stageBanner--;
+      persistBest();
 
-      // RENDER
-      const offset = cameraShake.getOffset(12);
+    }
+
+
+    // Shared, purpose-drawn canvas silhouettes. Gameplay never needs emoji glyphs.
+    const themes = [
+      { floor:'#d5e3ce', alternate:'#c7d8bf', solid:'#586d63', edge:'#84978b',
+        crate:'#b68c63', crateLight:'#dcc09a', wave:'#4da6c1', ink:'#344f45' },
+      { floor:'#dcebe8', alternate:'#c9dfdb', solid:'#67858a', edge:'#a8c1be',
+        crate:'#92b8b8', crateLight:'#e7f3eb', wave:'#46a7ca', ink:'#395d65' },
+      { floor:'#496d75', alternate:'#537980', solid:'#324852', edge:'#70868a',
+        crate:'#a0795b', crateLight:'#d6ad81', wave:'#76cee0', ink:'#263f4b' }
+    ];
+    function rounded(x,y,w,h,r,fill) {
+      ctx.fillStyle = fill;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(x,y,w,h,r);
+      else ctx.rect(x,y,w,h);
+      ctx.fill();
+    }
+    function actor(x,y,tint,hat,trapped=false) {
+      ctx.save(); ctx.translate(x+16,y+16);
+      // Feet animate only while moving; all parts are geometric canvas art.
+      const gait=Math.sin((lastFrame || 0) / 110) * 2;
+      rounded(-11,10+gait,8,6,3,'#3a524f');
+      rounded(3,10-gait,8,6,3,'#3a524f');
+      rounded(-12,-5,24,21,9,tint);
+      rounded(-12,-11,24,15,8,'#f5d6b8');
+      rounded(-12,-13,24,7,5,hat);
+      ctx.fillStyle='#354e51';
+      ctx.beginPath(); ctx.arc(-5,-3,1.8,0,Math.PI*2);
+      ctx.arc(5,-3,1.8,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='#9e7770';ctx.lineWidth=1.4;
+      ctx.beginPath();ctx.arc(0,0,3,0,Math.PI);ctx.stroke();
+      if(trapped) {
+        ctx.fillStyle='rgba(121,219,238,.35)';
+        ctx.beginPath();ctx.arc(0,0,20,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle='#b9f7ff';ctx.lineWidth=2.5;ctx.stroke();
+        ctx.fillStyle='rgba(255,255,255,.8)';
+        ctx.beginPath();ctx.ellipse(-8,-11,3,5,-.4,0,Math.PI*2);ctx.fill();
+      }
+      ctx.restore();
+    }
+    function itemIllustration(it) {
+      const x=it.c*TILE+TILE/2,y=it.r*TILE+TILE/2;
+      ctx.save();ctx.translate(x,y);
+      rounded(-12,-12,24,24,7,'#f9f4dd');
+      ctx.strokeStyle='#708e7c';ctx.lineWidth=2;ctx.lineCap='round';ctx.lineJoin='round';
+      ctx.fillStyle='#569f97';
+      if(it.type==='range'){
+        ctx.beginPath();ctx.moveTo(0,-8);ctx.bezierCurveTo(8,-1,9,3,0,9);
+        ctx.bezierCurveTo(-9,3,-8,-1,0,-8);ctx.fill();
+      }else if(it.type==='bomb'){
+        ctx.beginPath();ctx.arc(0,1,7,0,Math.PI*2);ctx.fill();
+        ctx.beginPath();ctx.moveTo(0,-6);ctx.lineTo(4,-10);ctx.stroke();
+      }else if(it.type==='needle'){
+        ctx.beginPath();ctx.moveTo(-8,8);ctx.lineTo(6,-6);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(4,-8);ctx.lineTo(9,-3);ctx.stroke();
+      }else if(it.type==='shoe'){
+        ctx.beginPath();ctx.moveTo(-9,2);ctx.lineTo(-1,2);ctx.lineTo(5,-6);
+        ctx.lineTo(8,2);ctx.lineTo(9,8);ctx.lineTo(-9,8);ctx.closePath();ctx.fill();
+      }else if(it.type==='turtle'){
+        ctx.beginPath();ctx.ellipse(0,1,9,7,0,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle='#d6e5b7';ctx.beginPath();ctx.moveTo(0,-6);ctx.lineTo(0,8);
+        ctx.moveTo(-7,0);ctx.lineTo(7,0);ctx.stroke();
+      }else{
+        ctx.beginPath();ctx.moveTo(-9,-5);ctx.quadraticCurveTo(-4,-9,0,-3);
+        ctx.quadraticCurveTo(4,-9,9,-5);ctx.lineTo(7,7);
+        ctx.quadraticCurveTo(0,12,-7,7);ctx.closePath();ctx.fill();
+        ctx.fillStyle='#f9f4dd';ctx.beginPath();ctx.arc(-3,1,2,0,Math.PI*2);
+        ctx.arc(3,1,2,0,Math.PI*2);ctx.fill();
+      }
+      ctx.restore();
+    }
+    function drawScene() {
+      const theme = themes[currentStage - 1] || themes[0];
+      const offset = cameraShake.getOffset(10);
       ctx.save();
-      ctx.translate(offset.x, offset.y);
-
-      // Map Background Theme
-      if (currentStage === 2) {
-        ctx.fillStyle = '#E0F2FE'; // Ice
-      } else if (currentStage === 3) {
-        ctx.fillStyle = '#0F172A'; // Pirate night
-      } else {
-        ctx.fillStyle = '#0284C7'; // Classic Town
-      }
-      ctx.fillRect(0, 0, W, H);
-
-      // Floor Tiles
-      for (let r = 0; r < ROWS; r++) {
-        for (let c = 0; c < COLS; c++) {
-          if ((r + c) % 2 === 0) {
-            ctx.fillStyle = currentStage === 2 ? '#BAE6FD' : currentStage === 3 ? '#1E293B' : '#0369A1';
-            ctx.fillRect(c * TILE, r * TILE, TILE, TILE);
+      ctx.translate(offset.x,offset.y);
+      ctx.fillStyle=theme.floor;ctx.fillRect(0,0,W,H);
+      for(let r=0;r<ROWS;r++){
+        for(let c=0;c<COLS;c++){
+          const x=c*TILE,y=r*TILE,type=map[r][c];
+          if((r+c)%2===0){ctx.fillStyle=theme.alternate;ctx.fillRect(x,y,TILE,TILE);}
+          if(type===1) {
+            rounded(x+1,y+1,TILE-2,TILE-2,5,theme.solid);
+            rounded(x+4,y+4,TILE-8,5,2,theme.edge);
+            ctx.fillStyle='rgba(21,48,48,.24)';ctx.fillRect(x+6,y+13,TILE-12,2);
+          }else if(type===2){
+            rounded(x+2,y+2,TILE-4,TILE-4,6,theme.crate);
+            rounded(x+5,y+5,TILE-10,TILE-10,3,theme.crateLight);
+            ctx.strokeStyle=theme.crate;ctx.lineWidth=2;ctx.strokeRect(x+8,y+8,TILE-16,TILE-16);
+            ctx.beginPath();ctx.moveTo(x+8,y+8);ctx.lineTo(x+24,y+24);ctx.stroke();
           }
         }
       }
-
-      // Obstacles
-      for (let r = 0; r < ROWS; r++) {
-        for (let c = 0; c < COLS; c++) {
-          const type = map[r][c];
-          if (type === 1) {
-            ctx.fillStyle = '#1E293B';
-            ctx.fillRect(c * TILE, r * TILE, TILE, TILE);
-            ctx.strokeStyle = '#475569';
-            ctx.strokeRect(c * TILE + 2, r * TILE + 2, TILE - 4, TILE - 4);
-          } else if (type === 2) {
-            ctx.fillStyle = currentStage === 2 ? '#7DD3FC' : '#B45309';
-            ctx.fillRect(c * TILE + 2, r * TILE + 2, TILE - 4, TILE - 4);
-            ctx.fillStyle = currentStage === 2 ? '#E0F2FE' : '#D97706';
-            ctx.fillRect(c * TILE + 5, r * TILE + 5, TILE - 10, TILE - 10);
-          }
-        }
+      for(const it of items)itemIllustration(it);
+      for(const w of waterWaves){
+        const x=w.c*TILE+TILE/2,y=w.r*TILE+TILE/2;
+        ctx.fillStyle='rgba(100,208,228,'+(.38+.25*w.life/25)+')';
+        rounded(x-15,y-15,30,30,7,ctx.fillStyle);
+        ctx.strokeStyle='rgba(234,252,255,'+(w.life/25)+')';
+        ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,12-(25-w.life)*.16,0,Math.PI*2);ctx.stroke();
       }
-
-      // Items
-      items.forEach(it => {
-        const x = it.c * TILE;
-        const y = it.r * TILE;
-        ctx.fillStyle = '#F8FAFC';
-        ctx.beginPath();
-        ctx.arc(x + 16, y + 16, 12, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.font = '16px Calibri, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        const icons = { shoe: '👟', range: '💧', bomb: '💣', needle: '🪡', turtle: '🐢', owl: '🦉' };
-        ctx.fillText(icons[it.type] || '⭐', x + 16, y + 16);
-      });
-
-      // Water waves
-      waterWaves.forEach(w => {
-        ctx.fillStyle = 'rgba(56, 189, 248, 0.75)';
-        ctx.fillRect(w.c * TILE, w.r * TILE, TILE, TILE);
-      });
-
-      // Balloons
-      balloons.forEach(b => {
-        const cx = b.c * TILE + 16;
-        const cy = b.r * TILE + 16;
-        const r = 12 + b.pulse;
-        ctx.fillStyle = '#38BDF8';
-        ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#BAE6FD';
-        ctx.beginPath();
-        ctx.arc(cx - 4, cy - 4, 4, 0, Math.PI * 2);
-        ctx.fill();
-      });
-
-      // Pirate Boss
-      if (pirateBoss && pirateBoss.alive) {
-        ctx.fillStyle = '#991B1B';
-        ctx.fillRect(pirateBoss.x, pirateBoss.y, pirateBoss.w, pirateBoss.h);
-        ctx.fillStyle = '#FEF08A';
-        ctx.font = 'bold 13px Calibri, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`TRÙM (${pirateBoss.hp}/${pirateBoss.maxHp})`, pirateBoss.x + 24, pirateBoss.y - 6);
-        ctx.font = '28px Calibri, sans-serif';
-        ctx.fillText('🏴‍☠️', pirateBoss.x + 24, pirateBoss.y + 32);
+      for(const balloon of balloons) {
+        const x=balloon.c*TILE+16,y=balloon.r*TILE+16;
+        const radius=12+balloon.pulse*.28;
+        ctx.fillStyle='#56bbcd';ctx.beginPath();ctx.arc(x,y,radius,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle='#e5fbfb';ctx.lineWidth=2;ctx.stroke();
+        ctx.fillStyle='rgba(255,255,255,.72)';ctx.beginPath();ctx.ellipse(x-4,y-5,3,5,-.7,0,Math.PI*2);ctx.fill();
+        // Fuse empties clockwise; players can read explosion timing without text.
+        ctx.strokeStyle=balloon.timer<43?'#e3865a':'#3b747b';
+        ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(x,y,radius+3,-Math.PI/2,-Math.PI/2+Math.PI*2*balloon.timer/160);ctx.stroke();
       }
-
-      // Bots
-      bots.forEach(b => {
-        if (!b.alive) return;
-        if (b.trapped) {
-          ctx.fillStyle = 'rgba(56, 189, 248, 0.6)';
-          ctx.beginPath();
-          ctx.arc(b.x + 16, b.y + 16, 18, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.font = '18px Calibri, sans-serif';
-          ctx.fillText('😵', b.x + 16, b.y + 22);
-        } else {
-          ctx.fillStyle = '#EF4444';
-          ctx.beginPath();
-          ctx.arc(b.x + 16, b.y + 16, 14, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = '#FFF';
-          ctx.font = 'bold 11px Calibri, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText('BOT', b.x + 16, b.y + 20);
-        }
-      });
-
-      // Player
-      if (player.invuln % 6 < 3) {
-        if (player.trapped) {
-          ctx.fillStyle = 'rgba(56, 189, 248, 0.65)';
-          ctx.beginPath();
-          ctx.arc(player.x + 16, player.y + 16, 20, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.font = '20px Calibri, sans-serif';
-          ctx.fillText('😱', player.x + 16, player.y + 22);
-        } else {
-          // Mount visual
-          if (mount === 'turtle') {
-            ctx.fillStyle = '#16A34A';
-            ctx.beginPath();
-            ctx.arc(player.x + 16, player.y + 22, 16, 0, Math.PI * 2);
-            ctx.fill();
-          } else if (mount === 'owl') {
-            ctx.fillStyle = '#8B5CF6';
-            ctx.beginPath();
-            ctx.arc(player.x + 16, player.y + 22, 16, 0, Math.PI * 2);
-            ctx.fill();
-          }
-          // Khò Khò Hero
-          ctx.fillStyle = '#2563EB';
-          ctx.beginPath();
-          ctx.arc(player.x + 16, player.y + 14, 14, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = '#F59E0B';
-          ctx.fillRect(player.x + 8, player.y + 4, 16, 6);
-        }
+      if(pirateBoss&&pirateBoss.alive){
+        const x=pirateBoss.x+pirateBoss.w/2,y=pirateBoss.y+pirateBoss.h/2;
+        ctx.save();ctx.translate(x,y);
+        ctx.fillStyle='#773f41';ctx.beginPath();ctx.ellipse(0,9,18,18,0,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#f3c89e';ctx.beginPath();ctx.arc(0,-4,14,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#2a3f47';ctx.beginPath();ctx.moveTo(-22,-12);
+        ctx.lineTo(0,-27);ctx.lineTo(22,-12);ctx.lineTo(14,-8);ctx.lineTo(-15,-8);ctx.closePath();ctx.fill();
+        ctx.strokeStyle='#f4d7a9';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-17,-12);ctx.lineTo(17,-12);ctx.stroke();
+        ctx.fillStyle='#364348';ctx.beginPath();ctx.arc(-5,-4,2,0,Math.PI*2);ctx.arc(5,-4,2,0,Math.PI*2);ctx.fill();
+        ctx.restore();
+        rounded(x-20,y-37,40,6,3,'#233f43');
+        rounded(x-19,y-36,38*pirateBoss.hp/pirateBoss.maxHp,4,2,'#cde3a4');
       }
-
+      for(const bot of bots){
+        if(!bot.alive)continue;
+        actor(bot.x,bot.y,bot.trapped?'#b4cbd3':'#c96d64','#704d57',bot.trapped);
+      }
+      if(player.invuln<=0||Math.floor(player.invuln/6)%2===0){
+        if(mount!=='none'){
+          ctx.fillStyle=mount==='turtle'?'rgba(100,159,101,.72)':'rgba(163,133,192,.72)';
+          ctx.beginPath();ctx.arc(player.x+16,player.y+19,19,0,Math.PI*2);ctx.fill();
+        }
+        actor(player.x,player.y,'#5688a6','#2f5e8b',player.trapped);
+      }
+      // Short visual chapter card only after entry; no bouncing textual HUD in play.
+      if(stageBanner>0&&phase==='playing'){
+        const opacity=Math.min(.9,stageBanner/25);
+        ctx.globalAlpha=opacity;
+        rounded(W/2-76,H/2-28,152,56,14,'#284b4a');
+        ctx.fillStyle='#f8f5df';ctx.textAlign='center';
+        ctx.font='bold 23px Calibri, sans-serif';ctx.fillText('Màn '+currentStage,W/2,H/2+7);
+        ctx.globalAlpha=1;
+      }
       particleSys.updateAndDraw(ctx);
       popupMgr.updateAndDraw(ctx);
       ctx.restore();
+    }
 
+    let animId = null;
+    function loop(timestamp) {
+      if (!lastFrame) lastFrame = timestamp || 0;
+      accumulator += Math.min(50, Math.max(0, (timestamp || 0) - lastFrame));
+      lastFrame = timestamp || 0;
+      let ticks = 0;
+      while (accumulator >= STEP_MS && ticks < 3) {
+        stepSimulation();
+        accumulator -= STEP_MS;
+        ticks++;
+      }
+      drawScene();
       animId = requestAnimationFrame(loop);
     }
 
+    updateHUD();
     animId = requestAnimationFrame(loop);
-
-    onCleanup(() => {
-      cancelAnimationFrame(animId);
-    });
+    onCleanup(() => { cancelAnimationFrame(animId); });
   }
 
   // =========================================================================

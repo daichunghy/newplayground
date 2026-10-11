@@ -94,6 +94,13 @@ Vui lòng tham khảo file [`AGENTS.md`](./AGENTS.md) để nắm rõ:
 
 ---
 
+### Gameplay và cảm giác điều khiển Arcade (11/10/2026)
+
+- **Boom Online** được bổ sung giao diện arcade gọn, nhân vật/sân chơi/vật phẩm vẽ trực tiếp thay emoji, D-pad thống nhất touch/pointer, va chạm theo hitbox nhân vật và simulation 60Hz. Trùm không còn bị trừ máu lặp bởi cùng một vụ nổ; có kết thúc thắng/thua, nút chơi lại và kỷ lục.
+- **Bắn Trứng** được giảm chữ hướng dẫn, hợp nhất mouse/touch/pen bằng Pointer Events, thêm nút bắn và bộ đệm sprite trứng vẽ sẵn. Màu trứng ngẫu nhiên ưu tiên màu còn có trên bàn và lưu kỷ lục an toàn hơn.
+- Test hồi quy kiểm tra luồng game, các tình huống boss/collision/pointer và tính nhất quán 60Hz/120Hz bằng mock, không phải benchmark FPS thực trên thiết bị.
+- Chi tiết và danh sách QA còn thiếu ở [báo cáo Arcade Feel](./docs/ARCADE_FEEL_AUDIT.md).
+
 ### Nâng cấp đồ họa game, điều khiển và độ dễ đọc (10/10/2026)
 
 Bốn engine được rà soát và thiết kế lại với mục tiêu ưu tiên hình ảnh thay emoji và khối chữ dày. **Hàng Rong** có hình món ăn nhất quán và bếp cập nhật tiến độ trực tiếp thay vì dựng lại nút liên tục. **Nông Trại** có luống đất, cây trồng và dụng cụ vẽ vector. **Pikachu Nối Hình** có 16 nhân vật minh họa trong ô, không dùng emoji kèm tên viết tắt, có chức năng phóng to trên điện thoại. **Diner Dash** có hướng dẫn ngắn và cảnh chơi bớt nhiễu.

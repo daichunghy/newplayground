@@ -2724,3 +2724,111 @@ body.dark-theme .filter-pill.active {
  .np-diner-steps small{font-size:.68rem}
  .np-diner-game .intro-hero-wrapper{max-height:125px}
 }
+
+
+/* ============================================================
+   BOOM ONLINE · original compact arcade surface
+   ============================================================ */
+.np-boom-game {
+  width:min(100%,610px);margin-inline:auto;padding:11px;
+  background:#e7eee5;color:#314d46;border:1px solid #c8d8ca;
+  border-radius:16px;box-shadow:0 14px 30px rgba(35,66,56,.12);
+  font-family:Calibri,Inter,-apple-system,sans-serif;
+}
+.np-boom-top {display:flex;align-items:center;gap:14px;justify-content:space-between;padding:6px 6px 10px}
+.np-boom-identity {display:grid;gap:3px;flex:1}
+.np-boom-identity strong {font-size:1.2rem;letter-spacing:.15em;color:#326255;line-height:1}
+.np-boom-identity span {font-size:.86rem;color:#6d857c}
+.np-boom-score {display:grid;text-align:right;gap:0}
+.np-boom-score small,.np-boom-lives small {font-size:.68rem;color:#7b9388;letter-spacing:.035em}
+.np-boom-score strong {font-size:1.32rem;color:#355f51;font-variant-numeric:tabular-nums}
+.np-boom-lives {display:grid;place-items:center;padding:5px 11px;border-radius:10px;border:1px solid #bad0bf;background:#f7faf2;min-width:62px}
+.np-boom-lives strong {font-size:1.45rem;color:#b65e52;font-variant-numeric:tabular-nums}
+.np-boom-gear {display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:8px 11px;margin-bottom:9px;border-radius:10px;background:#d4e3d6;color:#506b60;font-size:.8rem;font-weight:700}
+.np-boom-gear b {font-size:.93rem;color:#2f5d54;margin-left:2px}
+.np-boom-gear>span:last-child {padding-left:9px;border-left:1px solid #a8c9b1;color:#52765b}
+.np-boom-stage {width:min(100%,480px);margin:0 auto;position:relative;border:4px solid #5d837b;border-radius:11px;overflow:hidden;box-shadow:0 7px 0 #bed0c4}
+.np-boom-canvas {display:block;width:100%;height:auto;aspect-ratio:15/13;max-width:480px;background:#c9dbc5;touch-action:none;image-rendering:auto}
+.np-boom-controls {display:flex;justify-content:center;gap:20px;align-items:center;padding:17px 10px 4px}
+.np-boom-dpad {display:grid;grid-template-columns:repeat(3,48px);grid-template-rows:repeat(3,47px);gap:5px}
+.np-boom-dpad button {border:1px solid #adc3b5;background:#f5faf0;color:#4b7167;border-radius:11px;font:900 1rem Calibri,sans-serif;min-height:44px;min-width:44px;cursor:pointer;box-shadow:0 3px 0 #bacabd;touch-action:none;user-select:none;-webkit-user-select:none}
+.np-boom-dpad button:active {background:#b9d8c6;transform:translateY(2px);box-shadow:0 1px 0 #9cbbac}
+.np-boom-dpad #bnbUp {grid-row:1;grid-column:2}
+.np-boom-dpad #bnbLeft {grid-row:2;grid-column:1}
+.np-boom-dpad #bnbRight {grid-row:2;grid-column:3}
+.np-boom-dpad #bnbDown {grid-row:3;grid-column:2}
+.np-boom-dpad span {grid-row:2;grid-column:2;background:#d7e4d8;border-radius:8px}
+.np-boom-actions {display:grid;grid-template-columns:1fr;gap:10px;min-width:143px;max-width:190px;flex:1}
+.np-boom-actions button,.np-boom-restart {border:none;min-height:53px;border-radius:11px;font:800 .93rem Calibri,sans-serif;cursor:pointer;touch-action:manipulation;user-select:none;box-shadow:0 3px 0 rgba(29,73,61,.22)}
+.np-boom-primary,.np-boom-restart {background:#397768;color:#fff}
+.np-boom-secondary {background:#d3ebdb;color:#356a56;border:1px solid #a5cab1!important}
+.np-boom-actions button:active,.np-boom-restart:active {transform:translateY(2px);box-shadow:none}
+.np-boom-tip {font-size:.75rem;color:#738b80;line-height:1.45;text-align:center;padding:0 11px;margin:7px auto 0;max-width:490px}
+.np-boom-notice {min-height:20px;color:#356b60;text-align:center;font-size:.77rem;font-weight:700;margin:5px 0}
+.np-boom-end {position:absolute;inset:0;z-index:5;background:rgba(229,238,225,.94);backdrop-filter:blur(2px);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:20px}
+.np-boom-end h3 {font:900 1.6rem Calibri,sans-serif;color:#366a57;margin:0 0 8px}
+.np-boom-end p {font-size:.87rem;line-height:1.5;color:#6c8174;max-width:300px;margin:0 0 17px}
+.np-boom-end-art {height:75px;width:75px;position:relative;background:#c3dfd2;border:8px solid #e7f8ed;border-radius:50%;margin:0 auto 15px}
+.np-boom-end-art::before {content:"";display:block;height:16px;width:16px;position:absolute;left:13px;top:22px;border-radius:50%;background:#456f69;box-shadow:24px 0 0 #456f69}
+.np-boom-end-art::after {content:"";position:absolute;left:20px;top:41px;width:25px;height:11px;border-bottom:4px solid #456f69;border-radius:50%}
+.np-boom-restart {min-width:180px;min-height:48px}
+.np-boom-game button:focus-visible {outline:3px solid #e9b66a;outline-offset:3px}
+
+/* ============================================================
+   BẮN TRỨNG · readable scoreboard, calm first-time flow
+   ============================================================ */
+.np-egg-game {width:min(100%,620px);margin-inline:auto;background:#e9ebe1;color:#314940;border-radius:16px;border:1px solid #cbd6cb;padding:12px;box-shadow:0 12px 28px rgba(33,61,54,.11);font-family:Calibri,Inter,-apple-system,sans-serif}
+.np-egg-head {display:flex;justify-content:space-between;align-items:center;gap:12px;padding:4px 5px 11px}
+.np-egg-identity {display:grid;gap:4px}
+.np-egg-identity strong {color:#446a5e;font-size:1.01rem;letter-spacing:.105em}
+.np-egg-identity small {color:#82918a;font-size:.82rem}
+.np-egg-numbers {display:flex;gap:8px;align-items:center}
+.np-egg-numbers>div {min-width:70px;border:1px solid #d4dfd3;background:#f7f8f0;padding:5px 12px;border-radius:10px;display:grid;justify-items:end}
+.np-egg-numbers small {font-size:.68rem;color:#859487}
+.np-egg-numbers b {font-size:1.11rem;color:#365f53;font-variant-numeric:tabular-nums}
+.np-egg-toolbar {display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:9px;background:#d4dfd4;border-radius:10px;padding:8px 13px;color:#577265;font-size:.81rem;font-weight:700}
+.np-egg-next {display:flex;align-items:center;gap:9px}
+.np-egg-swatch {height:23px;width:20px;border:2px solid rgba(255,255,255,.8);box-shadow:0 0 0 1px #80988a;display:block;border-radius:47% 47% 48% 48%;position:relative}
+.np-egg-swatch.special-bomb::before {content:"";position:absolute;width:3px;height:8px;top:-7px;left:10px;border-radius:4px;background:#b68d6b;transform:rotate(26deg)}
+.np-egg-swatch.special-rainbow {background:conic-gradient(#e7a476,#f0cd71,#89c3a2,#8ca8cd,#b69dcf,#e7a476)!important}
+.np-egg-stomp b {font-size:1.01rem;color:#bf7757;font-variant-numeric:tabular-nums}
+.np-egg-field {position:relative;width:min(100%,500px);margin:0 auto;border-radius:12px;border:4px solid #657e78;overflow:hidden;box-shadow:0 6px 0 #bdccc1}
+.np-egg-canvas {width:100%;height:auto;display:block;background:#34443e;aspect-ratio:10/9;touch-action:none;cursor:crosshair}
+.np-egg-footer {display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;margin:14px 0 0}
+.np-egg-footer small {font-size:.76rem;color:#7a8f83;flex:1 1 170px}
+.np-egg-action {font:800 .81rem Calibri,sans-serif;border:0;border-radius:10px;min-height:45px;padding:9px 14px;background:#416f63;color:#fff;cursor:pointer;touch-action:manipulation}
+.np-egg-action.secondary {background:#d0e2d4;color:#386655;border:1px solid #aec9b6}
+.np-egg-action.quiet {background:#e0e7db;color:#667b6b;border:1px solid #cbd7c9}
+.np-egg-action:active {transform:translateY(2px)}
+.np-egg-intro,.np-egg-result {position:absolute;inset:0;display:flex;justify-content:center;align-items:center;background:rgba(37,56,48,.68);z-index:4;padding:14px;backdrop-filter:blur(2px)}
+.np-egg-sheet {padding:21px;max-width:360px;width:100%;display:flex;align-items:center;flex-direction:column;gap:12px;border-radius:16px;border:1px solid #ced8c6;background:#f4f3e8;color:#354f44;box-shadow:0 16px 30px rgba(13,29,22,.28)}
+.np-egg-sheet h3 {font:900 1.32rem Calibri,sans-serif;line-height:1.2;text-align:center;margin:0;color:#355c4e}
+.np-egg-sheet p {font:normal .89rem/1.43 Calibri,sans-serif;text-align:center;margin:0;color:#728678}
+.np-egg-sheet-mark {display:block;position:relative;width:72px;height:55px}
+.np-egg-sheet-mark::before,.np-egg-sheet-mark::after {content:"";position:absolute;width:29px;height:38px;border-radius:48% 48% 47% 47%;border:3px solid #f9efe1;box-shadow:0 2px 0 #98ac9c}
+.np-egg-sheet-mark::before {left:8px;top:10px;transform:rotate(-18deg);background:#d88b76}
+.np-egg-sheet-mark::after {left:32px;top:3px;transform:rotate(14deg);background:#8fb9a1}
+.np-egg-sheet-mark.win::before {background:#9dc5a0}.np-egg-sheet-mark.win::after {background:#f1cc82}
+.np-egg-sheet-mark.lost::before {background:#acb4ab}.np-egg-sheet-mark.lost::after {background:#9ea69b}
+.np-egg-instructions {width:100%;display:grid;gap:5px;border-radius:9px;background:#e7eddf;padding:11px;text-align:center;color:#536d5e;font-size:.8rem;line-height:1.35}
+.np-egg-sheet button {border:0;min-height:46px;background:#3d7665;color:#fff;font:900 .89rem Calibri,sans-serif;border-radius:10px;width:100%;cursor:pointer}
+.np-egg-result-score {font-size:1rem;color:#997447}
+.np-egg-game button:focus-visible,.np-egg-canvas:focus-visible {outline:3px solid #ecc26f;outline-offset:3px}
+@media (max-width:560px) {
+  .np-boom-game,.np-egg-game {padding:8px}
+  .np-boom-top {gap:7px}
+  .np-boom-gear {font-size:.74rem;padding:7px 8px}
+  .np-boom-controls {gap:12px}
+  .np-boom-dpad {grid-template-columns:repeat(3,47px);grid-template-rows:repeat(3,46px);gap:5px}
+  .np-boom-actions {min-width:110px}
+  .np-boom-tip {font-size:.71rem}
+  .np-egg-head {gap:8px}
+  .np-egg-numbers {gap:4px}
+  .np-egg-numbers>div {min-width:57px;padding:5px 7px}
+  .np-egg-footer small {flex-basis:100%;text-align:center}
+  .np-egg-action {flex:1;white-space:nowrap;padding-inline:9px}
+  .np-egg-sheet {padding:18px}
+}
+@media (prefers-reduced-motion:reduce){
+  .np-boom-game *,.np-egg-game *{animation:none!important;transition:none!important}
+}
