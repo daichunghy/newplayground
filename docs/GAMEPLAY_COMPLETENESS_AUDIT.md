@@ -5,10 +5,10 @@ Sổ bao phủ theo từng catalog title: [docs/GAME_COVERAGE.md](./GAME_COVERAG
 Tài liệu này phân biệt **game mở được**, **có vòng chơi và tiến trình**, và **tái hiện đầy đủ luật đặc trưng**. Không dùng việc mở canvas thành công để suy diễn game đã hoàn thiện.
 
 - Danh mục trong `data/games.json`: **150** tựa.
-- Vòng chơi riêng theo từng game: **69** tựa; **81** tựa còn dùng một trong 7 archetype chung. Các con số là phân loại router từ code, không phải đếm những tựa đã được chơi thử hay xác nhận fidelity.
-- Năm loop riêng theo ID trong `engines-archetypes.js` là Frogger, Asteroids, Galaga, Piano Tiles và Bubble Trouble. Mỗi loop tách khỏi canvas genre fallback; các game khác cùng một engine có thể vẫn chia sẻ cơ chế.
-- Galaga trước đây đã nằm ngoài fallback chung nhưng chạy nhầm Chicken Invaders; Piano Tiles và Bubble Trouble từng dùng archetype chung. Các route nay mở loop đúng tựa, nên inventory hiện tại chuyển từ 67/83 ban đầu sang 69/81.
-- `tests/game-flow.test.cjs` kiểm tra 81 route generic, 150 lượt mở/đóng và vài kịch bản mô phỏng; điều đó không thay thế QA browser cho từng tựa.
+- Vòng chơi riêng theo từng game: **70** tựa; **80** tựa còn dùng một trong 7 archetype chung. Các con số là phân loại router từ code, không phải đếm những tựa đã được chơi thử hay xác nhận fidelity.
+- Sáu loop riêng theo ID trong `engines-archetypes.js` là Frogger, Asteroids, Galaga, Piano Tiles, Bubble Trouble và Lemonade Tycoon. Dr. Mario có nhánh riêng trong `launchTetris` dispatcher nhưng không dùng engine Tetris/Mario sau khi mở.
+- Galaga trước đây đã nằm ngoài fallback chung nhưng chạy nhầm Chicken Invaders; Piano Tiles, Bubble Trouble và Lemonade Tycoon từng dùng archetype chung, còn Dr. Mario mở nhầm platformer Mario. Các route nay mở loop theo tựa, đưa inventory từ 67/83 lên 70/80.
+- `tests/game-flow.test.cjs` kiểm tra 80 route generic, 150 lượt mở/đóng và vài kịch bản mô phỏng; điều đó không thay thế QA browser cho từng tựa.
 - Kiểm thử mô phỏng đã đạt màn 2 ở 7 archetype. Điều này **không xác nhận** toàn bộ chiến dịch của từng game chuyên biệt có thể hoàn thành, hoặc gameplay đã trung thành với tên game.
 - `tests/game-flow.test.cjs` kiểm tra 150 lượt mở, đóng, cleanup và các kịch bản qua màn minh họa; cần bổ sung test theo đặc tả riêng và QA trên máy thật.
 - Cần QA thủ công với chuột, bàn phím, Android Chrome và iPhone Safari; kiểm tra 60/90/120 Hz, màn cuối, khởi động lại, lưu trữ, cảm ứng đa điểm.
@@ -54,7 +54,7 @@ Tài liệu này phân biệt **game mở được**, **có vòng chơi và ti�
 | 21 | `plants-vs-zombies-2d` | Plants vs Zombies 2D | `launchPvZ` | — |
 | 22 | `feeding-frenzy` | Cá Lớn Nuốt Cá Bé | `launchFeedingFrenzy` | — |
 | 23 | `peggle-pachinko` | Peggle Bắn Bi | `launchDXBall` | — |
-| 24 | `lemonade-tycoon` | Lemonade Tycoon | `launchRetroArcade` | `management` |
+| 24 | `lemonade-tycoon` | Lemonade Tycoon | `launchRetroArcade` → Lemonade Tycoon planning loop (exact ID) | — |
 | 25 | `pizza-frenzy` | Pizza Frenzy Giao Bánh | `launchRetroArcade` | `management` |
 | 26 | `heavy-weapon` | Heavy Weapon Xe Tăng | `launchXeTang1990` | — |
 | 27 | `typer-shark` | Typer Shark Luyện Gõ | `launchRetroArcade` → `NP_TyperShark.launch` | Vòng chơi riêng |
@@ -88,7 +88,7 @@ Tài liệu này phân biệt **game mở được**, **có vòng chơi và ti�
 | 55 | `pong-1972` | Bóng Bàn Cổ Điển (Pong) | `launchPong` | — |
 | 56 | `rambo-lun-metal-slug` | Rambo Lùn (Metal Slug Mini) | `launchRetroArcade` | `shooter` |
 | 57 | `excitebike-dua-xe-dia-hinh` | Đua Xe Đạp Địa Hình (Excitebike) | `launchRetroArcade` | `runner` |
-| 58 | `dr-mario-diet-khuan` | Bác Sĩ Diệt Khuẩn (Dr. Mario) | `launchMario` | — |
+| 58 | `dr-mario-diet-khuan` | Bác Sĩ Diệt Khuẩn (Dr. Mario) | exact route → `launchTetris` → Dr. Mario capsule loop (exact ID) | — |
 | 59 | `circus-charlie-xiec` | Xiếc Khỉ Nhảy Lửa (Circus Charlie) | `launchRetroArcade` | `runner` |
 | 60 | `kung-fu-master` | Kung Fu Thiếu Lâm Tự | `launchRetroArcade` | `duel` |
 | 61 | `nem-lon-truong-lang` | Ném Lon Trường Làng | `launchRetroArcade` | `reflex` |

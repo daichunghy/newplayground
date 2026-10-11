@@ -918,6 +918,8 @@
           window.NP_Engines.launchDaoVang(container, game);
         } else if (gId.includes('pac-man')) {
           window.NP_Engines.launchPacMan(container, game);
+        } else if (gId.includes('dr-mario')) {
+          window.NP_Engines.launchTetris(container, game);
         } else if (gId.includes('mario') || gId.includes('sonic') || gId.includes('subway') || gId.includes('paperboy')) {
           window.NP_Engines.launchMario(container, game);
         } else if (gId.includes('gunny') || gId.includes('cung') || gId.includes('angry-birds')) {

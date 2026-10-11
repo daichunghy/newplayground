@@ -460,6 +460,296 @@
     }
   }
 
+  // A compact Lemonade Tycoon day-planning loop. Demand and unit costs are
+  // locally tuned; the model keeps the reference's useful decisions visible:
+  // recipe, price, stock, location, weather/news and the day's sales result.
+  const LEMONADE = Object.freeze({ days: 10, startingCash: 40, targetCash: 100,
+    recipe: { lemons: 2, sugar: 2, ice: 3 },
+    packs: { lemons: { count: 12, cost: 4.8 }, sugar: { count: 20, cost: 7 }, ice: { count: 50, cost: 1 }, cups: { count: 75, cost: 1 } },
+    locations: [
+      { id: 'suburbs', name: 'Khu phố', rent: 0, demand: 10 },
+      { id: 'park', name: 'Công viên', rent: 3, demand: 20 },
+      { id: 'station', name: 'Nhà ga', rent: 7, demand: 25 }
+    ] });
+
+  function lemonadeRandom(state) {
+    state.rng = (Math.imul(state.rng, 1664525) + 1013904223) >>> 0;
+    return state.rng / 0x100000000;
+  }
+
+  function lemonadeForecast(state) {
+    const temperature = 14 + Math.floor(lemonadeRandom(state) * 21);
+    const rain = lemonadeRandom(state) < (temperature < 20 ? 0.28 : 0.12);
+    const location = LEMONADE.locations[Math.floor(lemonadeRandom(state) * LEMONADE.locations.length)];
+    const event = lemonadeRandom(state) < 0.58
+      ? { location: location.id, delta: lemonadeRandom(state) < 0.5 ? -0.22 : 0.28 }
+      : { location: null, delta: lemonadeRandom(state) < 0.5 ? -0.08 : 0.14 };
+    state.forecast = { temperature, rain, event };
+  }
+
+  function createLemonadeState(seed = 0x4c454d) {
+    const state = { rng: (Number(seed) >>> 0) || 1, phase: 'planning', day: 1,
+      cash: LEMONADE.startingCash, startCash: LEMONADE.startingCash,
+      stock: { lemons: 0, sugar: 0, ice: 0, cups: 0 },
+      recipe: { ...LEMONADE.recipe }, priceCents: 200, adSpend: 0, location: 'park',
+      totalSales: 0, totalRevenue: 0, history: [], forecast: null, lastReport: null,
+      lastEvent: null };
+    lemonadeForecast(state);
+    return state;
+  }
+
+  function lemonadeSet(state, field, value) {
+    if (state.phase !== 'planning') return false;
+    if (field in state.recipe) state.recipe[field] = clamp(Math.round(Number(value) || 0), 1, 5);
+    else if (field === 'priceCents') state.priceCents = clamp(Math.round(Number(value) / 25) * 25, 100, 350);
+    else if (field === 'adSpend') state.adSpend = clamp(Math.round(Number(value) / 2) * 2, 0, 8);
+    else if (field === 'location' && LEMONADE.locations.some(item => item.id === value)) state.location = value;
+    else return false;
+    return true;
+  }
+
+  function lemonadeBuy(state, item, packs = 1) {
+    if (state.phase !== 'planning' || !LEMONADE.packs[item]) return false;
+    const count = clamp(Math.floor(Number(packs) || 0), 1, 5);
+    const pack = LEMONADE.packs[item], cost = Math.round(pack.cost * count * 100) / 100;
+    if (state.cash + 1e-9 < cost) return false;
+    state.cash = Math.round((state.cash - cost) * 100) / 100;
+    state.stock[item] += pack.count * count;
+    return true;
+  }
+
+  function lemonadeQuality(state) {
+    const temp = state.forecast.temperature;
+    const targetIce = temp >= 29 ? 5 : temp <= 18 ? 2 : 3;
+    const targetSugar = temp >= 31 ? 1 : temp <= 17 ? 3 : 2;
+    const mix = state.recipe;
+    return clamp(1 - Math.abs(mix.lemons - 2) * 0.14 - Math.abs(mix.sugar - targetSugar) * 0.12 -
+      Math.abs(mix.ice - targetIce) * 0.12, 0.35, 1);
+  }
+
+  function lemonadeServings(state) {
+    const r = state.recipe, s = state.stock;
+    return Math.max(0, Math.min(Math.floor(s.lemons / r.lemons), Math.floor(s.sugar / r.sugar),
+      Math.floor(s.ice / r.ice), s.cups));
+  }
+
+  function lemonadeDemand(state) {
+    const location = LEMONADE.locations.find(item => item.id === state.location) || LEMONADE.locations[0];
+    const forecast = state.forecast;
+    const weather = forecast.rain ? 0.38 : forecast.temperature >= 30 ? 1.45 :
+      forecast.temperature >= 24 ? 1.2 : forecast.temperature >= 18 ? 0.9 : 0.62;
+    const news = 1 + (forecast.event.location === location.id ? forecast.event.delta :
+      forecast.event.location === null ? forecast.event.delta : 0);
+    const price = (state.priceCents / 100);
+    const priceFactor = clamp(2.2 / price, 0.45, 1.65);
+    const advertising = 1 + state.adSpend * 0.025;
+    const dayNoise = 0.9 + lemonadeRandom(state) * 0.2;
+    return Math.max(0, Math.min(80, Math.round(location.demand * weather * news * priceFactor * advertising * lemonadeQuality(state) * dayNoise)));
+  }
+
+  function lemonadeStartDay(state) {
+    if (state.phase !== 'planning') return false;
+    const location = LEMONADE.locations.find(item => item.id === state.location) || LEMONADE.locations[0];
+    const fixed = Math.round((location.rent + state.adSpend) * 100) / 100;
+    const demand = lemonadeDemand(state), capacity = lemonadeServings(state);
+    const cups = Math.min(demand, capacity, 18);
+    const r = state.recipe;
+    state.stock.lemons -= cups * r.lemons;
+    state.stock.sugar -= cups * r.sugar;
+    state.stock.ice -= cups * r.ice;
+    state.stock.cups -= cups;
+    const revenue = Math.round(cups * state.priceCents) / 100;
+    const gross = Math.round((revenue - fixed) * 100) / 100;
+    const satisfaction = demand ? Math.round(100 * lemonadeQuality(state) * Math.min(1, cups / demand)) : 0;
+    const spoiled = Math.floor(state.stock.lemons * 0.15);
+    state.stock.lemons -= spoiled;
+    state.stock.ice = 0;
+    state.cash = Math.round((state.cash + gross) * 100) / 100;
+    state.totalSales += cups;
+    state.totalRevenue = Math.round((state.totalRevenue + revenue) * 100) / 100;
+    state.lastReport = { day: state.day, demand, cups, revenue, fixed, gross,
+      satisfaction, spoiled, cash: state.cash, weather: { ...state.forecast } };
+    state.history.push(state.lastReport);
+    state.phase = 'result';
+    state.lastEvent = { type: 'day-result', day: state.day, cups, gross, cash: state.cash };
+    if (state.cash <= 0) state.phase = 'over';
+    return state.lastReport;
+  }
+
+  function lemonadeNextDay(state) {
+    if (state.phase !== 'result') return false;
+    if (state.day >= LEMONADE.days) {
+      state.phase = state.cash >= LEMONADE.targetCash ? 'won' : 'over';
+      state.lastEvent = { type: state.phase === 'won' ? 'complete' : 'season-ended', cash: state.cash };
+      return true;
+    }
+    state.day++;
+    state.phase = 'planning';
+    state.lastReport = null;
+    lemonadeForecast(state);
+    state.lastEvent = { type: 'new-day', day: state.day };
+    return true;
+  }
+
+  function launchLemonade(container, game) {
+    const session = window.NP_GameSession.start();
+    const recordKey = 'np_lemonade_tycoon_record_v1';
+    let state = createLemonadeState((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0);
+    let bestCash = LEMONADE.startingCash, raf = null, sceneTime = 0;
+    try { bestCash = Math.max(LEMONADE.startingCash, Number(JSON.parse(localStorage.getItem(recordKey) || '{}').cash) || 0); } catch (error) {}
+    container.innerHTML = `
+      <style>
+        #gameModal:has(.np-lemon-shell) .modal-window { width:min(98vw,1080px); max-width:1080px; min-width:0; }
+        #gameModal:has(.np-lemon-shell) .modal-body,#gameModal:has(.np-lemon-shell) .modal-title-group { min-width:0; }
+        #gameModal:has(.np-lemon-shell) #modalGameBadge,#gameModal:has(.np-lemon-shell) #crtToggleBtn { display:none; }
+        .np-lemon-shell { width:min(100%,980px); margin:auto; display:grid; gap:10px; color:#273631; font:14px Calibri,Inter,sans-serif; }
+        .np-lemon-score { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+        .np-lemon-score div { padding:8px 10px; border-radius:10px; background:#fff8de; color:#65715c; text-align:center; font-size:11px; text-transform:uppercase; letter-spacing:.08em; }
+        .np-lemon-score strong { display:block; color:#24352c; font-size:18px; letter-spacing:0; font-variant-numeric:tabular-nums; }
+        .np-lemon-scene { width:100%; height:auto; aspect-ratio:3/1; display:block; border:1px solid #c5a352; border-radius:12px; background:#d8f3e4; }
+        .np-lemon-info { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; padding:10px 13px; border-radius:9px; background:#eef4df; }
+        .np-lemon-info strong { color:#245847; }
+        .np-lemon-info span { color:#68745f; }
+        .np-lemon-layout { display:grid; grid-template-columns:1.1fr .9fr; gap:10px; align-items:start; }
+        .np-lemon-card { display:grid; gap:8px; padding:11px; border:1px solid #e5d7ae; border-radius:10px; background:#fffdf5; }
+        .np-lemon-card h3 { margin:0; color:#477957; font-size:13px; letter-spacing:.04em; }
+        .np-lemon-row { display:flex; justify-content:space-between; align-items:center; gap:7px; }
+        .np-lemon-row span { color:#586458; }
+        .np-lemon-controls { display:flex; align-items:center; gap:6px; }
+        .np-lemon-controls strong { min-width:30px; text-align:center; font-variant-numeric:tabular-nums; }
+        .np-lemon-shell button { min-width:44px; min-height:44px; padding:5px 9px; border:1px solid #ccd9a1; border-radius:8px; background:#f1f5d6; color:#314939; font:700 12px Calibri,Inter,sans-serif; touch-action:manipulation; }
+        .np-lemon-shell button:focus-visible { outline:3px solid #e3ac31; outline-offset:2px; }
+        .np-lemon-shell button:disabled { opacity:.45; }
+        .np-lemon-locations { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+        .np-lemon-locations button[aria-pressed="true"] { background:#235f49; color:#fff8da; border-color:#235f49; }
+        .np-lemon-stock { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+        .np-lemon-stock div { display:grid; justify-items:center; gap:3px; padding:5px 2px; border-radius:7px; background:#f6f0dd; color:#596357; font-size:11px; }
+        .np-lemon-stock strong { font-size:14px; color:#25372f; }
+        .np-lemon-stock button { min-height:36px; font-size:10px; }
+        .np-lemon-primary { width:100%; min-height:48px !important; background:#e7b934 !important; border-color:#d09d16 !important; color:#292e1c !important; font-size:15px !important; }
+        .np-lemon-status { min-height:20px; margin:0; color:#58685d; text-align:center; }
+        .np-lemon-report { padding:10px; border-radius:8px; background:#e4f0dd; color:#284638; text-align:center; }
+        @media(max-width:720px) { .np-lemon-layout { grid-template-columns:1fr; } .np-lemon-scene { aspect-ratio:3/1; } .np-lemon-shell { gap:7px; } .np-lemon-score { gap:4px; } .np-lemon-score div { padding:6px 3px; font-size:9px; } .np-lemon-score strong { font-size:15px; } .np-lemon-card { gap:6px; padding:8px; } .np-lemon-shell button { padding:4px; font-size:11px; } }
+        @media(prefers-reduced-motion:reduce) { .np-lemon-scene { scroll-behavior:auto; } }
+      </style>
+      <section class="np-lemon-shell" aria-label="Quầy nước chanh, mô phỏng kinh doanh mười ngày">
+        <header class="np-lemon-score"><div>Ngày<strong id="ltDay">1 / 10</strong></div><div>Tiền quầy<strong id="ltCash">$40.00</strong></div><div>Mục tiêu<strong>$100</strong></div><div>Kỷ lục<strong id="ltBest">$40.00</strong></div></header>
+        <canvas id="ltScene" class="np-lemon-scene" width="900" height="300" aria-label="Quầy chanh dưới thời tiết hôm nay"></canvas>
+        <div class="np-lemon-info"><div><strong id="ltForecast">—</strong><br><span id="ltNews">—</span></div><div id="ltPlace">—</div></div>
+        <div class="np-lemon-layout">
+          <div class="np-lemon-card"><h3>CHỌN KHU VỰC</h3><div class="np-lemon-locations" id="ltLocations"></div>
+            <h3>PHA THEO CƠN KHÁT</h3>
+            <div class="np-lemon-row"><span>Chanh / cốc</span><div class="np-lemon-controls"><button data-adjust="lemons" data-delta="-1" aria-label="Bớt chanh">−</button><strong id="ltLemons">2</strong><button data-adjust="lemons" data-delta="1" aria-label="Thêm chanh">+</button></div></div>
+            <div class="np-lemon-row"><span>Đường / cốc</span><div class="np-lemon-controls"><button data-adjust="sugar" data-delta="-1" aria-label="Bớt đường">−</button><strong id="ltSugar">2</strong><button data-adjust="sugar" data-delta="1" aria-label="Thêm đường">+</button></div></div>
+            <div class="np-lemon-row"><span>Đá / cốc</span><div class="np-lemon-controls"><button data-adjust="ice" data-delta="-1" aria-label="Bớt đá">−</button><strong id="ltIce">3</strong><button data-adjust="ice" data-delta="1" aria-label="Thêm đá">+</button></div></div>
+            <div class="np-lemon-row"><span>Giá / cốc</span><div class="np-lemon-controls"><button data-adjust="priceCents" data-delta="-25" aria-label="Giảm giá">−</button><strong id="ltPrice">$2.00</strong><button data-adjust="priceCents" data-delta="25" aria-label="Tăng giá">+</button></div></div>
+            <div class="np-lemon-row"><span>Biển quảng cáo</span><div class="np-lemon-controls"><button data-adjust="adSpend" data-delta="-2" aria-label="Giảm quảng cáo">−</button><strong id="ltAds">$0</strong><button data-adjust="adSpend" data-delta="2" aria-label="Tăng quảng cáo">+</button></div></div>
+          </div>
+          <div class="np-lemon-card"><h3>HÀNG TRONG QUẦY</h3><div class="np-lemon-stock" id="ltStock"></div><div class="np-lemon-report" id="ltReport" hidden></div>
+            <button class="np-lemon-primary" id="ltRunDay">MỞ QUẦY HÔM NAY</button><button class="np-lemon-primary" id="ltNextDay" hidden>CHUẨN BỊ NGÀY TIẾP</button><button id="ltRestart" hidden>CHƠI MÙA MỚI</button>
+          </div>
+        </div>
+        <p id="ltStatus" class="np-lemon-status" role="status" aria-live="polite">Theo dự báo, chọn công thức và trữ hàng trước khi mở quầy.</p>
+      </section>`;
+    const $ = selector => container.querySelector(selector), canvas = $('#ltScene'), ctx = canvas.getContext('2d');
+    const status = $('#ltStatus'), reportEl = $('#ltReport'), locationEl = $('#ltLocations');
+
+    function saveRecord() {
+      if (state.cash > bestCash) {
+        bestCash = state.cash;
+        try { localStorage.setItem(recordKey, JSON.stringify({ cash: bestCash })); } catch (error) {}
+      }
+    }
+    function renderControls() {
+      $('#ltDay').textContent = state.day + ' / ' + LEMONADE.days;
+      $('#ltCash').textContent = '$' + state.cash.toFixed(2);
+      $('#ltBest').textContent = '$' + bestCash.toFixed(2);
+      $('#ltLemons').textContent = state.recipe.lemons;
+      $('#ltSugar').textContent = state.recipe.sugar;
+      $('#ltIce').textContent = state.recipe.ice;
+      $('#ltPrice').textContent = '$' + (state.priceCents / 100).toFixed(2);
+      $('#ltAds').textContent = '$' + state.adSpend;
+      $('#ltForecast').textContent = state.forecast.temperature + '°C · ' + (state.forecast.rain ? 'mưa rào' : 'trời khô ráo');
+      const news = state.forecast.event.location
+        ? (state.forecast.event.delta > 0 ? 'Sự kiện đông khách ở ' : 'Đường vắng tại ') + (LEMONADE.locations.find(x => x.id === state.forecast.event.location)?.name || '')
+        : state.forecast.event.delta > 0 ? 'Tin tốt lan khắp phố' : 'Người mua dè dặt hôm nay';
+      $('#ltNews').textContent = state.phase === 'result' || state.phase === 'over' ? 'Hôm nay đã khép quầy' : news;
+      $('#ltPlace').textContent = 'Địa điểm: ' + (LEMONADE.locations.find(x => x.id === state.location)?.name || 'Khu phố');
+      locationEl.innerHTML = LEMONADE.locations.map(x => `<button type="button" data-location="${x.id}" aria-pressed="${state.location === x.id}">${x.name}<br><small>${x.rent ? '$' + x.rent + ' thuê' : 'miễn thuê'}</small></button>`).join('');
+      const itemNames = { lemons: 'Chanh', sugar: 'Đường', ice: 'Đá', cups: 'Cốc' };
+      $('#ltStock').innerHTML = Object.entries(LEMONADE.packs).map(([item, pack]) => `<div><span>${itemNames[item]}</span><strong>${state.stock[item]}</strong><button type="button" data-buy="${item}" aria-label="Mua thêm ${pack.count} ${itemNames[item]}">+${pack.count}<br>$${pack.cost.toFixed(2)}</button></div>`).join('');
+      const planning = state.phase === 'planning';
+      for (const button of container.querySelectorAll('[data-adjust],[data-location],[data-buy]')) button.disabled = !planning;
+      $('#ltRunDay').hidden = !planning;
+      $('#ltNextDay').hidden = state.phase !== 'result';
+      $('#ltRestart').hidden = !['won', 'over'].includes(state.phase);
+      reportEl.hidden = !state.lastReport;
+      if (state.lastReport) {
+        const r = state.lastReport;
+        reportEl.textContent = `${r.cups} cốc bán · ${r.demand - r.cups > 0 ? r.demand - r.cups + ' khách chờ' : 'hết khách'} · thu $${r.revenue.toFixed(2)} · tiền quầy $${r.cash.toFixed(2)}`;
+      }
+      if (state.phase === 'result') status.textContent = 'Ngày ' + state.day + ' xong · ' + (state.lastReport?.satisfaction || 0) + '% hài lòng';
+      else if (state.phase === 'won') status.textContent = 'Mùa bán hàng có lời · giữ lại $' + state.cash.toFixed(2);
+      else if (state.phase === 'over') status.textContent = state.cash <= 0 ? 'Quầy cạn tiền · mở mùa mới để thử lại' : 'Mùa kết thúc dưới mục tiêu $' + LEMONADE.targetCash;
+      drawScene();
+    }
+    function drawScene() {
+      const w = 900, h = 300, f = state.forecast;
+      const sky = ctx.createLinearGradient(0, 0, 0, h);
+      sky.addColorStop(0, f.rain ? '#99c9d0' : '#86d6dd'); sky.addColorStop(1, f.rain ? '#bddbd0' : '#d6efbb');
+      ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = f.rain ? 'rgba(68,94,104,.24)' : 'rgba(255,234,130,.8)';
+      ctx.beginPath(); ctx.arc(760, 66, 35 + Math.sin(sceneTime) * 2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#90b87d'; ctx.beginPath(); ctx.moveTo(0, 207); ctx.quadraticCurveTo(205, 120, 420, 210); ctx.quadraticCurveTo(670, 130, 900, 204); ctx.lineTo(900, 300); ctx.lineTo(0, 300); ctx.fill();
+      ctx.fillStyle = '#eadba8'; ctx.fillRect(0, 240, w, 60);
+      ctx.fillStyle = '#d1b56c'; ctx.fillRect(0, 240, w, 5);
+      ctx.fillStyle = '#fff4d1'; ctx.fillRect(256, 122, 390, 118);
+      ctx.fillStyle = '#457852'; ctx.fillRect(273, 137, 356, 86);
+      ctx.fillStyle = '#f3c43a'; ctx.fillRect(273, 137, 356, 15);
+      for (let i = 0; i < 7; i++) { ctx.fillStyle = i % 2 ? '#fff4d1' : '#e6584e'; ctx.beginPath(); ctx.moveTo(273 + i * 50.86, 152); ctx.lineTo(324 + i * 50.86, 152); ctx.lineTo(309 + i * 50.86, 177); ctx.lineTo(288 + i * 50.86, 177); ctx.closePath(); ctx.fill(); }
+      ctx.fillStyle = '#f4d74f'; ctx.fillRect(342, 184, 220, 26);
+      ctx.fillStyle = '#355744'; ctx.font = '700 18px Calibri,sans-serif'; ctx.textAlign = 'center'; ctx.fillText('CHANH MÁT', 452, 203);
+      ctx.fillStyle = '#fffdf2'; ctx.fillRect(414, 230, 78, 54);
+      ctx.fillStyle = '#e8c844'; ctx.fillRect(430, 244, 46, 30);
+      ctx.fillStyle = '#407357'; ctx.fillRect(430, 244, 46, 5);
+      const customers = Math.min(8, Math.max(2, state.lastReport?.cups || Math.floor((state.forecast.temperature - 8) / 4)));
+      for (let i = 0; i < customers; i++) {
+        const x = 78 + i * 83, y = 214 + Math.sin(sceneTime * 1.5 + i) * 2;
+        ctx.fillStyle = ['#dc7052','#445f8b','#9271a5','#c98d44'][i % 4]; ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#41514d'; ctx.fillRect(x - 6, y + 8, 12, 23);
+        ctx.fillStyle = '#f2d357'; ctx.beginPath(); ctx.arc(x + 17, y + 17, 6, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.textAlign = 'left';
+      if (f.rain) { ctx.strokeStyle = 'rgba(64,115,144,.5)'; ctx.lineWidth = 2; for (let i=0;i<12;i++) { const x=(i*79+sceneTime*35)%900; ctx.beginPath(); ctx.moveTo(x,12); ctx.lineTo(x-10,28); ctx.stroke(); } }
+      ctx.fillStyle = '#49734f';
+      for (let i=0;i<12;i++) { const x=25+i*76; ctx.beginPath(); ctx.arc(x,236,12,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#e3b927'; ctx.beginPath(); ctx.arc(x+4,233,3.4,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#49734f'; }
+    }
+    function render() { renderControls(); }
+    function adjust(field, delta) {
+      const old = field in state.recipe ? state.recipe[field] : state[field];
+      lemonadeSet(state, field, old + delta); render();
+    }
+    session.listen(container, 'click', event => {
+      const button = event.target.closest('button'); if (!button || !container.contains(button)) return;
+      if (button.dataset.adjust) adjust(button.dataset.adjust, Number(button.dataset.delta));
+      else if (button.dataset.location) lemonadeSet(state, 'location', button.dataset.location);
+      else if (button.dataset.buy) { if (lemonadeBuy(state, button.dataset.buy) && window.NP_Audio?.coin) window.NP_Audio.coin(); }
+      else if (button.id === 'ltRunDay') {
+        const report = lemonadeStartDay(state);
+        if (report && window.NP_Audio) {
+          if (report.gross > 0 && window.NP_Audio.dinerBell) window.NP_Audio.dinerBell();
+          else if (window.NP_Audio.alarm) window.NP_Audio.alarm();
+        }
+      }
+      else if (button.id === 'ltNextDay') lemonadeNextDay(state);
+      else if (button.id === 'ltRestart') { state = createLemonadeState((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0); if (window.NP_Audio?.whoosh) window.NP_Audio.whoosh(); }
+      saveRecord(); render();
+    });
+    function frame(timestamp) { sceneTime = timestamp / 1000; drawScene(); raf = session.requestAnimationFrame(frame); }
+    render(); raf = session.requestAnimationFrame(frame);
+    session.onCleanup(() => { if (raf !== null) session.cancelAnimationFrame(raf); saveRecord(); });
+  }
+
   // Galaga-inspired fixed shooter. The 1981 Namco reference specifies about
   // forty enemies, three ranks, a two-shot cap, lateral movement, dives and
   // the Boss Galaga capture/rescue that unlocks a larger dual fighter.
@@ -2023,6 +2313,10 @@
       launchBubbleTrouble(container, game);
       return;
     }
+    if (id === 'lemonade-tycoon') {
+      launchLemonade(container, game);
+      return;
+    }
     const session = window.NP_GameSession.start();
     const { listen, requestAnimationFrame, cancelAnimationFrame, setTimeout } = session;
     const kind = kindFor(game);
@@ -2682,6 +2976,8 @@
     asteroidsModel: { create: createAsteroidsState, fire: asteroidFire, hyperspace: asteroidHyperspace, tick: asteroidTick, constants: ASTEROIDS },
     galagaModel: { create: createGalagaState, fire: galagaFire, capture: galagaCapture, tick: galagaTick, constants: GALAGA },
     pianoTilesModel: { create: createPianoTilesState, tap: pianoTap, tick: pianoTick, speed: pianoSpeed, constants: PIANO_TILES },
-    bubbleTroubleModel: { create: createBubbleTroubleState, fire: bubbleFire, pop: bubblePop, tick: bubbleTick, constants: BUBBLE_TROUBLE }
+    bubbleTroubleModel: { create: createBubbleTroubleState, fire: bubbleFire, pop: bubblePop, tick: bubbleTick, constants: BUBBLE_TROUBLE },
+    lemonadeModel: { create: createLemonadeState, set: lemonadeSet, buy: lemonadeBuy, servings: lemonadeServings,
+      quality: lemonadeQuality, demand: lemonadeDemand, startDay: lemonadeStartDay, nextDay: lemonadeNextDay, constants: LEMONADE }
   };
 })();

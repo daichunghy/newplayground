@@ -6609,7 +6609,322 @@ function launchSnake(container, game) {
 // =========================================================================
 // 10. ENGINE: XẾP GẠCH (TETRIS CỔ ĐIỂN FULL ENGINE)
 // =========================================================================
+const DR_MARIO = Object.freeze({ columns: 8, rows: 16, maxStage: 5, colors: 3,
+  cell: 30, gravity: [0.9, 0.72, 0.56, 0.42, 0.31], stageClearSeconds: 0.8 });
+const DR_VECTORS = [[1,0],[0,1],[-1,0],[0,-1]];
+
+function drRandom(state) {
+  state.rng = (Math.imul(state.rng, 1664525) + 1013904223) >>> 0;
+  return state.rng / 0x100000000;
+}
+
+function drLineMatches(state) {
+  const matches = new Set(), key = (x,y) => y * DR_MARIO.columns + x;
+  for (let y = 0; y < DR_MARIO.rows; y++) {
+    let x = 0;
+    while (x < DR_MARIO.columns) {
+      const cell = state.grid[y][x]; if (!cell) { x++; continue; }
+      let end = x + 1;
+      while (end < DR_MARIO.columns && state.grid[y][end]?.color === cell.color) end++;
+      if (end - x >= 4) for (let col = x; col < end; col++) matches.add(key(col,y));
+      x = end;
+    }
+  }
+  for (let x = 0; x < DR_MARIO.columns; x++) {
+    let y = 0;
+    while (y < DR_MARIO.rows) {
+      const cell = state.grid[y][x]; if (!cell) { y++; continue; }
+      let end = y + 1;
+      while (end < DR_MARIO.rows && state.grid[end][x]?.color === cell.color) end++;
+      if (end - y >= 4) for (let row = y; row < end; row++) matches.add(key(x,row));
+      y = end;
+    }
+  }
+  return matches;
+}
+
+function drPillCells(pill) {
+  const [dx,dy] = DR_VECTORS[pill.direction];
+  return [{ x:pill.x, y:pill.y, color:pill.colors[0] },
+    { x:pill.x+dx, y:pill.y+dy, color:pill.colors[1] }];
+}
+
+function drCanPlace(state, pill) {
+  for (const part of drPillCells(pill)) {
+    if (part.x < 0 || part.x >= DR_MARIO.columns || part.y >= DR_MARIO.rows) return false;
+    if (part.y >= 0 && state.grid[part.y][part.x]) return false;
+  }
+  return true;
+}
+
+function drDetachBrokenPairs(state) {
+  const counts = new Map();
+  for (const row of state.grid) for (const cell of row) if (cell?.pairId !== null && cell?.pairId !== undefined) {
+    counts.set(cell.pairId, (counts.get(cell.pairId) || 0) + 1);
+  }
+  for (const row of state.grid) for (const cell of row) if (cell?.pairId !== null && cell?.pairId !== undefined && counts.get(cell.pairId) < 2) cell.pairId = null;
+}
+
+function drGroups(state) {
+  const found = new Set(), groups = [];
+  for (let y = DR_MARIO.rows - 1; y >= 0; y--) for (let x = 0; x < DR_MARIO.columns; x++) {
+    const cell = state.grid[y][x];
+    if (!cell || cell.virus) continue;
+    const id = cell.pairId;
+    if (id !== null && id !== undefined) {
+      if (found.has(id)) continue;
+      found.add(id);
+      const parts = [];
+      for (let py = 0; py < DR_MARIO.rows; py++) for (let px = 0; px < DR_MARIO.columns; px++) {
+        if (state.grid[py][px]?.pairId === id) parts.push({ x:px, y:py });
+      }
+      groups.push(parts);
+    } else groups.push([{ x, y }]);
+  }
+  groups.sort((a,b) => Math.max(...b.map(p=>p.y)) - Math.max(...a.map(p=>p.y)));
+  return groups;
+}
+
+function drSettleCapsules(state) {
+  for (let pass = 0; pass < DR_MARIO.rows; pass++) {
+    let moved = false;
+    for (const group of drGroups(state)) {
+      const own = new Set(group.map(p=>p.y*DR_MARIO.columns+p.x));
+      if (group.some(p => p.y + 1 >= DR_MARIO.rows || (state.grid[p.y+1][p.x] && !own.has((p.y+1)*DR_MARIO.columns+p.x)))) continue;
+      const parts = group.map(p => ({ x:p.x, y:p.y, cell:state.grid[p.y][p.x] }));
+      for (const p of parts) state.grid[p.y][p.x] = null;
+      for (const p of parts) state.grid[p.y+1][p.x] = p.cell;
+      moved = true;
+    }
+    if (!moved) break;
+  }
+}
+
+function drResolve(state) {
+  let chain = 0, totalRemoved = 0, removedViruses = 0;
+  while (chain < DR_MARIO.rows) {
+    const matches = drLineMatches(state);
+    if (!matches.size) break;
+    chain++;
+    let chainViruses = 0;
+    for (const key of matches) {
+      const y = Math.floor(key / DR_MARIO.columns), x = key % DR_MARIO.columns;
+      const cell = state.grid[y][x];
+      if (cell?.virus) { removedViruses++; chainViruses++; }
+      state.grid[y][x] = null;
+    }
+    totalRemoved += matches.size;
+    state.viruses = Math.max(0, state.viruses - chainViruses);
+    drDetachBrokenPairs(state);
+    drSettleCapsules(state);
+  }
+  if (totalRemoved) {
+    state.score += totalRemoved * 100 + removedViruses * 200 + Math.max(0, chain - 1) * 250;
+    state.lastEvent = { type:'clear', removed:totalRemoved, viruses:removedViruses, chain, score:state.score };
+  }
+  return { removed:totalRemoved, viruses:removedViruses, chain };
+}
+
+function drGenerateViruses(state, stage) {
+  state.grid = Array.from({ length:DR_MARIO.rows }, () => Array(DR_MARIO.columns).fill(null));
+  const count = 4 + (stage - 1) * 4;
+  if (stage === 1) {
+    for (const x of [2,3,5]) state.grid[15][x] = { color:0, virus:true, pairId:null };
+    for (const x of [2,3,5]) state.grid[14][x] = { color:1, virus:true, pairId:null };
+    return 6;
+  }
+  let placed = 0, attempts = 0;
+  while (placed < count && attempts++ < 5000) {
+    const x = Math.floor(drRandom(state) * DR_MARIO.columns);
+    const y = DR_MARIO.rows - 1 - Math.floor(drRandom(state) * Math.min(7, 3 + stage));
+    if (state.grid[y][x]) continue;
+    const color = Math.floor(drRandom(state) * DR_MARIO.colors);
+    state.grid[y][x] = { color, virus:true, pairId:null };
+    if (drLineMatches(state).size) { state.grid[y][x] = null; continue; }
+    placed++;
+  }
+  return placed;
+}
+
+function drPickColors(state) {
+  // The authored first bottle teaches a single vertical placement that clears
+  // one red and one blue row together; all later capsules use the seeded bag.
+  if (state.stage === 1 && state.pillsSpawned === 0) return [1,0];
+  return [Math.floor(drRandom(state)*DR_MARIO.colors), Math.floor(drRandom(state)*DR_MARIO.colors)];
+}
+
+function drSpawn(state) {
+  const colors = state.preview || drPickColors(state);
+  state.active = { x:4, y:-1, direction:1, colors, pairId:state.nextPairId++, fall:0 };
+  state.fallElapsed = 0;
+  state.pillsSpawned++;
+  state.preview = drPickColors(state);
+  if (!drCanPlace(state,state.active)) { state.phase='over'; state.lastEvent={type:'bottle-full'}; state.active=null; }
+  else state.lastEvent = { type:'capsule-start', colors:colors.slice() };
+}
+
+function drStartLevel(state, stage) {
+  state.stage = stage;
+  state.viruses = drGenerateViruses(state,stage);
+  state.pillsSpawned = 0; state.preview = null; state.active = null; state.fallElapsed = 0;
+  state.phase = 'playing';
+  drSpawn(state);
+}
+
+function createDrMarioState(seed=0x1990) {
+  const state = { rng:(Number(seed)>>>0)||1, phase:'playing', stage:1, score:0,
+    viruses:0, grid:[], active:null, preview:null, pillsSpawned:0, nextPairId:1,
+    fallElapsed:0, clearRemaining:0, lastEvent:null, maxStage:DR_MARIO.maxStage };
+  drStartLevel(state,1);
+  return state;
+}
+
+function drMove(state, dx) {
+  if (state.phase !== 'playing' || !state.active) return false;
+  const next = { ...state.active, x:state.active.x + Math.sign(dx) };
+  if (!drCanPlace(state,next)) return false;
+  state.active.x = next.x; state.lastEvent={ type:'move', x:next.x }; return true;
+}
+
+function drRotate(state, turn=1) {
+  if (state.phase !== 'playing' || !state.active) return false;
+  const direction = (state.active.direction + (turn < 0 ? 3 : 1)) % 4;
+  for (const offset of [0, -1, 1]) {
+    const next={ ...state.active, direction, x:state.active.x + offset };
+    if (drCanPlace(state,next)) { state.active.direction=direction; state.active.x=next.x; state.lastEvent={type:'rotate',direction}; return true; }
+  }
+  return false;
+}
+
+function drLock(state) {
+  if (!state.active || state.phase !== 'playing') return false;
+  const parts=drPillCells(state.active);
+  if (parts.some(p=>p.y<0)) { state.phase='over'; state.lastEvent={type:'bottle-full'}; state.active=null; return false; }
+  for (let i=0;i<parts.length;i++) state.grid[parts[i].y][parts[i].x]={color:parts[i].color,virus:false,pairId:state.active.pairId,side:i};
+  state.lastEvent={type:'lock'}; state.active=null;
+  drResolve(state);
+  if (state.viruses===0) { state.phase='stage-clear'; state.clearRemaining=DR_MARIO.stageClearSeconds; state.lastEvent={type:'stage-clear',stage:state.stage,score:state.score}; }
+  else if (state.phase==='playing') drSpawn(state);
+  return true;
+}
+
+function drHardDrop(state) {
+  if (state.phase!=='playing'||!state.active) return 0;
+  let distance=0;
+  while (distance<DR_MARIO.rows && drCanPlace(state,{...state.active,y:state.active.y+1})) { state.active.y++; distance++; }
+  state.score += distance * 2;
+  drLock(state);
+  return distance;
+}
+
+function drFall(state) {
+  if (!state.active) return false;
+  if (drCanPlace(state,{...state.active,y:state.active.y+1})) { state.active.y++; return true; }
+  drLock(state); return false;
+}
+
+function drTick(state,input={},dt=1/60) {
+  const seconds=Math.min(.05,Math.max(0,Number(dt)||0));
+  if (!seconds || ['over','won','paused'].includes(state.phase)) return;
+  if (state.phase==='stage-clear') {
+    state.clearRemaining-=seconds;
+    if(state.clearRemaining<=0){ if(state.stage>=DR_MARIO.maxStage){state.phase='won';state.lastEvent={type:'complete',stage:state.stage,score:state.score};}
+      else {drStartLevel(state,state.stage+1);state.lastEvent={type:'stage-start',stage:state.stage,viruses:state.viruses};} }
+    return;
+  }
+  if(state.phase!=='playing')return;
+  state.fallElapsed+=seconds;
+  const interval=input.softDrop?.075:DR_MARIO.gravity[state.stage-1]||.31;
+  let count=0;
+  while(state.fallElapsed>=interval&&count++<4&&state.phase==='playing'){
+    state.fallElapsed-=interval;drFall(state);
+  }
+}
+
+function launchDrMario(container, game) {
+  const session=window.NP_GameSession.start(), recordKey='np_dr_mario_record_v1';
+  let state=createDrMarioState((Date.now()^Math.floor(Math.random()*0xffffffff))>>>0);
+  let bestScore=0,paused=false,raf=null,lastTime=0;
+  const keys={softDrop:false};
+  try{bestScore=Math.max(0,Number(JSON.parse(localStorage.getItem(recordKey)||'{}').score)||0);}catch(error){}
+  container.innerHTML=`
+    <style>
+      #gameModal:has(.np-dr-shell) .modal-window{width:min(98vw,940px);max-width:940px;min-width:0}
+      #gameModal:has(.np-dr-shell) .modal-body,#gameModal:has(.np-dr-shell) .modal-title-group{min-width:0}
+      #gameModal:has(.np-dr-shell) #modalGameBadge,#gameModal:has(.np-dr-shell) #crtToggleBtn{display:none}
+      .np-dr-shell{width:min(100%,850px);margin:auto;display:grid;gap:8px;color:#eaf5f4;font:14px Calibri,Inter,sans-serif}
+      .np-dr-hud{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;text-align:center}
+      .np-dr-hud div{padding:6px;border-radius:8px;background:#173642;color:#a8c1c4;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+      .np-dr-hud strong{display:block;color:#f2f3e9;font-size:18px;letter-spacing:0}
+      .np-dr-main{display:grid;grid-template-columns:minmax(230px,1fr) 190px;gap:14px;align-items:stretch;justify-content:center}
+      .np-dr-board{width:auto;height:min(60dvh,640px);max-width:100%;aspect-ratio:7/10;justify-self:center;border:1px solid #527781;border-radius:12px;background:#132933;touch-action:none}
+      .np-dr-side{display:grid;align-content:start;gap:9px;padding:10px;border-radius:10px;background:#173642}
+      .np-dr-side h3{margin:0;color:#f0d26a;font-size:13px;letter-spacing:.08em}
+      .np-dr-next{width:90px;height:70px;border:1px solid #527781;border-radius:7px;background:#112730}
+      .np-dr-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+      .np-dr-shell button{min-width:44px;min-height:46px;padding:5px;border:1px solid #557680;border-radius:8px;background:#234650;color:#f0f4ec;font:700 12px Calibri,Inter,sans-serif;touch-action:manipulation}
+      .np-dr-shell button[data-dr="drop"]{background:#e1bd50;color:#283a37;border-color:#f0d777}
+      .np-dr-shell button:focus-visible{outline:3px solid #f0d777;outline-offset:2px}
+      .np-dr-status{min-height:18px;margin:0;text-align:center;color:#49636b;font-size:12px}
+      @media(max-width:620px){.np-dr-main{grid-template-columns:1fr;gap:6px}.np-dr-side{grid-template-columns:90px minmax(0,1fr);grid-template-rows:auto 1fr;align-items:center;padding:6px;gap:6px}.np-dr-side h3{grid-column:1;grid-row:1}.np-dr-next{grid-column:1;grid-row:2;width:82px;height:60px}.np-dr-board{height:min(51dvh,440px);width:auto;aspect-ratio:7/10}.np-dr-shell{gap:6px}.np-dr-hud{gap:3px}.np-dr-hud div{padding:5px 2px;font-size:9px}.np-dr-hud strong{font-size:15px}.np-dr-actions{grid-column:2;grid-row:1/span 2;grid-template-columns:repeat(3,minmax(44px,1fr));gap:4px}.np-dr-shell button{padding:3px;font-size:10px}}
+      @media(max-width:380px){.np-dr-side{grid-template-columns:78px minmax(0,1fr)}.np-dr-next{width:70px;height:54px}.np-dr-board{height:min(48dvh,400px)}}
+    </style>
+    <section class="np-dr-shell" aria-label="Bác Sĩ Diệt Khuẩn, xếp capsule màu">
+      <header class="np-dr-hud"><div>Màn<strong id="dmStage">1 / 5</strong></div><div>Virus<strong id="dmViruses">6</strong></div><div>Điểm<strong id="dmScore">0</strong></div><div>Kỷ lục<strong id="dmBest">0</strong></div></header>
+      <div class="np-dr-main"><canvas id="dmCanvas" class="np-dr-board" width="420" height="600" tabindex="0" aria-label="Chai 8 cột, 16 hàng. Ghép bốn màu để diệt virus."></canvas>
+        <aside class="np-dr-side"><h3>CAPSULE TIẾP</h3><canvas id="dmNext" class="np-dr-next" width="120" height="90" aria-label="Capsule tiếp theo"></canvas>
+          <div class="np-dr-actions"><button data-dr="left" aria-label="Sang trái">←</button><button data-dr="rotate" aria-label="Xoay thuận">XOAY ↻</button><button data-dr="right" aria-label="Sang phải">→</button>
+            <button data-dr="ccw" aria-label="Xoay ngược">↺</button><button data-dr="down" aria-label="Rơi mềm">↓ RƠI</button><button data-dr="drop" aria-label="Thả capsule">THẢ</button>
+            <button data-dr="pause" aria-label="Tạm dừng">DỪNG</button><button data-dr="restart" aria-label="Chơi lại">LẠI</button></div>
+        </aside></div>
+      <p id="dmStatus" class="np-dr-status" role="status" aria-live="polite">← → di chuyển · ↑ / X xoay · Z xoay ngược · ↓ rơi · Space thả nhanh</p>
+    </section>`;
+  const $=s=>container.querySelector(s),canvas=$('#dmCanvas'),ctx=canvas.getContext('2d'),nextCanvas=$('#dmNext'),nextCtx=nextCanvas.getContext('2d');
+  const palette=[['#ef665f','#ffb0a1','#b94349'],['#43b5d0','#a4e5ec','#23758c'],['#e9c24a','#fff0a0','#aa7927']];
+  const status=$('#dmStatus'),pauseButton=container.querySelector('[data-dr="pause"]');
+  function save(){if(state.score>bestScore){bestScore=state.score;try{localStorage.setItem(recordKey,JSON.stringify({score:bestScore,stage:Math.max(state.stage,state.phase==='won'?DR_MARIO.maxStage:state.stage)}));}catch(error){}}}
+  function reset(){state=createDrMarioState((Date.now()^Math.floor(Math.random()*0xffffffff))>>>0);paused=false;pauseButton.textContent='DỪNG';status.textContent='← → di chuyển · ↑ / X xoay · Z xoay ngược · ↓ rơi · Space thả nhanh';draw();canvas.focus({preventScroll:true});}
+  function action(name){if(name==='left'){drMove(state,-1);window.NP_Audio?.tone?.(360,'square',.035,.04);}else if(name==='right'){drMove(state,1);window.NP_Audio?.tone?.(390,'square',.035,.04);}else if(name==='rotate'||name==='ccw'){drRotate(state,name==='ccw'?-1:1);window.NP_Audio?.clack?.();}else if(name==='down'){drFall(state);window.NP_Audio?.pop?.();}else if(name==='drop'){drHardDrop(state);window.NP_Audio?.woodThud?.();}else if(name==='restart'){reset();window.NP_Audio?.whoosh?.();}else if(name==='pause'){if(state.phase==='playing'){state.phase='paused';paused=true;}else if(state.phase==='paused'){state.phase='playing';paused=false;}pauseButton.textContent=paused?'TIẾP':'DỪNG';}}
+  session.listen(container,'click',event=>{const button=event.target.closest('[data-dr]');if(button&&container.contains(button))action(button.dataset.dr);});
+  session.listen(window,'keydown',event=>{
+    if(event.target?.tagName==='BUTTON')return;
+    const code=event.code;
+    if(['ArrowLeft','ArrowRight','ArrowDown','ArrowUp','KeyX','KeyZ','Space','KeyP','Escape','Enter'].includes(code))event.preventDefault();
+    if(code==='ArrowLeft')drMove(state,-1);else if(code==='ArrowRight')drMove(state,1);else if(code==='ArrowUp'||code==='KeyX')drRotate(state,1);else if(code==='KeyZ')drRotate(state,-1);else if(code==='Space'&&!event.repeat)drHardDrop(state);else if(code==='ArrowDown')keys.softDrop=true;else if((code==='KeyP'||code==='Escape')&&!event.repeat)action('pause');else if(code==='Enter'&&['over','won'].includes(state.phase))reset();
+  });
+  session.listen(window,'keyup',event=>{if(event.code==='ArrowDown')keys.softDrop=false;});
+  session.listen(window,'blur',()=>{keys.softDrop=false;});
+  function rounded(x,y,w,h,r,color){ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill();}
+  function drawCell(x,y,color,virus=false){const [fill,light,dark]=palette[color],px=90+x*30,py=60+y*30;
+    if(virus){ctx.fillStyle=fill;ctx.beginPath();ctx.arc(px+15,py+15,12,0,Math.PI*2);ctx.fill();ctx.fillStyle='#f8f1df';ctx.beginPath();ctx.arc(px+11,py+13,2.5,0,Math.PI*2);ctx.arc(px+19,py+13,2.5,0,Math.PI*2);ctx.fill();ctx.fillStyle='#263b46';ctx.fillRect(px+10,py+14,2,2);ctx.fillRect(px+18,py+14,2,2);ctx.strokeStyle=dark;ctx.lineWidth=2;ctx.beginPath();ctx.arc(px+15,py+17,5,.15,Math.PI-.15);ctx.stroke();}
+    else {rounded(px+2,py+2,26,26,8,fill);ctx.fillStyle=light;ctx.beginPath();ctx.arc(px+9,py+9,3,0,Math.PI*2);ctx.fill();ctx.strokeStyle=dark;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(px+5,py+25);ctx.lineTo(px+25,py+25);ctx.stroke();}}
+  function drawNext(){nextCtx.clearRect(0,0,120,90);nextCtx.fillStyle='#112730';nextCtx.fillRect(0,0,120,90);if(!state.preview)return;for(let i=0;i<2;i++){const x=36+(i===1?23:0),y=20+(i===1?23:0),[fill,light,dark]=palette[state.preview[i]];nextCtx.fillStyle=fill;nextCtx.beginPath();nextCtx.roundRect(x,y,25,25,8);nextCtx.fill();nextCtx.fillStyle=light;nextCtx.beginPath();nextCtx.arc(x+7,y+7,3,0,Math.PI*2);nextCtx.fill();}}
+  function draw(){
+    ctx.fillStyle='#142c36';ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle='#0d2028';ctx.fillRect(82,50,256,496);
+    ctx.strokeStyle='#85a6a9';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(78,54);ctx.lineTo(78,548);ctx.lineTo(342,548);ctx.lineTo(342,54);ctx.stroke();
+    for(let y=0;y<DR_MARIO.rows;y++)for(let x=0;x<DR_MARIO.columns;x++){ctx.strokeStyle='rgba(141,178,177,.11)';ctx.lineWidth=1;ctx.strokeRect(90+x*30,60+y*30,30,30);const cell=state.grid[y][x];if(cell)drawCell(x,y,cell.color,cell.virus);}
+    if(state.active&&state.phase!=='paused')for(const part of drPillCells(state.active))if(part.y>=0)drawCell(part.x,part.y,part.color,false);
+    drawNext();
+    if(state.phase==='paused'||state.phase==='stage-clear'||state.phase==='over'||state.phase==='won'){
+      ctx.fillStyle='rgba(8,23,29,.8)';ctx.fillRect(82,50,256,496);ctx.textAlign='center';ctx.fillStyle=state.phase==='over'?'#ff9b8e':'#f4da72';ctx.font='700 26px Calibri,sans-serif';
+      ctx.fillText(state.phase==='paused'?'TẠM DỪNG':state.phase==='stage-clear'?'SẠCH VIRUS':state.phase==='won'?'CHAI ĐÃ SẠCH':'KẸT MIỆNG CHAI',210,280);
+      ctx.fillStyle='#d6e7e4';ctx.font='14px Calibri,sans-serif';ctx.fillText(state.phase==='stage-clear'?'Đang chuẩn bị màn mới':state.phase==='won'?'Năm màn đã hoàn thành':'Bấm LẠI để thử tiếp',210,307);
+    }
+    $('#dmStage').textContent=state.stage+' / '+DR_MARIO.maxStage;$('#dmViruses').textContent=state.viruses;$('#dmScore').textContent=state.score;$('#dmBest').textContent=bestScore;
+    if(state.lastEvent?.type==='stage-clear')status.textContent='Màn '+state.stage+' sạch virus · màn tiếp đang tới';
+    if(state.lastEvent?.type==='stage-start')status.textContent='Màn '+state.stage+' · '+state.viruses+' virus';
+    if(state.phase==='over')status.textContent='Kẹt ở miệng chai · nhấn LẠI hoặc Enter';
+    if(state.phase==='won')status.textContent='Năm màn đã hoàn thành · '+state.score+' điểm';
+  }
+  let soundedPhase=state.phase;
+  function frame(timestamp){const dt=lastTime?Math.min(.05,Math.max(0,(timestamp-lastTime)/1000)):1/60;lastTime=timestamp;drTick(state,keys,dt);if(state.phase!==soundedPhase){soundedPhase=state.phase;if(state.phase==='stage-clear')window.NP_Audio?.match?.(Math.min(5,state.stage));else if(state.phase==='over')window.NP_Audio?.alarm?.();else if(state.phase==='won')window.NP_Audio?.win?.();}save();draw();raf=session.requestAnimationFrame(frame);}
+  draw();canvas.focus({preventScroll:true});session.setTimeout(()=>canvas.focus({preventScroll:true}),0);raf=session.requestAnimationFrame(frame);
+  session.onCleanup(()=>{if(raf!==null)session.cancelAnimationFrame(raf);keys.softDrop=false;save();});
+}
+
 function launchTetris(container, game) {
+  if (String(game?.id || '').toLowerCase() === 'dr-mario-diet-khuan') { launchDrMario(container, game); return; }
   const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
   const HIGH_SCORE_KEY = 'np_tetris_high_score';
   let highScore = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
@@ -9410,6 +9725,7 @@ function launchPikachu(container, game) {
     launchFruitNinja,
     launchDoMin,
     launchPikachu,
-    launchRetroArcade
+    launchRetroArcade,
+    drMarioModel: { create: createDrMarioState, startLevel: drStartLevel, move: drMove, rotate: drRotate, hardDrop: drHardDrop, tick: drTick, resolve: drResolve, constants: DR_MARIO }
   };
 })();
