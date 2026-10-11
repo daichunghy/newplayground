@@ -5246,6 +5246,7 @@
     }
 
     function undo() {
+      stopAutoWalk();
       if (history.length === 0) return;
       levelComplete = false;
       const nextButton = container.querySelector('#skNextBtn');
@@ -5262,7 +5263,7 @@
     }
 
     function tryMove(dx, dy, dirName) {
-      if (levelComplete) return;
+      if (levelComplete) return false;
       if (dirName) playerDir = dirName;
       const nx = player.x + dx;
       const ny = player.y + dy;
@@ -5270,6 +5271,7 @@
       if (ny < 0 || ny >= grid.length || nx < 0 || nx >= grid[ny].length) return;
       if (grid[ny][nx] === '#') return;
 
+      let moved=false, pushedAt=null;
       // Push crate
       if (grid[ny][nx] === '$' || grid[ny][nx] === '*') {
         const nnx = nx + dx;
@@ -5284,6 +5286,8 @@
           player.x = nx;
           player.y = ny;
           moves++;
+          moved=true;
+          pushedAt={x:nnx,y:nny};
           if (grid[nny][nnx] === '*') {
             AudioEngine.coin(); // Rewarding sound when crate hits target
             if (window.NP_Juice) window.NP_Juice.vibrate(22);
@@ -5297,16 +5301,29 @@
         player.x = nx;
         player.y = ny;
         moves++;
+        moved=true;
         if (window.NP_Juice) window.NP_Juice.vibrate(6);
       }
-
+      if (!moved) return false;
       render();
+      if (pushedAt && hasDeadCorner(pushedAt.x,pushedAt.y)) {
+        const hint=container.querySelector('#skResult');
+        if (hint) hint.textContent='Thùng vào góc chết. Hãy Hoàn tác nước này.';
+      } else if (pushedAt) {
+        const hint=container.querySelector('#skResult');
+        if (hint) hint.textContent='';
+      }
 
       // All targets must be occupied; do not auto-advance while an input is held.
       if (grid.every(row => !row.includes('.'))) {
         levelComplete = true;
         unlockedStage = Math.max(unlockedStage, Math.min(LEVELS.length, currentLevel + 2));
-        try { localStorage.setItem('np_sokoban_unlocked', String(unlockedStage)); } catch (_) {}
+        try {
+          localStorage.setItem('np_sokoban_unlocked', String(unlockedStage));
+          const bestKey='np_sokoban_best_' + (currentLevel+1);
+          const old=Number(localStorage.getItem(bestKey))||Infinity;
+          if (moves<old) localStorage.setItem(bestKey,String(moves));
+        } catch (_) {}
         AudioEngine.win();
         const message = container.querySelector('#skResult');
         const nextButton = container.querySelector('#skNextBtn');
@@ -5320,9 +5337,12 @@
         }
         render();
       }
+      return true;
     }
 
     const keyHandler = (e) => {
+      if (e.metaKey||e.ctrlKey||e.altKey||/INPUT|TEXTAREA|SELECT/.test(e.target?.tagName||'')) return;
+      stopAutoWalk();
       if (['ArrowUp', 'w', 'W'].includes(e.key)) { tryMove(0, -1, 'up'); e.preventDefault(); }
       if (['ArrowDown', 's', 'S'].includes(e.key)) { tryMove(0, 1, 'down'); e.preventDefault(); }
       if (['ArrowLeft', 'a', 'A'].includes(e.key)) { tryMove(-1, 0, 'left'); e.preventDefault(); }
@@ -5331,34 +5351,31 @@
     };
     listen(window, 'keydown', keyHandler);
 
-    // Touch Swipe directly on board for natural mobile movement
-    let skTouchX = 0, skTouchY = 0;
-    const boardEl = container.querySelector('#skBoard');
-    if (boardEl) {
-      boardEl.addEventListener('touchstart', (e) => {
-        if (e.touches[0]) {
-          skTouchX = e.touches[0].clientX;
-          skTouchY = e.touches[0].clientY;
-        }
-      }, { passive: true });
-
-      boardEl.addEventListener('touchend', (e) => {
-        if (e.changedTouches[0]) {
-          const dx = e.changedTouches[0].clientX - skTouchX;
-          const dy = e.changedTouches[0].clientY - skTouchY;
-          const absX = Math.abs(dx);
-          const absY = Math.abs(dy);
-          if (Math.max(absX, absY) > 20) {
-            e.preventDefault();
-            if (absX > absY) {
-              tryMove(dx > 0 ? 1 : -1, 0, dx > 0 ? 'right' : 'left');
-            } else {
-              tryMove(0, dy > 0 ? 1 : -1, dy > 0 ? 'down' : 'up');
-            }
-          }
-        }
-      }, { passive: false });
-    }
+    // Event delegation survives board rerender without retaining stale cell listeners.
+    const boardEl=container.querySelector('#skBoard');
+    let startPointer=null;
+    listen(boardEl,'pointerdown',e=>{
+      if (e.pointerType==='mouse'&&e.button!==0) return;
+      startPointer={id:e.pointerId,x:e.clientX,y:e.clientY};
+    });
+    listen(boardEl,'pointerup',e=>{
+      if (!startPointer||e.pointerId!==startPointer.id) return;
+      const dx=e.clientX-startPointer.x,dy=e.clientY-startPointer.y;
+      startPointer=null;
+      if (Math.max(Math.abs(dx),Math.abs(dy))<18) return;
+      swipeUntil=Date.now()+350;
+      stopAutoWalk();
+      if (Math.abs(dx)>Math.abs(dy)) tryMove(dx>0?1:-1,0,dx>0?'right':'left');
+      else tryMove(0,dy>0?1:-1,dy>0?'down':'up');
+    });
+    listen(boardEl,'pointercancel',()=>{startPointer=null;});
+    listen(boardEl,'click',e=>{
+      if (Date.now()<swipeUntil) return;
+      const cell=e.target?.closest?.('[data-sk-r]');
+      if (!cell) return;
+      const y=Number(cell.dataset.skR),x=Number(cell.dataset.skC);
+      if (Number.isInteger(x)&&Number.isInteger(y)&&y>=0&&y<grid.length&&x>=0&&x<grid[y].length) autoWalk(x,y);
+    });
 
     container.querySelector('#skResetBtn')?.addEventListener('click', () => initLevel(currentLevel));
     container.querySelector('#skNextBtn')?.addEventListener('click', () => {
