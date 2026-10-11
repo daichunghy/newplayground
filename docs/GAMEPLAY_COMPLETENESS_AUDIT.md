@@ -1,11 +1,13 @@
 # Kiểm kê gameplay NewPlayground — 11/10/2026
 
+Sổ bao phủ theo từng catalog title: [docs/GAME_COVERAGE.md](./GAME_COVERAGE.md). Bản này theo dõi engine/dispatcher từ code; các con số không phải số game đã chơi thử.
+
 Tài liệu này phân biệt **game mở được**, **có vòng chơi và tiến trình**, và **tái hiện đầy đủ luật đặc trưng**. Không dùng việc mở canvas thành công để suy diễn game đã hoàn thiện.
 
 - Danh mục trong `data/games.json`: **150** tựa.
-- Vòng chơi riêng theo từng game: **66** tựa (64 engine chuyên biệt hiện có, Typer Shark và Frogger; các engine vẫn có thể được chia sẻ giữa những tựa liên quan).
-- **84** tựa còn dùng một trong 7 archetype chung; các mode này chưa mô phỏng đầy đủ luật gốc.
-- Typer Shark và Frogger vẫn đi qua `launchRetroArcade`, nhưng dispatcher chuyển đúng ID sang vòng chơi riêng của từng game. Không tính hai tựa này là gameplay archetype chung.
+- Vòng chơi riêng theo từng game: **67** tựa (64 engine chuyên biệt hiện có, Typer Shark, Frogger và Asteroids; một engine có thể được chia sẻ giữa những tựa liên quan).
+- **83** tựa còn dùng một trong 7 archetype chung; các mode này chưa mô phỏng đầy đủ luật gốc.
+- Typer Shark, Frogger và Asteroids đi qua `launchRetroArcade`, nhưng dispatcher chuyển đúng ID sang vòng riêng theo title. Không tính ba tựa này là gameplay archetype chung.
 - Kiểm thử mô phỏng đã đạt màn 2 ở 7 archetype. Điều này **không xác nhận** toàn bộ chiến dịch của từng game chuyên biệt có thể hoàn thành, hoặc gameplay đã trung thành với tên game.
 - `tests/game-flow.test.cjs` kiểm tra 150 lượt mở, đóng, cleanup và các kịch bản qua màn minh họa; cần bổ sung test theo đặc tả riêng và QA trên máy thật.
 - Cần QA thủ công với chuột, bàn phím, Android Chrome và iPhone Safari; kiểm tra 60/90/120 Hz, màn cuối, khởi động lại, lưu trữ, cảm ứng đa điểm.
@@ -14,7 +16,7 @@ Tài liệu này phân biệt **game mở được**, **có vòng chơi và ti�
 
 | Chế độ | Số tựa fallback | Tiến trình |
 | --- | ---: | --- |
-| `shooter` | 11 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
+| `shooter` | 10 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
 | `runner` | 18 | Các game còn lại dùng vòng chạy chung; Frogger đã có vòng sang đường riêng |
 | `reflex` | 11 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
 | `puzzle` | 16 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
@@ -147,7 +149,7 @@ Tài liệu này phân biệt **game mở được**, **có vòng chơi và ti�
 | 117 | `dig-dug-dao-dat-bom-quai` | Đào Hầm Bơm Bong Bóng (Dig Dug) | `launchDatBom` | — |
 | 118 | `pooyan-lon-me-ban-bong` | Heo Mẹ Bắn Nỏ (Pooyan) | `launchRetroArcade` | `reflex` |
 | 119 | `yie-ar-kung-fu-vo-dai` | Đấu Võ Đường Thiếu Lâm | `launchRetroArcade` | `duel` |
-| 120 | `asteroids-tau-ban-thien-thach` | Phi Thuyền Bắn Thiên Thạch | `launchRetroArcade` | `shooter` |
+| 120 | `asteroids-tau-ban-thien-thach` | Phi Thuyền Bắn Thiên Thạch | `launchRetroArcade` → loop thiên thạch riêng | Xoay, lực đẩy quán tính, bắn vỡ đá, saucer, hyperspace và qua wave |
 | 121 | `frogger-ech-bang-qua-duong` | Chú Ếch Sang Sông (Frogger) | `launchRetroArcade` → vòng sang đường riêng | 5 ổ đích, xe và bè trôi |
 | 122 | `elevator-action-diep-vien-thang-may` | Điệp Viên Thang Máy | `launchRetroArcade` | `runner` |
 | 123 | `double-dragon-hiep-si-rong-doi` | Rồng Đôi Song Thủ | `launchRetroArcade` | `duel` |
