@@ -390,12 +390,29 @@
   .np-quiz-tools{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
   .np-quiz-tools p{margin:0;font-size:14px;color:#c8d7ef;flex:1 1 260px;min-width:0;line-height:1.45;overflow-wrap:anywhere}
   .np-quiz-tools div{display:flex;gap:8px}
-  @media(max-width:490px){.np-deep{padding:8px;border-radius:10px}.np-deep-header strong{width:100%;font-size:17px}.np-deep-meta{margin-right:auto}.np-quiz-options{grid-template-columns:1fr}.np-deep .np-quiz-options button{min-height:52px}.np-deep-quiz{padding:10px;min-height:520px}.np-quiz-question{min-height:67px}}
+  @media(max-width:899px){body.np-original-game-active .site-header .header-actions{display:none!important}}
+  @media(max-width:490px){
+    .np-deep{padding:8px;border-radius:10px}
+    .np-deep-header{display:grid;grid-template-columns:44px minmax(0,1fr) minmax(0,1fr);gap:6px}
+    .np-deep-header strong{grid-column:1/-1;width:auto;font-size:17px}
+    .np-deep-meta{grid-column:1/-1;grid-row:2;margin:0;font-size:12px}
+    .np-deep-header button{padding:7px 4px;font-size:13px;min-width:0}
+    .np-quiz-options{grid-template-columns:1fr}
+    .np-deep .np-quiz-options button{min-height:52px}
+    .np-deep-quiz{padding:10px;min-height:520px}
+    .np-quiz-question{min-height:67px}
+  }
   @media(prefers-reduced-motion:reduce){.np-deep *{transition:none!important}}
   `;
   function launch(container,game){
     if(!root||!root.NP_GameSession)throw Error('NewPlayground game-session dependency missing');
     const session=root.NP_GameSession.start();
+    // The site header has desktop-sized controls that stretch the mobile layout viewport.
+    // Temporarily remove only those background controls while this game modal is open.
+    if(root.document.body&&root.document.body.classList){
+      root.document.body.classList.add('np-original-game-active');
+      session.onCleanup(()=>root.document.body.classList.remove('np-original-game-active'));
+    }
     const kind=game.id===ids[0]?'rings':game.id===ids[1]?'darts':'quiz';
     const engine=kind==='rings'?makeRings(Date.now()):kind==='darts'?makeDarts(Date.now()):makeQuiz(Date.now());
     const {s}=engine;
