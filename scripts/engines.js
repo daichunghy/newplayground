@@ -7450,7 +7450,7 @@ function launchFlappyBird(container, game) {
     ctx.rotate(rot);
     if (flappySprite && flappySprite.complete && flappySprite.naturalWidth > 0) {
       ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(flappySprite, -21, -21, 42, 42);
+      ctx.drawImage(flappySprite, -15, -14, 30, 28);
     } else {
       ctx.fillStyle = '#20b7c5';
       ctx.beginPath(); ctx.ellipse(0, 0, 15, 12, 0, 0, Math.PI * 2); ctx.fill();
