@@ -4681,7 +4681,10 @@
       try { localStorage.setItem(bestKey, String(best)); } catch (_) {}
     }
     function resetBall() {
-      balls = [{ x: paddle.x + paddle.w / 2, y: paddle.y - 8, vx: (Math.random() > .5 ? 1 : -1) * 3.1, vy: -3.5, r: 6 }];
+      const launchSpeed=Math.min(5.0,3.4+(level-1)*.12);
+      balls=[{x:paddle.x+paddle.w/2,y:paddle.y-8,
+        vx:(Math.random()>.5?1:-1)*launchSpeed*.73,
+        vy:-launchSpeed*.91,r:6}];
       awaitingLaunch = true;
     }
     function resetGame() {
@@ -4761,7 +4764,10 @@
       }
       if (e.key === 'p' || e.key === 'P') togglePause();
     });
-    listen(window, 'blur', () => { if (!gameOver && !paused) togglePause(); });
+    listen(window,'blur',()=>{
+      for(const k of Object.keys(dxKeys))dxKeys[k]=false;
+      if(!gameOver&&!paused)togglePause();
+    });
     container.querySelector('#dxPauseBtn')?.addEventListener('click', togglePause);
     container.querySelector('#dxRestartBtn')?.addEventListener('click', resetGame);
 
@@ -4807,10 +4813,11 @@
           } else if (p.type === 'fireball') {
             isFireball = true;
             effects.fireball = 480;
-          } else if (p.type === 'triball') {
-            const b = balls[0] || { x: paddle.x + paddle.w / 2, y: paddle.y - 10 };
-            balls.push({ x: b.x, y: b.y, vx: -3, vy: -3, r: 6 });
-            balls.push({ x: b.x, y: b.y, vx: 3, vy: -3.5, r: 6 });
+          } else if(p.type==='triball'&&balls.length<5){
+            const b=balls[0]||{x:paddle.x+paddle.w/2,y:paddle.y-10};
+            const remaining=Math.min(2,5-balls.length);
+            if(remaining>=1)balls.push({x:b.x,y:b.y,vx:-3.1,vy:-3.2,r:6});
+            if(remaining>=2)balls.push({x:b.x,y:b.y,vx:3.1,vy:-3.4,r:6});
           }
           powerups.splice(i, 1);
           continue;
@@ -4853,8 +4860,11 @@
           ball.y = paddle.y - ball.r - .1;
           const hitOffset = Math.max(-1, Math.min(1, (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2)));
           const speed = Math.min(7.8, Math.hypot(ball.vx, ball.vy) + .08);
-          ball.vx = Math.sin(hitOffset * 1.08) * speed;
-          ball.vy = -Math.max(2.5, Math.cos(hitOffset * 1.08) * speed);
+          let lateral=Math.sin(hitOffset*1.08)*speed;
+          // A perfectly centered hit should not trap the ball in an endless vertical tunnel.
+          if(Math.abs(lateral)<.85) lateral=(ball.vx<0?-1:1)*.85;
+          ball.vx=lateral;
+          ball.vy=-Math.max(2.5,Math.sqrt(Math.max(6,speed*speed-lateral*lateral)));
           AudioEngine.hit();
         }
 
@@ -4864,7 +4874,7 @@
           if (!b.alive || (bounced && !isFireball)) return;
           if (ball.x + ball.r > b.x && ball.x - ball.r < b.x + b.w &&
               ball.y + ball.r > b.y && ball.y - ball.r < b.y + b.h) {
-            b.hp--;
+            b.hp-=isFireball?b.maxHp:1;
             if (!isFireball) {
               const prevX = ball.x - ball.vx;
               if (prevX + ball.r <= b.x || prevX - ball.r >= b.x + b.w) ball.vx = -ball.vx;
@@ -4891,7 +4901,7 @@
             }
 
             // 30% chance to drop a powerup capsule
-            if (Math.random() < 0.3) {
+            if(Math.random()<.18 && powerups.length<6){
               const types = ['expand', 'triball', 'fireball'];
               powerups.push({
                 x: b.x + b.w / 2,
