@@ -5091,6 +5091,7 @@
       player = { x: lvl.px, y: lvl.py };
       playerDir = 'down';
       render();
+      updateStagePicker();
     }
 
     container.innerHTML = `
@@ -5099,6 +5100,9 @@
           <div class="hud-pill">Màn: <span id="skLevel" style="color: #38BDF8;">1</span>/${LEVELS.length}</div>
           <div class="hud-pill">Bước: <span id="skMoves" style="color: #F59E0B;">0</span></div>
           <div class="hud-pill">Mở khóa: <span id="skUnlocked">${unlockedStage}</span>/${LEVELS.length}</div>
+          <label style="color:#E2E8F0;font-size:.84rem;">Chọn màn
+            <select id="skJump" aria-label="Chọn màn đã mở khóa" style="padding:7px;border:1px solid #64748B;border-radius:6px;background:#1E293B;color:#fff;min-height:40px;"></select>
+          </label>
           <button class="btn-canvas-action" id="skUndoBtn" style="padding: 2px 10px; font-size: 0.8rem; background: #64748B; color: #FFF; font-family: Calibri, sans-serif;">
             ↩ Hoàn tác [Z]
           </button>
@@ -5125,6 +5129,14 @@
         </div>
       </div>
     `;
+
+    function updateStagePicker() {
+      const picker = container.querySelector('#skJump');
+      if (!picker) return;
+      picker.innerHTML = LEVELS.slice(0, unlockedStage)
+        .map((stage, i) => '<option value="' + i + '">Màn ' + (i + 1) + '</option>').join('');
+      picker.value = String(currentLevel);
+    }
 
     function render() {
       const boardEl = container.querySelector('#skBoard');
@@ -5235,6 +5247,7 @@
         if (message) message.textContent = currentLevel + 1 === LEVELS.length
           ? 'Đã hoàn thành cả 10 màn. Bạn có thể chơi lại bất kỳ lúc nào.'
           : 'Hoàn thành màn ' + (currentLevel + 1) + ' sau ' + moves + ' bước.';
+        updateStagePicker();
         if (nextButton) {
           nextButton.style.display = 'block';
           nextButton.textContent = currentLevel + 1 === LEVELS.length ? 'Chơi lại từ đầu' : 'Màn tiếp theo';
@@ -5285,13 +5298,17 @@
     container.querySelector('#skNextBtn')?.addEventListener('click', () => {
       if (levelComplete) initLevel((currentLevel + 1) % LEVELS.length);
     });
+    listen(container.querySelector('#skJump'), 'change', e => {
+      const next = Number(e.target.value);
+      if (Number.isInteger(next) && next >= 0 && next < unlockedStage) initLevel(next);
+    });
     container.querySelector('#skUndoBtn')?.addEventListener('click', undo);
     container.querySelector('#skUp')?.addEventListener('click', () => tryMove(0, -1, 'up'));
     container.querySelector('#skDown')?.addEventListener('click', () => tryMove(0, 1, 'down'));
     container.querySelector('#skLeft')?.addEventListener('click', () => tryMove(-1, 0, 'left'));
     container.querySelector('#skRight')?.addEventListener('click', () => tryMove(1, 0, 'right'));
 
-    initLevel(0);
+    initLevel(unlockedStage - 1);
 
   }
 
