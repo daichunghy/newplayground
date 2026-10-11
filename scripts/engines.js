@@ -8182,74 +8182,83 @@ function launchDoMin(container, game) {
     renderBoard();
   }
 
-  function renderBoard() {
-    gridEl.innerHTML = '';
+  function paintCell(cell,r,c) {
     const COLORS = ['', '#0000FF', '#008000', '#EF4444', '#000080', '#800000', '#008080', '#000000', '#808080'];
+    cell.setAttribute('aria-label', revealed[r][c]
+      ? (grid[r][c]===9 ? 'Mìn' : 'Ô '+grid[r][c])
+      : (flags[r][c] ? 'Ô đã cắm cờ' : 'Ô chưa mở'));
+    cell.style.padding='0';
+    cell.style.aspectRatio='1/1';
+    cell.style.minWidth='0';
+    cell.style.touchAction='manipulation';
+    cell.style.display='flex';
+    cell.style.alignItems='center';
+    cell.style.justifyContent='center';
+    cell.style.fontFamily='Calibri, monospace';
+    cell.style.fontWeight='bold';
+    cell.style.fontSize='1.15rem';
+    cell.style.cursor='pointer';
+    cell.style.userSelect='none';
+    cell.style.color='#111827';
+    cell.style.background='#C0C0C0';
+    cell.style.border='2.5px solid #FFF';
+    cell.style.borderRightColor='#808080';
+    cell.style.borderBottomColor='#808080';
+    cell.textContent='';
+    if (revealed[r][c]) {
+      cell.style.border='1px solid #808080';
+      if (grid[r][c]===9) { cell.textContent='●'; cell.style.background='#EF4444'; }
+      else if (grid[r][c]>0) { cell.textContent=String(grid[r][c]); cell.style.color=COLORS[grid[r][c]]; }
+    } else if (flags[r][c]) {
+      cell.textContent=gameOver && grid[r][c]!==9 ? '×' : '⚑';
+      if (gameOver && grid[r][c]!==9) cell.style.color='#DC2626';
+    }
+  }
 
-    for (let r = 0; r < ROWS; r++) {
-      for (let c = 0; c < COLS; c++) {
-        const cell = document.createElement('button');
-        cell.type = 'button';
-        cell.setAttribute('aria-label', revealed[r][c]
-          ? (grid[r][c] === 9 ? 'Mìn' : 'Ô ' + grid[r][c])
-          : (flags[r][c] ? 'Ô đã cắm cờ' : 'Ô chưa mở'));
-        cell.style.padding = '0';
-        cell.style.aspectRatio = '1/1';
-        cell.style.minWidth = '0';
-        cell.style.touchAction = 'manipulation';
-        cell.style.display = 'flex';
-        cell.style.alignItems = 'center';
-        cell.style.justifyContent = 'center';
-        cell.style.fontFamily = 'Calibri, monospace';
-        cell.style.fontWeight = 'bold';
-        cell.style.fontSize = '1.15rem';
-        cell.style.cursor = 'pointer';
-        cell.style.userSelect = 'none';
-
-        if (revealed[r][c]) {
-          cell.style.background = '#C0C0C0';
-          cell.style.border = '1px solid #808080';
-          if (grid[r][c] === 9) {
-            cell.textContent = '💣';
-            cell.style.background = '#EF4444';
-          } else if (grid[r][c] > 0) {
-            cell.textContent = grid[r][c];
-            cell.style.color = COLORS[grid[r][c]];
-          }
-        } else {
-          cell.style.background = '#C0C0C0';
-          cell.style.border = '2.5px solid #FFF';
-          cell.style.borderRightColor = '#808080';
-          cell.style.borderBottomColor = '#808080';
-          if (flags[r][c]) {
-            cell.textContent = gameOver && grid[r][c] !== 9 ? '×' : '⚑';
-            if (gameOver && grid[r][c] !== 9) cell.style.color = '#DC2626';
-          }
-        }
-
+  function renderBoard() {
+    // Repaint 81–480 existing tiles in place. A move must never tear down 480
+    // buttons, their hit targets or listeners in the middle of a press.
+    if (gridEl.children.length===ROWS*COLS) {
+      for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++)
+        paintCell(gridEl.children[r*COLS+c],r,c);
+      return;
+    }
+    gridEl.innerHTML='';
+    for (let r=0;r<ROWS;r++) {
+      for (let c=0;c<COLS;c++) {
+        const cell=document.createElement('button');
+        cell.type='button';
+        paintCell(cell,r,c);
         // Long press flags a tile on touch devices, even with flag mode disabled.
         // A consumed long press must not trigger the synthetic click to reveal.
         let pressTimer = null;
         let startX = 0, startY = 0;
         const clearLongPress = () => {
-          if (pressTimer !== null) { clearTimeout(pressTimer); pressTimer = null; }
+          if (pressTimer !== null) {
+            clearTimeout(pressTimer);
+            activePressTimers.delete(pressTimer);
+            pressTimer=null;
+          }
         };
         cell.addEventListener('pointerdown', e => {
           if (e.pointerType !== 'touch' || gameOver || gameWon) return;
           startX = e.clientX; startY = e.clientY;
           clearLongPress();
           pressTimer = setTimeout(() => {
+            activePressTimers.delete(pressTimer);
             pressTimer = null;
             if (revealed[r][c] || gameOver || gameWon) return;
             suppressNextTap = { r, c, at: Date.now() };
             toggleFlag(r, c);
           }, 420);
+          activePressTimers.add(pressTimer);
         });
         cell.addEventListener('pointermove', e => {
           if (Math.hypot(e.clientX - startX, e.clientY - startY) > 12) clearLongPress();
         });
         cell.addEventListener('pointerup', clearLongPress);
         cell.addEventListener('pointercancel', clearLongPress);
+        cell.addEventListener('pointerleave', clearLongPress);
 
         // Mouse Down tension: Face turns 😮
         cell.addEventListener('mousedown', () => {
