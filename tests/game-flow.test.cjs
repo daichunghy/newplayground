@@ -324,7 +324,8 @@ test('fallback catalog has real, distinct genre loops and closes resources safel
   for (const game of games) {
     h.context.openGameById(game.id);
     const canvas = h.container.querySelector('#arcCanvas');
-    if (canvas) {
+    const dedicatedDispatch = ['frogger-ech-bang-qua-duong'].includes(game.id);
+    if (canvas && !dedicatedDispatch) {
       count++;
       const kind = h.context.NP_Archetypes.kindFor(game);
       found.add(kind);
@@ -337,7 +338,7 @@ test('fallback catalog has real, distinct genre loops and closes resources safel
     assertStopped(h);
     assert.equal(h.errors.length, 0, game.id + ': ' + h.errors.join('; '));
   }
-  assert.equal(count, 85, '85 catalog entries still use a generic archetype after Typer Shark split');
+  assert.equal(count, 83, 'Frogger and Asteroids have dedicated loops; 83 catalog entries remain on a generic archetype');
   assert.deepEqual([...found].sort(), ['duel', 'management', 'puzzle', 'quiz', 'reflex', 'runner', 'shooter']);
 });
 
@@ -398,10 +399,11 @@ test('fallback action genres stay frame-driven and progress across stages', () =
   h.context.closeGameModal(); assertStopped(h);
 
   h = setup('asteroids-tau-ban-thien-thach');
-  h.container.querySelector('#arcCanvas').dispatch('pointerdown', { clientX: 28, clientY: 330 });
-  h.window.dispatch('keydown', { key: ' ', code: 'Space' });
-  for (let i = 0; i < 1200; i++) h.frame();
-  assert.ok(+h.container.querySelector('#arcLevel').textContent >= 2, 'shooter advances when enemies are destroyed');
+  assert.ok(h.container.querySelector('.np-asteroids-board'), 'Asteroids has its own vector board and control panel');
+  assert.equal(h.container.querySelector('#arcProgress'), null, 'Asteroids does not render the generic shooter objective');
+  assert.equal(h.context.NP_Archetypes.asteroidsModel.create(17).rocks.length, 4, 'its dedicated model starts a four-boulder field');
+  h.frame(); h.frame();
+  assert.equal(h.frames.size, 1, 'the dedicated Asteroids loop remains frame-driven');
   h.context.closeGameModal(); assertStopped(h);
 
   h = setup('electric-man-2-vo-thuat-nguoi-que');

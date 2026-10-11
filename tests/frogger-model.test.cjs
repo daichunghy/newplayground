@@ -25,6 +25,7 @@ test('Frogger starts with a ten-row crossing, four water currents and four traff
   assert.equal(state.homes.length, 5);
   assert.equal(state.lanes.filter(lane => lane.kind === 'river').length, 4);
   assert.equal(state.lanes.filter(lane => lane.kind === 'road').length, 4);
+  assert.ok(state.lanes.every(lane => lane.wrap === C.width), 'rendering and physics share the board width as their wrap period');
   assert.equal(state.remaining, 28);
 });
 
@@ -86,6 +87,75 @@ test('vehicles collide, platforms carry the frog, and unsupported water is fatal
   model.tick(state, 0.02);
   assert.equal(state.lives, 1);
   assert.match(state.lastEvent.reason, /bè|nước/);
+});
+
+test('wrapped road lanes collide only with cars that visibly cross either board edge', () => {
+  const leftEdge = model.create(10);
+  const leftRoad = laneAt(leftEdge, 9);
+  leftEdge.frog.row = 9;
+  leftEdge.frog.x = 12;
+  leftEdge.invulnerable = 0;
+  leftRoad.items = [{ x: 650, width: 50 }];
+  model.tick(leftEdge, 0.01);
+  assert.equal(leftEdge.lives, 2);
+  assert.equal(leftEdge.lastEvent.reason, 'Va vào xe');
+
+  const rightEdge = model.create(11);
+  const rightRoad = laneAt(rightEdge, 9);
+  rightEdge.frog.row = 9;
+  rightEdge.frog.x = 650;
+  rightEdge.invulnerable = 0;
+  rightRoad.items = [{ x: 620, width: 50 }];
+  model.tick(rightEdge, 0.01);
+  assert.equal(rightEdge.lives, 2);
+  assert.equal(rightEdge.lastEvent.reason, 'Va vào xe');
+
+  const noGhost = model.create(12);
+  const emptyRoad = laneAt(noGhost, 9);
+  noGhost.frog.row = 9;
+  noGhost.frog.x = 100;
+  noGhost.invulnerable = 0;
+  emptyRoad.items = [{ x: 650, width: 50 }];
+  model.tick(noGhost, 0.01);
+  assert.equal(noGhost.lives, 3, 'a wrapped car does not collide in an unrelated lane position');
+});
+
+test('a rider remains attached to logs across the visual wrap, then loses a life only at the screen edge', () => {
+  const right = model.create(13);
+  const rightRiver = laneAt(right, 2);
+  rightRiver.speed = 100;
+  rightRiver.items = [{ x: 640, width: 60 }];
+  right.frog.row = 2;
+  right.frog.x = 650;
+  model.tick(right, 0.2);
+  assert.ok(rightRiver.items[0].x < 60, 'the right-moving log has wrapped to the left edge');
+  assert.equal(right.lives, 2);
+  assert.equal(right.lastEvent.reason, 'Trôi khỏi bè', 'the rider was carried by the log through the wrapped collision copy');
+
+  const left = model.create(14);
+  const leftRiver = laneAt(left, 2);
+  leftRiver.speed = -100;
+  leftRiver.items = [{ x: 20, width: 60 }];
+  left.frog.row = 2;
+  left.frog.x = 20;
+  model.tick(left, 0.2);
+  assert.ok(leftRiver.items[0].x < 1, 'the left-moving log reaches and wraps through the left edge');
+  assert.equal(left.lives, 2);
+  assert.equal(left.lastEvent.reason, 'Trôi khỏi bè');
+});
+
+test('hops animate briefly while logical movement and landing rules resolve on the first input', () => {
+  const state = model.create(15);
+  state.invulnerable = 1;
+  assert.equal(model.hop(state, 0, -1), true);
+  assert.equal(state.frog.row, 9, 'the logical move resolves immediately');
+  assert.deepEqual(JSON.parse(JSON.stringify(state.hopAnimation)), {
+    fromX: C.cellW * 5.5, fromRow: 10, toX: C.cellW * 5.5, toRow: 9, elapsed: 0, duration: 0.095
+  });
+  model.tick(state, 0.04);
+  assert.equal(state.hopAnimation.elapsed, 0.04);
+  model.tick(state, 0.06);
+  assert.equal(state.hopAnimation, null, 'the visual tween ends before another hop is accepted');
 });
 
 test('five homes clear a stage, then reset the board with faster traffic and less time', () => {

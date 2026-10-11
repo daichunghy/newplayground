@@ -217,6 +217,67 @@ body.dark-theme .nav-item:hover, body.dark-theme .nav-item.active {
   gap: 12px;
 }
 
+@media (max-width: 600px) {
+  .header-container {
+    gap: 8px;
+    padding-inline: 12px;
+  }
+
+  .header-actions {
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  .search-box {
+    flex: 1 1 100px;
+    min-width: 0;
+  }
+
+  .search-box input,
+  .search-box input:focus {
+    width: 100%;
+    min-width: 0;
+    padding-left: 32px;
+    padding-right: 10px;
+  }
+
+  .header-actions .btn-icon {
+    flex: 0 0 40px;
+  }
+}
+
+@media (max-width: 360px) {
+  .header-container {
+    gap: 6px;
+    padding-inline: 10px;
+  }
+
+  .brand-name {
+    font-size: 1rem;
+  }
+
+  .header-actions .btn-icon {
+    flex-basis: 36px;
+    width: 36px;
+    height: 36px;
+  }
+
+  .search-box {
+    flex-basis: 72px;
+  }
+
+  .search-box input,
+  .search-box input:focus {
+    padding-left: 27px;
+  }
+
+  .search-icon {
+    left: 8px;
+  }
+}
+
 .search-box {
   position: relative;
   display: flex;
