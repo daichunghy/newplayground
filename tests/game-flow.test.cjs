@@ -140,9 +140,10 @@ test('one specialized or generic launcher per catalog selection; Retro50 has pri
     assert.equal(h.context.openGameById(game.id), true);
     assert.equal(calls.length, 1, game.id + ' must start exactly one engine');
   }
-  for (const [id, expected] of [['hang-rong', 'launchHangRong'], ['zuma-ech-ban-ngoc', 'launchZuma'], ['line-98', 'launchLine98'], ['ran-san-moi-snake', 'launchSnake'], ['boom-online-bnb', 'retro50'], ['bubble-bobble-khung-long-bong-bong', 'retro50'], ['lemonade-tycoon', 'launchRetroArcade']]) {
+  for (const [id, expected] of [['hang-rong', 'launchHangRong'], ['zuma-ech-ban-ngoc', 'launchZuma'], ['line-98', 'launchLine98'], ['ran-san-moi-snake', 'launchSnake'], ['boom-online-bnb', 'retro50'], ['bubble-bobble-khung-long-bong-bong', 'retro50'], ['lemonade-tycoon', 'launchRetroArcade'], ['ban-ruoi-galaga', 'launchRetroArcade']]) {
     calls.length = 0; h.context.openGameById(id); assert.deepEqual(calls, [expected]);
   }
+  calls.length = 0; h.context.openGameById('ban-ga-vu-tru'); assert.deepEqual(calls, ['launchChickenInvaders'], 'Chicken Invaders keeps its own engine after Galaga is split out');
   assert.equal(h.context.openGameById('not-in-catalog'), false);
 });
 
@@ -324,7 +325,7 @@ test('fallback catalog has real, distinct genre loops and closes resources safel
   for (const game of games) {
     h.context.openGameById(game.id);
     const canvas = h.container.querySelector('#arcCanvas');
-    const dedicatedDispatch = ['frogger-ech-bang-qua-duong'].includes(game.id);
+    const dedicatedDispatch = ['frogger-ech-bang-qua-duong', 'asteroids-tau-ban-thien-thach', 'ban-ruoi-galaga'].includes(game.id);
     if (canvas && !dedicatedDispatch) {
       count++;
       const kind = h.context.NP_Archetypes.kindFor(game);
@@ -338,7 +339,7 @@ test('fallback catalog has real, distinct genre loops and closes resources safel
     assertStopped(h);
     assert.equal(h.errors.length, 0, game.id + ': ' + h.errors.join('; '));
   }
-  assert.equal(count, 83, 'Frogger and Asteroids have dedicated loops; 83 catalog entries remain on a generic archetype');
+  assert.equal(count, 83, 'the generic fallback count stays stable while the specialized Galaga route changes to its exact title loop');
   assert.deepEqual([...found].sort(), ['duel', 'management', 'puzzle', 'quiz', 'reflex', 'runner', 'shooter']);
 });
 
@@ -404,6 +405,14 @@ test('fallback action genres stay frame-driven and progress across stages', () =
   assert.equal(h.context.NP_Archetypes.asteroidsModel.create(17).rocks.length, 4, 'its dedicated model starts a four-boulder field');
   h.frame(); h.frame();
   assert.equal(h.frames.size, 1, 'the dedicated Asteroids loop remains frame-driven');
+  h.context.closeGameModal(); assertStopped(h);
+
+  h = setup('ban-ruoi-galaga');
+  assert.ok(h.container.querySelector('.np-galaga-board'), 'Galaga has its own portrait fixed-shooter board and touch controls');
+  assert.equal(h.container.querySelector('#arcProgress'), null, 'Galaga does not render the generic shooter objective');
+  assert.equal(h.context.NP_Archetypes.galagaModel.create(17).enemies.length, 40, 'Galaga starts with its own 40-unit formation');
+  h.frame(); h.frame();
+  assert.equal(h.frames.size, 1, 'the dedicated Galaga loop remains frame-driven');
   h.context.closeGameModal(); assertStopped(h);
 
   h = setup('electric-man-2-vo-thuat-nguoi-que');

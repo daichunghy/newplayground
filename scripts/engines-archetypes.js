@@ -227,6 +227,228 @@
     }
   }
 
+  // Galaga-inspired fixed shooter. The 1981 Namco reference specifies about
+  // forty enemies, three ranks, a two-shot cap, lateral movement, dives and
+  // the Boss Galaga capture/rescue that unlocks a larger dual fighter.
+  const GALAGA = Object.freeze({ width: 600, height: 780, columns: 8, rows: 5, enemyCount: 40, maxShots: 2, playerY: 708 });
+
+  function galagaRandom(state) {
+    state.rng = (Math.imul(state.rng, 1664525) + 1013904223) >>> 0;
+    return state.rng / 0x100000000;
+  }
+
+  function galagaEnemy(state, id, row, column) {
+    const type = row === 0 && (column === 3 || column === 4) ? 'boss' :
+      (row < 2 && (column < 2 || column > 5)) ? 'guard' : 'grunt';
+    const baseX = 48 + column * 72;
+    const baseY = 114 + row * 48;
+    return { id, type, hp: type === 'boss' ? 2 : 1, x: baseX, y: -35 - row * 24,
+      baseX, baseY, row, column, phase: galagaRandom(state) * Math.PI * 2,
+      mode: 'entry', modeTime: 0, shotCooldown: 2 + galagaRandom(state) * 3,
+      beamCooldown: 8 + galagaRandom(state) * 5, beamTime: 0, carrying: false };
+  }
+
+  function galagaSpawnStage(state) {
+    const challenge = state.stage >= 3 && (state.stage - 3) % 4 === 0;
+    let carrierAssigned = false;
+    state.waveMode = challenge ? 'challenge' : 'formation';
+    state.phase = 'entry';
+    state.phaseRemaining = 1.5;
+    state.waveRemaining = challenge ? 18 : 0;
+    state.diveRemaining = 1.2;
+    state.challengePerfect = true;
+    state.enemies = Array.from({ length: GALAGA.enemyCount }, (_, index) => {
+      const row = Math.floor(index / GALAGA.columns), column = index % GALAGA.columns;
+      const enemy = galagaEnemy(state, index + 1, row, column);
+      if (state.capturedFighter && enemy.type === 'boss' && !carrierAssigned) { enemy.carrying = true; carrierAssigned = true; }
+      return enemy;
+    });
+    state.shots = [];
+    state.enemyShots = [];
+    state.beams = [];
+    state.lastEvent = { type: 'wave-start', stage: state.stage, challenge };
+  }
+
+  function createGalagaState(seed = 0x1981) {
+    const state = { rng: (Number(seed) >>> 0) || 1, phase: 'entry', waveMode: 'formation',
+      stage: 1, score: 0, lives: 3, nextExtraLife: 20000, elapsed: 0,
+      player: { x: GALAGA.width / 2, y: GALAGA.playerY }, dual: false,
+      capturedFighter: false, invulnerable: 1.6, shotCooldown: 0,
+      enemies: [], shots: [], enemyShots: [], lastEvent: null,
+      phaseRemaining: 1.5, waveRemaining: 0, diveRemaining: 1.2, challengePerfect: true };
+    galagaSpawnStage(state);
+    return state;
+  }
+
+  function galagaFire(state) {
+    if (!['entry', 'playing', 'challenge'].includes(state.phase) ||
+        state.shotCooldown > 0 || state.shots.length >= GALAGA.maxShots) return false;
+    const offsets = state.dual ? [-13, 13] : [0];
+    if (state.shots.length + offsets.length > GALAGA.maxShots) return false;
+    for (const offset of offsets) state.shots.push({ x: state.player.x + offset, y: state.player.y - 20, vy: -520 });
+    state.shotCooldown = 0.24;
+    return true;
+  }
+
+  function galagaCapture(state, boss) {
+    if (state.phase === 'over' || state.capturedFighter || state.dual || !boss || boss.type !== 'boss') return false;
+    state.lives = Math.max(0, state.lives - 1);
+    state.capturedFighter = true;
+    boss.carrying = true;
+    boss.beamTime = 0;
+    state.invulnerable = 1.1;
+    state.lastEvent = { type: 'captured', lives: state.lives };
+    if (!state.lives) state.phase = 'over';
+    return true;
+  }
+
+  function galagaLoseShip(state, reason = 'shot') {
+    if (state.phase === 'over') return;
+    state.lives = Math.max(0, state.lives - 1);
+    state.dual = false;
+    state.player.x = GALAGA.width / 2;
+    state.invulnerable = 1.6;
+    state.lastEvent = { type: 'lost-ship', reason, lives: state.lives };
+    if (!state.lives) state.phase = 'over';
+  }
+
+  function galagaScoreKill(state, enemy) {
+    const base = enemy.type === 'boss' ? 150 : enemy.type === 'guard' ? 80 : 50;
+    state.score += enemy.mode === 'formation' ? base : base * 2;
+    if (enemy.type === 'boss' && enemy.carrying) {
+      enemy.carrying = false;
+      state.capturedFighter = false;
+      state.dual = true;
+      state.lives = Math.min(6, state.lives + 1);
+      state.lastEvent = { type: 'rescued', score: state.score, lives: state.lives };
+    } else state.lastEvent = { type: 'enemy-hit', score: state.score };
+    while (state.score >= state.nextExtraLife) {
+      state.lives = Math.min(6, state.lives + 1);
+      state.nextExtraLife += 20000;
+    }
+  }
+
+  function galagaTick(state, input = {}, dt = 1 / 60) {
+    const seconds = Math.min(0.05, Math.max(0, Number(dt) || 0));
+    if (!seconds || state.phase === 'over') return;
+    if (state.phase === 'cleared') {
+      state.phaseRemaining -= seconds;
+      if (state.phaseRemaining <= 0) {
+        state.stage++;
+        galagaSpawnStage(state);
+      }
+      return;
+    }
+
+    state.elapsed += seconds;
+    state.invulnerable = Math.max(0, state.invulnerable - seconds);
+    state.shotCooldown = Math.max(0, state.shotCooldown - seconds);
+    if (Number.isFinite(input.pointerX)) state.player.x = Math.max(22, Math.min(GALAGA.width - 22, input.pointerX));
+    else state.player.x = Math.max(22, Math.min(GALAGA.width - 22,
+      state.player.x + ((input.right ? 1 : 0) - (input.left ? 1 : 0)) * 390 * seconds));
+    if (input.fire) galagaFire(state);
+
+    if (state.phase === 'entry') {
+      state.phaseRemaining -= seconds;
+      const progress = Math.max(0, Math.min(1, 1 - state.phaseRemaining / 1.5));
+      const ease = progress * progress * (3 - 2 * progress);
+      for (const enemy of state.enemies) {
+        enemy.x += (enemy.baseX - enemy.x) * ease;
+        enemy.y += (enemy.baseY - enemy.y) * ease;
+      }
+      if (state.phaseRemaining <= 0) {
+        for (const enemy of state.enemies) { enemy.x = enemy.baseX; enemy.y = enemy.baseY; enemy.mode = state.waveMode === 'challenge' ? 'challenge' : 'formation'; enemy.modeTime = 0; }
+        state.phase = state.waveMode === 'challenge' ? 'challenge' : 'playing';
+        state.lastEvent = { type: state.waveMode === 'challenge' ? 'challenge-start' : 'formation-ready', stage: state.stage };
+      }
+      return;
+    }
+
+    for (const shot of state.shots) shot.y += shot.vy * seconds;
+    state.shots = state.shots.filter(shot => shot.y > -12);
+    for (const shot of state.enemyShots) { shot.x += shot.vx * seconds; shot.y += shot.vy * seconds; }
+    state.enemyShots = state.enemyShots.filter(shot => shot.y < GALAGA.height + 12 && shot.x > -12 && shot.x < GALAGA.width + 12);
+
+    if (state.phase === 'playing') {
+      state.diveRemaining -= seconds;
+      if (state.diveRemaining <= 0) {
+        const candidates = state.enemies.filter(enemy => enemy.mode === 'formation');
+        if (candidates.length) {
+          const enemy = candidates[Math.floor(galagaRandom(state) * candidates.length)];
+          enemy.mode = 'diving'; enemy.modeTime = 0; enemy.diveStartX = enemy.x;
+          enemy.beamCooldown = Math.max(0, enemy.beamCooldown);
+        }
+        state.diveRemaining = Math.max(0.9, 1.9 - Math.min(0.7, state.stage * 0.025)) + galagaRandom(state) * 0.7;
+      }
+    }
+
+    for (const enemy of state.enemies) {
+      if (enemy.mode === 'formation') {
+        enemy.x = enemy.baseX + Math.sin(state.elapsed * 0.8 + enemy.phase) * 7;
+        enemy.y = enemy.baseY + Math.sin(state.elapsed * 1.1 + enemy.phase) * 2;
+      } else if (enemy.mode === 'diving') {
+        enemy.modeTime += seconds;
+        const t = Math.min(1, enemy.modeTime / 3.3);
+        enemy.x = Math.max(28, Math.min(GALAGA.width - 28, enemy.diveStartX + Math.sin(t * Math.PI * 2 + enemy.phase) * 180));
+        enemy.y = enemy.baseY + Math.sin(t * Math.PI) * 500;
+        if (enemy.shotCooldown <= 0) {
+          const dx = state.player.x - enemy.x;
+          const velocity = 255 + Math.min(50, state.stage * 5);
+          state.enemyShots.push({ x: enemy.x, y: enemy.y + 12, vx: Math.max(-90, Math.min(90, dx * 0.17)), vy: velocity });
+          enemy.shotCooldown = 1.1 + galagaRandom(state) * 1.2;
+        }
+        if (enemy.type === 'boss' && !state.dual && !state.capturedFighter && enemy.beamCooldown <= 0 && enemy.modeTime < 1.5) {
+          enemy.beamTime = 0.85;
+          enemy.beamCooldown = 12;
+        }
+        if (enemy.beamTime > 0) {
+          enemy.beamTime = Math.max(0, enemy.beamTime - seconds);
+          if (Math.abs(enemy.x - state.player.x) < 27 && state.player.y > enemy.y + 70) galagaCapture(state, enemy);
+        }
+        if (Math.abs(enemy.x - state.player.x) < (state.dual ? 34 : 22) && Math.abs(enemy.y - state.player.y) < 22 && state.invulnerable <= 0) galagaLoseShip(state, 'collision');
+        if (t >= 1 && enemy.mode === 'diving') { enemy.mode = 'formation'; enemy.modeTime = 0; enemy.x = enemy.baseX; enemy.y = enemy.baseY; }
+      } else if (enemy.mode === 'challenge') {
+        enemy.modeTime += seconds;
+        const t = enemy.modeTime / 5.5;
+        enemy.x = Math.max(24, Math.min(GALAGA.width - 24, enemy.baseX + Math.sin(t * Math.PI * 2 + enemy.phase) * 166));
+        enemy.y = enemy.baseY + t * 570;
+        if (enemy.y > GALAGA.height + 30) { state.challengePerfect = false; enemy.mode = 'escaped'; }
+      }
+      enemy.shotCooldown -= seconds;
+      enemy.beamCooldown -= seconds;
+    }
+    state.enemies = state.enemies.filter(enemy => enemy.mode !== 'escaped');
+
+    for (let si = state.shots.length - 1; si >= 0; si--) {
+      const shot = state.shots[si];
+      const index = state.enemies.findIndex(enemy => Math.hypot(enemy.x - shot.x, enemy.y - shot.y) < (enemy.type === 'boss' ? 22 : 18));
+      if (index < 0) continue;
+      const enemy = state.enemies[index];
+      state.shots.splice(si, 1);
+      enemy.hp--;
+      if (enemy.hp <= 0) { state.enemies.splice(index, 1); galagaScoreKill(state, enemy); }
+    }
+
+    if (state.invulnerable <= 0 && state.enemyShots.some(shot => Math.abs(shot.x - state.player.x) < (state.dual ? 25 : 16) && Math.abs(shot.y - state.player.y) < 18)) {
+      galagaLoseShip(state, 'enemy-fire');
+      state.enemyShots = state.enemyShots.filter(shot => Math.abs(shot.x - state.player.x) > 40 || Math.abs(shot.y - state.player.y) > 40);
+    }
+    if (state.phase === 'over') return;
+
+    if (state.phase === 'challenge') {
+      state.waveRemaining -= seconds;
+      if (state.waveRemaining <= 0) {
+        for (const enemy of state.enemies) { if (enemy.mode !== 'escaped') state.challengePerfect = false; }
+        state.enemies = [];
+      }
+    }
+    if (!state.enemies.length && ['playing', 'challenge'].includes(state.phase)) {
+      if (state.waveMode === 'challenge' && state.challengePerfect) { state.score += 1000; state.lastEvent = { type: 'challenge-perfect', score: state.score }; }
+      state.phase = 'cleared'; state.phaseRemaining = 1.3;
+      if (!state.lastEvent || !['challenge-perfect', 'rescued', 'lost-ship'].includes(state.lastEvent.type)) state.lastEvent = { type: 'wave-clear', stage: state.stage };
+    }
+  }
+
   function launchAsteroids(container, game) {
     const session = window.NP_GameSession.start();
     const { listen } = session;
@@ -309,6 +531,156 @@
     function frame(timestamp){const dt=lastFrame?Math.min(.05,Math.max(0,(timestamp-lastFrame)/1000)):1/60;lastFrame=timestamp;const prior=state.phase;if(!paused)asteroidTick(state,held,dt);setRecord();updateHud();if(state.score>lastScore){if(window.NP_Audio&&typeof window.NP_Audio.explosion==='function')window.NP_Audio.explosion(false);lastScore=state.score;}if(state.lastEvent&&state.lastEvent!==announcedEvent){announcedEvent=state.lastEvent;if(state.lastEvent.type==='lost-ship'){help.textContent=state.lives?'Tàu bị phá hủy · còn '+state.lives:'Mất tàu · Enter hoặc LẠI để thử lại';if(window.NP_Audio&&typeof window.NP_Audio.alarm==='function')window.NP_Audio.alarm();}if(state.lastEvent.type==='wave-start'){help.textContent='Làn sóng '+state.stage+' · tốc độ thiên thạch tăng';if(window.NP_Audio&&typeof window.NP_Audio.win==='function')window.NP_Audio.win();}}if(state.phase!==prior&&state.phase==='over')help.textContent='Mất tàu · Enter hoặc LẠI để thử lại';draw();raf=session.requestAnimationFrame(frame);}
     updateHud();draw();raf=session.requestAnimationFrame(frame);
     session.onCleanup(()=>{if(raf!==null)session.cancelAnimationFrame(raf);for(const key of Object.keys(held))held[key]=false;pointers.clear();setRecord();});
+  }
+
+  function launchGalaga(container, game) {
+    const session = window.NP_GameSession.start();
+    const { listen } = session;
+    const storageKey = 'np_galaga_record_v1';
+    const state = createGalagaState((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0);
+    const keys = { left: false, right: false, fire: false };
+    const pointers = new Map();
+    let best = 0, raf = null, lastFrame = 0, paused = false, pointerX = null, announcedEvent = null;
+    try { best = Math.max(0, Number(JSON.parse(localStorage.getItem(storageKey) || '{}').score) || 0); } catch (error) {}
+    container.innerHTML = `
+      <style>
+        #gameModal:has(.np-galaga-shell) .modal-window { width:min(98vw,720px); max-width:720px; min-width:0; }
+        #gameModal:has(.np-galaga-shell) .modal-body,#gameModal:has(.np-galaga-shell) .modal-title-group { min-width:0; }
+        .np-galaga-shell { width:min(100%,660px); margin:auto; display:grid; justify-items:center; gap:8px; color:#dce8f0; font-family:Calibri,Inter,sans-serif; }
+        .np-galaga-hud { width:min(100%,500px); display:grid; grid-template-columns:1fr auto auto 1fr; align-items:center; gap:8px; color:#55717c; font-size:12px; letter-spacing:.08em; text-transform:uppercase; }
+        .np-galaga-hud span:last-child { text-align:right; }
+        .np-galaga-hud strong { color:#122c3d; font-size:16px; letter-spacing:0; }
+        .np-galaga-board { display:block; width:min(100%,470px); height:auto; max-height:68vh; aspect-ratio:10/13; border:1px solid #496477; border-radius:5px; background:#06121e; touch-action:none; }
+        .np-galaga-controls { width:min(100%,500px); display:grid; grid-template-columns:repeat(5,minmax(44px,1fr)); gap:6px; }
+        .np-galaga-controls button { min-width:44px; min-height:46px; border:1px solid #31536a; border-radius:7px; background:#10293a; color:#e3edf0; font:700 12px Calibri,Inter,sans-serif; touch-action:none; user-select:none; }
+        .np-galaga-controls button[data-galaga-control="fire"] { color:#071421; background:#e9bb61; border-color:#f3d58c; }
+        .np-galaga-controls button:active { transform:translateY(2px); }
+        .np-galaga-status { min-height:18px; margin:0; color:#81949c; text-align:center; font-size:12px; }
+        @media(max-width:560px) { .np-galaga-shell { gap:6px; } .np-galaga-hud { font-size:10px; } .np-galaga-hud strong { font-size:14px; } .np-galaga-controls { gap:4px; } .np-galaga-controls button { padding:2px; font-size:11px; } }
+        @media(prefers-reduced-motion:reduce) { .np-galaga-controls button { transition:none; } }
+      </style>
+      <section class="np-galaga-shell" aria-label="Phi đội Galaga">
+        <div class="np-galaga-hud"><span>Điểm <strong id="gaScore">0</strong></span><span>Đợt <strong id="gaStage">1</strong></span><span>Tàu <strong id="gaLives">3</strong></span><span>Kỷ lục <strong id="gaBest">0</strong></span></div>
+        <canvas id="gaCanvas" class="np-galaga-board" width="600" height="780" tabindex="0" aria-label="Di chuyển ngang, bắn tối đa hai đạn, giải cứu tàu bị Boss Galaga bắt để tăng hỏa lực."></canvas>
+        <div class="np-galaga-controls" aria-label="Điều khiển phi thuyền">
+          <button type="button" data-galaga-control="left" aria-label="Di chuyển trái">←</button><button type="button" data-galaga-control="fire" aria-label="Bắn liên tục">BẮN</button><button type="button" data-galaga-control="right" aria-label="Di chuyển phải">→</button><button type="button" id="gaPause" aria-label="Tạm dừng">DỪNG</button><button type="button" id="gaRestart" aria-label="Chơi lại">LẠI</button>
+        </div>
+        <p id="gaStatus" class="np-galaga-status" role="status" aria-live="polite">← → di chuyển · Space bắn · chạm/kéo để lái</p>
+      </section>`;
+
+    const canvas = container.querySelector('#gaCanvas'), ctx = canvas.getContext('2d');
+    const scoreEl = container.querySelector('#gaScore'), stageEl = container.querySelector('#gaStage'), livesEl = container.querySelector('#gaLives'), bestEl = container.querySelector('#gaBest'), status = container.querySelector('#gaStatus');
+    const pauseButton = container.querySelector('#gaPause');
+    const setRecord = () => {
+      if (state.score <= best) return;
+      best = state.score;
+      try { localStorage.setItem(storageKey, JSON.stringify({ score: best })); } catch (error) {}
+    };
+    function syncHeld() {
+      const down = [...pointers.values()];
+      state.input = { left: keys.left || down.includes('left'), right: keys.right || down.includes('right'),
+        fire: keys.fire || down.includes('fire') || down.includes('board'), pointerX: pointerX === null ? undefined : pointerX };
+    }
+    function eventPoint(event) {
+      const rect = canvas.getBoundingClientRect();
+      pointerX = Math.max(22, Math.min(GALAGA.width - 22, (event.clientX - rect.left) / Math.max(1, rect.width) * GALAGA.width));
+    }
+    listen(canvas, 'pointerdown', event => { event.preventDefault(); canvas.setPointerCapture?.(event.pointerId); pointers.set(event.pointerId, 'board'); eventPoint(event); syncHeld(); });
+    listen(canvas, 'pointermove', event => { if (pointers.get(event.pointerId) === 'board') { event.preventDefault(); eventPoint(event); syncHeld(); } });
+    const releasePointer = event => {
+      if (!pointers.has(event.pointerId)) return;
+      const wasBoard = pointers.get(event.pointerId) === 'board';
+      pointers.delete(event.pointerId);
+      if (wasBoard && ![...pointers.values()].includes('board')) pointerX = null;
+      syncHeld();
+    };
+    listen(canvas, 'pointerup', releasePointer); listen(canvas, 'pointercancel', releasePointer); listen(canvas, 'lostpointercapture', releasePointer);
+    container.querySelectorAll('[data-galaga-control]').forEach(button => {
+      const name = button.dataset.galagaControl;
+      listen(button, 'pointerdown', event => { event.preventDefault(); button.setPointerCapture?.(event.pointerId); pointers.set(event.pointerId, name); syncHeld(); });
+      listen(button, 'pointerup', releasePointer); listen(button, 'pointercancel', releasePointer); listen(button, 'lostpointercapture', releasePointer);
+    });
+    const keyMap = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', Space: 'fire' };
+    listen(window, 'keydown', event => {
+      if (event.code === 'Escape') { event.preventDefault(); togglePause(); return; }
+      const action = keyMap[event.code];
+      if (action) { event.preventDefault(); keys[action] = true; syncHeld(); }
+      if (event.code === 'Enter' && state.phase === 'over') { event.preventDefault(); reset(); }
+    });
+    listen(window, 'keyup', event => { const action = keyMap[event.code]; if (action) { event.preventDefault(); keys[action] = false; syncHeld(); } });
+    listen(window, 'blur', () => { for (const key of Object.keys(keys)) keys[key] = false; pointers.clear(); pointerX = null; syncHeld(); });
+
+    function drawFighter(x, y) {
+      ctx.save(); ctx.translate(x, y); ctx.beginPath();
+      ctx.moveTo(0, -18); ctx.lineTo(9, -2); ctx.lineTo(21, 8); ctx.lineTo(18, 12); ctx.lineTo(5, 8); ctx.lineTo(0, 15);
+      ctx.lineTo(-5, 8); ctx.lineTo(-18, 12); ctx.lineTo(-21, 8); ctx.lineTo(-9, -2); ctx.closePath();
+      ctx.fillStyle = '#62d4df'; ctx.fill(); ctx.strokeStyle = '#d7f4ea'; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, -12); ctx.lineTo(3, 1); ctx.lineTo(-3, 1); ctx.closePath(); ctx.fillStyle = '#f2cd76'; ctx.fill(); ctx.restore();
+    }
+    function drawEnemy(enemy) {
+      const colors = { boss: '#ed7898', guard: '#edbd67', grunt: '#72d4bc' };
+      ctx.save(); ctx.translate(enemy.x, enemy.y); ctx.rotate(enemy.mode === 'diving' ? Math.sin(enemy.modeTime * 4 + enemy.phase) * 0.28 : 0);
+      ctx.fillStyle = colors[enemy.type]; ctx.strokeStyle = '#f1ecd7'; ctx.lineWidth = 1.3; ctx.beginPath();
+      if (enemy.type === 'boss') {
+        ctx.moveTo(0, 13); ctx.lineTo(-8, 7); ctx.lineTo(-18, 10); ctx.lineTo(-20, 3); ctx.lineTo(-12, -5); ctx.lineTo(-7, -10); ctx.lineTo(0, -6); ctx.lineTo(7, -10); ctx.lineTo(12, -5); ctx.lineTo(20, 3); ctx.lineTo(18, 10); ctx.lineTo(8, 7); ctx.closePath();
+      } else if (enemy.type === 'guard') {
+        ctx.moveTo(0, 11); ctx.lineTo(-7, 6); ctx.lineTo(-17, 10); ctx.lineTo(-13, 0); ctx.lineTo(-9, -8); ctx.lineTo(0, -5); ctx.lineTo(9, -8); ctx.lineTo(13, 0); ctx.lineTo(17, 10); ctx.lineTo(7, 6); ctx.closePath();
+      } else {
+        ctx.moveTo(0, 10); ctx.lineTo(-6, 5); ctx.lineTo(-13, 9); ctx.lineTo(-10, 0); ctx.lineTo(-7, -7); ctx.lineTo(0, -3); ctx.lineTo(7, -7); ctx.lineTo(10, 0); ctx.lineTo(13, 9); ctx.lineTo(6, 5); ctx.closePath();
+      }
+      ctx.fill(); ctx.stroke(); ctx.fillStyle = '#102a40'; ctx.fillRect(-4, -1, 2, 3); ctx.fillRect(2, -1, 2, 3);
+      if (enemy.carrying) { ctx.strokeStyle = '#f6dc91'; ctx.beginPath(); ctx.moveTo(0, 12); ctx.lineTo(0, 22); ctx.stroke(); ctx.fillStyle = '#62d4df'; ctx.fillRect(-3, 19, 6, 4); }
+      if (enemy.beamTime > 0) { ctx.strokeStyle = 'rgba(245,219,132,.58)'; ctx.lineWidth = 12; ctx.beginPath(); ctx.moveTo(0, 14); ctx.lineTo(state.player.x - enemy.x, state.player.y - enemy.y); ctx.stroke(); }
+      ctx.restore();
+    }
+    function draw() {
+      ctx.fillStyle = '#06121e'; ctx.fillRect(0, 0, GALAGA.width, GALAGA.height);
+      for (let i = 0; i < 72; i++) { const x = (i * 157 + 29) % GALAGA.width, y = (i * 89 + 17) % GALAGA.height; ctx.fillStyle = i % 8 === 0 ? 'rgba(242,205,118,.8)' : 'rgba(179,218,228,.38)'; ctx.fillRect(x, y, i % 8 === 0 ? 2 : 1, i % 8 === 0 ? 2 : 1); }
+      ctx.fillStyle = 'rgba(53,111,135,.12)'; ctx.fillRect(26, 38, GALAGA.width - 52, GALAGA.height - 76); ctx.strokeStyle = 'rgba(102,160,176,.16)'; ctx.strokeRect(26, 38, GALAGA.width - 52, GALAGA.height - 76);
+      for (const enemy of state.enemies) if (enemy.mode !== 'escaped') drawEnemy(enemy);
+      ctx.fillStyle = '#f7d982'; for (const shot of state.shots) ctx.fillRect(shot.x - 2, shot.y - 8, 4, 13);
+      ctx.fillStyle = '#ff8d82'; for (const shot of state.enemyShots) { ctx.beginPath(); ctx.ellipse(shot.x, shot.y, 3.2, 5.5, 0, 0, Math.PI * 2); ctx.fill(); }
+      if (state.lives > 0 && !(state.invulnerable > 0 && Math.floor(state.elapsed * 12) % 2 === 0)) {
+        if (state.dual) { drawFighter(state.player.x - 13, state.player.y); drawFighter(state.player.x + 13, state.player.y); }
+        else drawFighter(state.player.x, state.player.y);
+      }
+      ctx.textAlign = 'center';
+      if (state.phase === 'entry') { ctx.fillStyle = '#e8d28e'; ctx.font = '600 18px Calibri,sans-serif'; ctx.fillText(state.waveMode === 'challenge' ? 'ĐỢT THỬ THÁCH' : 'PHI ĐỘI ĐANG TIẾN VÀO', GALAGA.width / 2, 48); }
+      if (state.phase === 'challenge') { ctx.fillStyle = '#e8d28e'; ctx.font = '600 15px Calibri,sans-serif'; ctx.fillText('ĐỢT THỬ THÁCH · HẠ CÀNG NHIỀU CÀNG TỐT', GALAGA.width / 2, 48); }
+      if (state.phase === 'cleared') { ctx.fillStyle = '#f1dda2'; ctx.font = '700 25px Calibri,sans-serif'; ctx.fillText('ĐÃ DỌN SẠCH PHI ĐỘI', GALAGA.width / 2, GALAGA.height / 2); }
+      if (state.phase === 'over') { ctx.fillStyle = '#ffb0a2'; ctx.font = '700 30px Calibri,sans-serif'; ctx.fillText('HẾT PHI THUYỀN', GALAGA.width / 2, GALAGA.height / 2 - 12); ctx.font = '15px Calibri,sans-serif'; ctx.fillStyle = '#aac2ca'; ctx.fillText('Nhấn Enter hoặc LẠI để chơi tiếp', GALAGA.width / 2, GALAGA.height / 2 + 23); }
+      if (paused) { ctx.fillStyle = 'rgba(2,10,17,.74)'; ctx.fillRect(0, 0, GALAGA.width, GALAGA.height); ctx.fillStyle = '#e6f3e8'; ctx.font = '700 31px Calibri,sans-serif'; ctx.fillText('TẠM DỪNG', GALAGA.width / 2, GALAGA.height / 2); }
+    }
+    function updateHud() { scoreEl.textContent = String(state.score); stageEl.textContent = String(state.stage); livesEl.textContent = String(state.lives) + (state.dual ? ' · ĐÔI' : ''); bestEl.textContent = String(best); }
+    function reset() {
+      Object.assign(state, createGalagaState((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0));
+      for (const key of Object.keys(keys)) keys[key] = false;
+      pointers.clear(); pointerX = null; paused = false; announcedEvent = null; pauseButton.textContent = 'DỪNG';
+      status.textContent = '← → di chuyển · Space bắn · chạm/kéo để lái'; syncHeld(); updateHud();
+    }
+    const togglePause = () => { if (state.phase === 'over') return; paused = !paused; for (const key of Object.keys(keys)) keys[key] = false; pointers.clear(); pointerX = null; syncHeld(); pauseButton.textContent = paused ? 'TIẾP' : 'DỪNG'; status.textContent = paused ? 'Tạm dừng' : '← → di chuyển · Space bắn · chạm/kéo để lái'; };
+    listen(container.querySelector('#gaRestart'), 'click', reset); listen(pauseButton, 'click', togglePause);
+    function frame(timestamp) {
+      const dt = lastFrame ? Math.min(0.05, Math.max(0, (timestamp - lastFrame) / 1000)) : 1 / 60;
+      lastFrame = timestamp;
+      const before = state.phase;
+      if (!paused) galagaTick(state, state.input || {}, dt);
+      setRecord(); updateHud();
+      if (state.lastEvent && state.lastEvent !== announcedEvent) {
+        announcedEvent = state.lastEvent;
+        if (state.lastEvent.type === 'captured') { status.textContent = 'Tàu bị Boss bắt · hạ Boss đang giữ tàu để mở hỏa lực đôi'; if (window.NP_Audio?.alarm) window.NP_Audio.alarm(); }
+        if (state.lastEvent.type === 'rescued') { status.textContent = 'Đã giải cứu tàu · hỏa lực đôi, nhưng thân tàu lớn hơn'; if (window.NP_Audio?.powerup) window.NP_Audio.powerup(); }
+        if (state.lastEvent.type === 'lost-ship') { status.textContent = state.lives ? 'Mất một phi thuyền · còn ' + state.lives : 'Hết phi thuyền · Enter hoặc LẠI'; if (window.NP_Audio?.alarm) window.NP_Audio.alarm(); }
+        if (state.lastEvent.type === 'enemy-hit' && window.NP_Audio?.hit) window.NP_Audio.hit();
+        if (state.lastEvent.type === 'challenge-perfect') status.textContent = 'Hoàn hảo · thưởng 1.000 điểm';
+        if (state.lastEvent.type === 'wave-clear' || state.lastEvent.type === 'challenge-perfect' || state.lastEvent.type === 'rescued' && state.phase === 'cleared') { if (window.NP_Audio?.win) window.NP_Audio.win(); }
+        if (state.lastEvent.type === 'wave-start' && state.stage > 1) status.textContent = 'Đợt ' + state.stage + ' · phi đội mới đang vào vị trí';
+      }
+      if (before !== 'over' && state.phase === 'over') status.textContent = 'Hết phi thuyền · Enter hoặc LẠI để chơi lại';
+      draw(); raf = session.requestAnimationFrame(frame);
+    }
+    updateHud(); draw(); raf = session.requestAnimationFrame(frame);
+    session.onCleanup(() => { if (raf !== null) session.cancelAnimationFrame(raf); for (const key of Object.keys(keys)) keys[key] = false; pointers.clear(); pointerX = null; setRecord(); });
   }
 
   const descriptions = {
@@ -1017,6 +1389,10 @@
       launchAsteroids(container, game);
       return;
     }
+    if (id === 'ban-ruoi-galaga') {
+      launchGalaga(container, game);
+      return;
+    }
     const session = window.NP_GameSession.start();
     const { listen, requestAnimationFrame, cancelAnimationFrame, setTimeout } = session;
     const kind = kindFor(game);
@@ -1673,6 +2049,7 @@
     launch,
     kindFor,
     froggerModel: { create: createFroggerState, hop: froggerHop, tick: tickFrogger, constants: FROGGER },
-    asteroidsModel: { create: createAsteroidsState, fire: asteroidFire, hyperspace: asteroidHyperspace, tick: asteroidTick, constants: ASTEROIDS }
+    asteroidsModel: { create: createAsteroidsState, fire: asteroidFire, hyperspace: asteroidHyperspace, tick: asteroidTick, constants: ASTEROIDS },
+    galagaModel: { create: createGalagaState, fire: galagaFire, capture: galagaCapture, tick: galagaTick, constants: GALAGA }
   };
 })();
