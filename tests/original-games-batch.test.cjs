@@ -83,7 +83,7 @@ test('quiz correct choices add score and advance only after the answer feedback'
   const e=makeQuiz(10);
   assert.equal(e.answer(e.question().correct),true);
   assert.equal(e.s.phase,'feedback');assert.equal(e.answer(0),false);
-  time(e,.8);assert.equal(e.s.index,1);assert.ok(e.s.score>0);
+  time(e,1.35);assert.equal(e.s.index,1);assert.ok(e.s.score>0);
 });
 test('quiz wrong answers and countdown cost lives; skip preserves lives',()=>{
   const e=makeQuiz(1);
@@ -94,7 +94,7 @@ test('quiz wrong answers and countdown cost lives; skip preserves lives',()=>{
 });
 test('quiz clears after ten correct answers; third stage completes campaign',()=>{
   const e=makeQuiz(77);for(let stage=1;stage<=3;stage++){
-    for(let q=0;q<10;q++){assert.equal(e.answer(e.question().correct),true);time(e,.8);}
+    for(let q=0;q<10;q++){assert.equal(e.answer(e.question().correct),true);time(e,1.35);}
     assert.equal(e.s.phase,stage===3?'complete':'won');
     if(stage<3){assert.equal(e.next(),true);assert.equal(e.s.stage,stage+1);}
   }
@@ -103,7 +103,7 @@ test('quiz clears after ten correct answers; third stage completes campaign',()=
 });
 test('quiz three wrong answers end run and retry preserves its stage',()=>{
   const e=makeQuiz(77);
-  for(let i=0;i<3;i++){e.answer((e.question().correct+1)%4);time(e,.8);}
+  for(let i=0;i<3;i++){e.answer((e.question().correct+1)%4);time(e,2.4);}
   assert.equal(e.s.phase,'lost');e.retry();assert.equal(e.s.phase,'playing');assert.equal(e.s.stage,1);assert.equal(e.s.lives,3);
 });
 test('quiz pause locks answers and freezes timer',()=>{
