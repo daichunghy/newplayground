@@ -5034,6 +5034,8 @@
     let currentLevel = 0;
     let moves = 0;
     let history = []; // Undo stack
+    let autoTimer = null;
+    let suppressTapUntil = 0;
 
     // Solvable, independently checked by a Sokoban push-state BFS.
     // Every puzzle has an equal number of crates and targets, including '*' tiles.
@@ -5078,6 +5080,7 @@
     try { unlockedStage = Math.max(1, Math.min(LEVELS.length, Number(localStorage.getItem('np_sokoban_unlocked')) || 1)); } catch (_) {}
 
     function initLevel(lvlIdx) {
+      stopAutoWalk();
       currentLevel = lvlIdx % LEVELS.length;
       moves = 0;
       history = [];
@@ -5099,6 +5102,7 @@
         <div class="canvas-game-hud">
           <div class="hud-pill">Màn: <span id="skLevel" style="color: #38BDF8;">1</span>/${LEVELS.length}</div>
           <div class="hud-pill">Bước: <span id="skMoves" style="color: #F59E0B;">0</span></div>
+          <div class="hud-pill">Tốt nhất <span id="skBest">—</span></div>
           <div class="hud-pill">Mở khóa: <span id="skUnlocked">${unlockedStage}</span>/${LEVELS.length}</div>
           <label style="color:#E2E8F0;font-size:.84rem;">Chọn màn
             <select id="skJump" aria-label="Chọn màn đã mở khóa" style="padding:7px;border:1px solid #64748B;border-radius:6px;background:#1E293B;color:#fff;min-height:40px;"></select>
@@ -5117,7 +5121,7 @@
         <div id="skResult" role="status" style="min-height: 22px; text-align:center; color:#6EE7B7; font-weight:700;"></div>
         <button class="btn-canvas-action" id="skNextBtn" style="display:none; margin: 3px auto 9px; min-height:44px; background:#047857; color:white;">Màn tiếp theo</button>
         <div class="canvas-controls-bar" style="font-family: Calibri, sans-serif;">
-          <small style="color: #E2E8F0;">Mũi tên / WASD để đẩy thùng vào các vòng tròn. Z để hoàn tác. Trên điện thoại, vuốt bàn cờ hoặc dùng các phím hướng.</small>
+          <small style="color: #E2E8F0;">Chạm ô trống để tự đi. Vuốt hoặc dùng mũi tên/WASD để đẩy thùng; Z hoàn tác.</small>
         </div>
         <div class="virtual-dpad-row" style="display: flex; justify-content: center; gap: 8px; margin-top: 8px;">
           <button class="v-btn" id="skUp">▲</button>
@@ -5142,9 +5146,9 @@
       const boardEl = container.querySelector('#skBoard');
       if (!boardEl) return;
       let html = '';
-      const cellSize = grid[0].length > 7 ? 35 : 39;
+      const cellSize = 'clamp(35px,5.6vw,54px)';
       const tile = (background, child = '', border = '1px solid rgba(255,255,255,.06)') =>
-        '<span style="width:' + cellSize + 'px;height:' + cellSize + 'px;box-sizing:border-box;flex:none;display:flex;align-items:center;justify-content:center;position:relative;border-radius:4px;background:' + background + ';border:' + border + ';">' + child + '</span>';
+        '<span style="width:' + cellSize + ';height:' + cellSize + ';box-sizing:border-box;flex:none;display:flex;align-items:center;justify-content:center;position:relative;border-radius:4px;background:' + background + ';border:' + border + ';">' + child + '</span>';
       const goal = '<span style="width:17px;height:17px;border:3px solid #E8B35F;border-radius:50%;box-sizing:border-box;"></span>';
       const crate = '<span style="width:26px;height:26px;background:#CA9254;border:3px solid #E8BC7B;border-bottom-color:#84552D;border-right-color:#84552D;border-radius:4px;box-sizing:border-box;box-shadow:0 3px 2px #10151B;"></span>';
       const hero = '<span style="width:24px;height:24px;background:#56D8B3;border:3px solid #D1FAE5;border-radius:50%;box-sizing:border-box;box-shadow:0 2px 6px #064E3B;"></span>';
@@ -5167,6 +5171,356 @@
       update('#skMoves', moves);
       update('#skLevelTitle', LEVELS[currentLevel].name);
       update('#skUnlocked', unlockedStage);
+      let best = null;
+      try { best = localStorage.getItem('np_sokoban_best_' + (currentLevel + 1)); } catch (_) {}
+      update('#skBest', best || '—');
+    }
+
+    function stopAutoWalk() {
+      if (autoTimer !== null) { clearInterval(autoTimer); autoTimer = null; }
+    }
+    function findWalkPath(x, y) {
+      if (y < 0 || y >= grid.length || x < 0 || x >= grid[y].length ||
+          ![' ', '.'].includes(grid[y][x])) return null;
+      const key = (a, b) => a + ',' + b;
+      const found = new Set([key(player.x,player.y)]);
+      const queue = [{ x:player.x, y:player.y, path:[] }];
+      const dirs = [[0,-1,'up'],[1,0,'right'],[0,1,'down'],[-1,0,'left']];
+      for (let k = 0; k < queue.length; k++) {
+        const p = queue[k];
+        if (p.x === x && p.y === y) return p.path;
+        for (const [dx,dy,dir] of dirs) {
+          const nx=p.x+dx, ny=p.y+dy;
+          if (ny<0 || ny>=grid.length || nx<0 || nx>=grid[ny].length ||
+              ![' ','.'].includes(grid[ny][nx]) || found.has(key(nx,ny))) continue;
+          found.add(key(nx,ny));
+          queue.push({x:nx,y:ny,path:p.path.concat([[dx,dy,dir]])});
+        }
+      }
+      return null;
+    }
+    function autoWalk(x,y) {
+      if (levelComplete) return;
+      stopAutoWalk();
+      if (x === player.x && y === player.y) return;
+      const cell = grid[y]?.[x];
+      if (cell === ' {
+      history.push({
+        grid: grid.map(row => [...row]),
+        player: { ...player },
+        playerDir,
+        moves
+      });
+      if (history.length > 50) history.shift();
+    }
+
+    function undo() {
+      if (history.length === 0) return;
+      levelComplete = false;
+      const nextButton = container.querySelector('#skNextBtn');
+      if (nextButton) nextButton.style.display = 'none';
+      const message = container.querySelector('#skResult');
+      if (message) message.textContent = '';
+      const prev = history.pop();
+      grid = prev.grid;
+      player = prev.player;
+      playerDir = prev.playerDir;
+      moves = prev.moves;
+      AudioEngine.pop();
+      render();
+    }
+
+    function tryMove(dx, dy, dirName) {
+      if (levelComplete) return;
+      if (dirName) playerDir = dirName;
+      const nx = player.x + dx;
+      const ny = player.y + dy;
+
+      if (ny < 0 || ny >= grid.length || nx < 0 || nx >= grid[ny].length) return;
+      if (grid[ny][nx] === '#') return;
+
+      // Push crate
+      if (grid[ny][nx] === '$' || grid[ny][nx] === '*') {
+        const nnx = nx + dx;
+        const nny = ny + dy;
+        if (nny < 0 || nny >= grid.length || nnx < 0 || nnx >= grid[nny].length) return;
+
+        if (grid[nny][nnx] === ' ' || grid[nny][nnx] === '.') {
+          pushHistory();
+          const targetCell = grid[nny][nnx];
+          grid[nny][nnx] = targetCell === '.' ? '*' : '$';
+          grid[ny][nx] = grid[ny][nx] === '*' ? '.' : ' ';
+          player.x = nx;
+          player.y = ny;
+          moves++;
+          if (grid[nny][nnx] === '*') {
+            AudioEngine.coin(); // Rewarding sound when crate hits target
+            if (window.NP_Juice) window.NP_Juice.vibrate(22);
+          } else {
+            AudioEngine.pop();
+            if (window.NP_Juice) window.NP_Juice.vibrate(12);
+          }
+        }
+      } else if (grid[ny][nx] === ' ' || grid[ny][nx] === '.') {
+        pushHistory();
+        player.x = nx;
+        player.y = ny;
+        moves++;
+        if (window.NP_Juice) window.NP_Juice.vibrate(6);
+      }
+
+      render();
+
+      // All targets must be occupied; do not auto-advance while an input is held.
+      if (grid.every(row => !row.includes('.'))) {
+        levelComplete = true;
+        unlockedStage = Math.max(unlockedStage, Math.min(LEVELS.length, currentLevel + 2));
+        try { localStorage.setItem('np_sokoban_unlocked', String(unlockedStage)); } catch (_) {}
+        AudioEngine.win();
+        const message = container.querySelector('#skResult');
+        const nextButton = container.querySelector('#skNextBtn');
+        if (message) message.textContent = currentLevel + 1 === LEVELS.length
+          ? 'Đã hoàn thành cả 10 màn. Bạn có thể chơi lại bất kỳ lúc nào.'
+          : 'Hoàn thành màn ' + (currentLevel + 1) + ' sau ' + moves + ' bước.';
+        updateStagePicker();
+        if (nextButton) {
+          nextButton.style.display = 'block';
+          nextButton.textContent = currentLevel + 1 === LEVELS.length ? 'Chơi lại từ đầu' : 'Màn tiếp theo';
+        }
+        render();
+      }
+    }
+
+    const keyHandler = (e) => {
+      if (['ArrowUp', 'w', 'W'].includes(e.key)) { tryMove(0, -1, 'up'); e.preventDefault(); }
+      if (['ArrowDown', 's', 'S'].includes(e.key)) { tryMove(0, 1, 'down'); e.preventDefault(); }
+      if (['ArrowLeft', 'a', 'A'].includes(e.key)) { tryMove(-1, 0, 'left'); e.preventDefault(); }
+      if (['ArrowRight', 'd', 'D'].includes(e.key)) { tryMove(1, 0, 'right'); e.preventDefault(); }
+      if (['z', 'Z', 'Backspace'].includes(e.key)) { undo(); e.preventDefault(); }
+    };
+    listen(window, 'keydown', keyHandler);
+
+    // Touch Swipe directly on board for natural mobile movement
+    let skTouchX = 0, skTouchY = 0;
+    const boardEl = container.querySelector('#skBoard');
+    if (boardEl) {
+      boardEl.addEventListener('touchstart', (e) => {
+        if (e.touches[0]) {
+          skTouchX = e.touches[0].clientX;
+          skTouchY = e.touches[0].clientY;
+        }
+      }, { passive: true });
+
+      boardEl.addEventListener('touchend', (e) => {
+        if (e.changedTouches[0]) {
+          const dx = e.changedTouches[0].clientX - skTouchX;
+          const dy = e.changedTouches[0].clientY - skTouchY;
+          const absX = Math.abs(dx);
+          const absY = Math.abs(dy);
+          if (Math.max(absX, absY) > 20) {
+            e.preventDefault();
+            if (absX > absY) {
+              tryMove(dx > 0 ? 1 : -1, 0, dx > 0 ? 'right' : 'left');
+            } else {
+              tryMove(0, dy > 0 ? 1 : -1, dy > 0 ? 'down' : 'up');
+            }
+          }
+        }
+      }, { passive: false });
+    }
+
+    container.querySelector('#skResetBtn')?.addEventListener('click', () => initLevel(currentLevel));
+    container.querySelector('#skNextBtn')?.addEventListener('click', () => {
+      if (levelComplete) initLevel((currentLevel + 1) % LEVELS.length);
+    });
+    listen(container.querySelector('#skJump'), 'change', e => {
+      const next = Number(e.target.value);
+      if (Number.isInteger(next) && next >= 0 && next < unlockedStage) initLevel(next);
+    });
+    container.querySelector('#skUndoBtn')?.addEventListener('click', undo);
+    container.querySelector('#skUp')?.addEventListener('click', () => tryMove(0, -1, 'up'));
+    container.querySelector('#skDown')?.addEventListener('click', () => tryMove(0, 1, 'down'));
+    container.querySelector('#skLeft')?.addEventListener('click', () => tryMove(-1, 0, 'left'));
+    container.querySelector('#skRight')?.addEventListener('click', () => tryMove(1, 0, 'right'));
+
+    initLevel(unlockedStage - 1);
+
+  }
+
+  // =========================================================================
+  // 11. ENGINE: Ô ĂN QUAN DÂN GIAN VIỆT NAM (TRADITIONAL MANCALA ENGINE)
+  // =========================================================================
+   || cell === '*') {
+        if (Math.abs(x-player.x)+Math.abs(y-player.y) === 1) {
+          const dx=x-player.x,dy=y-player.y;
+          tryMove(dx,dy,dx?(dx>0?'right':'left'):(dy>0?'down':'up'));
+        }
+        return;
+      }
+      const path = findWalkPath(x,y);
+      if (path === null) {
+        const status = container.querySelector('#skResult');
+        if (status) status.textContent = 'Không có đường đi đến ô này.';
+        return;
+      }
+      let index=0;
+      if (!path.length) return;
+      autoTimer=setInterval(()=>{
+        if (levelComplete || index >= path.length) { stopAutoWalk(); return; }
+        const [dx,dy,dir]=path[index++];
+        if (!tryMove(dx,dy,dir) || index >= path.length) stopAutoWalk();
+      },60);
+    }
+    function isDeadCorner(x,y) {
+      if (grid[y]?.[x] !== ' {
+      history.push({
+        grid: grid.map(row => [...row]),
+        player: { ...player },
+        playerDir,
+        moves
+      });
+      if (history.length > 50) history.shift();
+    }
+
+    function undo() {
+      if (history.length === 0) return;
+      levelComplete = false;
+      const nextButton = container.querySelector('#skNextBtn');
+      if (nextButton) nextButton.style.display = 'none';
+      const message = container.querySelector('#skResult');
+      if (message) message.textContent = '';
+      const prev = history.pop();
+      grid = prev.grid;
+      player = prev.player;
+      playerDir = prev.playerDir;
+      moves = prev.moves;
+      AudioEngine.pop();
+      render();
+    }
+
+    function tryMove(dx, dy, dirName) {
+      if (levelComplete) return;
+      if (dirName) playerDir = dirName;
+      const nx = player.x + dx;
+      const ny = player.y + dy;
+
+      if (ny < 0 || ny >= grid.length || nx < 0 || nx >= grid[ny].length) return;
+      if (grid[ny][nx] === '#') return;
+
+      // Push crate
+      if (grid[ny][nx] === '$' || grid[ny][nx] === '*') {
+        const nnx = nx + dx;
+        const nny = ny + dy;
+        if (nny < 0 || nny >= grid.length || nnx < 0 || nnx >= grid[nny].length) return;
+
+        if (grid[nny][nnx] === ' ' || grid[nny][nnx] === '.') {
+          pushHistory();
+          const targetCell = grid[nny][nnx];
+          grid[nny][nnx] = targetCell === '.' ? '*' : '$';
+          grid[ny][nx] = grid[ny][nx] === '*' ? '.' : ' ';
+          player.x = nx;
+          player.y = ny;
+          moves++;
+          if (grid[nny][nnx] === '*') {
+            AudioEngine.coin(); // Rewarding sound when crate hits target
+            if (window.NP_Juice) window.NP_Juice.vibrate(22);
+          } else {
+            AudioEngine.pop();
+            if (window.NP_Juice) window.NP_Juice.vibrate(12);
+          }
+        }
+      } else if (grid[ny][nx] === ' ' || grid[ny][nx] === '.') {
+        pushHistory();
+        player.x = nx;
+        player.y = ny;
+        moves++;
+        if (window.NP_Juice) window.NP_Juice.vibrate(6);
+      }
+
+      render();
+
+      // All targets must be occupied; do not auto-advance while an input is held.
+      if (grid.every(row => !row.includes('.'))) {
+        levelComplete = true;
+        unlockedStage = Math.max(unlockedStage, Math.min(LEVELS.length, currentLevel + 2));
+        try { localStorage.setItem('np_sokoban_unlocked', String(unlockedStage)); } catch (_) {}
+        AudioEngine.win();
+        const message = container.querySelector('#skResult');
+        const nextButton = container.querySelector('#skNextBtn');
+        if (message) message.textContent = currentLevel + 1 === LEVELS.length
+          ? 'Đã hoàn thành cả 10 màn. Bạn có thể chơi lại bất kỳ lúc nào.'
+          : 'Hoàn thành màn ' + (currentLevel + 1) + ' sau ' + moves + ' bước.';
+        updateStagePicker();
+        if (nextButton) {
+          nextButton.style.display = 'block';
+          nextButton.textContent = currentLevel + 1 === LEVELS.length ? 'Chơi lại từ đầu' : 'Màn tiếp theo';
+        }
+        render();
+      }
+    }
+
+    const keyHandler = (e) => {
+      if (['ArrowUp', 'w', 'W'].includes(e.key)) { tryMove(0, -1, 'up'); e.preventDefault(); }
+      if (['ArrowDown', 's', 'S'].includes(e.key)) { tryMove(0, 1, 'down'); e.preventDefault(); }
+      if (['ArrowLeft', 'a', 'A'].includes(e.key)) { tryMove(-1, 0, 'left'); e.preventDefault(); }
+      if (['ArrowRight', 'd', 'D'].includes(e.key)) { tryMove(1, 0, 'right'); e.preventDefault(); }
+      if (['z', 'Z', 'Backspace'].includes(e.key)) { undo(); e.preventDefault(); }
+    };
+    listen(window, 'keydown', keyHandler);
+
+    // Touch Swipe directly on board for natural mobile movement
+    let skTouchX = 0, skTouchY = 0;
+    const boardEl = container.querySelector('#skBoard');
+    if (boardEl) {
+      boardEl.addEventListener('touchstart', (e) => {
+        if (e.touches[0]) {
+          skTouchX = e.touches[0].clientX;
+          skTouchY = e.touches[0].clientY;
+        }
+      }, { passive: true });
+
+      boardEl.addEventListener('touchend', (e) => {
+        if (e.changedTouches[0]) {
+          const dx = e.changedTouches[0].clientX - skTouchX;
+          const dy = e.changedTouches[0].clientY - skTouchY;
+          const absX = Math.abs(dx);
+          const absY = Math.abs(dy);
+          if (Math.max(absX, absY) > 20) {
+            e.preventDefault();
+            if (absX > absY) {
+              tryMove(dx > 0 ? 1 : -1, 0, dx > 0 ? 'right' : 'left');
+            } else {
+              tryMove(0, dy > 0 ? 1 : -1, dy > 0 ? 'down' : 'up');
+            }
+          }
+        }
+      }, { passive: false });
+    }
+
+    container.querySelector('#skResetBtn')?.addEventListener('click', () => initLevel(currentLevel));
+    container.querySelector('#skNextBtn')?.addEventListener('click', () => {
+      if (levelComplete) initLevel((currentLevel + 1) % LEVELS.length);
+    });
+    listen(container.querySelector('#skJump'), 'change', e => {
+      const next = Number(e.target.value);
+      if (Number.isInteger(next) && next >= 0 && next < unlockedStage) initLevel(next);
+    });
+    container.querySelector('#skUndoBtn')?.addEventListener('click', undo);
+    container.querySelector('#skUp')?.addEventListener('click', () => tryMove(0, -1, 'up'));
+    container.querySelector('#skDown')?.addEventListener('click', () => tryMove(0, 1, 'down'));
+    container.querySelector('#skLeft')?.addEventListener('click', () => tryMove(-1, 0, 'left'));
+    container.querySelector('#skRight')?.addEventListener('click', () => tryMove(1, 0, 'right'));
+
+    initLevel(unlockedStage - 1);
+
+  }
+
+  // =========================================================================
+  // 11. ENGINE: Ô ĂN QUAN DÂN GIAN VIỆT NAM (TRADITIONAL MANCALA ENGINE)
+  // =========================================================================
+  ) return false;
+      const wall=(r,c)=>r<0 || r>=grid.length || c<0 || c>=grid[r].length || grid[r][c]==='#';
+      return (wall(y-1,x)||wall(y+1,x)) && (wall(y,x-1)||wall(y,x+1));
     }
 
     function pushHistory() {
