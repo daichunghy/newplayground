@@ -6569,6 +6569,19 @@ function launchTetris(container, game) {
   let animId = null;
   let lastDrop = 0;
   let gravityBudget = 0, paused = false;
+  let lockTimer = 0, lockResets = 0;
+  const held = { left:false, right:false, down:false };
+  let holdDirection = 0, holdDuration = 0, repeatBudget = 0, softDropBudget = 0;
+  const DAS = 155, ARR = 38;
+  function resetLockDelay() {
+    if (lockResets < 12) { lockTimer = 0; lockResets++; }
+  }
+  function shift(dx) {
+    if (gameOver || paused || collides(currentPiece, dx, 0)) return false;
+    currentPiece.x += dx;
+    resetLockDelay();
+    return true;
+  }
   let canHold = true;
   let holdPiece = null;
   let screenShake = 0;
@@ -6681,6 +6694,10 @@ function launchTetris(container, game) {
     if (lEl) lEl.textContent = level;
     if (liEl) liEl.textContent = linesCleared;
     if (sEl) sEl.textContent = score;
+    if (score > highScore) {
+      highScore = score;
+      try { localStorage.setItem(HIGH_SCORE_KEY, String(highScore)); } catch (_) {}
+    }
     if (hEl) hEl.textContent = highScore;
     drawNextPiece();
     drawHoldPiece();
@@ -6784,6 +6801,7 @@ function launchTetris(container, game) {
       currentPiece.x += dx;
       currentPiece.y += dy;
       currentPiece.matrix = rotated;
+      resetLockDelay();
       if (window.NP_Audio?.pop) NP_Audio.pop();
       else AudioEngine.pop();
       if (window.NP_Juice) window.NP_Juice.vibrate(8);
@@ -6826,6 +6844,8 @@ function launchTetris(container, game) {
       };
     }
 
+    lockTimer=0; lockResets=0;
+    if (collides(currentPiece)) { gameOver=true; return; }
     if (window.NP_Audio?.pop) NP_Audio.pop();
     else AudioEngine.pop();
     if (window.NP_Juice) window.NP_Juice.vibrate(10);
@@ -6932,6 +6952,7 @@ function launchTetris(container, game) {
 
     currentPiece = nextPiece;
     nextPiece = randomPiece();
+    lockTimer=0; lockResets=0; gravityBudget=0;
     updateHUD();
 
     if (collides(currentPiece)) {
@@ -6960,48 +6981,59 @@ function launchTetris(container, game) {
     paused = !paused;
     lastDrop = 0;
     gravityBudget = 0;
+    held.left=held.right=held.down=false;
+    holdDirection=0;holdDuration=repeatBudget=softDropBudget=0;
     const btn = container.querySelector('#tetPauseBtn');
     if (btn) btn.textContent = paused ? 'Tiếp tục' : 'Tạm dừng';
   }
   container.querySelector('#tetPauseBtn')?.addEventListener('click', togglePause);
   listen(window, 'blur', () => { if (!paused && !gameOver) togglePause(); });
   // Keyboard controls
-  function handleKeyDown(e) {
-    if ((e.key === 'p' || e.key === 'P') && !e.repeat) {
-      e.preventDefault(); togglePause(); return;
-    }
-    if (gameOver || paused || e.altKey || e.ctrlKey || e.metaKey ||
-        /INPUT|TEXTAREA|SELECT/.test(e.target?.tagName || '')) return;
-    if (e.key.startsWith('Arrow')) e.preventDefault();
-    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
-      if (!collides(currentPiece, -1, 0)) {
-        currentPiece.x--;
-        if (window.NP_Juice) window.NP_Juice.vibrate(5);
-      }
-    } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
-      if (!collides(currentPiece, 1, 0)) {
-        currentPiece.x++;
-        if (window.NP_Juice) window.NP_Juice.vibrate(5);
-      }
-    } else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
-      if (!collides(currentPiece, 0, 1)) {
-        currentPiece.y++;
-        score += 1;
-        if (window.NP_Juice) window.NP_Juice.vibrate(5);
-      }
-    } else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
-      e.preventDefault();
-      rotatePiece();
-    } else if (e.key === ' ' || e.code === 'Space') {
-      e.preventDefault();
-      if (!e.repeat) hardDrop();
-    } else if (e.key === 'c' || e.key === 'C' || e.key === 'Shift') {
-      e.preventDefault();
-      if (!e.repeat) hold();
-    }
+  function directionForKey(key) {
+    if (key === 'ArrowLeft' || key === 'a' || key === 'A') return 'left';
+    if (key === 'ArrowRight' || key === 'd' || key === 'D') return 'right';
+    if (key === 'ArrowDown' || key === 's' || key === 'S') return 'down';
+    return null;
   }
-
-  listen(window, 'keydown', handleKeyDown);
+  listen(window,'keydown',e=>{
+    if (e.altKey||e.ctrlKey||e.metaKey||/INPUT|TEXTAREA|SELECT/.test(e.target?.tagName||'')) return;
+    if ((e.key==='p'||e.key==='P')&&!e.repeat) { e.preventDefault(); togglePause(); return; }
+    if (gameOver||paused) return;
+    const dir=directionForKey(e.key);
+    if (dir) {
+      e.preventDefault();
+      if (!held[dir]) {
+        held[dir]=true;
+        if (dir!=='down') {
+          holdDirection=dir==='left'?-1:1;
+          holdDuration=0;repeatBudget=0;
+          shift(holdDirection);
+        } else {
+          if (!collides(currentPiece,0,1)) { currentPiece.y++;score++;resetLockDelay();updateHUD(); }
+        }
+      }
+      return;
+    }
+    if (e.repeat) return;
+    if (e.key==='ArrowUp'||e.key==='w'||e.key==='W'||e.key==='x'||e.key==='X') {
+      e.preventDefault(); rotatePiece();
+    } else if (e.key===' '||e.code==='Space') {
+      e.preventDefault();hardDrop();
+    } else if (e.key==='c'||e.key==='C'||e.key==='Shift') {
+      e.preventDefault();hold();
+    }
+  });
+  listen(window,'keyup',e=>{
+    const dir=directionForKey(e.key);
+    if (!dir) return;
+    held[dir]=false;
+    if (dir!=='down') { holdDirection=0;holdDuration=0;repeatBudget=0; }
+    else softDropBudget=0;
+  });
+  listen(window,'blur',()=>{
+    held.left=held.right=held.down=false;
+    holdDirection=0;holdDuration=repeatBudget=softDropBudget=0;
+  });
 
   // Unified pointer gesture, scaled to the actual CSS canvas size.
   let drag = null;
@@ -7058,7 +7090,9 @@ function launchTetris(container, game) {
   container.querySelector('#tetRestartBtn')?.addEventListener('click', () => {
     grid = Array(ROWS).fill(null).map(() => Array(COLS).fill(0));
     pieceBag = [];
-    gravityBudget = 0; lastDrop = 0; paused = false;
+    gravityBudget=0;lastDrop=0;paused=false;
+    lockTimer=lockResets=0; holdDirection=holdDuration=repeatBudget=softDropBudget=0;
+    held.left=held.right=held.down=false;
     const pauseBtn = container.querySelector('#tetPauseBtn');
     if (pauseBtn) pauseBtn.textContent = 'Tạm dừng';
     score = 0;
@@ -7087,13 +7121,39 @@ function launchTetris(container, game) {
     const dt = Math.max(0, Math.min(70, timestamp - lastDrop));
     lastDrop = timestamp;
     if (!paused && !gameOver) {
-      gravityBudget = Math.min(1800, gravityBudget + dt);
-      let drops = 0;
-      while (!gameOver && drops++ < 3 && gravityBudget >= dropInterval) {
-        gravityBudget -= dropInterval;
-        if (!collides(currentPiece, 0, 1)) currentPiece.y++;
-        else lockPiece();
+      const direction=(held.right?1:0)-(held.left?1:0);
+      if (!direction) { holdDirection=0;holdDuration=repeatBudget=0; }
+      else {
+        if (direction!==holdDirection) {
+          holdDirection=direction;holdDuration=0;repeatBudget=0;shift(direction);
+        } else {
+          holdDuration+=dt;
+          if (holdDuration>=DAS) {
+            repeatBudget+=dt;
+            for(let n=0;repeatBudget>=ARR&&n<5;n++,repeatBudget-=ARR) shift(direction);
+          }
+        }
       }
+      if (held.down) {
+        softDropBudget+=dt;
+        while(softDropBudget>=40) {
+          softDropBudget-=40;
+          if (!collides(currentPiece,0,1)) {
+            currentPiece.y++;score++;resetLockDelay();updateHUD();
+          } else break;
+        }
+      }
+      gravityBudget = Math.min(1800, gravityBudget + dt);
+      let drops=0;
+      while (!gameOver && drops++<3 && gravityBudget>=dropInterval) {
+        gravityBudget-=dropInterval;
+        if (!collides(currentPiece,0,1)) currentPiece.y++;
+        else { gravityBudget=Math.min(gravityBudget,dropInterval); break; }
+      }
+      if (collides(currentPiece,0,1)) {
+        lockTimer+=dt;
+        if (lockTimer>=430) lockPiece();
+      } else lockTimer=0;
     }
 
     // --- RENDER WITH SCREEN SHAKE ---
