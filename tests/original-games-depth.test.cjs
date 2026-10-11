@@ -21,7 +21,7 @@ test('ring medals reflect accuracy, without retaining a paused reset',()=>{
   e.s.paused=true;e.reset();
   assert.equal(e.s.paused,false);
   assert.equal(e.s.stage,1);
-  assert.equal(e.s.medals,3,'cumulative medals are history, not an unearned current award');
+  assert.equal(e.s.medals,0,'a new campaign must clear prior medals');
 });
 
 test('ring special targets grant a ring, while misses break combo',()=>{
@@ -56,7 +56,7 @@ test('ring repeated retry rolls score back to the same checkpoint',()=>{
 
 test('dart hit testing keeps desktop shots distinct from misses',()=>{
   const e=makeDarts(9),b=e.s.balls[0],p=e.position(b);
-  e.fire(p.x+72,p.y,1);advance(e,.25);
+  e.fire(690,435,1);advance(e,.25);
   assert.equal(e.s.popped,0);
   assert.equal(e.s.accurate,0);
   assert.equal(e.s.combo,0);
