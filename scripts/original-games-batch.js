@@ -233,36 +233,98 @@
       ['Ánh sáng đi nhanh nhất trong môi trường nào?', ['Nước','Thủy tinh','Chân không','Không khí'],2]
     ]
   ];
+  const EXPLANATIONS=[
+    [
+      "Một năm dương lịch có 12 tháng.",
+      "28 chia hết cho 2 nên là số chẵn.",
+      "Sao Thủy nằm gần Mặt Trời nhất.",
+      "Nhiệt kế đo nhiệt độ, còn la bàn chỉ hướng.",
+      "Một ki-lô-mét bằng 1.000 mét.",
+      "Tam giác là đa giác có ba cạnh.",
+      "2 là số nguyên tố nhỏ nhất và là số chẵn duy nhất nguyên tố.",
+      "H₂O gồm hai nguyên tử hydro và một nguyên tử oxy.",
+      "Một ngày có 24 giờ.",
+      "HTML tạo cấu trúc, còn CSS trình bày giao diện.",
+      "Cá heo là động vật có vú, thở bằng phổi.",
+      "Một thế kỷ gồm 100 năm."
+    ],
+    [
+      "12 × 12 = 144.",
+      "Âm thanh cần môi trường vật chất để lan truyền.",
+      "Đồng dẫn điện tốt và được dùng rộng rãi làm dây dẫn.",
+      "Trái Đất tự quay quanh trục trong khoảng 24 giờ.",
+      "CSS quy định màu sắc, bố cục và kiểu hiển thị.",
+      "Ampe (A) là đơn vị cường độ dòng điện.",
+      "Một byte được quy ước gồm 8 bit.",
+      "Thái Bình Dương có diện tích lớn nhất.",
+      "2 mũ 5 bằng 32.",
+      "Tim co bóp để bơm máu khắp cơ thể.",
+      "Lăng kính tán sắc ánh sáng trắng thành nhiều màu.",
+      "Một vòng tròn tương ứng 360 độ."
+    ],
+    [
+      "Ở 25°C, pH 7 của dung dịch nước được coi là trung tính.",
+      "13 × 13 = 169.",
+      "Mặt Trăng là vệ tinh tự nhiên của Trái Đất.",
+      "Hệ nhị phân chỉ sử dụng 0 và 1.",
+      "Định luật Ohm mô tả quan hệ U = I × R.",
+      "Trong DNA, adenine (A) bắt cặp với thymine (T).",
+      "Ở áp suất khí quyển tiêu chuẩn, nước tinh khiết đóng băng gần 0°C.",
+      "Khối lập phương có sáu mặt vuông.",
+      "Sau 0, 1, 1, 2, 3 là 5 vì mỗi số bằng tổng hai số trước.",
+      "25% = 25/100 = 1/4.",
+      "Mạch điện hở không tạo đường dẫn kín cho dòng điện ổn định.",
+      "Ánh sáng truyền nhanh nhất trong chân không."
+    ]
+  ];
   function makeQuiz(seed=23){
     const random=rngFrom(seed);
     const s={kind:'quiz',stage:1,score:0,best:0,phase:'playing',paused:false,
       questions:[],index:0,selected:null,remaining:24,lives:3,streak:0,
       lifelines:{half:1,skip:1},hidden:[],feedback:'',feedbackTime:0,
-      correct:0,event:0};
+      correct:0,totalCorrect:0,bestStreak:0,stars:0,stageStars:0,timeLimit:25,checkpoint:null,event:0};
     function createQuestions(level){
-      const pool=QUESTIONS[Math.min(2,level-1)].map((q,i)=>({q,id:i}));
+      const tier=Math.min(2,level-1);
+      const pool=QUESTIONS[tier].map((q,i)=>({q,id:i}));
       for(let i=pool.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
-      return pool.slice(0,10).map(({q})=>({text:q[0],choices:q[1].slice(),correct:q[2]}));
+      return pool.slice(0,10).map(({q,id})=>{
+        const options=q[1].map((value,index)=>({value,isCorrect:index===q[2]}));
+        for(let i=3;i>0;i--){const j=Math.floor(random()*(i+1));[options[i],options[j]]=[options[j],options[i]];}
+        return {text:q[0],choices:options.map(o=>o.value),correct:options.findIndex(o=>o.isCorrect),explanation:EXPLANATIONS[tier][id]};
+      });
     }
     const question=()=>s.questions[s.index]||null;
     function stageInit(){
-      s.questions=createQuestions(s.stage);s.index=0;s.selected=null;s.remaining=Math.max(13,25-(s.stage-1)*4);
-      s.streak=0;s.hidden=[];s.feedback='';s.feedbackTime=0;s.correct=0;s.phase='playing';s.paused=false;s.event++;
+      s.checkpoint={score:s.score,lives:s.lives,stars:s.stars,totalCorrect:s.totalCorrect,
+        lifelines:{...s.lifelines}};
+      s.questions=createQuestions(s.stage);s.index=0;s.selected=null;
+      s.timeLimit=Math.max(13,25-(s.stage-1)*4);s.remaining=s.timeLimit;
+      s.streak=0;s.hidden=[];s.feedback='';s.feedbackTime=0;s.correct=0;s.stageStars=0;
+      s.phase='playing';s.paused=false;s.event++;
     }
     function finishAnswer(){
       s.selected=null;s.feedback='';s.hidden=[];s.index++;
       if(s.lives<=0){s.phase='lost';}
-      else if(s.index>=s.questions.length){s.phase=s.stage>=3?'complete':'won';s.best=Math.max(s.best,s.stage);}
-      else {s.remaining=Math.max(13,25-(s.stage-1)*4);s.phase='playing';}
+      else if(s.index>=s.questions.length){
+        s.phase=s.stage>=3?'complete':'won';s.best=Math.max(s.best,s.stage);
+        s.stageStars=s.correct===10&&s.lives===3?3:s.correct>=8?2:1;
+        s.stars+=s.stageStars;
+      }else {s.remaining=s.timeLimit;s.phase='playing';}
       s.event++;
     }
     function answer(choice){
       if(s.phase!=='playing'||s.paused||!question())return false;
       if(choice>=0&&(choice>3||s.hidden.includes(choice)))return false;
-      const correct=choice===question().correct;
-      s.selected=choice;s.phase='feedback';s.feedbackTime=.72;
-      if(correct){s.correct++;s.streak++;const points=(100+s.stage*50)*Math.min(4,s.streak);s.score+=points;s.feedback='Đúng! +'+points;}
-      else {s.lives--;s.streak=0;s.feedback=choice<0?'Hết giờ':'Chưa đúng';}
+      const q=question(),correct=choice===q.correct;
+      s.selected=choice;s.phase='feedback';s.feedbackTime=correct?1.15:2.2;
+      if(correct){
+        s.correct++;s.totalCorrect++;s.streak++;s.bestStreak=Math.max(s.bestStreak,s.streak);
+        const points=(100+s.stage*50)*Math.min(4,s.streak)+Math.floor(s.remaining*3);
+        s.score+=points;s.feedback='Đúng! +'+points+' · '+q.explanation;
+      }else {
+        s.lives--;s.streak=0;
+        s.feedback=(choice<0?'Hết giờ. ':'Chưa đúng. ')+'Đáp án '+q.choices[q.correct]+'. '+q.explanation;
+      }
       s.event++;return true;
     }
     function half(){
@@ -282,8 +344,16 @@
       else {s.remaining=Math.max(0,s.remaining-dt);if(s.remaining===0)answer(-1);}
     }
     function next(){if(s.phase!=='won')return false;s.stage++;s.lives=Math.min(3,s.lives+1);stageInit();return true;}
-    function retry(){if(s.phase!=='lost')return false;reset();return true;}
-    function reset(){s.stage=1;s.score=0;s.best=0;s.lives=3;s.lifelines={half:1,skip:1};stageInit();}
+    function retry(){
+      if(s.phase!=='lost')return false;
+      const checkpoint=s.checkpoint;
+      s.score=checkpoint.score;s.lives=Math.max(2,checkpoint.lives);
+      s.stars=checkpoint.stars;s.totalCorrect=checkpoint.totalCorrect;
+      s.lifelines={...checkpoint.lifelines};
+      stageInit();return true;
+    }
+    function reset(){s.stage=1;s.score=0;s.best=0;s.lives=3;s.stars=0;s.totalCorrect=0;
+      s.bestStreak=0;s.lifelines={half:1,skip:1};stageInit();}
     stageInit();return {s,question,answer,half,skip,tick,next,retry,reset};
   }
 
@@ -370,7 +440,10 @@
       const q=engine.question();if(!q)return;
       el('step').textContent='Câu '+(s.index+1)+'/10 · Chặng '+s.stage+'/3';
       el('lives').textContent='Mạng '+s.lives;
-      el('timebar').style.width=String(clamp(s.remaining/(Math.max(13,25-(s.stage-1)*4))*100,0,100))+'%';
+      el('timebar').style.width=String(clamp(s.remaining/s.timeLimit*100,0,100))+'%';
+      el('timebar').classList.toggle('urgent',s.remaining<=5);
+      el('timebar').setAttribute?.('aria-valuenow',String(Math.ceil(s.remaining)));
+      el('lives').textContent='Mạng '+s.lives+' · '+Math.ceil(s.remaining)+'s';
       const hidden=s.hidden.join(',');
       if(force||lastQuizIndex!==s.index||lastHidden!==hidden){
         lastQuizIndex=s.index;lastHidden=hidden;
@@ -390,7 +463,7 @@
       }
       el('half').disabled=feedback||s.paused||!s.lifelines.half;
       el('skip').disabled=feedback||s.paused||!s.lifelines.skip;
-      el('quiz-status').textContent=s.feedback||('Đúng '+s.correct+' câu');
+      el('quiz-status').textContent=s.feedback||('Đúng '+s.correct+' câu · '+s.stars+' sao');
     }
     session.listen(el('pause'),'click',()=>{
       if(['playing','flight','feedback'].includes(s.phase)){s.paused=!s.paused;updateUI(true);}
