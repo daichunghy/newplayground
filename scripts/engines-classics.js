@@ -4768,19 +4768,19 @@
 
     function simulateOneFrame() {
       if (gameOver || paused) return;
-      if (awaitingLaunch) {
-        if (balls[0]) { balls[0].x = paddle.x + paddle.w / 2; balls[0].y = paddle.y - balls[0].r - 1; }
-        return;
-      }
-      if (effects.expand > 0 && --effects.expand === 0) paddle.w = 80;
-      if (effects.fireball > 0 && --effects.fireball === 0) isFireball = false;
-      // Keyboard input
+      // Move the paddle before the serve too, so the player can aim the first hit.
       if (dxKeys['ArrowLeft'] || dxKeys['a'] || dxKeys['A']) {
         paddle.x = Math.max(10, paddle.x - 6);
       }
       if (dxKeys['ArrowRight'] || dxKeys['d'] || dxKeys['D']) {
         paddle.x = Math.min(canvas.width - paddle.w - 10, paddle.x + 6);
       }
+      if (awaitingLaunch) {
+        if (balls[0]) { balls[0].x = paddle.x + paddle.w / 2; balls[0].y = paddle.y - balls[0].r - 1; }
+        return;
+      }
+      if (effects.expand > 0 && --effects.expand === 0) paddle.w = 80;
+      if (effects.fireball > 0 && --effects.fireball === 0) isFireball = false;
 
       // Update Powerup Capsules
       for (let i = powerups.length - 1; i >= 0; i--) {
