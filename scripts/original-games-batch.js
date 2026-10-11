@@ -139,16 +139,16 @@
     function fire(x=s.aimX,y=s.aimY,scale=1){
       if(s.phase!=='playing'||s.paused||s.dart||s.shots>=s.ammo||s.seconds<=0)return false;
       aim(x,y);s.shots++;
-      s.dart={x:s.aimX,y:s.aimY,elapsed:0,duration:.18,scale:Math.max(1,scale),from:{x:360,y:433}};
+      s.dart={x:s.aimX,y:s.aimY,elapsed:0,duration:.18,scale:clamp(Number(scale)||1,.25,2),from:{x:360,y:433}};
       s.event++;return true;
     }
     function dartLand(){
       const d=s.dart;let best=null;
       // On a narrow touch screen the hit target must still be about 44 CSS pixels.
-      const scale=clamp(Number(d.scale)||1,.35,2);
+      const scale=clamp(Number(d.scale)||1,.25,2);
       for(const ball of s.balls){
         // 44 CSS pixels minimum, but never add an entire second balloon on mobile.
-        const tolerance=clamp(22/scale-ball.radius,0,32);
+        const tolerance=clamp(22/scale-ball.radius,0,60);
         const p=position(ball),distance=Math.hypot(p.x-d.x,p.y-d.y);
         if(distance<=ball.radius+tolerance&&(!best||distance<best.distance))best={ball,distance,p};
       }
@@ -410,7 +410,7 @@
       '<div class="np-deep-shade" data-a="shade" role="status" aria-live="polite"><h2 data-a="headline"></h2><p data-a="description"></p><button class="np-deep-primary" data-a="next" type="button"></button></div></div>'+
       '<div class="np-deep-footer"><span data-a="hint"></span><span data-a="feedback" aria-live="polite"></span></div><p class="np-deep-help" data-a="instructions" hidden></p></section>';
     const el=name=>container.querySelector('[data-a="'+name+'"]');
-    const messages={rings:'Chạm để ngắm, thả để ném. Phím ← → và Space cũng dùng được.',darts:'Chạm bóng để ném. Hoặc ngắm bằng ← ↑ → ↓ rồi nhấn Space.',quiz:'Chọn một đáp án. Hai quyền trợ giúp chỉ dùng được một lần cho cả hành trình.'};
+    const messages={rings:'Chạm để ngắm, thả để ném; phím mũi tên và Space cũng dùng được. Chai vàng thưởng thêm lượt ném, còn gió thay đổi sau mỗi vòng.',darts:'Chạm bóng để ném; phím mũi tên và Space cũng dùng được. Bóng đồng hồ cộng ba giây, bóng viền trắng cần hai phi tiêu.',quiz:'Chọn đáp án trong thời gian quy định; trả lời nhanh và đúng liên tiếp được thưởng điểm. Mỗi quyền 50/50 và bỏ qua chỉ dùng một lần trong hành trình.'};
     el('hint').textContent=kind==='rings'?'Kéo ngắm • thả ném':kind==='darts'?'Chạm bóng để ném':'Chọn đáp án đúng';
     el('instructions').textContent=messages[kind];
     session.listen(el('help'),'click',()=>{el('instructions').hidden=!el('instructions').hidden;});
