@@ -5034,6 +5034,8 @@
     let currentLevel = 0;
     let moves = 0;
     let history = []; // Undo stack
+    let autoTimer = null;
+    let swipeUntil = 0;
 
     // Solvable, independently checked by a Sokoban push-state BFS.
     // Every puzzle has an equal number of crates and targets, including '*' tiles.
@@ -5078,6 +5080,7 @@
     try { unlockedStage = Math.max(1, Math.min(LEVELS.length, Number(localStorage.getItem('np_sokoban_unlocked')) || 1)); } catch (_) {}
 
     function initLevel(lvlIdx) {
+      stopAutoWalk();
       currentLevel = lvlIdx % LEVELS.length;
       moves = 0;
       history = [];
@@ -5099,6 +5102,7 @@
         <div class="canvas-game-hud">
           <div class="hud-pill">Màn: <span id="skLevel" style="color: #38BDF8;">1</span>/${LEVELS.length}</div>
           <div class="hud-pill">Bước: <span id="skMoves" style="color: #F59E0B;">0</span></div>
+          <div class="hud-pill">Ít bước nhất <span id="skBest">—</span></div>
           <div class="hud-pill">Mở khóa: <span id="skUnlocked">${unlockedStage}</span>/${LEVELS.length}</div>
           <label style="color:#E2E8F0;font-size:.84rem;">Chọn màn
             <select id="skJump" aria-label="Chọn màn đã mở khóa" style="padding:7px;border:1px solid #64748B;border-radius:6px;background:#1E293B;color:#fff;min-height:40px;"></select>
@@ -5142,9 +5146,9 @@
       const boardEl = container.querySelector('#skBoard');
       if (!boardEl) return;
       let html = '';
-      const cellSize = grid[0].length > 7 ? 35 : 39;
+      const cellSize = 'clamp(35px,5.8vw,52px)';
       const tile = (background, child = '', border = '1px solid rgba(255,255,255,.06)') =>
-        '<span style="width:' + cellSize + 'px;height:' + cellSize + 'px;box-sizing:border-box;flex:none;display:flex;align-items:center;justify-content:center;position:relative;border-radius:4px;background:' + background + ';border:' + border + ';">' + child + '</span>';
+        '<span style="width:' + cellSize + ';height:' + cellSize + ';box-sizing:border-box;flex:none;display:flex;align-items:center;justify-content:center;position:relative;border-radius:4px;background:' + background + ';border:' + border + ';">' + child + '</span>';
       const goal = '<span style="width:17px;height:17px;border:3px solid #E8B35F;border-radius:50%;box-sizing:border-box;"></span>';
       const crate = '<span style="width:26px;height:26px;background:#CA9254;border:3px solid #E8BC7B;border-bottom-color:#84552D;border-right-color:#84552D;border-radius:4px;box-sizing:border-box;box-shadow:0 3px 2px #10151B;"></span>';
       const hero = '<span style="width:24px;height:24px;background:#56D8B3;border:3px solid #D1FAE5;border-radius:50%;box-sizing:border-box;box-shadow:0 2px 6px #064E3B;"></span>';
@@ -5152,12 +5156,16 @@
         html += '<div style="display:flex;justify-content:center;">';
         for (let c = 0; c < grid[r].length; c++) {
           const value = grid[r][c], isPlayer = r === player.y && c === player.x;
+          html += '<button class="np-sk-cell" type="button" data-sk-r="' + r + '" data-sk-c="' + c +
+            '" aria-label="Hàng ' + (r + 1) + ', cột ' + (c + 1) +
+            '" style="padding:0;display:flex;flex:none;border:none;background:none;cursor:pointer;touch-action:none;">';
           if (value === '#') html += tile('#445668', '<span style="width:65%;height:65%;border-top:3px solid #71889C;border-left:3px solid #71889C;box-sizing:border-box;"></span>');
           else if (isPlayer) html += tile(value === '.' ? '#1D604A' : '#203649', hero);
           else if (value === '$') html += tile('#263F4E', crate);
           else if (value === '*') html += tile('#185F4A', crate, '2px solid #44D8A5');
           else if (value === '.') html += tile('#1D3140', goal);
           else html += tile('#1D3140');
+          html += '</button>';
         }
         html += '</div>';
       }
@@ -5167,6 +5175,64 @@
       update('#skMoves', moves);
       update('#skLevelTitle', LEVELS[currentLevel].name);
       update('#skUnlocked', unlockedStage);
+      let best = null;
+      try { best = localStorage.getItem('np_sokoban_best_' + (currentLevel + 1)); } catch (_) {}
+      update('#skBest', best || '—');
+    }
+
+    function stopAutoWalk() {
+      if (autoTimer !== null) { clearInterval(autoTimer); autoTimer = null; }
+    }
+    function findWalkPath(x, y) {
+      if (y < 0 || y >= grid.length || x < 0 || x >= grid[y].length ||
+          ![' ', '.'].includes(grid[y][x])) return null;
+      const key = (x,y) => x + ',' + y;
+      const seen = new Set([key(player.x,player.y)]);
+      const queue = [{x:player.x,y:player.y,path:[]}];
+      const directions = [[0,-1,'up'],[0,1,'down'],[-1,0,'left'],[1,0,'right']];
+      for (let i=0; i<queue.length; i++) {
+        const p=queue[i];
+        if (p.x===x && p.y===y) return p.path;
+        for (const [dx,dy,dir] of directions) {
+          const nx=p.x+dx,ny=p.y+dy;
+          if (ny<0 || ny>=grid.length || nx<0 || nx>=grid[ny].length ||
+              ![' ','.'].includes(grid[ny][nx]) || seen.has(key(nx,ny))) continue;
+          seen.add(key(nx,ny));
+          queue.push({x:nx,y:ny,path:p.path.concat([[dx,dy,dir]])});
+        }
+      }
+      return null;
+    }
+    function autoWalk(x, y) {
+      if (levelComplete) return;
+      stopAutoWalk();
+      if (x===player.x && y===player.y) return;
+      const cell = grid[y]?.[x];
+      if (cell === '$' || cell === '*') {
+        if (Math.abs(x-player.x)+Math.abs(y-player.y)===1) {
+          const dx=x-player.x,dy=y-player.y;
+          tryMove(dx,dy,dx?(dx>0?'right':'left'):(dy>0?'down':'up'));
+        }
+        return;
+      }
+      const path=findWalkPath(x,y);
+      if (path === null) {
+        const result=container.querySelector('#skResult');
+        if (result) result.textContent='Đường đi bị chắn bởi tường hoặc thùng.';
+        return;
+      }
+      let i=0;
+      if (!path.length) return;
+      autoTimer=setInterval(()=>{
+        if (levelComplete || i>=path.length) { stopAutoWalk(); return; }
+        const [dx,dy,dir]=path[i++];
+        if (!tryMove(dx,dy,dir) || i>=path.length) stopAutoWalk();
+      },65);
+    }
+    function hasDeadCorner(x, y) {
+      if (grid[y]?.[x] !== '$') return false;
+      const wall=(r,c)=>r<0||r>=grid.length||c<0||c>=grid[r].length||grid[r][c]==='#';
+      return (wall(y-1,x)||wall(y+1,x))&&(wall(y,x-1)||wall(y,x+1));
     }
 
     function pushHistory() {
