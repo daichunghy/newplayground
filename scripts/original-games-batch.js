@@ -420,8 +420,10 @@
     function updateUI(force=false){
       const meta='Màn '+s.stage+' · '+s.score+' điểm'+(kind==='rings'?' · '+(s.limit-s.throws)+' vòng':kind==='darts'?' · '+(s.ammo-s.shots)+' phi tiêu':'');
       if(force||lastStats!==meta){el('meta').textContent=meta;lastStats=meta;}
-      el('pause').textContent=s.paused?'Tiếp tục':'Tạm dừng';
-      el('pause').disabled=['won','lost','complete'].includes(s.phase);
+      const pauseLabel=s.paused?'Tiếp tục':'Tạm dừng';
+      if(el('pause').textContent!==pauseLabel)el('pause').textContent=pauseLabel;
+      const pauseDisabled=['won','lost','complete'].includes(s.phase);
+      if(el('pause').disabled!==pauseDisabled)el('pause').disabled=pauseDisabled;
       if(s.phase!==lastPhase||force){
         const over=['won','lost','complete'].includes(s.phase);
         el('shade').classList.toggle('show',over);
@@ -440,12 +442,13 @@
     }
     function renderQuiz(force=false){
       const q=engine.question();if(!q)return;
-      el('step').textContent='Câu '+(s.index+1)+'/10 · Chặng '+s.stage+'/3 · Liên tiếp '+s.streak;
-      el('lives').textContent='Mạng '+s.lives;
+      const stepText='Câu '+(s.index+1)+'/10 · Chặng '+s.stage+'/3 · Liên tiếp '+s.streak;
+      if(el('step').textContent!==stepText)el('step').textContent=stepText;
       el('timebar').style.width=String(clamp(s.remaining/s.timeLimit*100,0,100))+'%';
       el('timebar').classList.toggle('urgent',s.remaining<=5);
       el('timebar').setAttribute?.('aria-valuenow',String(Math.ceil(s.remaining)));
-      el('lives').textContent='Mạng '+s.lives+' · '+Math.ceil(s.remaining)+'s';
+      const livesText='Mạng '+s.lives+' · '+Math.ceil(s.remaining)+'s';
+      if(el('lives').textContent!==livesText)el('lives').textContent=livesText;
       const hidden=s.hidden.join(',');
       if(force||lastQuizIndex!==s.index||lastHidden!==hidden){
         lastQuizIndex=s.index;lastHidden=hidden;
@@ -465,7 +468,8 @@
       }
       el('half').disabled=feedback||s.paused||!s.lifelines.half;
       el('skip').disabled=feedback||s.paused||!s.lifelines.skip;
-      el('quiz-status').textContent=s.feedback||('Đúng '+s.correct+' câu · '+s.stars+' sao');
+      const quizStatus=s.feedback||('Đúng '+s.correct+' câu · '+s.stars+' sao');
+      if(el('quiz-status').textContent!==quizStatus)el('quiz-status').textContent=quizStatus;
     }
     session.listen(el('pause'),'click',()=>{
       if(['playing','flight','feedback'].includes(s.phase)){s.paused=!s.paused;updateUI(true);}
