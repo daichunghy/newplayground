@@ -6612,8 +6612,10 @@
       if (status) status.textContent = winner >= 0 ? (winner ? 'Máy thắng trận. Chơi lại để thử tiếp.' : 'Bạn thắng trận!')
         : paused ? 'Đã tạm dừng' : serve > 0 ? 'Chuẩn bị giao bóng' : 'Đang thi đấu';
     }
+    let activeTouch=null;
     const movePointer = e => {
-      if (e.pointerType === 'touch' && e.type === 'pointermove' && e.buttons === 0) return;
+      if(e.pointerType==='touch' && e.type==='pointermove' && e.pointerId!==activeTouch)return;
+      if(e.pointerType==='touch' && e.type==='pointerdown')activeTouch=e.pointerId;
       const rect = canvas.getBoundingClientRect();
       if (!rect.height) return;
       player.target = clamp((e.clientY - rect.top) * H / rect.height - PADDLE_H / 2, 5, H - PADDLE_H - 5);
@@ -6624,6 +6626,12 @@
     };
     listen(canvas, 'pointerdown', movePointer);
     listen(canvas, 'pointermove', movePointer);
+    listen(canvas, 'pointerup',e=>{
+      if(e.pointerId===activeTouch)activeTouch=null;
+    });
+    listen(canvas, 'pointercancel',e=>{
+      if(e.pointerId===activeTouch)activeTouch=null;
+    });
     listen(window, 'keydown', e => {
       const up = ['ArrowUp', 'w', 'W'].includes(e.key);
       const down = ['ArrowDown', 's', 'S'].includes(e.key);
