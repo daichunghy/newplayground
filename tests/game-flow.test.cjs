@@ -934,3 +934,144 @@ test('Sokoban campaign has ten solvable levels and the first is finishable by in
   h.context.closeGameModal(); assertStopped(h);
   assert.equal(h.errors.length, 0);
 });
+
+
+test('deep gameplay Mine modes resize correctly without rebuilding tile targets on every reveal', () => {
+  const h=harness();
+  assert.equal(h.context.openGameById('do-min-minesweeper'),true);
+  const board=h.container.querySelector('#dmGrid');
+  const difficulty=h.container.querySelector('#dmDifficulty');
+  assert.equal(board.children.length,81);
+  const initialCell=board.children[0];
+  initialCell.dispatch('click');
+  assert.equal(board.children[0],initialCell,'reveals repaint existing button rather than discarding it');
+  difficulty.value='intermediate';
+  difficulty.dispatch('change');
+  assert.equal(board.children.length,256,'intermediate field must be 16 by 16');
+  assert.equal(h.container.querySelector('#dmMineCount').textContent,'040');
+  difficulty.value='expert';
+  difficulty.dispatch('change');
+  assert.equal(board.children.length,480,'expert field must be 30 by 16');
+  assert.equal(h.container.querySelector('#dmMineCount').textContent,'099');
+  const expertCell=board.children[0];
+  expertCell.dispatch('pointerdown',{pointerType:'touch',clientX:12,clientY:12});
+  assert.ok([...h.timers.values()].some(x=>x.delay===420));
+  difficulty.value='beginner';
+  difficulty.dispatch('change');
+  assert.equal(board.children.length,81);
+  assert.ok(![...h.timers.values()].some(x=>x.delay===420),'mode switching cancels stale long presses');
+  h.context.closeGameModal();h.flushTimeouts();assertStopped(h);
+  assert.equal(h.errors.length,0,h.errors.join('; '));
+});
+
+test('deep gameplay Sokoban click-to-walk uses BFS and can be interrupted and cleaned up', () => {
+  const h=harness();
+  assert.equal(h.context.openGameById('day-thung-sokoban'),true);
+  const board=h.container.querySelector('#skBoard');
+  assert.equal(h.container.querySelectorAll('.np-sk-cell').length,49);
+  const target={closest:()=>({dataset:{skR:'1',skC:'1'}})};
+  board.dispatch('click',{target});
+  const first=[...h.timers.values()].find(x=>x.interval && x.delay===65);
+  assert.ok(first,'path walking must schedule a short, cancellable interval');
+  first.callback();
+  first.callback();
+  assert.equal(h.container.querySelector('#skMoves').textContent,2,'walking two empty squares should take two steps');
+  assert.ok(![...h.timers.values()].some(x=>x.interval && x.delay===65),'route finishes without leaving timer');
+  board.dispatch('click',{target:{closest:()=>({dataset:{skR:'4',skC:'5'}})}});
+  assert.ok([...h.timers.values()].some(x=>x.interval && x.delay===65));
+  h.container.querySelector('#skResetBtn').dispatch('click');
+  assert.ok(![...h.timers.values()].some(x=>x.interval && x.delay===65),'restart aborts auto-walk');
+  h.context.closeGameModal();h.flushTimeouts();assertStopped(h);
+  assert.equal(h.errors.length,0,h.errors.join('; '));
+});
+
+test('deep gameplay Line 98 animates a valid BFS route and undo restores its original position', () => {
+  const h=harness();
+  assert.equal(h.context.openGameById('line-98'),true);
+  const grid=h.container.querySelector('#l98Grid');
+  const cells=grid.children;
+  let source=-1,destination=-1;
+  for(let i=0;i<81 && source===-1;i++){
+    if(!Number(cells[i].dataset.color))continue;
+    const r=Math.floor(i/9),c=i%9;
+    for(const [dr,dc] of [[0,1],[1,0],[0,-1],[-1,0]]){
+      const nr=r+dr,nc=c+dc;
+      if(nr<0||nr>=9||nc<0||nc>=9)continue;
+      const idx=nr*9+nc;
+      if(Number(cells[idx].dataset.color)===0){source=i;destination=idx;break;}
+    }
+  }
+  assert.ok(source>=0 && destination>=0,'seeded board has an adjacent reachable empty cell');
+  const original=String(cells[source].dataset.color);
+  const firstNode=cells[0];
+  cells[source].dispatch('click');
+  cells[destination].dispatch('click');
+  assert.ok([...h.timers.values()].some(x=>!x.interval),'ball movement should produce scheduled steps');
+  for(let n=0;n<15;n++)h.flushTimeouts();
+  assert.equal(grid.children[0],firstNode,'cell DOM must persist across animation');
+  h.container.querySelector('#l98UndoBtn').dispatch('click');
+  assert.equal(String(grid.children[source].dataset.color),original,'undo replaces ball at original source');
+  assert.equal(String(grid.children[destination].dataset.color),'0','undo clears destination');
+  h.context.closeGameModal();h.flushTimeouts();assertStopped(h);
+  assert.equal(h.errors.length,0,h.errors.join('; '));
+});
+
+test('deep gameplay 2048 move, save and undo survive closing and reopening',()=>{
+  const h=harness();
+  h.stored.set('np_2048_state',JSON.stringify({
+    board:[[2,2,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],score:0,hasWon:false
+  }));
+  assert.equal(h.context.openGameById('tro-choi-2048'),true);
+  h.window.dispatch('keydown',{key:'ArrowLeft'});
+  assert.equal(h.container.querySelector('#g2048Score').textContent,4,'adjacent two tiles merge once');
+  const saved=JSON.parse(h.stored.get('np_2048_state'));
+  assert.equal(saved.undoState.board[0][0],2);
+  assert.equal(saved.undoState.board[0][1],2);
+  h.context.closeGameModal();assertStopped(h);
+  h.context.openGameById('tro-choi-2048');
+  h.container.querySelector('#g2048UndoBtn').dispatch('click');
+  assert.equal(h.container.querySelector('#g2048Score').textContent,0);
+  const reverted=JSON.parse(h.stored.get('np_2048_state'));
+  assert.deepEqual(reverted.board[0],[2,2,0,0]);
+  h.context.closeGameModal();assertStopped(h);
+  assert.equal(h.errors.length,0,h.errors.join('; '));
+});
+
+test('deep gameplay Pong, Caro and Flappy modes reset without resurrecting old actions',async()=>{
+  const h=harness();
+  h.context.openGameById('pong-1972');
+  const pongMode=h.container.querySelector('#pongDifficulty');
+  pongMode.value='hard';pongMode.dispatch('change');
+  assert.equal(h.container.querySelector('#pongPlayer').textContent,0);
+  assert.equal(h.container.querySelector('#pongRally').textContent,0);
+  h.context.closeGameModal();assertStopped(h);
+
+  h.context.openGameById('co-caro');
+  const caroGrid=h.container.querySelector('#caroGrid');
+  const node=caroGrid.children[112];
+  node.dispatch('click');
+  assert.equal(caroGrid.children[112],node,'moves must retain original DOM node');
+  const caroRules=h.container.querySelector('#caroRules');
+  caroRules.value='free';caroRules.dispatch('change');
+  h.flushTimeouts();
+  await Promise.resolve();
+  assert.equal(caroGrid.children[112],node,'changing rules repaints instead of rerendering all cells');
+  assert.equal(caroGrid.children.filter(c=>c.innerHTML.includes('piece-o')).length,0,'old AI timeout must be rejected');
+  h.context.closeGameModal();assertStopped(h);
+
+  h.context.openGameById('flappy-bird');
+  const flapMode=h.container.querySelector('#fbMode');
+  assert.ok(flapMode);
+  flapMode.value='practice';flapMode.dispatch('change');
+  h.container.querySelector('#fbCanvas').dispatch('pointerdown',{
+    pointerType:'touch',pointerId:1,clientX:100,clientY:190
+  });
+  for(let n=0;n<5;n++)h.frame();
+  h.container.querySelector('#fbPauseBtn').dispatch('click');
+  assert.equal(h.container.querySelector('#fbPauseBtn').textContent,'Tiếp tục');
+  flapMode.value='classic';flapMode.dispatch('change');
+  assert.equal(h.container.querySelector('#fbPauseBtn').textContent,'Tạm dừng');
+  assert.equal(h.container.querySelector('#fbScore').textContent,0);
+  h.context.closeGameModal();assertStopped(h);
+  assert.equal(h.errors.length,0,h.errors.join('; '));
+});
