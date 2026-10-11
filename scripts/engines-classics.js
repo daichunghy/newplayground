@@ -4609,7 +4609,7 @@
       const saved = JSON.parse(localStorage.getItem('np_2048_state') || 'null');
       if (saved && Array.isArray(saved.board) && saved.board.length === 4 &&
           saved.board.every(row => Array.isArray(row) && row.length === 4 &&
-            row.every(v => Number.isSafeInteger(v) && (v === 0 || (v >= 2 && (v & (v - 1)) === 0))) &&
+            row.every(v => Number.isSafeInteger(v) && (v === 0 || (v >= 2 && (v & (v - 1)) === 0)))) &&
           Number.isSafeInteger(saved.score) && saved.score >= 0) {
         board = saved.board.map(row => row.slice());
         score = saved.score;
@@ -6468,7 +6468,8 @@
         const travel = towardAI ? (W - 30 - ball.x) / Math.max(1, ball.vx) : 0;
         let predicted = ball.y + ball.vy * travel;
         const range = 2 * (H - BALL_R * 2);
-        predicted = Math.abs(((predicted - BALL_R) % range + range) % range - (H - BALL_R * 2)) + BALL_R;
+        const reflected = ((predicted - BALL_R) % range + range) % range;
+        predicted = (reflected > H - BALL_R * 2 ? range - reflected : reflected) + BALL_R;
         rival.target = clamp((towardAI ? predicted : H / 2) - PADDLE_H / 2 + (Math.random() - .5) * 25, 5, H - PADDLE_H - 5);
       }
       rival.y += clamp(rival.target - rival.y, -(3.7 + Math.min(1.6, rally * .08)), 3.7 + Math.min(1.6, rally * .08));
