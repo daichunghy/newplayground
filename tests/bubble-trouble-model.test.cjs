@@ -75,6 +75,54 @@ test('emptying a wave advances to the next stage, and the final stage has a win 
   assert.equal(state.lastEvent.type, 'complete');
 });
 
+test('a perfect-aim model run clears all ten stages without a stuck transition', () => {
+  const state = model.create(2026);
+  const startingBubbles = [];
+  let totalPops = 0;
+
+  for (let stage = 1; stage <= C.maxStage; stage++) {
+    assert.equal(state.stage, stage);
+    const firstCount = state.bubbles.length;
+    startingBubbles.push(firstCount);
+    let stagePops = 0;
+
+    // Controlled model-only run: resolve each selected bubble as a perfect hit,
+    // allowing the real split rules to append child bubbles to the same queue.
+    while (state.bubbles.length) {
+      const target = state.bubbles.shift();
+      model.pop(state, target);
+      stagePops++;
+      totalPops++;
+      assert.ok(totalPops <= 245, 'bubble splitting must terminate at the expected campaign bound');
+    }
+
+    assert.equal(stagePops, firstCount * 7, 'each large bubble resolves to one large, two medium and four small pops');
+    model.tick(state, {}, 0.05);
+    assert.equal(state.phase, 'stage-clear');
+    let transitionTicks = 0;
+    while (state.phase === 'stage-clear' && transitionTicks < 25) {
+      model.tick(state, {}, 0.05);
+      transitionTicks++;
+    }
+    assert.ok(transitionTicks < 25, `stage ${stage} must leave its clear transition`);
+
+    if (stage < C.maxStage) {
+      assert.equal(state.phase, 'playing');
+      assert.equal(state.stage, stage + 1);
+      assert.equal(state.bubbles.length, Math.min(6, 1 + Math.floor((stage + 1) / 2)));
+      assert.ok(state.bubbles.every(bubble => bubble.size === C.maxBubbleSize));
+    } else {
+      assert.equal(state.phase, 'won');
+      assert.equal(state.lastEvent.type, 'complete');
+    }
+  }
+
+  assert.deepEqual(startingBubbles, [1, 2, 2, 3, 3, 4, 4, 5, 5, 6]);
+  assert.equal(totalPops, 245);
+  assert.equal(state.score, 21875);
+  assert.equal(state.lives, C.maxLives);
+});
+
 test('keyboard and pointer movement share the same clamped horizontal player model', () => {
   const state = model.create(8);
   const start = state.playerX;
