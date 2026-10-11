@@ -654,5 +654,57 @@
     "size_bytes": 6669,
     "license": "CC0 1.0 Universal (Public Domain)",
     "source": "https://raw.githubusercontent.com/KenneyNL/Starter-Kit-Match-3/main/sounds/tile-swap.ogg"
+  },
+  {
+    "category": "game_avatar",
+    "file": "flappy-swift.webp",
+    "local_path": "assets/avatars/flappy-swift.webp",
+    "size_bytes": 35452,
+    "license": "AI-generated artwork; governed by project asset policy",
+    "source": "OpenAI ImageGen; generated 2026-10-11",
+    "game_id": "flappy-bird",
+    "prompt": "Original teal-and-coral swift bird, side-scrolling sky adventure; polished 2D game illustration; no text, logo, watermark, or imitation.",
+    "width": 640,
+    "height": 400,
+    "format": "WebP"
+  },
+  {
+    "category": "game_avatar",
+    "file": "typer-shark.webp",
+    "local_path": "assets/avatars/typer-shark.webp",
+    "size_bytes": 51150,
+    "license": "AI-generated artwork; governed by project asset policy",
+    "source": "OpenAI ImageGen; generated 2026-10-11",
+    "game_id": "typer-shark",
+    "prompt": "Original friendly cobalt-blue reef shark for a typing-underwater arcade game; polished 2D game illustration; no text, letters, logo, watermark, or imitation.",
+    "width": 640,
+    "height": 400,
+    "format": "WebP"
+  },
+  {
+    "category": "game_avatar",
+    "file": "fuzzy-puzzle-creatures.webp",
+    "local_path": "assets/avatars/fuzzy-puzzle-creatures.webp",
+    "size_bytes": 52402,
+    "license": "AI-generated artwork; governed by project asset policy",
+    "source": "OpenAI ImageGen; generated 2026-10-11",
+    "game_id": "chuzzle",
+    "prompt": "Three original lilac, mint, and golden fuzzy puzzle creatures in a magical garden; polished 2D game illustration; no text, logo, watermark, or branded character imitation.",
+    "width": 640,
+    "height": 400,
+    "format": "WebP"
+  },
+  {
+    "category": "game_avatar",
+    "file": "sky-garden-sprite.webp",
+    "local_path": "assets/avatars/sky-garden-sprite.webp",
+    "size_bytes": 46850,
+    "license": "AI-generated artwork; governed by project asset policy",
+    "source": "OpenAI ImageGen; generated 2026-10-11",
+    "game_id": "sky-garden-khu-vuon-tren-may",
+    "prompt": "Original leafy garden sprite tending a seedling in a cloud-top garden; polished 2D game illustration; no text, logo, watermark, or imitation.",
+    "width": 640,
+    "height": 400,
+    "format": "WebP"
   }
 ]

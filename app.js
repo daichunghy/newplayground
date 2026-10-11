@@ -144,7 +144,11 @@
     'street-fighter': 'assets/street_fighter_cover.jpg',
     'bubble-bobble': 'assets/bubble_bobble_cover.jpg',
     'age-of-war': 'assets/age_of_war_cover.jpg',
-    'bloxorz': 'assets/bloxorz_cover.jpg'
+    'bloxorz': 'assets/bloxorz_cover.jpg',
+    'flappy-bird': 'assets/avatars/flappy-swift.webp',
+    'typer-shark': 'assets/avatars/typer-shark.webp',
+    'chuzzle': 'assets/avatars/fuzzy-puzzle-creatures.webp',
+    'sky-garden-khu-vuon-tren-may': 'assets/avatars/sky-garden-sprite.webp'
   };
 
   function escapeXml(unsafe) {

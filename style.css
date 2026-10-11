@@ -2832,3 +2832,123 @@ body.dark-theme .filter-pill.active {
 @media (prefers-reduced-motion:reduce){
   .np-boom-game *,.np-egg-game *{animation:none!important;transition:none!important}
 }
+
+
+/* Widen game play areas while keeping each canvas's own aspect ratio. */
+.game-modal {
+  padding: clamp(4px, 1vw, 14px);
+}
+
+.modal-window {
+  width: min(98vw, 1760px);
+  max-width: 1760px;
+  max-height: calc(100dvh - clamp(8px, 2vw, 28px));
+}
+
+.modal-body {
+  min-height: 0;
+  padding: clamp(8px, 1vw, 18px);
+}
+
+.canvas-main-viewport {
+  width: min(100%, 1400px);
+  max-width: none;
+  height: auto;
+  aspect-ratio: auto;
+  max-height: calc(100dvh - 210px);
+  margin-inline: auto;
+}
+
+.np-arc-canvas {
+  width: min(100%, 1280px);
+  max-width: none;
+  height: auto;
+  aspect-ratio: auto;
+  max-height: calc(100dvh - 210px);
+  margin-inline: auto;
+}
+
+.np-boom-stage {
+  width: min(100%, 960px);
+  max-width: none;
+  margin-inline: auto;
+}
+
+.np-boom-canvas {
+  width: 100%;
+  max-width: none;
+  height: auto;
+  aspect-ratio: auto;
+  max-height: calc(100dvh - 210px);
+}
+
+.np-egg-field {
+  width: min(100%, 960px);
+  max-width: none;
+  margin-inline: auto;
+}
+
+.np-egg-canvas {
+  width: 100%;
+  height: auto;
+  aspect-ratio: auto;
+  max-height: calc(100dvh - 210px);
+  margin-inline: auto;
+}
+
+@media (max-width: 700px) {
+  .game-modal {
+    padding: 0;
+  }
+
+  .modal-window {
+    width: 100vw;
+    max-width: none;
+    height: 100dvh;
+    max-height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .modal-header {
+    padding: 8px 12px;
+  }
+
+  .modal-body {
+    padding: 8px;
+  }
+
+  .canvas-main-viewport,
+  .np-arc-canvas,
+  .np-boom-canvas,
+  .np-egg-canvas {
+    max-width: 100%;
+    max-height: calc(100dvh - 230px);
+  }
+
+  .np-boom-stage,
+  .np-egg-field {
+    max-width: 100%;
+  }
+}
+
+@media (max-height: 560px) and (orientation: landscape) {
+  .modal-window {
+    max-height: 100dvh;
+  }
+
+  .modal-header {
+    padding-block: 4px;
+  }
+
+  .modal-body {
+    padding-block: 4px;
+  }
+
+  .canvas-main-viewport,
+  .np-arc-canvas,
+  .np-boom-canvas,
+  .np-egg-canvas {
+    max-height: calc(100dvh - 120px);
+  }
+}
