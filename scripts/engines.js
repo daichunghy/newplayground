@@ -5781,6 +5781,8 @@ function launchCaro(container, game) {
   let lastMove = null;
   let wins = 0;
   let losses = 0;
+  let aiThinking = false;
+  let turnVersion = 0;
 
   container.innerHTML = `
     <div class="line98-board-wrapper" style="max-width: 520px; font-family: Calibri, sans-serif;">
@@ -5840,8 +5842,9 @@ function launchCaro(container, game) {
           e.preventDefault();
           handlePlayerMove(r, c);
         };
+        // A click is generated for taps too; do not execute the move twice.
+        cell.style.touchAction = 'manipulation';
         cell.addEventListener('click', onAction);
-        cell.addEventListener('touchstart', onAction, { passive: false });
 
         gridEl.appendChild(cell);
       }
@@ -5956,7 +5959,11 @@ function launchCaro(container, game) {
 
           // If player has lethal threat (4 in a row or open-ended 3), defense priority skyrockets
           const defWeight = defense >= 300000 ? 1.75 : 1.3;
-          const total = attack + defense * defWeight;
+          // An immediate win is always stronger than blocking another possible win.
+          // An immediate opponent win must be blocked before developing an attack.
+          const total = attack >= 10000000 ? 1e10 + attack
+            : defense >= 10000000 ? 1e9 + defense
+              : attack + defense * defWeight;
 
           if (total > bestScore) {
             bestScore = total;
@@ -5975,7 +5982,9 @@ function launchCaro(container, game) {
   }
 
   async function handlePlayerMove(r, c) {
-    if (gameOver || board[r][c] !== 0) return;
+    if (gameOver || aiThinking || board[r][c] !== 0) return;
+    aiThinking = true;
+    const myTurn = ++turnVersion;
 
     // Player Move
     board[r][c] = 1;
@@ -5995,6 +6004,7 @@ function launchCaro(container, game) {
     const pWin = checkWin(board, 1);
     if (pWin) {
       gameOver = true;
+      aiThinking = false;
       winningLine = pWin;
       wins++;
       if (scoreEl) scoreEl.textContent = `${wins} - ${losses}`;
@@ -6006,11 +6016,26 @@ function launchCaro(container, game) {
       return;
     }
 
-    // AI Move
-    if (statusEl) statusEl.textContent = 'Máy đang tính toán nước cờ... 🤔';
-    await new Promise(res => setTimeout(res, 240));
+    // A final player move can also fill the board without a five-in-a-row.
+    if (moveHistory.length === SIZE * SIZE) {
+      gameOver = true;
+      aiThinking = false;
+      if (statusEl) statusEl.textContent = 'Hòa cờ — bàn đã kín.';
+      return;
+    }
+
+    // The player can reset/undo while AI is thinking. Invalidate stale replies.
+    if (statusEl) statusEl.textContent = 'Máy đang chọn nước...';
+    await new Promise(res => setTimeout(res, 180));
+    if (gameOver || myTurn !== turnVersion) return;
 
     const aiMove = getAIMove();
+    if (!aiMove || board[aiMove.r][aiMove.c] !== 0) {
+      gameOver = true;
+      aiThinking = false;
+      if (statusEl) statusEl.textContent = 'Hòa cờ — không còn ô trống.';
+      return;
+    }
     board[aiMove.r][aiMove.c] = 2;
     lastMove = { r: aiMove.r, c: aiMove.c, val: 2 };
     moveHistory.push({ r: aiMove.r, c: aiMove.c, val: 2 });
@@ -6028,6 +6053,7 @@ function launchCaro(container, game) {
     const aiWin = checkWin(board, 2);
     if (aiWin) {
       gameOver = true;
+      aiThinking = false;
       winningLine = aiWin;
       losses++;
       if (scoreEl) scoreEl.textContent = `${wins} - ${losses}`;
@@ -6039,18 +6065,27 @@ function launchCaro(container, game) {
       return;
     }
 
-    if (statusEl) statusEl.textContent = 'Lượt của bạn (Đánh quân X)';
+    if (moveHistory.length === SIZE * SIZE) {
+      gameOver = true;
+      if (statusEl) statusEl.textContent = 'Hòa cờ — bàn đã kín.';
+    } else if (statusEl) {
+      statusEl.textContent = 'Lượt của bạn (Đánh quân X)';
+    }
+    aiThinking = false;
   }
 
   if (undoBtn) {
     undoBtn.addEventListener('click', () => {
-      if (gameOver || moveHistory.length < 2) return;
-      // Undo AI move
-      const m2 = moveHistory.pop();
-      board[m2.r][m2.c] = 0;
-      // Undo Player move
-      const m1 = moveHistory.pop();
-      board[m1.r][m1.c] = 0;
+      if (gameOver || !moveHistory.length) return;
+      ++turnVersion;
+      aiThinking = false;
+      const last = moveHistory.pop();
+      board[last.r][last.c] = 0;
+      // Rewind the complete player+AI round, or a waiting player move.
+      if (last.val === 2 && moveHistory.length && moveHistory[moveHistory.length - 1].val === 1) {
+        const previous = moveHistory.pop();
+        board[previous.r][previous.c] = 0;
+      }
       lastMove = moveHistory.length > 0 ? moveHistory[moveHistory.length - 1] : null;
 
       if (window.NP_Audio && typeof window.NP_Audio.hit === 'function') {
@@ -6067,6 +6102,8 @@ function launchCaro(container, game) {
 
   if (resetBtn) {
     resetBtn.addEventListener('click', () => {
+      ++turnVersion;
+      aiThinking = false;
       board = Array(SIZE).fill(null).map(() => Array(SIZE).fill(0));
       moveHistory = [];
       gameOver = false;
