@@ -7953,6 +7953,7 @@ function launchDoMin(container, game) {
   let firstClick = true;
   let flagMode = false;
   let isMouseDepressed = false;
+  let suppressNextTap = null;
 
   function initBoard() {
     clearInterval(timerInterval);
@@ -7961,6 +7962,9 @@ function launchDoMin(container, game) {
     gameOver = false;
     gameWon = false;
     isMouseDepressed = false;
+    suppressNextTap = null;
+    const result = container.querySelector('#dmResult');
+    if (result) result.textContent = '';
     grid = Array(ROWS).fill(null).map(() => Array(COLS).fill(0));
     flags = Array(ROWS).fill(null).map(() => Array(COLS).fill(false));
     revealed = Array(ROWS).fill(null).map(() => Array(COLS).fill(false));
@@ -7978,15 +7982,16 @@ function launchDoMin(container, game) {
         <div id="dmTimer" style="background: #000; color: #EF4444; font-family: monospace; font-size: 1.6rem; font-weight: 900; padding: 2px 8px; border-radius: 2px; letter-spacing: 2px;">000</div>
       </div>
 
-      <div style="font-weight:700;color:#1E293B;margin:0 0 8px;text-align:center">Màn <span id="dmStage">1</span> • Số mìn tăng sau mỗi lần thắng</div>
+      <div style="font-weight:700;color:#1E293B;margin:0 0 8px;text-align:center">Màn <span id="dmStage">1</span> • Kỷ lục <span id="dmBest">—</span></div>
       <div id="dmGrid" style="display: grid; grid-template-columns: repeat(9, 1fr); gap: 1px; background: #808080; border: 3px solid #808080; border-right-color: #FFF; border-bottom-color: #FFF; padding: 1px;"></div>
 
       <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
         <button id="dmFlagToggleBtn" class="btn-canvas-action" style="font-size: 0.85rem; padding: 6px 12px; background: #64748B; color: #FFF; font-family: Calibri, sans-serif;">
           🚩 Chế độ cắm cờ: <span id="dmFlagStatus">TẮT</span>
         </button>
-        <small style="color: #1E293B; font-weight: 600;">Chuột phải / Bấm cờ • Bấm ô số để mở nhanh (Chord)</small>
-        <button id="dmNextBtn" class="btn-canvas-action" style="display:none;background:#047857;color:white">Sang màn tiếp theo →</button>
+        <small style="color: #1E293B; font-weight: 600;">Chạm giữ hoặc chuột phải để cắm cờ; chạm số đã mở để mở nhanh.</small>
+        <button id="dmNextBtn" class="btn-canvas-action" style="display:none;background:#047857;color:white;min-height:44px;">Màn tiếp theo</button>
+        <div id="dmResult" role="status" style="width:100%;font-weight:700;color:#1E293B;text-align:center;min-height:18px;"></div>
       </div>
     </div>
   `;
@@ -8117,6 +8122,13 @@ function launchDoMin(container, game) {
     if (unrevealedSafe === 0) {
       gameWon = true;
       clearInterval(timerInterval);
+      try {
+        const key = 'np_mine_best_' + stage;
+        const old = localStorage.getItem(key);
+        if (old === null || timer < Number(old)) localStorage.setItem(key, String(timer));
+      } catch (_) {}
+      const result = container.querySelector('#dmResult');
+      if (result) result.textContent = 'Hoàn thành màn ' + stage + ' trong ' + timer + ' giây.';
       if (nextBtn) nextBtn.style.display = 'inline-flex';
       if (window.NP_Juice) NP_Juice.vibrate.success();
       AudioEngine.win();
@@ -8131,12 +8143,27 @@ function launchDoMin(container, game) {
     if (timerEl) timerEl.textContent = String(Math.min(999, timer)).padStart(3, '0');
     const stageEl = container.querySelector('#dmStage');
     if (stageEl) stageEl.textContent = stage;
+    const bestEl = container.querySelector('#dmBest');
+    if (bestEl) {
+      let best = null;
+      try { best = localStorage.getItem('np_mine_best_' + stage); } catch (_) {}
+      bestEl.textContent = best === null ? '—' : best + 's';
+    }
     if (faceBtn) {
       if (gameWon) faceBtn.textContent = '😎';
       else if (gameOver) faceBtn.textContent = '😵';
       else if (isMouseDepressed) faceBtn.textContent = '😮';
       else faceBtn.textContent = '🙂';
     }
+  }
+
+  function toggleFlag(r, c) {
+    if (gameOver || gameWon || revealed[r][c]) return;
+    flags[r][c] = !flags[r][c];
+    if (window.NP_Juice) NP_Juice.vibrate.light();
+    AudioEngine.pop();
+    updateHUD();
+    renderBoard();
   }
 
   function renderBoard() {
@@ -8152,6 +8179,8 @@ function launchDoMin(container, game) {
           : (flags[r][c] ? 'Ô đã cắm cờ' : 'Ô chưa mở'));
         cell.style.padding = '0';
         cell.style.aspectRatio = '1/1';
+        cell.style.minWidth = '0';
+        cell.style.touchAction = 'manipulation';
         cell.style.display = 'flex';
         cell.style.alignItems = 'center';
         cell.style.justifyContent = 'center';
@@ -8177,9 +8206,34 @@ function launchDoMin(container, game) {
           cell.style.borderRightColor = '#808080';
           cell.style.borderBottomColor = '#808080';
           if (flags[r][c]) {
-            cell.textContent = '🚩';
+            cell.textContent = gameOver && grid[r][c] !== 9 ? '×' : '⚑';
+            if (gameOver && grid[r][c] !== 9) cell.style.color = '#DC2626';
           }
         }
+
+        // Long press flags a tile on touch devices, even with flag mode disabled.
+        // A consumed long press must not trigger the synthetic click to reveal.
+        let pressTimer = null;
+        let startX = 0, startY = 0;
+        const clearLongPress = () => {
+          if (pressTimer !== null) { clearTimeout(pressTimer); pressTimer = null; }
+        };
+        cell.addEventListener('pointerdown', e => {
+          if (e.pointerType !== 'touch' || gameOver || gameWon) return;
+          startX = e.clientX; startY = e.clientY;
+          clearLongPress();
+          pressTimer = setTimeout(() => {
+            pressTimer = null;
+            if (revealed[r][c] || gameOver || gameWon) return;
+            suppressNextTap = { r, c, at: Date.now() };
+            toggleFlag(r, c);
+          }, 420);
+        });
+        cell.addEventListener('pointermove', e => {
+          if (Math.hypot(e.clientX - startX, e.clientY - startY) > 12) clearLongPress();
+        });
+        cell.addEventListener('pointerup', clearLongPress);
+        cell.addEventListener('pointercancel', clearLongPress);
 
         // Mouse Down tension: Face turns 😮
         cell.addEventListener('mousedown', () => {
@@ -8191,6 +8245,11 @@ function launchDoMin(container, game) {
 
         // Click handler
         cell.addEventListener('click', () => {
+          if (suppressNextTap && suppressNextTap.r === r && suppressNextTap.c === c &&
+              Date.now() - suppressNextTap.at < 750) {
+            suppressNextTap = null;
+            return;
+          }
           if (gameOver || gameWon) return;
 
           // Revealed cells cannot be flagged, including cells with value zero.
@@ -8200,11 +8259,7 @@ function launchDoMin(container, game) {
           }
 
           if (flagMode) {
-            flags[r][c] = !flags[r][c];
-            if (window.NP_Juice) NP_Juice.vibrate.light();
-            AudioEngine.pop();
-            updateHUD();
-            renderBoard();
+            toggleFlag(r, c);
             return;
           }
 
@@ -8222,6 +8277,8 @@ function launchDoMin(container, game) {
           if (grid[r][c] === 9) {
             gameOver = true;
             clearInterval(timerInterval);
+            const result = container.querySelector('#dmResult');
+            if (result) result.textContent = 'Trúng mìn. Bấm mặt cười để chơi lại màn này.';
             if (window.NP_Juice) NP_Juice.vibrate.heavy();
             AudioEngine.explosion();
             for (let i = 0; i < ROWS; i++) {
@@ -8243,11 +8300,7 @@ function launchDoMin(container, game) {
         cell.addEventListener('contextmenu', (e) => {
           e.preventDefault();
           if (gameOver || gameWon || revealed[r][c]) return;
-          flags[r][c] = !flags[r][c];
-          if (window.NP_Juice) NP_Juice.vibrate.light();
-          AudioEngine.pop();
-          updateHUD();
-          renderBoard();
+          toggleFlag(r, c);
         });
 
         gridEl.appendChild(cell);
