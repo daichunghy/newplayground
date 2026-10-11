@@ -2291,8 +2291,690 @@
     });
   }
 
+  // Contra NES-inspired side-scrolling run-and-gun slice. All scenery is
+  // generated from primitive shapes; only the movement/shooting relationships
+  // are modeled, not Konami's maps, actors, or art.
+  const CONTRA = Object.freeze({ width: 960, height: 540, ground: 452, stageLength: 1880, maxStage: 3 });
+  const CONTRA_ENCOUNTERS = Object.freeze([
+    [
+      { x: 345, type: 'trooper', hp: 1 }, { x: 585, type: 'turret', hp: 2 },
+      { x: 820, type: 'trooper', hp: 1 }, { x: 1080, type: 'turret', hp: 2 },
+      { x: 1330, type: 'trooper', hp: 1 }, { x: 1605, type: 'boss', hp: 9 }
+    ],
+    [
+      { x: 300, type: 'trooper', hp: 1 }, { x: 510, type: 'turret', hp: 2 },
+      { x: 760, type: 'trooper', hp: 1 }, { x: 1010, type: 'turret', hp: 2 },
+      { x: 1290, type: 'trooper', hp: 1 }, { x: 1605, type: 'boss', hp: 11 }
+    ],
+    [
+      { x: 330, type: 'turret', hp: 2 }, { x: 620, type: 'trooper', hp: 1 },
+      { x: 900, type: 'turret', hp: 2 }, { x: 1190, type: 'trooper', hp: 1 },
+      { x: 1430, type: 'turret', hp: 2 }, { x: 1605, type: 'boss', hp: 13 }
+    ]
+  ]);
+
+  function createContraState() {
+    const state = { stage: 1, phase: 'playing', score: 0, lives: 3, elapsed: 0,
+      player: { x: 90, y: CONTRA.ground - 42, vy: 0, facing: 1, grounded: true, invulnerable: 1.9 },
+      enemies: [], playerShots: [], enemyShots: [], fireCooldown: 0,
+      transition: 0, lastEvent: { type: 'start', stage: 1 }, rng: 0x1988 };
+    contraSpawnStage(state);
+    return state;
+  }
+
+  function contraSpawnStage(state) {
+    const layout = CONTRA_ENCOUNTERS[state.stage - 1];
+    state.enemies = layout.map((entry, index) => ({ ...entry, id: index, y: CONTRA.ground - (entry.type === 'boss' ? 54 : 34),
+      maxHp: entry.hp, fireCooldown: entry.type === 'boss' ? 2.25 : entry.type === 'turret' ? 2.7 + index * 0.2 : 4 + index * 0.4, phase: index * 1.8 }));
+    state.player.x = 90;
+    state.player.y = CONTRA.ground - 42;
+    state.player.vy = 0;
+    state.player.grounded = true;
+    state.player.invulnerable = 1.9;
+    state.playerShots = [];
+    state.enemyShots = [];
+    state.fireCooldown = 0;
+  }
+
+  function contraFire(state, aimY = 0) {
+    if (state.phase !== 'playing' || state.fireCooldown > 0) return false;
+    const p = state.player, spreads = state.stage >= 2 ? [-0.14, 0, 0.14] : [0];
+    for (const spread of spreads) {
+      const angle = aimY < 0 ? -0.42 + spread : aimY > 0 ? 0.35 + spread : spread;
+      state.playerShots.push({ x: p.x + p.facing * 24, y: p.y + 17,
+        vx: Math.cos(angle) * p.facing * 520, vy: Math.sin(angle) * 520, life: 1.35, damage: 1 });
+    }
+    state.fireCooldown = state.stage >= 2 ? 0.22 : 0.17;
+    return true;
+  }
+
+  function contraLoseLife(state) {
+    if (state.player.invulnerable > 0 || state.phase !== 'playing') return false;
+    state.lives = Math.max(0, state.lives - 1);
+    state.player.invulnerable = 2.35;
+    state.player.x = Math.max(90, state.player.x - 35);
+    state.player.y = CONTRA.ground - 42;
+    state.player.vy = 0;
+    state.player.grounded = true;
+    state.enemyShots = [];
+    state.lastEvent = { type: 'hit', lives: state.lives };
+    if (!state.lives) { state.phase = 'over'; state.lastEvent = { type: 'game-over' }; }
+    return true;
+  }
+
+  function contraTick(state, input = {}, dt = 1 / 60) {
+    const seconds = Math.min(0.05, Math.max(0, Number(dt) || 0));
+    if (!seconds || state.phase === 'over' || state.phase === 'won' || state.phase === 'paused') return;
+    if (state.phase === 'stage-clear') {
+      state.transition -= seconds;
+      if (state.transition <= 0) {
+        if (state.stage >= CONTRA.maxStage) {
+          state.phase = 'won'; state.lastEvent = { type: 'complete', stage: state.stage };
+        } else {
+          state.stage++; contraSpawnStage(state); state.phase = 'playing';
+          state.lastEvent = { type: 'stage-start', stage: state.stage };
+        }
+      }
+      return;
+    }
+    state.elapsed += seconds;
+    state.fireCooldown = Math.max(0, state.fireCooldown - seconds);
+    state.player.invulnerable = Math.max(0, state.player.invulnerable - seconds);
+    const p = state.player;
+    const dx = (input.right ? 1 : 0) - (input.left ? 1 : 0);
+    if (dx) { p.facing = dx; p.x += dx * (input.down ? 105 : 205) * seconds; }
+    const liveBoss = state.enemies.find(enemy => enemy.type === 'boss' && enemy.hp > 0);
+    p.x = clamp(p.x, 36, liveBoss ? liveBoss.x - 50 : CONTRA.stageLength - 66);
+    if (input.jump && p.grounded) { p.vy = -465; p.grounded = false; }
+    p.y += p.vy * seconds;
+    p.vy += 1220 * seconds;
+    if (p.y + 42 >= CONTRA.ground) { p.y = CONTRA.ground - 42; p.vy = 0; p.grounded = true; }
+    if (input.fire) contraFire(state, input.aimY || 0);
+
+    for (const shot of state.playerShots) {
+      shot.x += shot.vx * seconds; shot.y += shot.vy * seconds; shot.life -= seconds;
+      for (const enemy of state.enemies) {
+        if (enemy.hp <= 0) continue;
+        const size = enemy.type === 'boss' ? 40 : 25;
+        if (Math.abs(shot.x - enemy.x) < size && Math.abs(shot.y - enemy.y) < size) {
+          enemy.hp -= shot.damage; shot.life = 0;
+          if (enemy.hp <= 0) { state.score += enemy.type === 'boss' ? 1000 : enemy.type === 'turret' ? 180 : 100; state.lastEvent = { type: enemy.type === 'boss' ? 'boss-down' : 'enemy-down' }; }
+          break;
+        }
+      }
+    }
+    state.playerShots = state.playerShots.filter(shot => shot.life > 0 && shot.x >= 0 && shot.x <= CONTRA.stageLength && shot.y > 0 && shot.y < CONTRA.height);
+    const defeatedBoss = state.enemies.find(enemy => enemy.type === 'boss' && enemy.hp <= 0);
+    if (defeatedBoss) {
+      state.phase = 'stage-clear'; state.transition = 0.9; state.lastEvent = { type: 'stage-clear', stage: state.stage };
+      return;
+    }
+    for (const enemy of state.enemies) {
+      if (enemy.hp <= 0) continue;
+      enemy.phase += seconds;
+      enemy.fireCooldown -= seconds;
+      const visibleDistance = Math.abs(enemy.x - p.x);
+      if (enemy.type === 'trooper' && visibleDistance < 310) enemy.x += Math.sign(p.x - enemy.x) * 28 * seconds;
+      if (enemy.type !== 'boss' && enemy.type !== 'turret') continue;
+      if (enemy.fireCooldown <= 0 && visibleDistance < 570) {
+        const aim = Math.atan2(p.y + 17 - enemy.y, p.x - enemy.x);
+        const speed = enemy.type === 'boss' ? 210 : 165;
+        state.enemyShots.push({ x: enemy.x, y: enemy.y, vx: Math.cos(aim) * speed, vy: Math.sin(aim) * speed, life: 3 });
+        enemy.fireCooldown = enemy.type === 'boss' ? Math.max(0.95, 1.8 - state.stage * 0.12) : 3.2;
+      }
+    }
+    for (const shot of state.enemyShots) {
+      shot.x += shot.vx * seconds; shot.y += shot.vy * seconds; shot.life -= seconds;
+      if (Math.abs(shot.x - p.x) < 19 && Math.abs(shot.y - (p.y + 17)) < (input.down ? 15 : 27)) contraLoseLife(state);
+    }
+    state.enemyShots = state.enemyShots.filter(shot => shot.life > 0 && shot.x >= 0 && shot.x <= CONTRA.stageLength && shot.y > 0 && shot.y < CONTRA.height);
+    for (const enemy of state.enemies) {
+      if (enemy.hp > 0 && enemy.type !== 'boss' && Math.abs(enemy.x - p.x) < 22 && Math.abs(enemy.y - (p.y + 17)) < 32) contraLoseLife(state);
+    }
+  }
+
+  // Snow Bros arcade loop: accumulate snow, freeze one opponent into a ball,
+  // then kick the rolling ball through the rest of that fixed-screen wave.
+  const SNOW_BROS = Object.freeze({ width: 720, height: 640, ground: 578, maxStage: 5, freezeHits: 3, stageSeconds: 52 });
+  const SNOW_PLATFORMS = Object.freeze([
+    [{ x: 0, y: 578, w: 720 }],
+    [{ x: 0, y: 578, w: 720 }, { x: 94, y: 430, w: 210 }, { x: 416, y: 430, w: 210 }],
+    [{ x: 0, y: 578, w: 720 }, { x: 34, y: 420, w: 192 }, { x: 264, y: 344, w: 192 }, { x: 494, y: 420, w: 192 }],
+    [{ x: 0, y: 578, w: 720 }, { x: 0, y: 445, w: 180 }, { x: 270, y: 445, w: 180 }, { x: 540, y: 445, w: 180 }, { x: 218, y: 308, w: 284 }],
+    [{ x: 0, y: 578, w: 720 }, { x: 74, y: 455, w: 220 }, { x: 426, y: 455, w: 220 }, { x: 224, y: 332, w: 272 }]
+  ]);
+
+  function createSnowBrosState(seed = 0x1990) {
+    const state = { stage: 1, phase: 'playing', score: 0, lives: 3, elapsed: 0, stageTime: 0,
+      player: { x: 74, y: SNOW_BROS.ground - 42, vx: 0, vy: 0, grounded: true, facing: 1, invulnerable: 1.3, speedBoost: 0, rolling: false },
+      platforms: [], enemies: [], shots: [], snowballs: [], items: [], fireCooldown: 0,
+      pumpkin: null, nextEnemyId: 1, rng: (Number(seed) >>> 0) || 1, transition: 0,
+      lastEvent: { type: 'start', stage: 1 } };
+    snowBrosSpawnStage(state);
+    return state;
+  }
+
+  function snowRandom(state) {
+    state.rng = (Math.imul(state.rng, 1664525) + 1013904223) >>> 0;
+    return state.rng / 0x100000000;
+  }
+
+  function snowBrosSpawnStage(state) {
+    const index = state.stage - 1;
+    state.platforms = SNOW_PLATFORMS[index].map(platform => ({ ...platform }));
+    const count = 2 + state.stage;
+    state.enemies = Array.from({ length: count }, (_, i) => {
+      const platformIndex = state.stage === 1 ? 0 : i % state.platforms.length;
+      const platform = state.platforms[platformIndex];
+      const x = platformIndex === 0 ? 235 + Math.floor(i / state.platforms.length) * 155 : platform.x + platform.w / 2 + (i % 2 ? 28 : -28);
+      return { id: state.nextEnemyId++, x: clamp(x, platform.x + 24, platform.x + platform.w - 24), y: platform.y - 38, vx: 0, platform: platformIndex,
+        snow: 0, frozen: false, fireCooldown: 1.5 + i * 0.25, phase: i * 1.3 };
+    });
+    state.player = { x: 74, y: SNOW_BROS.ground - 42, vx: 0, vy: 0, grounded: true, facing: 1, invulnerable: 1.3, speedBoost: 0, rolling: false };
+    state.shots = []; state.snowballs = []; state.items = []; state.pumpkin = null;
+    state.stageTime = 0; state.fireCooldown = 0; state.transition = 0;
+  }
+
+  function snowBrosFire(state, direction = 0) {
+    if (state.phase !== 'playing' || state.fireCooldown > 0) return false;
+    const p = state.player;
+    const frozen = state.enemies.find(enemy => enemy.frozen && Math.abs(enemy.x - p.x) < 60 && Math.abs(enemy.y - p.y) < 48);
+    if (frozen) {
+      state.snowballs.push({ x: frozen.x, y: frozen.y + 20, vx: p.facing * 530, life: 1.65, source: frozen.id });
+      state.enemies = state.enemies.filter(enemy => enemy.id !== frozen.id);
+      state.fireCooldown = 0.24;
+      state.lastEvent = { type: 'kick', enemy: frozen.id };
+      return true;
+    }
+    const angle = direction < 0 ? -0.44 : direction > 0 ? 0.28 : 0;
+    state.shots.push({ x: p.x + p.facing * 20, y: p.y + 20, vx: Math.cos(angle) * p.facing * 420,
+      vy: Math.sin(angle) * 420, life: 1.15 });
+    state.fireCooldown = 0.24;
+    return true;
+  }
+
+  function snowBrosLoseLife(state) {
+    if (state.player.invulnerable > 0 || state.phase !== 'playing') return false;
+    state.lives = Math.max(0, state.lives - 1);
+    state.player.x = 74; state.player.y = SNOW_BROS.ground - 42; state.player.vy = 0;
+    state.player.invulnerable = 1.8; state.player.rolling = false;
+    state.lastEvent = { type: 'hit', lives: state.lives };
+    if (!state.lives) { state.phase = 'over'; state.lastEvent = { type: 'game-over' }; }
+    return true;
+  }
+
+  function snowBrosTick(state, input = {}, dt = 1 / 60) {
+    const seconds = Math.min(0.05, Math.max(0, Number(dt) || 0));
+    if (!seconds || state.phase === 'over' || state.phase === 'won' || state.phase === 'paused') return;
+    if (state.phase === 'stage-clear') {
+      state.transition -= seconds;
+      if (state.transition <= 0) {
+        if (state.stage >= SNOW_BROS.maxStage) { state.phase = 'won'; state.lastEvent = { type: 'complete', stage: state.stage }; }
+        else { state.stage++; snowBrosSpawnStage(state); state.phase = 'playing'; state.lastEvent = { type: 'stage-start', stage: state.stage }; }
+      }
+      return;
+    }
+    state.elapsed += seconds; state.stageTime += seconds;
+    state.fireCooldown = Math.max(0, state.fireCooldown - seconds);
+    const p = state.player;
+    p.invulnerable = Math.max(0, p.invulnerable - seconds);
+    p.speedBoost = Math.max(0, p.speedBoost - seconds);
+    const dx = (input.right ? 1 : 0) - (input.left ? 1 : 0);
+    if (dx) p.facing = dx;
+    p.vx = dx * (p.speedBoost > 0 ? 265 : 205);
+    p.x = clamp(p.x + p.vx * seconds, 20, SNOW_BROS.width - 20);
+    if (input.jump && p.grounded) { p.vy = -570; p.grounded = false; }
+    const previousBottom = p.y + 42;
+    p.y += p.vy * seconds; p.vy += 1050 * seconds; p.grounded = false;
+    for (const platform of state.platforms) {
+      if (p.vy >= 0 && previousBottom <= platform.y && p.y + 42 >= platform.y && p.x + 12 > platform.x && p.x - 12 < platform.x + platform.w) {
+        p.y = platform.y - 42; p.vy = 0; p.grounded = true;
+      }
+    }
+    if (input.fire) snowBrosFire(state, input.aimY || 0);
+
+    for (const shot of state.shots) {
+      shot.x += shot.vx * seconds; shot.y += shot.vy * seconds; shot.life -= seconds;
+      for (const enemy of state.enemies) {
+        if (enemy.frozen || Math.abs(shot.x - enemy.x) > 22 || Math.abs(shot.y - (enemy.y + 19)) > 22) continue;
+        shot.life = 0; enemy.snow++;
+        if (enemy.snow >= SNOW_BROS.freezeHits) { enemy.frozen = true; enemy.vx = 0; state.lastEvent = { type: 'freeze', enemy: enemy.id }; }
+        break;
+      }
+    }
+    state.shots = state.shots.filter(shot => shot.life > 0 && shot.x > -20 && shot.x < SNOW_BROS.width + 20 && shot.y > -20 && shot.y < SNOW_BROS.height);
+    for (const ball of state.snowballs) {
+      ball.x += ball.vx * seconds; ball.life -= seconds;
+      if (ball.x < 20 || ball.x > SNOW_BROS.width - 20) ball.vx *= -1;
+      for (const enemy of [...state.enemies]) {
+        if (enemy.id === ball.source || Math.abs(ball.x - enemy.x) > 25 || Math.abs(ball.y - (enemy.y + 18)) > 30) continue;
+        state.enemies = state.enemies.filter(item => item.id !== enemy.id);
+        state.score += enemy.frozen ? 220 : 150;
+        if (enemy.frozen) state.snowballs.push({ x: enemy.x, y: enemy.y + 20, vx: Math.sign(ball.vx) * 500, life: 1.5, source: enemy.id });
+        if (snowRandom(state) < 0.2) state.items.push({ x: enemy.x, y: enemy.y + 12, type: 'speed' });
+        ball.source = enemy.id;
+        state.lastEvent = { type: 'bowl', enemy: enemy.id };
+      }
+    }
+    state.snowballs = state.snowballs.filter(ball => ball.life > 0);
+    for (const enemy of state.enemies) {
+      enemy.phase += seconds;
+      if (enemy.frozen) continue;
+      const enemyPlatform = state.platforms[enemy.platform];
+      enemy.x = clamp(enemy.x + Math.sign(p.x - enemy.x) * (23 + state.stage * 2) * seconds,
+        enemyPlatform.x + 20, enemyPlatform.x + enemyPlatform.w - 20);
+      if (Math.abs(enemy.x - p.x) < 26 && Math.abs(enemy.y - p.y) < 54) snowBrosLoseLife(state);
+    }
+    if (state.stageTime >= SNOW_BROS.stageSeconds && !state.pumpkin) {
+      state.pumpkin = { x: SNOW_BROS.width - 34, y: 494, stun: 0 };
+      state.lastEvent = { type: 'pumpkin' };
+    }
+    if (state.pumpkin) {
+      state.pumpkin.stun = Math.max(0, state.pumpkin.stun - seconds);
+      if (!state.pumpkin.stun) state.pumpkin.x += Math.sign(p.x - state.pumpkin.x) * 86 * seconds;
+      if (Math.abs(state.pumpkin.x - p.x) < 30 && Math.abs(state.pumpkin.y - (p.y + 20)) < 40) snowBrosLoseLife(state);
+    }
+    if (state.items.length) {
+      state.items = state.items.filter(item => {
+        if (Math.abs(item.x - p.x) < 25 && Math.abs(item.y - p.y) < 42) {
+          if (item.type === 'speed') p.speedBoost = 9;
+          state.score += 500; state.lastEvent = { type: 'item', item: item.type }; return false;
+        }
+        return true;
+      });
+    }
+    if (!state.enemies.length && state.phase === 'playing') {
+      state.phase = 'stage-clear'; state.transition = 0.85; state.lastEvent = { type: 'stage-clear', stage: state.stage };
+    }
+  }
+
+  function launchContra(container) {
+    const session = window.NP_GameSession.start();
+    const { listen } = session;
+    const model = { create: createContraState, fire: contraFire, tick: contraTick, constants: CONTRA };
+    const recordKey = 'np_contra_slice_record_v1';
+    let state = model.create(), bestScore = 0, bestStage = 1, raf = null, lastFrame = 0;
+    let pauseReturnPhase = 'playing', lastEvent = null;
+    const keys = { left: false, right: false, down: false, up: false, jump: false, fire: false };
+    const pointers = new Map();
+    try {
+      const record = JSON.parse(localStorage.getItem(recordKey) || '{}');
+      bestScore = Math.max(0, Number(record.score) || 0); bestStage = Math.max(1, Number(record.stage) || 1);
+    } catch (error) {}
+
+    container.innerHTML = `
+      <style>
+        #gameModal:has(.np-contra-shell) .modal-window { width:min(98vw,1080px); max-width:1080px; min-width:0; }
+        #gameModal:has(.np-contra-shell) .modal-body,#gameModal:has(.np-contra-shell) .modal-title-group { min-width:0; }
+        #gameModal:has(.np-contra-shell) #modalGameBadge,#gameModal:has(.np-contra-shell) #crtToggleBtn { display:none; }
+        #gameModal:has(.np-contra-shell) .modal-body { background:#101d24; }
+        #gameModal:has(.np-contra-shell) .modal-backdrop { backdrop-filter:none; -webkit-backdrop-filter:none; }
+        .np-contra-shell { width:min(100%,1000px); margin:auto; display:grid; gap:8px; justify-items:center; color:#e8e5cd; font-family:Calibri,Inter,sans-serif; }
+        .np-contra-hud { width:min(100%,960px); display:grid; grid-template-columns:1fr auto auto 1fr; gap:12px; align-items:end; color:#91aaa1; font-size:11px; letter-spacing:.1em; text-transform:uppercase; }
+        .np-contra-hud span:nth-child(2),.np-contra-hud span:nth-child(3) { text-align:center; }
+        .np-contra-hud span:last-child { text-align:right; }
+        .np-contra-hud strong { display:block; color:#f1edcf; font-size:17px; letter-spacing:0; font-variant-numeric:tabular-nums; }
+        .np-contra-board { display:block; width:min(100%,960px); height:auto; aspect-ratio:16/9; border:1px solid #64766b; background:#101d24; touch-action:none; }
+        .np-contra-controls { width:min(100%,960px); display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:5px; }
+        .np-contra-controls button { min-width:0; min-height:48px; border:1px solid #68766a; border-radius:3px; background:#293b39; color:#e7e8d2; font:700 12px Calibri,Inter,sans-serif; touch-action:none; user-select:none; }
+        .np-contra-controls button[data-contra-control="fire"] { color:#192318; background:#d9c765; border-color:#f2dd86; }
+        .np-contra-controls button[data-contra-control="jump"] { background:#506453; }
+        .np-contra-controls button:active { transform:translateY(1px); filter:brightness(1.3); }
+        .np-contra-controls button:focus-visible { outline:3px solid #f2dd86; outline-offset:2px; }
+        .np-contra-status { min-height:16px; margin:0; color:#a7b5a4; text-align:center; font-size:12px; }
+        @media(max-width:620px) { .np-contra-shell { gap:5px; } .np-contra-hud { gap:5px; font-size:9px; } .np-contra-hud strong { font-size:14px; } .np-contra-controls { grid-template-columns:repeat(4,minmax(44px,1fr)); gap:3px; } .np-contra-controls button { min-height:46px; padding:1px; font-size:10px; } }
+        @media(prefers-reduced-motion:reduce) { .np-contra-controls button { scroll-behavior:auto; } }
+      </style>
+      <section class="np-contra-shell" aria-label="Màn bắn súng cuộn ngang">
+        <div class="np-contra-hud"><span>Điểm<strong id="ctScore">0</strong></span><span>Màn<strong id="ctStage">1 / 3</strong></span><span>Mạng<strong id="ctLives">3</strong></span><span>Kỷ lục<strong id="ctBest">0</strong></span></div>
+        <canvas id="ctCanvas" class="np-contra-board" width="960" height="540" tabindex="0" aria-label="Bò, nhảy và bắn về phía trước. Hạ các đội chặn đường và phá cỗ máy cuối màn."></canvas>
+        <div class="np-contra-controls" aria-label="Điều khiển run-and-gun">
+          <button type="button" data-contra-control="left" aria-label="Chạy trái">←</button><button type="button" data-contra-control="down" aria-label="Cúi và bắn thấp">CÚI</button><button type="button" data-contra-control="up" aria-label="Ngắm cao">NGẮM ↑</button><button type="button" data-contra-control="jump" aria-label="Nhảy">NHẢY</button><button type="button" data-contra-control="fire" aria-label="Giữ để bắn">BẮN</button><button type="button" data-contra-control="right" aria-label="Chạy phải">→</button><button type="button" id="ctPause" aria-label="Tạm dừng">DỪNG</button><button type="button" id="ctRestart" aria-label="Chơi lại">LẠI</button>
+        </div>
+        <p id="ctStatus" class="np-contra-status" role="status" aria-live="polite">← → chạy · ↓ cúi · ↑ ngắm · Space nhảy · X bắn · P dừng</p>
+      </section>`;
+
+    const canvas = container.querySelector('#ctCanvas'), ctx = canvas.getContext('2d');
+    const scoreEl = container.querySelector('#ctScore'), stageEl = container.querySelector('#ctStage');
+    const livesEl = container.querySelector('#ctLives'), bestEl = container.querySelector('#ctBest');
+    const status = container.querySelector('#ctStatus'), pauseButton = container.querySelector('#ctPause');
+    const sound = name => { try { if (window.NP_Audio && typeof window.NP_Audio[name] === 'function') window.NP_Audio[name](); } catch (error) {} };
+    function saveRecord() {
+      if (state.score <= bestScore && state.stage <= bestStage) return;
+      bestScore = Math.max(bestScore, state.score); bestStage = Math.max(bestStage, state.stage);
+      try { localStorage.setItem(recordKey, JSON.stringify({ score: bestScore, stage: bestStage })); } catch (error) {}
+    }
+    function updateHud() {
+      scoreEl.textContent = String(state.score); stageEl.textContent = state.stage + ' / ' + CONTRA.maxStage;
+      livesEl.textContent = String(state.lives); bestEl.textContent = String(bestScore);
+      pauseButton.textContent = state.phase === 'paused' ? '▶' : 'DỪNG';
+      pauseButton.setAttribute('aria-label', state.phase === 'paused' ? 'Tiếp tục' : 'Tạm dừng');
+    }
+    function restart() {
+      state = model.create(); lastEvent = null; lastFrame = 0;
+      status.textContent = 'Tìm đường qua ba khu vực; giữ BẮN và tiến về phía trước.';
+      updateHud(); canvas.focus({ preventScroll: true });
+    }
+    function togglePause() {
+      if (state.phase === 'over' || state.phase === 'won') return;
+      if (state.phase === 'paused') state.phase = pauseReturnPhase;
+      else { pauseReturnPhase = state.phase; state.phase = 'paused'; }
+      for (const key of Object.keys(keys)) keys[key] = false;
+      pointers.clear(); updateHud();
+    }
+    function inputState() {
+      const held = [...pointers.values()];
+      return { left: keys.left || held.includes('left'), right: keys.right || held.includes('right'),
+        down: keys.down || held.includes('down'), aimY: (keys.up || held.includes('up')) ? -1 : (keys.down || held.includes('down')) ? 1 : 0,
+        jump: keys.jump || held.includes('jump'), fire: keys.fire || held.includes('fire') || held.includes('board') };
+    }
+    function ellipse(x, y, rx, ry, fill) {
+      ctx.fillStyle = fill; ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
+    }
+    function draw() {
+      const camera = clamp(state.player.x - 282, 0, CONTRA.stageLength - CONTRA.width + 80);
+      const palette = state.stage === 1 ? ['#102c34', '#315646', '#86904c'] : state.stage === 2 ? ['#15313a', '#427363', '#bbb27a'] : ['#271f27', '#7c4135', '#c27548'];
+      const sky = ctx.createLinearGradient(0, 0, 0, CONTRA.height); sky.addColorStop(0, palette[0]); sky.addColorStop(.77, palette[1]); sky.addColorStop(1, palette[2]);
+      ctx.fillStyle = sky; ctx.fillRect(0, 0, CONTRA.width, CONTRA.height);
+      ctx.fillStyle = 'rgba(214,208,147,.16)';
+      for (let i = 0; i < 9; i++) {
+        const x = ((i * 177 - camera * .19) % (CONTRA.width + 200) + CONTRA.width + 200) % (CONTRA.width + 200) - 100;
+        ctx.beginPath(); ctx.moveTo(x, CONTRA.ground); ctx.lineTo(x + 88, 196 + (i % 3) * 38); ctx.lineTo(x + 174, CONTRA.ground); ctx.fill();
+      }
+      ctx.fillStyle = palette[2]; ctx.fillRect(0, CONTRA.ground, CONTRA.width, CONTRA.height - CONTRA.ground);
+      ctx.fillStyle = '#c3bc83'; ctx.fillRect(0, CONTRA.ground, CONTRA.width, 4);
+      for (let x = -(camera % 104); x < CONTRA.width; x += 104) {
+        ctx.fillStyle = 'rgba(35,47,39,.45)'; ctx.fillRect(x, CONTRA.ground + 27, 51, 5);
+        ctx.fillStyle = 'rgba(232,210,139,.5)'; ctx.fillRect(x + 17, CONTRA.ground + 8, 22, 3);
+      }
+      for (const obstacle of [220, 705, 1190, 1470]) {
+        const x = obstacle - camera;
+        if (x < -90 || x > CONTRA.width + 90) continue;
+        ctx.fillStyle = '#364c43'; ctx.fillRect(x, CONTRA.ground - 78, 54, 78);
+        ctx.fillStyle = '#7c895f'; ctx.fillRect(x + 8, CONTRA.ground - 86, 38, 10);
+        ctx.fillStyle = 'rgba(21,38,34,.5)'; ctx.fillRect(x + 13, CONTRA.ground - 58, 7, 29); ctx.fillRect(x + 34, CONTRA.ground - 58, 7, 29);
+      }
+      for (const shot of state.playerShots) {
+        const x = shot.x - camera; if (x < -8 || x > CONTRA.width + 8) continue;
+        ctx.strokeStyle = '#f4e393'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(x - 7, shot.y); ctx.lineTo(x + 7, shot.y); ctx.stroke();
+      }
+      for (const shot of state.enemyShots) {
+        const x = shot.x - camera; if (x < -10 || x > CONTRA.width + 10) continue;
+        ellipse(x, shot.y, 6, 5, '#fc784e');
+      }
+      for (const enemy of state.enemies) {
+        if (enemy.hp <= 0) continue;
+        const x = enemy.x - camera; if (x < -60 || x > CONTRA.width + 60) continue;
+        if (enemy.type === 'boss') {
+          ctx.fillStyle = '#623c39'; ctx.fillRect(x - 42, enemy.y - 37, 84, 68);
+          ctx.fillStyle = '#b65c45'; ctx.fillRect(x - 34, enemy.y - 28, 68, 46);
+          ctx.fillStyle = '#efcc7a'; ctx.fillRect(x - 23, enemy.y - 12, 16, 7); ctx.fillRect(x + 7, enemy.y - 12, 16, 7);
+          ctx.fillStyle = '#3b3d36'; ctx.fillRect(x - 51, enemy.y + 20, 22, 25); ctx.fillRect(x + 29, enemy.y + 20, 22, 25);
+          ctx.fillStyle = '#efdd9b'; ctx.fillRect(x - 43, enemy.y - 51, 86 * enemy.hp / enemy.maxHp, 4);
+        } else if (enemy.type === 'turret') {
+          ctx.fillStyle = '#56665b'; ctx.fillRect(x - 25, enemy.y - 19, 50, 37);
+          ctx.fillStyle = '#b8774b'; ctx.fillRect(x - 15, enemy.y - 28, 30, 21);
+          ctx.fillStyle = '#2a3935'; ctx.fillRect(x + 9, enemy.y - 19, 30, 8);
+          ctx.fillStyle = '#f0d186'; ctx.fillRect(x - 14, enemy.y - 31, 28 * enemy.hp / enemy.maxHp, 3);
+        } else {
+          ctx.fillStyle = '#d6b475'; ctx.fillRect(x - 12, enemy.y - 23, 24, 22);
+          ctx.fillStyle = '#344c4c'; ctx.fillRect(x - 15, enemy.y - 3, 30, 27);
+          ctx.fillStyle = '#253734'; ctx.fillRect(x - 12, enemy.y + 20, 9, 15); ctx.fillRect(x + 4, enemy.y + 20, 9, 15);
+          ctx.fillStyle = '#d5e6c4'; ctx.fillRect(x - 6, enemy.y - 15, 3, 3); ctx.fillRect(x + 3, enemy.y - 15, 3, 3);
+        }
+      }
+      const p = state.player, px = p.x - camera;
+      if (!(p.invulnerable > 0 && Math.floor(state.elapsed * 16) % 2 === 0)) {
+        ctx.save(); ctx.translate(px, p.y + (inputState().down && p.grounded ? 10 : 0)); ctx.scale(p.facing, 1);
+        ctx.fillStyle = '#273a34'; ctx.fillRect(-15, 8, 30, 23);
+        ctx.fillStyle = '#b99862'; ctx.fillRect(-9, -10, 19, 19);
+        ctx.fillStyle = '#d0c888'; ctx.fillRect(-7, -15, 18, 7);
+        ctx.fillStyle = '#273a34'; ctx.fillRect(1, -4, 20, 5);
+        ctx.fillStyle = '#d8c677'; ctx.fillRect(7, -5, 17, 3);
+        ctx.fillStyle = '#1d2c29'; ctx.fillRect(-11, 29, 9, 15); ctx.fillRect(3, 29, 9, 15);
+        ctx.restore();
+      }
+      if (state.phase !== 'playing') {
+        ctx.fillStyle = 'rgba(9,19,22,.76)'; ctx.fillRect(0, 0, CONTRA.width, CONTRA.height);
+        ctx.textAlign = 'center'; ctx.fillStyle = '#f3e9bd'; ctx.font = '800 38px Calibri, sans-serif';
+        const headline = state.phase === 'paused' ? 'TẠM DỪNG' : state.phase === 'over' ? 'HẾT MẠNG' : state.phase === 'won' ? 'GIẢI PHÓNG HOÀN TẤT' : 'KHU VỰC AN TOÀN';
+        ctx.fillText(headline, CONTRA.width / 2, 247);
+        ctx.fillStyle = '#c5d0ac'; ctx.font = '19px Calibri, sans-serif';
+        ctx.fillText(state.phase === 'over' ? 'Nhấn LẠI để bắt đầu lại' : state.phase === 'won' ? 'Ba khu vực đã được dọn sạch' : 'Tiến công · phá mục tiêu cuối khu vực', CONTRA.width / 2, 284);
+      }
+    }
+    function frame(timestamp) {
+      const dt = lastFrame ? Math.min(.05, Math.max(0, (timestamp - lastFrame) / 1000)) : 0;
+      lastFrame = timestamp || 0;
+      const previous = state.lastEvent;
+      if (state.phase !== 'paused') model.tick(state, inputState(), dt);
+      if (state.lastEvent !== previous && state.lastEvent !== lastEvent) {
+        lastEvent = state.lastEvent;
+        if (lastEvent.type === 'hit') sound('hit');
+        else if (lastEvent.type === 'enemy-down' || lastEvent.type === 'boss-down' || lastEvent.type === 'stage-clear') sound('pop');
+        else if (lastEvent.type === 'complete') sound('win');
+        if (lastEvent.type === 'stage-clear') status.textContent = 'Khu vực ' + lastEvent.stage + ' an toàn · chuẩn bị tiến công.';
+        if (lastEvent.type === 'stage-start') status.textContent = 'Khu vực ' + lastEvent.stage + ' · súng bắn chùm đã mở khóa.';
+        if (lastEvent.type === 'game-over') status.textContent = 'Hết mạng · nhấn LẠI để thử tiếp.';
+        if (lastEvent.type === 'complete') status.textContent = 'Hoàn thành ba khu vực · ' + state.score + ' điểm.';
+        saveRecord();
+      }
+      updateHud(); draw(); raf = session.requestAnimationFrame(frame);
+    }
+    function setPointer(event, action) {
+      event.preventDefault();
+      try { event.currentTarget.setPointerCapture?.(event.pointerId); } catch (error) {}
+      pointers.set(event.pointerId, action);
+    }
+    function releasePointer(event) { pointers.delete(event.pointerId); }
+    for (const button of container.querySelectorAll('[data-contra-control]')) {
+      const action = button.dataset.contraControl;
+      listen(button, 'pointerdown', event => setPointer(event, action));
+      for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) listen(button, type, releasePointer);
+      listen(button, 'click', event => {
+        if (event.detail !== 0) return;
+        keys[action] = true; session.setTimeout(() => { keys[action] = false; }, 80);
+      });
+    }
+    listen(canvas, 'pointerdown', event => setPointer(event, 'board'));
+    for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) listen(canvas, type, releasePointer);
+    const keyMap = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', ArrowDown: 'down', KeyS: 'down', ArrowUp: 'up', KeyW: 'up', Space: 'jump', KeyX: 'fire', KeyJ: 'fire' };
+    listen(window, 'keydown', event => {
+      if (event.code === 'Escape' || event.code === 'KeyP') { if (!event.repeat) togglePause(); event.preventDefault(); return; }
+      if (event.code === 'KeyR' && state.phase !== 'playing') { restart(); event.preventDefault(); return; }
+      const action = keyMap[event.code];
+      if (action) { event.preventDefault(); keys[action] = true; }
+    });
+    listen(window, 'keyup', event => { const action = keyMap[event.code]; if (action) { keys[action] = false; event.preventDefault(); } });
+    listen(window, 'blur', () => { if (state.phase === 'playing') togglePause(); });
+    listen(document, 'visibilitychange', () => { if (document.hidden && state.phase === 'playing') togglePause(); });
+    listen(pauseButton, 'click', togglePause); listen(container.querySelector('#ctRestart'), 'click', restart);
+    updateHud(); draw(); raf = session.requestAnimationFrame(frame);
+    session.onCleanup(() => { if (raf !== null) session.cancelAnimationFrame(raf); pointers.clear(); for (const key of Object.keys(keys)) keys[key] = false; saveRecord(); });
+  }
+
+  function launchSnowBros(container) {
+    const session = window.NP_GameSession.start();
+    const { listen } = session;
+    const model = { create: createSnowBrosState, fire: snowBrosFire, tick: snowBrosTick, constants: SNOW_BROS };
+    const recordKey = 'np_snow_bros_slice_record_v1';
+    let state = model.create((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0);
+    let bestScore = 0, bestStage = 1, raf = null, lastFrame = 0, pauseReturnPhase = 'playing', lastEvent = null;
+    const keys = { left: false, right: false, up: false, down: false, jump: false, fire: false };
+    const pointers = new Map();
+    try {
+      const record = JSON.parse(localStorage.getItem(recordKey) || '{}');
+      bestScore = Math.max(0, Number(record.score) || 0); bestStage = Math.max(1, Number(record.stage) || 1);
+    } catch (error) {}
+    container.innerHTML = `
+      <style>
+        #gameModal:has(.np-snow-shell) .modal-window { width:min(98vw,820px); max-width:820px; min-width:0; }
+        #gameModal:has(.np-snow-shell) .modal-body,#gameModal:has(.np-snow-shell) .modal-title-group { min-width:0; }
+        #gameModal:has(.np-snow-shell) #modalGameBadge,#gameModal:has(.np-snow-shell) #crtToggleBtn { display:none; }
+        #gameModal:has(.np-snow-shell) .modal-body { background:#102f45; }
+        #gameModal:has(.np-snow-shell) .modal-backdrop { backdrop-filter:none; -webkit-backdrop-filter:none; }
+        .np-snow-shell { width:min(100%,760px); margin:auto; display:grid; justify-items:center; gap:7px; color:#d9e9ec; font-family:Calibri,Inter,sans-serif; }
+        .np-snow-hud { width:min(100%,720px); display:grid; grid-template-columns:1fr auto auto 1fr; gap:8px; align-items:end; color:#75a1aa; font-size:11px; letter-spacing:.08em; text-transform:uppercase; }
+        .np-snow-hud span:nth-child(2),.np-snow-hud span:nth-child(3) { text-align:center; }
+        .np-snow-hud span:last-child { text-align:right; }
+        .np-snow-hud strong { display:block; color:#f0faf6; font-size:17px; letter-spacing:0; font-variant-numeric:tabular-nums; }
+        .np-snow-clock { position:relative; width:min(100%,720px); height:16px; color:#90bbc1; font-size:10px; }
+        .np-snow-clock span { position:absolute; right:0; top:0; line-height:11px; font-variant-numeric:tabular-nums; }
+        .np-snow-clock i { position:absolute; left:0; bottom:0; display:block; width:100%; height:4px; background:rgba(177,226,227,.18); border-radius:4px; transform-origin:left; }
+        .np-snow-board { display:block; width:min(100%,720px,calc(100dvh - 280px)); height:auto; aspect-ratio:9/8; border:1px solid #7bb9c0; border-radius:16px 16px 7px 7px; background:#12394f; touch-action:none; }
+        .np-snow-controls { width:min(100%,720px); display:grid; grid-template-columns:repeat(7,minmax(44px,1fr)); gap:6px; }
+        .np-snow-controls button { min-width:0; min-height:48px; border:1px solid #568e9d; border-radius:16px 16px 8px 8px; background:#174c63; color:#e6f6ef; font:700 12px Calibri,Inter,sans-serif; touch-action:none; user-select:none; }
+        .np-snow-controls button[data-snow-control="fire"] { color:#183b4a; background:#dff2e8; border-color:#fff; }
+        .np-snow-controls button[data-snow-control="jump"] { background:#26748a; }
+        .np-snow-controls button:active { transform:translateY(1px); background:#34839a; }
+        .np-snow-controls button:focus-visible { outline:3px solid #e5fbf7; outline-offset:2px; }
+        .np-snow-status { min-height:16px; margin:0; color:#8fb8bd; text-align:center; font-size:12px; }
+        @media(max-width:560px) { .np-snow-shell { gap:5px; } .np-snow-hud { gap:4px; font-size:9px; } .np-snow-hud strong { font-size:14px; } .np-snow-board { width:min(100%,720px); } .np-snow-controls { grid-template-columns:repeat(4,minmax(44px,1fr)); gap:4px; } .np-snow-controls button { min-height:46px; border-radius:12px 12px 6px 6px; padding:2px; font-size:10px; } }
+        @media(prefers-reduced-motion:reduce) { .np-snow-controls button { scroll-behavior:auto; } }
+      </style>
+      <section class="np-snow-shell" aria-label="Đóng tuyết đối thủ và lăn cầu tuyết qua màn">
+        <div class="np-snow-hud"><span>Điểm<strong id="sbScore">0</strong></span><span>Tầng<strong id="sbStage">1 / 5</strong></span><span>Mạng<strong id="sbLives">3</strong></span><span>Kỷ lục<strong id="sbBest">0</strong></span></div>
+        <div class="np-snow-clock" aria-label="Thời gian trước khi bí ma xuất hiện"><span id="sbTimer">52</span><i id="sbTimerFill"></i></div>
+        <canvas id="sbCanvas" class="np-snow-board" width="720" height="640" tabindex="0" aria-label="Ném tuyết nhiều lần để đóng băng đối thủ. Đứng sát rồi bắn để đá cầu tuyết. Nhảy lên các bục và tránh quả bí ma."></canvas>
+        <div class="np-snow-controls" aria-label="Điều khiển Người Tuyết"><button type="button" data-snow-control="left" aria-label="Sang trái">←</button><button type="button" data-snow-control="right" aria-label="Sang phải">→</button><button type="button" data-snow-control="up" aria-label="Ngắm lên">NGẮM ↑</button><button type="button" data-snow-control="jump" aria-label="Nhảy">NHẢY</button><button type="button" data-snow-control="fire" aria-label="Giữ để ném tuyết hoặc đá bóng tuyết">TUYẾT</button><button type="button" id="sbPause" aria-label="Tạm dừng">DỪNG</button><button type="button" id="sbRestart" aria-label="Chơi lại">LẠI</button></div>
+        <p id="sbStatus" class="np-snow-status" role="status" aria-live="polite">← → đi · Space nhảy · X ném tuyết / đá cầu tuyết · P dừng</p>
+      </section>`;
+
+    const canvas = container.querySelector('#sbCanvas'), ctx = canvas.getContext('2d');
+    const scoreEl = container.querySelector('#sbScore'), stageEl = container.querySelector('#sbStage');
+    const livesEl = container.querySelector('#sbLives'), bestEl = container.querySelector('#sbBest');
+    const timerEl = container.querySelector('#sbTimer'), timerFill = container.querySelector('#sbTimerFill');
+    const status = container.querySelector('#sbStatus'), pauseButton = container.querySelector('#sbPause');
+    const sound = name => { try { if (window.NP_Audio && typeof window.NP_Audio[name] === 'function') window.NP_Audio[name](); } catch (error) {} };
+    function saveRecord() {
+      if (state.score <= bestScore && state.stage <= bestStage) return;
+      bestScore = Math.max(bestScore, state.score); bestStage = Math.max(bestStage, state.stage);
+      try { localStorage.setItem(recordKey, JSON.stringify({ score: bestScore, stage: bestStage })); } catch (error) {}
+    }
+    function updateHud() {
+      scoreEl.textContent = String(state.score); stageEl.textContent = state.stage + ' / ' + SNOW_BROS.maxStage;
+      livesEl.textContent = String(state.lives); bestEl.textContent = String(bestScore);
+      timerEl.textContent = Math.max(0, Math.ceil(SNOW_BROS.stageSeconds - state.stageTime)) + 's';
+      timerFill.style.transform = 'scaleX(' + clamp(1 - state.stageTime / SNOW_BROS.stageSeconds, 0, 1) + ')';
+      pauseButton.textContent = state.phase === 'paused' ? '▶' : 'DỪNG';
+      pauseButton.setAttribute('aria-label', state.phase === 'paused' ? 'Tiếp tục' : 'Tạm dừng');
+    }
+    function restart() { state = model.create((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0); lastEvent = null; lastFrame = 0; status.textContent = 'Đóng tuyết đủ ba lần, rồi đứng sát và đá cầu tuyết.'; updateHud(); canvas.focus({ preventScroll: true }); }
+    function togglePause() {
+      if (state.phase === 'over' || state.phase === 'won') return;
+      if (state.phase === 'paused') state.phase = pauseReturnPhase;
+      else { pauseReturnPhase = state.phase; state.phase = 'paused'; }
+      for (const key of Object.keys(keys)) keys[key] = false;
+      pointers.clear(); updateHud();
+    }
+    function inputState() {
+      const held = [...pointers.values()];
+      return { left: keys.left || held.includes('left'), right: keys.right || held.includes('right'),
+        aimY: (keys.up || held.includes('up')) ? -1 : (keys.down || held.includes('down')) ? 1 : 0,
+        jump: keys.jump || held.includes('jump'), fire: keys.fire || held.includes('fire') || held.includes('board') };
+    }
+    function ellipse(x, y, rx, ry, fill) { ctx.fillStyle = fill; ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); ctx.fill(); }
+    function roundRect(x, y, w, h, r, fill) { ctx.fillStyle = fill; ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.fill(); }
+    function draw() {
+      const sky = ctx.createLinearGradient(0, 0, 0, SNOW_BROS.height); sky.addColorStop(0, '#102f4d'); sky.addColorStop(.62, '#246a84'); sky.addColorStop(1, '#9ad5d7');
+      ctx.fillStyle = sky; ctx.fillRect(0, 0, SNOW_BROS.width, SNOW_BROS.height);
+      ctx.fillStyle = 'rgba(228,249,242,.62)';
+      for (let i = 0; i < 26; i++) { const x = (i * 83 + 21) % 720, y = (i * 127 + 18) % 330; ctx.beginPath(); ctx.arc(x, y, 1 + i % 2, 0, Math.PI * 2); ctx.fill(); }
+      ctx.fillStyle = 'rgba(202,239,236,.18)';
+      for (let i = 0; i < 4; i++) { const x = i * 235 - 52; ctx.beginPath(); ctx.moveTo(x, 460); ctx.lineTo(x + 90, 267 + (i % 2) * 35); ctx.lineTo(x + 205, 460); ctx.fill(); }
+      for (const platform of state.platforms) {
+        roundRect(platform.x, platform.y, platform.w, SNOW_BROS.height - platform.y + 18, 8, '#4a8792');
+        roundRect(platform.x, platform.y - 7, platform.w, 15, 7, '#d9f0e5');
+        ctx.fillStyle = 'rgba(18,80,103,.35)';
+        for (let x = platform.x + 20; x < platform.x + platform.w - 8; x += 42) ctx.fillRect(x, platform.y + 17, 19, 3);
+      }
+      for (const item of state.items) {
+        ctx.fillStyle = '#e14f61'; ctx.beginPath(); ctx.moveTo(item.x, item.y - 15); ctx.lineTo(item.x + 10, item.y); ctx.lineTo(item.x, item.y + 15); ctx.lineTo(item.x - 10, item.y); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#fff2bf'; ctx.fillRect(item.x - 2, item.y - 8, 4, 16);
+      }
+      for (const shot of state.shots) { ellipse(shot.x, shot.y, 7, 6, '#f5fffb'); ellipse(shot.x - 2, shot.y - 2, 2, 2, '#bde7ed'); }
+      for (const ball of state.snowballs) { ellipse(ball.x, ball.y, 21, 20, '#f8fff8'); ellipse(ball.x - 5, ball.y - 6, 8, 6, '#d2f1eb'); ctx.strokeStyle = '#abd9db'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(ball.x, ball.y, 15, -.8, .7); ctx.stroke(); }
+      for (const enemy of state.enemies) {
+        if (enemy.frozen) { ellipse(enemy.x, enemy.y + 19, 23, 23, '#e9fbf4'); ellipse(enemy.x - 5, enemy.y + 11, 8, 6, '#ffffff'); }
+        else {
+          ellipse(enemy.x, enemy.y + 19, 19, 20, '#e18753');
+          roundRect(enemy.x - 16, enemy.y + 7, 32, 20, 8, '#e9a260');
+          ellipse(enemy.x - 7, enemy.y + 16, 2, 3, '#273e54'); ellipse(enemy.x + 7, enemy.y + 16, 2, 3, '#273e54');
+          ctx.fillStyle = '#8f4a43'; ctx.fillRect(enemy.x - 11, enemy.y + 30, 8, 8); ctx.fillRect(enemy.x + 3, enemy.y + 30, 8, 8);
+          if (enemy.snow) { ctx.strokeStyle = '#f7ffff'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(enemy.x, enemy.y + 18, 23, Math.PI, Math.PI + Math.PI * 2 * enemy.snow / SNOW_BROS.freezeHits); ctx.stroke(); }
+        }
+      }
+      if (state.pumpkin) {
+        ellipse(state.pumpkin.x, state.pumpkin.y, 24, 25, state.pumpkin.stun ? '#98c8b2' : '#d5753e');
+        ctx.fillStyle = '#243b4a'; ctx.beginPath(); ctx.moveTo(state.pumpkin.x - 11, state.pumpkin.y - 4); ctx.lineTo(state.pumpkin.x - 5, state.pumpkin.y + 4); ctx.lineTo(state.pumpkin.x + 1, state.pumpkin.y - 4); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(state.pumpkin.x + 5, state.pumpkin.y - 4); ctx.lineTo(state.pumpkin.x + 11, state.pumpkin.y + 4); ctx.lineTo(state.pumpkin.x + 17, state.pumpkin.y - 4); ctx.fill();
+      }
+      const p = state.player;
+      if (!(p.invulnerable > 0 && Math.floor(state.elapsed * 14) % 2 === 0)) {
+        ellipse(p.x, p.y + 25, 20, 19, '#f1fbf5'); ellipse(p.x, p.y + 4, 18, 17, '#f7fffb');
+        ellipse(p.x - 6, p.y + 2, 2.5, 3.5, '#1d4050'); ellipse(p.x + 6, p.y + 2, 2.5, 3.5, '#1d4050');
+        ctx.strokeStyle = '#55a8bd'; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(p.x - 17, p.y + 20); ctx.lineTo(p.x + 14, p.y + 22); ctx.stroke();
+        ctx.fillStyle = '#d3f0e6'; ctx.fillRect(p.x - 16, p.y + 38, 12, 5); ctx.fillRect(p.x + 4, p.y + 38, 12, 5);
+      }
+      if (state.phase !== 'playing') {
+        ctx.fillStyle = 'rgba(10,34,53,.69)'; ctx.fillRect(0, 0, SNOW_BROS.width, SNOW_BROS.height);
+        ctx.textAlign = 'center'; ctx.fillStyle = '#effcf3'; ctx.font = '800 35px Calibri, sans-serif';
+        const headline = state.phase === 'paused' ? 'TẠM DỪNG' : state.phase === 'over' ? 'HẾT MẠNG' : state.phase === 'won' ? 'BÃO TUYẾT TAN' : 'QUA TẦNG ' + state.stage;
+        ctx.fillText(headline, SNOW_BROS.width / 2, 294);
+        ctx.fillStyle = '#c5e6df'; ctx.font = '18px Calibri, sans-serif';
+        ctx.fillText(state.phase === 'over' ? 'Nhấn LẠI để bắt đầu lại' : state.phase === 'won' ? 'Năm tầng đã được dọn sạch' : 'Đóng tuyết · đá bóng · né bí ma', SNOW_BROS.width / 2, 328);
+      }
+    }
+    function frame(timestamp) {
+      const dt = lastFrame ? Math.min(.05, Math.max(0, (timestamp - lastFrame) / 1000)) : 0;
+      lastFrame = timestamp || 0; const previous = state.lastEvent;
+      if (state.phase !== 'paused') model.tick(state, inputState(), dt);
+      if (state.lastEvent !== previous && state.lastEvent !== lastEvent) {
+        lastEvent = state.lastEvent;
+        if (lastEvent.type === 'hit') sound('hit');
+        else if (lastEvent.type === 'freeze' || lastEvent.type === 'kick' || lastEvent.type === 'bowl' || lastEvent.type === 'stage-clear') sound('pop');
+        else if (lastEvent.type === 'complete') sound('win');
+        if (lastEvent.type === 'freeze') status.textContent = 'Đối thủ bị bọc tuyết · đứng sát và giữ TUYẾT để đá.';
+        if (lastEvent.type === 'bowl') status.textContent = 'Cầu tuyết cuốn đối thủ qua sân.';
+        if (lastEvent.type === 'pumpkin') status.textContent = 'Bí ma xuất hiện · kết thúc tầng thật nhanh!';
+        if (lastEvent.type === 'game-over') status.textContent = 'Hết mạng · nhấn LẠI để chơi tiếp.';
+        if (lastEvent.type === 'complete') status.textContent = 'Hoàn thành năm tầng · ' + state.score + ' điểm.';
+        saveRecord();
+      }
+      updateHud(); draw(); raf = session.requestAnimationFrame(frame);
+    }
+    function setPointer(event, action) {
+      event.preventDefault();
+      try { event.currentTarget.setPointerCapture?.(event.pointerId); } catch (error) {}
+      pointers.set(event.pointerId, action);
+    }
+    function releasePointer(event) { pointers.delete(event.pointerId); }
+    for (const button of container.querySelectorAll('[data-snow-control]')) {
+      const action = button.dataset.snowControl;
+      listen(button, 'pointerdown', event => setPointer(event, action));
+      for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) listen(button, type, releasePointer);
+      listen(button, 'click', event => { if (event.detail === 0) { keys[action] = true; session.setTimeout(() => { keys[action] = false; }, 80); } });
+    }
+    listen(canvas, 'pointerdown', event => setPointer(event, 'board'));
+    for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) listen(canvas, type, releasePointer);
+    const keyMap = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', Space: 'jump', KeyX: 'fire', KeyJ: 'fire' };
+    listen(window, 'keydown', event => {
+      if (event.code === 'Escape' || event.code === 'KeyP') { if (!event.repeat) togglePause(); event.preventDefault(); return; }
+      if (event.code === 'KeyR' && state.phase !== 'playing') { restart(); event.preventDefault(); return; }
+      const action = keyMap[event.code]; if (action) { keys[action] = true; event.preventDefault(); }
+    });
+    listen(window, 'keyup', event => { const action = keyMap[event.code]; if (action) { keys[action] = false; event.preventDefault(); } });
+    listen(window, 'blur', () => { if (state.phase === 'playing') togglePause(); });
+    listen(document, 'visibilitychange', () => { if (document.hidden && state.phase === 'playing') togglePause(); });
+    listen(pauseButton, 'click', togglePause); listen(container.querySelector('#sbRestart'), 'click', restart);
+    updateHud(); draw(); raf = session.requestAnimationFrame(frame);
+    session.onCleanup(() => { if (raf !== null) session.cancelAnimationFrame(raf); pointers.clear(); for (const key of Object.keys(keys)) keys[key] = false; saveRecord(); });
+  }
+
   function launch(container, game) {
     const id = String(game && game.id || '').toLowerCase();
+    if (id === 'contra-2d') { launchContra(container, game); return; }
+    if (id === 'nguoi-tuyet-snow-bros') { launchSnowBros(container, game); return; }
     if (id === 'frogger-ech-bang-qua-duong') {
       launchFrogger(container, game);
       return;
@@ -2978,6 +3660,8 @@
     pianoTilesModel: { create: createPianoTilesState, tap: pianoTap, tick: pianoTick, speed: pianoSpeed, constants: PIANO_TILES },
     bubbleTroubleModel: { create: createBubbleTroubleState, fire: bubbleFire, pop: bubblePop, tick: bubbleTick, constants: BUBBLE_TROUBLE },
     lemonadeModel: { create: createLemonadeState, set: lemonadeSet, buy: lemonadeBuy, servings: lemonadeServings,
-      quality: lemonadeQuality, demand: lemonadeDemand, startDay: lemonadeStartDay, nextDay: lemonadeNextDay, constants: LEMONADE }
+      quality: lemonadeQuality, demand: lemonadeDemand, startDay: lemonadeStartDay, nextDay: lemonadeNextDay, constants: LEMONADE },
+    contraModel: { create: createContraState, fire: contraFire, tick: contraTick, constants: CONTRA },
+    snowBrosModel: { create: createSnowBrosState, fire: snowBrosFire, loseLife: snowBrosLoseLife, tick: snowBrosTick, constants: SNOW_BROS }
   };
 })();

@@ -196,7 +196,7 @@ test('real engine launch, render and close across every catalog entry (mocked ca
 
 test('generic arcade fire uses vibration; switching leaves one live game and no old keyboard action', () => {
   const h = harness();
-  h.context.openGameById('contra-2d');
+  h.context.openGameById('rambo-lun-metal-slug');
   h.window.dispatch('keydown', { key: ' ', code: 'Space' });
   assert.ok(h.vibrations.includes(8));
   h.context.openGameById('boom-online-bnb');
@@ -207,6 +207,22 @@ test('generic arcade fire uses vibration; switching leaves one live game and no 
   assert.equal(h.vibrations.length, before, 'old arcade firing listener was removed');
   h.context.closeGameModal(); h.flushTimeouts(); assertStopped(h);
   for (let n = 0; n < 5; n++) { h.context.openGameById('road-rash-dua-xe-moto'); h.frame(); h.context.closeGameModal(); assertStopped(h); }
+});
+
+test('Contra and Snow Bros use their dedicated playfields and release session resources', () => {
+  const h = harness();
+  for (const [id, canvasId, pauseId, restartId] of [
+    ['contra-2d', '#ctCanvas', '#ctPause', '#ctRestart'],
+    ['nguoi-tuyet-snow-bros', '#sbCanvas', '#sbPause', '#sbRestart']
+  ]) {
+    h.context.openGameById(id);
+    assert.ok(h.container.querySelector(canvasId), id + ' has its title-specific playfield');
+    assert.equal(h.container.querySelector('#arcCanvas'), null, id + ' bypasses the generic fallback');
+    assert.ok(h.container.querySelector(pauseId));
+    assert.ok(h.container.querySelector(restartId));
+    h.frame(); h.context.closeGameModal(); assertStopped(h);
+    assert.equal(h.errors.length, 0, id + ': ' + h.errors.join('; '));
+  }
 });
 
 test('failed launch cleans partial resources and can reopen; missing engines show a message', () => {
@@ -325,7 +341,7 @@ test('fallback catalog has real, distinct genre loops and closes resources safel
   for (const game of games) {
     h.context.openGameById(game.id);
     const canvas = h.container.querySelector('#arcCanvas');
-    const dedicatedDispatch = ['frogger-ech-bang-qua-duong', 'asteroids-tau-ban-thien-thach', 'ban-ruoi-galaga', 'piano-tiles-phim-nhac', 'bong-bong-nuoc-bubble-trouble', 'lemonade-tycoon', 'dr-mario-diet-khuan'].includes(game.id);
+    const dedicatedDispatch = ['frogger-ech-bang-qua-duong', 'asteroids-tau-ban-thien-thach', 'ban-ruoi-galaga', 'piano-tiles-phim-nhac', 'bong-bong-nuoc-bubble-trouble', 'lemonade-tycoon', 'dr-mario-diet-khuan', 'contra-2d', 'nguoi-tuyet-snow-bros'].includes(game.id);
     if (canvas && !dedicatedDispatch) {
       count++;
       const kind = h.context.NP_Archetypes.kindFor(game);
@@ -339,7 +355,7 @@ test('fallback catalog has real, distinct genre loops and closes resources safel
     assertStopped(h);
     assert.equal(h.errors.length, 0, game.id + ': ' + h.errors.join('; '));
   }
-  assert.equal(count, 80, 'Lemonade Tycoon now has a dedicated market-planning loop outside the generic management archetype');
+  assert.equal(count, 78, 'Contra and Snow Bros now have dedicated loops outside the generic shooter archetype');
   assert.deepEqual([...found].sort(), ['duel', 'management', 'puzzle', 'quiz', 'reflex', 'runner', 'shooter']);
 });
 

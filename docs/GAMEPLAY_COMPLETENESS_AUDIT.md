@@ -5,9 +5,9 @@ Sổ bao phủ theo từng catalog title: [docs/GAME_COVERAGE.md](./GAME_COVERAG
 Tài liệu này phân biệt **game mở được**, **có vòng chơi và tiến trình**, và **tái hiện đầy đủ luật đặc trưng**. Không dùng việc mở canvas thành công để suy diễn game đã hoàn thiện.
 
 - Danh mục trong `data/games.json`: **150** tựa.
-- Vòng chơi riêng theo từng game: **70** tựa; **80** tựa còn dùng một trong 7 archetype chung. Các con số là phân loại router từ code, không phải đếm những tựa đã được chơi thử hay xác nhận fidelity.
-- Sáu loop riêng theo ID trong `engines-archetypes.js` là Frogger, Asteroids, Galaga, Piano Tiles, Bubble Trouble và Lemonade Tycoon. Dr. Mario có nhánh riêng trong `launchTetris` dispatcher nhưng không dùng engine Tetris/Mario sau khi mở.
-- Galaga trước đây đã nằm ngoài fallback chung nhưng chạy nhầm Chicken Invaders; Piano Tiles, Bubble Trouble và Lemonade Tycoon từng dùng archetype chung, còn Dr. Mario mở nhầm platformer Mario. Các route nay mở loop theo tựa, đưa inventory từ 67/83 lên 70/80.
+- Vòng chơi riêng theo từng game: **72** tựa; **78** tựa còn dùng một trong 7 archetype chung. Đây là phân loại router từ code, không phải số title đã được chơi thử hoặc xác nhận fidelity.
+- Tám loop theo ID trong `engines-archetypes.js` là Frogger, Asteroids, Galaga, Piano Tiles, Bubble Trouble, Lemonade Tycoon, Contra và Snow Bros. Dr. Mario có nhánh riêng trong `launchTetris` dispatcher nhưng không dùng engine Tetris/Mario sau khi mở.
+- Hai mục vừa chuyển khỏi fallback shooter là `contra-2d` và `nguoi-tuyet-snow-bros`; các route gọi loop riêng theo ID trong `NP_Archetypes.launch`. Bảng dưới ghi đúng điểm vào engine và không gọi chúng là bản tái hiện toàn bộ chiến dịch.
 - `tests/game-flow.test.cjs` kiểm tra 80 route generic, 150 lượt mở/đóng và vài kịch bản mô phỏng; điều đó không thay thế QA browser cho từng tựa.
 - Kiểm thử mô phỏng đã đạt màn 2 ở 7 archetype. Điều này **không xác nhận** toàn bộ chiến dịch của từng game chuyên biệt có thể hoàn thành, hoặc gameplay đã trung thành với tên game.
 - `tests/game-flow.test.cjs` kiểm tra 150 lượt mở, đóng, cleanup và các kịch bản qua màn minh họa; cần bổ sung test theo đặc tả riêng và QA trên máy thật.
@@ -17,7 +17,7 @@ Tài liệu này phân biệt **game mở được**, **có vòng chơi và ti�
 
 | Chế độ | Số tựa fallback | Tiến trình |
 | --- | ---: | --- |
-| `shooter` | 10 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
+| `shooter` | 8 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
 | `runner` | 18 | Các game còn lại dùng vòng chạy chung; Frogger đã có vòng sang đường riêng |
 | `reflex` | 9 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
 | `puzzle` | 16 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
@@ -63,7 +63,7 @@ Tài liệu này phân biệt **game mở được**, **có vòng chơi và ti�
 | 30 | `chem-hoa-qua` | Chém Hoa Quả (Fruit Ninja) | `launchFruitNinja` | — |
 | 31 | `lua-va-nuoc` | Lửa & Nước (Fireboy & Watergirl) | `launchRetroArcade` | `puzzle` |
 | 32 | `mario-co-dien` | Super Mario Cổ Điển | `launchMario` | — |
-| 33 | `nguoi-tuyet-snow-bros` | Người Tuyết (Snow Bros) | `launchRetroArcade` | `shooter` |
+| 33 | `nguoi-tuyet-snow-bros` | Người Tuyết (Snow Bros) | `launchRetroArcade` → `NP_Archetypes.launchSnowBros` (exact ID) | — |
 | 34 | `angry-birds-mini` | Bắn Chim Angry Birds | `launchGunny` | — |
 | 35 | `cut-the-rope` | Cắt Dây Cho Ếch Om Nom | `launchRetroArcade` | `puzzle` |
 | 36 | `ban-ruoi-galaga` | Bắn Ruồi (Galaga) | `launchRetroArcade` → Galaga loop (exact ID) | — |
@@ -80,7 +80,7 @@ Tài liệu này phân biệt **game mở được**, **có vòng chơi và ti�
 | 47 | `xay-cau-bridge-builder` | Xây Cầu Vật Lý (Bridge Builder) | `launchRetroArcade` | `puzzle` |
 | 48 | `truc-thang-heli-attack` | Trực Thăng Bắn Súng (Heli Attack) | `launchRetroArcade` | `runner` |
 | 49 | `thu-thanh-bloons-td` | Thủ Thành Khỉ Ném Phi Tiêu | `launchPvZ` | — |
-| 50 | `contra-2d` | Contra 2D Cổ Điển | `launchRetroArcade` | `shooter` |
+| 50 | `contra-2d` | Contra 2D Cổ Điển | `launchRetroArcade` → `NP_Archetypes.launchContra` (exact ID) | — |
 | 51 | `bong-bong-nuoc-bubble-trouble` | Bắn Bong Bóng Nước (Bubble Trouble) | `launchRetroArcade` → Bubble Trouble loop (exact ID) | — |
 | 52 | `crossy-road` | Băng Qua Đường (Crossy Road) | `launchRetroArcade` | `runner` |
 | 53 | `sonic-chay-nhanh` | Nhím Sonic Chạy Nhanh | `launchMario` | — |
