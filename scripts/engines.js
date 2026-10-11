@@ -7337,20 +7337,30 @@ function launchTetris(container, game) {
 function launchFlappyBird(container, game) {
   const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
   let score = 0;
-  let highScore = parseInt(localStorage.getItem('np_flappy_high') || '0');
+  let mode='classic';
+  const modes={classic:{gapBias:0,speed:1},practice:{gapBias:34,speed:.83}};
+  const recordKey=()=>mode==='classic'?'np_flappy_high':'np_flappy_practice_high';
+  let highScore=0;
+  try { highScore=Math.max(0,parseInt(localStorage.getItem(recordKey())||'0')||0); } catch (_) {}
   let bird = { y: 200, vy: 0 };
   let pipes = [];
   let frame = 0;
   let gameOver = false;
   let started = false;
   let animId = null;
-  let lastFrame = 0, frameBudget = 0, paused = false;
+  let lastFrame=0,frameBudget=0,paused=false;
+  let flapCooldown=0, scoreFlash=0, medalGlow=0;
 
     container.innerHTML = `
     <div class="canvas-game-box np-flappy-game" style="width:min(100%, 520px, max(240px, calc(75dvh - 270px))); max-width:none; margin:0 auto; font-family: Calibri, sans-serif;">
       <div class="canvas-game-hud np-flappy-hud">
         <div class="hud-pill">Điểm: <span id="fbScore" style="color: #10B981; font-weight: bold;">0</span></div>
-        <div class="hud-pill">Kỷ lục: <span id="fbHigh" style="font-weight: bold;">${highScore}</span></div>
+        <div class="hud-pill">Kỷ lục: <span id="fbHigh" style="font-weight:bold;">${highScore}</span></div>
+        <label style="font-size:.84rem;color:#E2E8F0;">Chế độ
+          <select id="fbMode" aria-label="Chế độ bay" style="min-height:40px;border:1px solid #475569;border-radius:6px;padding:4px;background:#18222F;color:#fff;">
+            <option value="classic">Tiêu chuẩn</option><option value="practice">Tập luyện</option>
+          </select>
+        </label>
       </div>
       <canvas id="fbCanvas" width="360" height="480" class="canvas-main-viewport" style="touch-action: none; display: block; margin: 0 auto;"></canvas>
       <div class="canvas-controls-bar" style="touch-action: none;">
@@ -7368,26 +7378,29 @@ function launchFlappyBird(container, game) {
     flappySprite.src = 'assets/avatars/flappy-swift-sprite.webp';
   }
 
+  function resetRun() {
+    score=0;
+    bird={y:200,vy:0};
+    pipes=[];frame=0;frameBudget=0;lastFrame=0;
+    gameOver=false;started=false;paused=false;
+    flapCooldown=0;scoreFlash=0;medalGlow=0;
+    const btn=container.querySelector('#fbPauseBtn');
+    if(btn)btn.textContent='Tạm dừng';
+    updateHUD();
+  }
   function flap() {
-    if (paused) return;
-    if (gameOver) {
-      score = 0;
-      bird.y = 200;
-      bird.vy = 0;
-      pipes = [];
-      frame = 0;
-      frameBudget = 0;
-      gameOver = false;
-      started = false;
-      updateHUD();
-    }
-    started = true;
-    bird.vy = -6.2;
+    if(paused)return;
+    if(gameOver)resetRun();
+    if(flapCooldown>0)return;
+    started=true;
+    bird.vy=-6.2;
+    flapCooldown=5;
     AudioEngine.pop();
-    if (window.NP_Juice) window.NP_Juice.vibrate(12);
+    if(window.NP_Juice)window.NP_Juice.vibrate(12);
   }
 
   const onKeyDown = (e) => {
+    if(e.altKey||e.ctrlKey||e.metaKey||/INPUT|TEXTAREA|SELECT/.test(e.target?.tagName||''))return;
     if ((e.key === ' ' || e.key === 'ArrowUp' || e.code === 'Space') && !e.repeat) {
       e.preventDefault();
       flap();
@@ -7413,6 +7426,14 @@ function launchFlappyBird(container, game) {
     lastFrame = 0; frameBudget = 0;
   }
   container.querySelector('#fbPauseBtn')?.addEventListener('click', togglePause);
+  container.querySelector('#fbMode')?.addEventListener('change',e=>{
+    const chosen=String(e.target.value);
+    if(!Object.prototype.hasOwnProperty.call(modes,chosen))return;
+    mode=chosen;
+    try { highScore=Math.max(0,parseInt(localStorage.getItem(recordKey())||'0')||0); }
+    catch (_) { highScore=0; }
+    resetRun();
+  });
   listen(window, 'blur', () => { if (started && !paused && !gameOver) togglePause(); });
 
   function updateHUD() {
@@ -7425,13 +7446,16 @@ function launchFlappyBird(container, game) {
   function advance() {
     if (!started || gameOver || paused) return;
     frame++;
+    if(flapCooldown>0)flapCooldown--;
+    if(scoreFlash>0)scoreFlash--;
+    if(medalGlow>0)medalGlow--;
     {
       bird.vy += 0.36; // Gravity
       bird.y += bird.vy;
 
       // Spawn pipes
       if (frame % Math.max(78, 94 - Math.floor(score / 5) * 2) === 0) {
-        const gap = Math.max(114, 148 - Math.floor(score / 4) * 4);
+        const gap=Math.max(114,148-Math.floor(score/4)*4)+modes[mode].gapBias;
         const topH = 68 + Math.random() * (canvas.height - 40 - gap - 130);
         pipes.push({ x: canvas.width, top: topH, gap, passed: false });
       }
@@ -7439,7 +7463,7 @@ function launchFlappyBird(container, game) {
       // Update pipes
       for (let i = pipes.length - 1; i >= 0; i--) {
         const p = pipes[i];
-        p.x -= Math.min(3.65, 2.55 + Math.floor(score / 4) * .13);
+        p.x-=Math.min(3.65,2.55+Math.floor(score/4)*.13)*modes[mode].speed;
 
         // Score
         if (!p.passed && p.x + 52 < 90) {
@@ -7447,10 +7471,15 @@ function launchFlappyBird(container, game) {
           score++;
           if (score > highScore) {
             highScore = score;
-            try { localStorage.setItem('np_flappy_high', String(highScore)); } catch (_) {}
+            try { localStorage.setItem(recordKey(),String(highScore)); } catch (_) {}
           }
           AudioEngine.coin();
-          if (window.NP_Juice) window.NP_Juice.vibrate(15);
+          if(window.NP_Juice)window.NP_Juice.vibrate(15);
+          scoreFlash=18;
+          if(score===10||score===20||score===40){
+            medalGlow=75;
+            if(window.NP_Audio?.win)window.NP_Audio.win();
+          }
           updateHUD();
         }
 
@@ -7565,8 +7594,14 @@ function launchFlappyBird(container, game) {
     }
     ctx.restore();
 
-    if (started) {
-      ctx.textAlign = 'center'; ctx.font = 'bold 34px Calibri, sans-serif';
+    if(started) {
+      if(medalGlow>0){
+        ctx.save();
+        ctx.fillStyle='rgba(12,47,56,'+(medalGlow/75*.3)+')';
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.restore();
+      }
+      ctx.textAlign = 'center'; ctx.font = 'bold '+(scoreFlash>0?37:34)+'px Calibri, sans-serif';
       ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(31, 84, 91, 0.72)';
       ctx.strokeText(String(score), canvas.width / 2, 48);
       ctx.fillStyle = '#fff'; ctx.fillText(String(score), canvas.width / 2, 48);
@@ -7586,8 +7621,16 @@ function launchFlappyBird(container, game) {
       ctx.fillText(paused ? 'TẠM DỪNG' : 'HẾT LƯỢT', canvas.width / 2, canvas.height / 2 - 20);
       ctx.fillStyle = '#FFF';
       ctx.font = '16px Calibri, sans-serif';
-      ctx.fillText(`Điểm: ${score} (Kỷ lục: ${highScore})`, canvas.width / 2, canvas.height / 2 + 15);
-      ctx.fillText(paused ? 'Bấm Tiếp tục hoặc P' : 'Chạm để chơi lại', canvas.width / 2, canvas.height / 2 + 45);
+      ctx.fillText(`Điểm: ${score} (Kỷ lục: ${highScore})`,canvas.width/2,canvas.height/2+12);
+      const medal=score>=40?'VÀNG':score>=20?'BẠC':score>=10?'ĐỒNG':'';
+      if(!paused&&medal){
+        ctx.fillStyle='#FDE68A';
+        ctx.font='bold 16px Calibri, sans-serif';
+        ctx.fillText('HUY CHƯƠNG '+medal,canvas.width/2,canvas.height/2+36);
+      }
+      ctx.fillStyle='#fff';
+      ctx.font='15px Calibri, sans-serif';
+      ctx.fillText(paused?'Bấm Tiếp tục hoặc P':'Chạm để chơi lại',canvas.width/2,canvas.height/2+64);
     }
 
     animId = requestAnimationFrame(loop);
