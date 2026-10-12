@@ -30,6 +30,7 @@ test('Pac-Man uses an original connected maze, three starting lives, and a narro
   assert.equal(state.maze.length, C.rows);
   assert.ok(state.maze.every(row => row.length === C.cols));
   assert.equal(state.lives, 3);
+  assert.deepEqual(Array.from(state.ghosts, ghost => ghost.releaseTimer), [0, 1.75, 3.5, 5.25]);
   assert.equal(reachableCount(state), state.maze.flat().filter(tile => tile !== 1).length);
   assert.equal(model.canMove(state.maze, 0, 10, { x: -1, y: 0 }, 'player'), true);
   assert.equal(model.canMove(state.maze, 0, 9, { x: -1, y: 0 }, 'player'), false);
@@ -94,6 +95,8 @@ test('collisions cost one life, terminal loss waits for an explicit retry, and r
 
 test('clearing the maze advances to the next level and refills dots', () => {
   const state = model.create();
+  state.score = 530;
+  state.lives = 2;
   state.maze[2][1] = 2;
   state.pelletsLeft = 1;
   state.player.dirX = 0; state.player.dirY = 1;
@@ -103,13 +106,19 @@ test('clearing the maze advances to the next level and refills dots', () => {
   for (let i = 0; i < 24; i++) model.tick(state, {}, 0.05);
   assert.equal(state.level, 2);
   assert.equal(state.phase, 'playing');
-  assert.ok(state.pelletsLeft > 0);
+  assert.equal(state.pelletsLeft, state.maze.flat().filter(tile => tile === 2 || tile === 3).length);
+  assert.equal(state.pelletsLeft, 183);
+  assert.equal(state.score, 540);
+  assert.equal(state.lives, 2);
+  assert.deepEqual(Array.from(state.ghosts, ghost => [ghost.x, ghost.y]), [[9, 9], [7, 9], [11, 9], [9, 7]]);
+  assert.ok(state.ghosts.every(ghost => ghost.speed === model.ghostSpeed(2)));
   assert.equal(state.bestLevel, 2);
 });
 
 test('ghost and player pace are bounded for later levels', () => {
-  assert.equal(model.ghostSpeed(1), 96);
+  assert.equal(model.ghostSpeed(1), 88);
+  assert.equal(model.ghostSpeed(2), 91);
   assert.ok(model.ghostSpeed(3) > model.ghostSpeed(1));
-  assert.equal(model.ghostSpeed(20), 124);
+  assert.equal(model.ghostSpeed(20), 116);
   assert.equal(C.tile * C.cols / (C.tile * C.rows), 19 / 20);
 });

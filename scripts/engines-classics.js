@@ -30,7 +30,7 @@
   // The maze is generated from a seeded depth-first carving pass, with a few
   // extra loops and a single center tunnel; no commercial board is embedded.
   const pacManModel = (() => {
-    const C = Object.freeze({ cols: 19, rows: 20, tile: 32, maxLives: 4, startLives: 3, playerSpeed: 128, frightenedSeconds: 6 });
+    const C = Object.freeze({ cols: 19, rows: 20, tile: 32, maxLives: 4, startLives: 3, playerSpeed: 128, frightenedSeconds: 7.5 });
     const DIRS = Object.freeze([
       Object.freeze({ x: 0, y: -1, key: 'up' }),
       Object.freeze({ x: -1, y: 0, key: 'left' }),
@@ -175,7 +175,7 @@
     }
 
     function frightenedDuration(level) { return Math.max(2.8, C.frightenedSeconds - Math.max(0, level - 1) * 0.28); }
-    function ghostSpeed(level) { return Math.min(124, 96 + Math.max(0, level - 1) * 3); }
+    function ghostSpeed(level) { return Math.min(116, 88 + Math.max(0, level - 1) * 3); }
 
     function makeActor(x, y, speed, dir = { x: 0, y: 0 }) {
       return { x, y, progress: 0, dirX: dir.x, dirY: dir.y, nextX: dir.x, nextY: dir.y, speed };
@@ -185,7 +185,9 @@
       state.player = makeActor(1, 1, C.playerSpeed);
       state.ghosts = GHOSTS.map((ghost, index) => ({
         ...ghost, ...makeActor(SPAWNS[index].x, SPAWNS[index].y, ghostSpeed(state.level)),
-        releaseTimer: index * 0.34, respawnTimer: 0
+        // Stagger the first intersections so the opening gives the player
+        // time to find a route instead of releasing the whole pack at once.
+        releaseTimer: index * 1.75, respawnTimer: 0
       }));
       state.hitTimer = 0;
     }
