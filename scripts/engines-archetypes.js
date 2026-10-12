@@ -301,7 +301,7 @@
   const BUBBLE_TROUBLE = Object.freeze({
     width: 900, height: 560, floor: 520, playerY: 498,
     playerHalfWidth: 13, playerHalfHeight: 18,
-    maxLives: 3, maxStage: 10, maxBubbleSize: 2,
+    startingLives: 3, maxLives: 5, maxStage: 10, maxBubbleSize: 2,
     radii: [11, 19, 31], gravity: 620
   });
 
@@ -328,7 +328,7 @@
 
   function createBubbleTroubleState(seed = 0x2002) {
     const state = { rng: (Number(seed) >>> 0) || 1, phase: 'playing', stage: 1,
-      score: 0, lives: BUBBLE_TROUBLE.maxLives, elapsed: 0, playerX: BUBBLE_TROUBLE.width / 2,
+      score: 0, lives: BUBBLE_TROUBLE.startingLives, nextLifeScore: 1000, elapsed: 0, playerX: BUBBLE_TROUBLE.width / 2,
       invulnerable: 1.1, fireCooldown: 0, harpoon: null, bubbles: [], fx: [],
       transitionRemaining: 0, lastEvent: null };
     bubbleSpawnStage(state, 1);
@@ -355,6 +355,11 @@
   function bubblePop(state, bubble) {
     const points = [110, 70, 45][bubble.size] || 45;
     state.score += points;
+    let lifeBonus = false;
+    while (state.score >= state.nextLifeScore) {
+      if (state.lives < BUBBLE_TROUBLE.maxLives) { state.lives++; lifeBonus = true; }
+      state.nextLifeScore += 1000;
+    }
     const color = ['#f6dc82', '#75ddcf', '#fb806f'][bubble.size] || '#75ddcf';
     bubbleBurst(state, bubble.x, bubble.y, color);
     if (bubble.size > 0) {
@@ -367,7 +372,7 @@
           vy: -lift, spin: direction * 1.3, phase: bubbleRandom(state) * Math.PI * 2 });
       }
     }
-    state.lastEvent = { type: 'bubble-pop', size: bubble.size, score: state.score };
+    state.lastEvent = { type: 'bubble-pop', size: bubble.size, score: state.score, lifeBonus, lives: state.lives };
   }
 
   function bubbleLoseLife(state) {
@@ -456,7 +461,9 @@
     if (state.phase === 'playing' && state.bubbles.length === 0) {
       state.phase = 'stage-clear';
       state.transitionRemaining = 1.05;
-      state.lastEvent = { type: 'stage-clear', stage: state.stage, score: state.score };
+      const lifeBonus = state.stage < BUBBLE_TROUBLE.maxStage && state.lives < BUBBLE_TROUBLE.maxLives;
+      if (lifeBonus) state.lives++;
+      state.lastEvent = { type: 'stage-clear', stage: state.stage, score: state.score, lifeBonus, lives: state.lives };
     }
   }
 
@@ -937,21 +944,24 @@
         #gameModal:has(.np-bubble-shell) .modal-window { width:min(98vw,1080px); max-width:1080px; min-width:0; }
         #gameModal:has(.np-bubble-shell) .modal-body,#gameModal:has(.np-bubble-shell) .modal-title-group { min-width:0; }
         #gameModal:has(.np-bubble-shell) #modalGameBadge,#gameModal:has(.np-bubble-shell) #crtToggleBtn { display:none; }
+        #gameModal:has(.np-bubble-shell) .modal-backdrop { backdrop-filter:none; -webkit-backdrop-filter:none; }
         .np-bubble-shell { width:min(100%,960px); margin:auto; display:grid; justify-items:center; gap:7px; color:#e7e1d5; font-family:Calibri,Inter,sans-serif; }
         .np-bubble-hud { width:min(100%,960px); display:grid; grid-template-columns:1fr 1fr 1fr 1fr; align-items:center; gap:8px; color:#646d6e; font-size:11px; letter-spacing:.1em; text-transform:uppercase; }
         .np-bubble-hud span:nth-child(2),.np-bubble-hud span:nth-child(3) { text-align:center; }
         .np-bubble-hud span:last-child { text-align:right; }
         .np-bubble-hud strong { display:block; color:#25343a; font-size:17px; letter-spacing:0; font-variant-numeric:tabular-nums; }
-        .np-bubble-board { display:block; width:min(100%,960px,calc((100dvh - 310px) * 1.6071)); height:auto; aspect-ratio:45/28; border:1px solid #3f5860; border-radius:4px; background:#111a23; touch-action:none; }
+        .np-bubble-board { display:block; width:min(100%,960px,calc((100vh - 310px) * 1.6071)); height:auto; aspect-ratio:45/28; border:1px solid #3f5860; border-radius:4px; background:#111a23; touch-action:none; }
+        .np-bubble-board:focus-visible { outline:3px solid #f0c58a; outline-offset:3px; }
+        @supports (height:100dvh) { .np-bubble-board { width:min(100%,960px,calc((100dvh - 310px) * 1.6071)); } }
         .np-bubble-controls { width:min(100%,960px); display:grid; grid-template-columns:repeat(5,minmax(44px,1fr)); gap:7px; }
-        .np-bubble-controls button { min-width:44px; min-height:46px; border:1px solid #445d61; border-radius:5px; background:#26383d; color:#e8e4d8; font:700 12px Calibri,Inter,sans-serif; touch-action:none; user-select:none; }
+        .np-bubble-controls button { min-width:44px; min-height:48px; border:1px solid #445d61; border-radius:5px; background:#26383d; color:#e8e4d8; font:700 12px Calibri,Inter,sans-serif; touch-action:none; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; -webkit-tap-highlight-color:transparent; }
         .np-bubble-controls button[data-bubble-control="fire"] { color:#281d16; background:#e5a461; border-color:#f0c58a; }
         .np-bubble-controls button:active { transform:translateY(1px); background:#506064; }
         .np-bubble-controls button:focus-visible { outline:3px solid #f0c58a; outline-offset:2px; }
         .np-bubble-status { min-height:16px; margin:0; color:#626b68; text-align:center; font-size:12px; }
         @media(max-width:700px) { #gameModal:has(.np-bubble-shell) .modal-header { gap:6px; } #gameModal:has(.np-bubble-shell) .modal-title-group { flex:1 1 auto; } #gameModal:has(.np-bubble-shell) .modal-header-actions { flex:0 0 auto; } #gameModal:has(.np-bubble-shell) .modal-game-title { font-size:clamp(15px,4.2vw,20px); line-height:1.15; white-space:normal; overflow-wrap:anywhere; } }
         @media(max-width:560px) { .np-bubble-shell { gap:5px; } .np-bubble-hud { font-size:9px; gap:4px; } .np-bubble-hud strong { font-size:14px; } .np-bubble-controls { gap:4px; } .np-bubble-controls button { padding:2px; font-size:10px; } }
-        @media(prefers-reduced-motion:reduce) { .np-bubble-controls button { transition:none; } }
+        @media(prefers-reduced-motion:reduce) { .np-bubble-controls button,.np-bubble-controls button:active { transform:none; transition:none; } }
       </style>
       <section class="np-bubble-shell" aria-label="Bắn Bong Bóng Nước, arcade một người chơi">
         <div class="np-bubble-hud"><span>Điểm<strong id="btScore">0</strong></span><span>Màn<strong id="btStage">1</strong></span><span>Mạng<strong id="btLives">3</strong></span><span>Kỷ lục<strong id="btBest">0</strong></span></div>
@@ -1057,6 +1067,28 @@
     listen(pauseButton, 'click', togglePause);
     listen(container.querySelector('#btRestart'), 'click', reset);
 
+    function scheduleFrame() {
+      if (raf === null && !document.hidden) raf = session.requestAnimationFrame(frame);
+    }
+    function onVisibilityChange() {
+      if (document.hidden) {
+        if (state.phase === 'playing' || state.phase === 'stage-clear') {
+          pauseReturnPhase = state.phase;
+          state.phase = 'paused';
+          pauseButton.textContent = 'TIẾP';
+          status.textContent = 'Tạm dừng khi rời game';
+        }
+        for (const name of Object.keys(keys)) keys[name] = false;
+        pointers.clear(); boardPointerX = null; syncInput(); lastFrame = 0;
+        if (raf !== null) session.cancelAnimationFrame(raf);
+        raf = null;
+        return;
+      }
+      lastFrame = 0;
+      updateHud(); draw(); scheduleFrame();
+    }
+    listen(document, 'visibilitychange', onVisibilityChange);
+
     function drawBubble(bubble) {
       const palettes = [
         { fill: '#f1cf70', edge: '#fff0bd', shine: '#fff8dd' },
@@ -1121,11 +1153,13 @@
         const title = state.phase === 'paused' ? 'TẠM DỪNG' : state.phase === 'stage-clear' ? 'DỌN SẠCH MÀN ' + state.stage : state.phase === 'won' ? 'CHIẾN THẮNG' : 'MẤT LƯỢT';
         ctx.fillText(title, width / 2, height / 2 - 5);
         ctx.fillStyle = '#e2ddd0'; ctx.font = '16px Calibri,sans-serif';
-        const sub = state.phase === 'paused' ? 'Bấm TIẾP để trở lại' : state.phase === 'stage-clear' ? 'Bóng mới đang tới' : state.phase === 'won' ? 'Mười màn đã hoàn thành · nhấn LẠI để chơi lại' : state.score + ' điểm · nhấn LẠI hoặc Enter';
+        const sub = state.phase === 'paused' ? 'Bấm TIẾP để trở lại' : state.phase === 'stage-clear' ? (state.lastEvent?.lifeBonus ? '+1 MẠNG · Bóng mới đang tới' : 'Bóng mới đang tới') : state.phase === 'won' ? 'Mười màn đã hoàn thành · nhấn LẠI để chơi lại' : state.score + ' điểm · nhấn LẠI hoặc Enter';
         ctx.fillText(sub, width / 2, height / 2 + 25);
       }
     }
     function frame(timestamp) {
+      raf = null;
+      if (document.hidden) return;
       const dt = lastFrame ? Math.min(0.05, Math.max(0, (timestamp - lastFrame) / 1000)) : 1 / 60;
       lastFrame = timestamp;
       const beforeEvent = state.lastEvent, beforeScore = state.score;
@@ -1137,17 +1171,18 @@
       }
       if (state.lastEvent && state.lastEvent !== beforeEvent && state.lastEvent !== lastAnnounced) {
         lastAnnounced = state.lastEvent;
-        if (state.lastEvent.type === 'stage-clear') { status.textContent = 'Màn ' + state.stage + ' sạch bóng · chuẩn bị màn tiếp'; if (window.NP_Audio?.win) window.NP_Audio.win(); }
+        if (state.lastEvent.type === 'stage-clear') { status.textContent = 'Màn ' + state.stage + ' sạch bóng' + (state.lastEvent.lifeBonus ? ' · +1 mạng' : '') + ' · chuẩn bị màn tiếp'; if (window.NP_Audio?.win) window.NP_Audio.win(); }
         if (state.lastEvent.type === 'stage-start' && state.stage > 1) status.textContent = 'Màn ' + state.stage + ' · nhiều bóng hơn, bóng nhỏ nhanh hơn';
+        if (state.lastEvent.type === 'bubble-pop' && state.lastEvent.lifeBonus) status.textContent = 'Thưởng +1 mạng · còn ' + state.lives;
         if (state.lastEvent.type === 'lost-life') { status.textContent = state.lives ? 'Mất một mạng · còn ' + state.lives : 'Hết mạng · nhấn LẠI hoặc Enter'; if (window.NP_Audio?.alarm) window.NP_Audio.alarm(); }
         if (state.lastEvent.type === 'complete') { status.textContent = 'Mười màn hoàn thành · ' + state.score + ' điểm'; if (window.NP_Audio?.win) window.NP_Audio.win(); }
       }
       if (state.phase === 'over' && status.textContent !== 'Hết mạng · nhấn LẠI hoặc Enter') status.textContent = 'Hết mạng · nhấn LẠI hoặc Enter';
-      draw(); raf = session.requestAnimationFrame(frame);
+      draw(); scheduleFrame();
     }
     updateHud(); draw(); canvas.focus({ preventScroll: true });
     session.setTimeout(() => canvas.focus({ preventScroll: true }), 0);
-    raf = session.requestAnimationFrame(frame);
+    scheduleFrame();
     session.onCleanup(() => {
       if (raf !== null) session.cancelAnimationFrame(raf);
       for (const name of Object.keys(keys)) keys[name] = false;

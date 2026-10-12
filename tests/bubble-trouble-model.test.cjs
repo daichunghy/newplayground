@@ -14,9 +14,44 @@ test('the one-player arcade starts with one large training bubble and three live
   const state = model.create(2002);
   assert.equal(state.phase, 'playing');
   assert.equal(state.stage, 1);
-  assert.equal(state.lives, C.maxLives);
+  assert.equal(state.lives, C.startingLives);
+  assert.equal(C.maxLives, 5);
   assert.equal(state.bubbles.length, 1);
   assert.ok(state.bubbles.every(bubble => bubble.size === 2 && bubble.radius === C.radii[2]));
+});
+
+test('clearing an early stage awards one life up to the five-life cap', () => {
+  const state = model.create(2003);
+  state.lives = 2;
+  state.bubbles = [];
+  model.tick(state, {}, 1 / 60);
+  assert.equal(state.phase, 'stage-clear');
+  assert.equal(state.lives, 3);
+  assert.equal(state.lastEvent.lifeBonus, true);
+
+  state.stage = C.maxStage;
+  state.lives = C.maxLives;
+  state.phase = 'playing';
+  state.bubbles = [];
+  model.tick(state, {}, 1 / 60);
+  assert.equal(state.lives, C.maxLives, 'the last clear awards no unused life');
+  assert.equal(state.lastEvent.lifeBonus, false);
+});
+
+test('crossing a 1000-point score milestone awards a life without exceeding the cap', () => {
+  const state = model.create(2004);
+  state.score = 950;
+  model.pop(state, { size: 0, x: 200, y: 200, vx: 0, vy: 0 });
+  assert.equal(state.score, 1060);
+  assert.equal(state.lives, 4);
+  assert.equal(state.nextLifeScore, 2000);
+  assert.equal(state.lastEvent.lifeBonus, true);
+
+  state.lives = C.maxLives;
+  state.score = 1950;
+  model.pop(state, { size: 0, x: 200, y: 200, vx: 0, vy: 0 });
+  assert.equal(state.lives, C.maxLives);
+  assert.equal(state.lastEvent.lifeBonus, false);
 });
 
 test('the harpoon is a single rate-limited vertical line and popping a large bubble makes two faster medium bubbles', () => {
