@@ -5,7 +5,8 @@ This ledger tracks **title-specific work and evidence in this improvement effort
 - Main baseline: `32e50649ad182bc89e185fd6067287602874079f`. This Lemonade/Dr. Mario batch uses `codex/lemonade-dr-mario-gameplay-20261011`, based on Bubble Trouble PR #7 head `418701cd0de44ffc8344ff7be74f0eef588c99db`.
 - Tested implementation/evidence commit: `5375b3140d6563ca0e4e0526bf62af341db5e8fd`; [draft PR #8](https://github.com/daichunghy/newplayground/pull/8) is stacked on PR #7.
 - This ledger enumerates all **150** catalog IDs. Frogger, Asteroids, Galaga, Piano Tiles, Bubble Trouble, Lemonade Tycoon, Dr. Mario, Contra and Snow Bros received title-specific work in these batches; the other 141 have no title-specific work recorded in this effort.
-- This Contra/Snow Bros batch is on `codex/contra-snow-bros-gameplay-20261011`, based on PR #8 head `23822fc17e5232405e18c18a6ab0b1c0f5cba7ef`; main baseline remains `32e50649ad182bc89e185fd6067287602874079f`.
+- Current tested stack: PR #7 Bubble Trouble `56e98a9bfbf7033c31d216398405feb19cbf991f` → PR #8 Lemonade/Dr. Mario `23822fc17e5232405e18c18a6ab0b1c0f5cba7ef` → PR #9 Contra/Snow Bros `5ec0b94ff04b3ef957d027099a67e73faab72db7`. PR #7 is based on Piano Tiles PR #6. All remain drafts; main baseline is still `32e50649ad182bc89e185fd6067287602874079f`.
+- The original PR #8 validation commit was `5375b3140d6563ca0e4e0526bf62af341db5e8fd`; its current head is `23822fc17e5232405e18c18a6ab0b1c0f5cba7ef` and it is based on the updated PR #7 branch.
 - Acceptance requires a pinned edition/source, research record, deterministic model coverage where applicable, real browser play including loss/restart and next progression step, before/after screenshots, persistence/lifecycle/input/responsive checks, and explicit deviations. See [`GAME_DEVELOPMENT_GUIDELINES.md`](./GAME_DEVELOPMENT_GUIDELINES.md).
 
 | # | Catalog ID | Title | Work/evidence in this effort | Still needed |
