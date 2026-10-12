@@ -2435,7 +2435,7 @@
 
   // Snow Bros arcade loop: accumulate snow, freeze one opponent into a ball,
   // then kick the rolling ball through the rest of that fixed-screen wave.
-  const SNOW_BROS = Object.freeze({ width: 720, height: 640, ground: 578, jumpSpeed: 600, maxStage: 5, freezeHits: 3, stageSeconds: 72 });
+  const SNOW_BROS = Object.freeze({ width: 720, height: 640, ground: 578, jumpSpeed: 600, maxStage: 5, freezeHits: 3, stageSeconds: 72, upwardThrowRadians: 0.74 });
   const SNOW_PLATFORMS = Object.freeze([
     [{ x: 0, y: 578, w: 720 }],
     [{ x: 0, y: 578, w: 720 }, { x: 94, y: 430, w: 210 }, { x: 416, y: 430, w: 210 }],
@@ -2486,7 +2486,7 @@
       state.lastEvent = { type: 'kick', enemy: frozen.id };
       return true;
     }
-    const angle = direction < 0 ? -0.58 : direction > 0 ? 0.28 : 0;
+    const angle = direction < 0 ? -SNOW_BROS.upwardThrowRadians : direction > 0 ? 0.28 : 0;
     state.shots.push({ x: p.x + p.facing * 20, y: p.y + 20, vx: Math.cos(angle) * p.facing * 420,
       vy: Math.sin(angle) * 420, life: 1.15 });
     state.fireCooldown = 0.24;

@@ -182,12 +182,25 @@ test('Snow Bros upward throw can reach an enemy on the next raised ledge', () =>
   const state = snow.create(131);
   state.stage = 3;
   state.platforms = [{ x: 0, y: 578, w: 720 }, { x: 34, y: 445, w: 192 }, { x: 218, y: 308, w: 284 }];
-  state.player = { x: 90, y: 403, vx: 0, vy: 0, grounded: true, facing: 1, invulnerable: 1, speedBoost: 0, rolling: false };
+  state.player = { x: 153, y: 403, vx: 0, vy: 0, grounded: true, facing: 1, invulnerable: 1, speedBoost: 0, rolling: false };
   const target = { id: 131, x: 320, y: 270, vx: 0, platform: 2, snow: 0, frozen: false, fireCooldown: 10, phase: 0 };
   state.enemies = [target];
   assert.equal(snow.fire(state, -1), true);
-  for (let i = 0; i < 14; i++) snow.tick(state, {}, 0.05);
+  for (let i = 0; i < 16; i++) snow.tick(state, {}, 0.05);
   assert.equal(target.snow, 1);
+});
+
+test('Snow Bros steeper upward throw reaches the central raised ledge from the floor', () => {
+  const state = snow.create(132);
+  state.stage = 3;
+  state.platforms = [{ x: 0, y: 578, w: 720 }, { x: 34, y: 420, w: 192 }, { x: 264, y: 344, w: 192 }, { x: 494, y: 420, w: 192 }];
+  state.player = { x: 696, y: 536, vx: 0, vy: 0, grounded: true, facing: -1, invulnerable: 1, speedBoost: 0, rolling: false };
+  const target = { id: 132, x: 436, y: 306, vx: 0, platform: 2, snow: 0, frozen: false, fireCooldown: 10, phase: 0 };
+  state.enemies = [target];
+  assert.equal(snow.constants.upwardThrowRadians, 0.74);
+  assert.equal(snow.fire(state, -1), true);
+  for (let i = 0; i < 18; i++) snow.tick(state, {}, 0.05);
+  assert.equal(target.snow, 1, 'the rising shot reaches the central ledge from a safe floor lane');
 });
 
 test('Snow Bros clears five fixed-screen waves then enters a terminal win state', () => {
