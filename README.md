@@ -110,7 +110,7 @@ Nét vẽ được lưu trong [`scripts/game-art.js`](./scripts/game-art.js), kh
 ### Trạng thái đầy đủ của gameplay (cập nhật 11/10/2026)
 
 - Danh mục hiện có 150 mục, nhưng không phải tất cả đều có cơ chế riêng đúng luật trò chơi gốc.
-- 81 mục còn sử dụng một trong 7 archetype chung trong `scripts/engines-archetypes.js`; năm vòng riêng theo ID hiện có trong file là Frogger, Asteroids, Galaga, Piano Tiles và Bubble Trouble. Đây là các vòng tách theo tựa, chưa phải tuyên bố tái hiện chính xác từng bản gốc.
+- 80 mục còn sử dụng một trong 7 archetype chung trong `scripts/engines-archetypes.js`; sáu vòng riêng theo ID trong file hiện gồm Frogger, Asteroids, Galaga, Piano Tiles, Bubble Trouble và Lemonade Tycoon. Dr. Mario có vòng riêng trong `scripts/engines.js`. Đây là các vòng tách theo tựa, chưa phải tuyên bố tái hiện chính xác từng bản gốc.
 - Các engine riêng có cơ chế và số màn khác nhau. Việc kiểm tra mở/đóng 150 game không thay thế kiểm thử toàn bộ hành trình chơi.
 - Xem [ma trận kiểm kê gameplay](./docs/GAMEPLAY_COMPLETENESS_AUDIT.md) để phân biệt các mức hoàn thiện và kế hoạch QA.
 - CI trên `main` chạy kiểm tra cú pháp và bộ test hồi quy, bắt buộc qua test trước khi deploy.
@@ -122,4 +122,4 @@ Nét vẽ được lưu trong [`scripts/game-art.js`](./scripts/game-art.js), kh
 
 ## Nghiên cứu và bao phủ gameplay theo từng tựa
 
-Danh mục 150 game chưa đồng nghĩa với 150 gameplay đã được đối chiếu hoặc chơi thử. Ở snapshot code này, ma trận router ghi nhận 69 vòng riêng theo title và 81 mục còn dùng archetype chung; riêng dispatcher không chứng minh fidelity. Hãy đọc [hướng dẫn nghiên cứu và nghiệm thu](./docs/GAME_DEVELOPMENT_GUIDELINES.md), xem [sổ bao phủ 150 tựa](./docs/GAME_COVERAGE.md), và dùng [ma trận engine/router](./docs/GAMEPLAY_COMPLETENESS_AUDIT.md) như inventory kỹ thuật, không phải chứng nhận fidelity. Hồ sơ nguồn, phạm vi, screenshot và giới hạn của các đợt đã chạy nằm trong [`docs/game-profiles/`](./docs/game-profiles/) và [`docs/qa/`](./docs/qa/).
+Danh mục 150 game chưa đồng nghĩa với 150 gameplay đã được đối chiếu hoặc chơi thử. Ở snapshot code này, ma trận router ghi nhận 70 vòng riêng theo title và 80 mục còn dùng archetype chung; riêng dispatcher không chứng minh fidelity. Hãy đọc [hướng dẫn nghiên cứu và nghiệm thu](./docs/GAME_DEVELOPMENT_GUIDELINES.md), xem [sổ bao phủ 150 tựa](./docs/GAME_COVERAGE.md), và dùng [ma trận engine/router](./docs/GAMEPLAY_COMPLETENESS_AUDIT.md) như inventory kỹ thuật, không phải chứng nhận fidelity. Hồ sơ nguồn, phạm vi, screenshot và giới hạn của các đợt đã chạy nằm trong [`docs/game-profiles/`](./docs/game-profiles/) và [`docs/qa/`](./docs/qa/).

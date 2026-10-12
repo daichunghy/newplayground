@@ -140,7 +140,7 @@ test('one specialized or generic launcher per catalog selection; Retro50 has pri
     assert.equal(h.context.openGameById(game.id), true);
     assert.equal(calls.length, 1, game.id + ' must start exactly one engine');
   }
-  for (const [id, expected] of [['hang-rong', 'launchHangRong'], ['zuma-ech-ban-ngoc', 'launchZuma'], ['line-98', 'launchLine98'], ['ran-san-moi-snake', 'launchSnake'], ['boom-online-bnb', 'retro50'], ['bubble-bobble-khung-long-bong-bong', 'retro50'], ['bong-bong-nuoc-bubble-trouble', 'launchRetroArcade'], ['lemonade-tycoon', 'launchRetroArcade'], ['ban-ruoi-galaga', 'launchRetroArcade']]) {
+  for (const [id, expected] of [['hang-rong', 'launchHangRong'], ['zuma-ech-ban-ngoc', 'launchZuma'], ['line-98', 'launchLine98'], ['ran-san-moi-snake', 'launchSnake'], ['boom-online-bnb', 'retro50'], ['bubble-bobble-khung-long-bong-bong', 'retro50'], ['bong-bong-nuoc-bubble-trouble', 'launchRetroArcade'], ['lemonade-tycoon', 'launchRetroArcade'], ['dr-mario-diet-khuan', 'launchTetris'], ['ban-ruoi-galaga', 'launchRetroArcade']]) {
     calls.length = 0; h.context.openGameById(id); assert.deepEqual(calls, [expected]);
   }
   calls.length = 0; h.context.openGameById('ban-ga-vu-tru'); assert.deepEqual(calls, ['launchChickenInvaders'], 'Chicken Invaders keeps its own engine after Galaga is split out');
@@ -196,7 +196,7 @@ test('real engine launch, render and close across every catalog entry (mocked ca
 
 test('generic arcade fire uses vibration; switching leaves one live game and no old keyboard action', () => {
   const h = harness();
-  h.context.openGameById('lemonade-tycoon');
+  h.context.openGameById('contra-2d');
   h.window.dispatch('keydown', { key: ' ', code: 'Space' });
   assert.ok(h.vibrations.includes(8));
   h.context.openGameById('boom-online-bnb');
@@ -298,7 +298,7 @@ test('closing during shared screen shake and audio fanfare cancels effects and r
   h.context.closeGameModal();
   assert.equal(h.container.style.transform, 'scale(1)');
   assert.equal(h.timers.size, 0); assertStopped(h);
-  h.context.openGameById('lemonade-tycoon');
+  h.context.openGameById('contra-2d');
   h.context.NP_Juice.screenShake(h.container, 10, 30); h.frame();
   h.context.NP_Juice.screenShake(h.container, 5, 30); h.frame(); h.frame();
   assert.equal(h.container.style.transform, 'scale(1)', 'overlapping effects restore the original transform');
@@ -325,7 +325,7 @@ test('fallback catalog has real, distinct genre loops and closes resources safel
   for (const game of games) {
     h.context.openGameById(game.id);
     const canvas = h.container.querySelector('#arcCanvas');
-    const dedicatedDispatch = ['frogger-ech-bang-qua-duong', 'asteroids-tau-ban-thien-thach', 'ban-ruoi-galaga', 'piano-tiles-phim-nhac', 'bong-bong-nuoc-bubble-trouble'].includes(game.id);
+    const dedicatedDispatch = ['frogger-ech-bang-qua-duong', 'asteroids-tau-ban-thien-thach', 'ban-ruoi-galaga', 'piano-tiles-phim-nhac', 'bong-bong-nuoc-bubble-trouble', 'lemonade-tycoon', 'dr-mario-diet-khuan'].includes(game.id);
     if (canvas && !dedicatedDispatch) {
       count++;
       const kind = h.context.NP_Archetypes.kindFor(game);
@@ -339,7 +339,7 @@ test('fallback catalog has real, distinct genre loops and closes resources safel
     assertStopped(h);
     assert.equal(h.errors.length, 0, game.id + ': ' + h.errors.join('; '));
   }
-  assert.equal(count, 81, 'Bubble Trouble now has a dedicated 10-stage harpoon-and-split mode outside the generic reflex archetype');
+  assert.equal(count, 80, 'Lemonade Tycoon now has a dedicated market-planning loop outside the generic management archetype');
   assert.deepEqual([...found].sort(), ['duel', 'management', 'puzzle', 'quiz', 'reflex', 'runner', 'shooter']);
 });
 
@@ -350,7 +350,7 @@ test('fallback puzzle, reflex, management and quiz advance to stage two', () => 
     assert.equal(h.context.openGameById(id), true);
     return { h, get: selector => h.container.querySelector(selector) };
   }
-  let { h, get } = setup('lemonade-tycoon');
+  let { h, get } = setup('tiem-sach-cu-pho-co');
   for (let i = 0; i < 6; i++) get('#arcAction').dispatch('pointerdown');
   assert.equal(get('#arcLevel').textContent, 2, 'management advances after enough correct orders');
   h.context.closeGameModal(); assertStopped(h);
@@ -384,6 +384,128 @@ test('fallback puzzle, reflex, management and quiz advance to stage two', () => 
     get('#arcAction').dispatch('pointerdown');
   }
   assert.equal(get('#arcLevel').textContent, 2, 'quiz advances after six correct answers');
+  h.context.closeGameModal(); assertStopped(h);
+});
+
+test('Lemonade Tycoon has its own stock-planning and ten-day market model', () => {
+  const h = harness();
+  const model = h.context.NP_Archetypes.lemonadeModel;
+  const state = model.create(42);
+  assert.equal(state.phase, 'planning');
+  assert.equal(state.cash, 40);
+  assert.ok(state.forecast.temperature >= 14 && state.forecast.temperature <= 34);
+  assert.equal(model.buy(state, 'lemons', 99), true, 'pack counts are capped and purchased from cash');
+  assert.equal(state.stock.lemons, model.constants.packs.lemons.count * 5);
+  assert.equal(model.buy(state, 'not-an-item'), false);
+  assert.equal(model.set(state, 'priceCents', 9999), true);
+  assert.equal(state.priceCents, 350, 'price is clamped to the supported range');
+  assert.equal(model.set(state, 'location', 'not-a-location'), false);
+  assert.equal(model.set(state, 'location', 'suburbs'), true);
+  assert.equal(model.startDay(state).day, 1);
+  assert.equal(state.phase, 'result');
+  assert.equal(model.startDay(state), false, 'a market day resolves only once');
+  assert.equal(model.nextDay(state), true);
+  assert.equal(state.day, 2);
+  assert.equal(state.phase, 'planning');
+});
+
+test('Lemonade Tycoon can finish a seeded ten-day season above its cash target', () => {
+  const h = harness();
+  const model = h.context.NP_Archetypes.lemonadeModel;
+  const state = model.create(1);
+  for (let day = 1; day <= model.constants.days; day++) {
+    const temp = state.forecast.temperature;
+    model.set(state, 'lemons', 2);
+    model.set(state, 'sugar', temp <= 17 ? 3 : temp >= 31 ? 1 : 2);
+    model.set(state, 'ice', temp >= 29 ? 5 : temp <= 18 ? 2 : 3);
+    model.set(state, 'priceCents', 325);
+    model.set(state, 'adSpend', 0);
+    model.set(state, 'location', state.forecast.rain ? 'suburbs' : temp >= 27 ? 'station' : temp >= 20 ? 'park' : 'suburbs');
+    const wants = { lemons: 36 - state.stock.lemons, sugar: 18 * state.recipe.sugar - state.stock.sugar,
+      ice: 18 * state.recipe.ice - state.stock.ice, cups: 18 - state.stock.cups };
+    const packSizes = { lemons: 12, sugar: 20, ice: 50, cups: 75 };
+    for (const [item, missing] of Object.entries(wants)) {
+      const packs = Math.max(0, Math.ceil(missing / packSizes[item]));
+      if (packs) model.buy(state, item, packs);
+    }
+    const report = model.startDay(state);
+    assert.ok(report, `seed 1 day ${day} opened and produced a report`);
+    assert.equal(model.nextDay(state), true);
+  }
+  assert.equal(state.phase, 'won');
+  assert.equal(state.day, 10);
+  assert.ok(state.cash >= model.constants.targetCash);
+});
+
+test('Dr. Mario clears four connected colors, detaches a split capsule and resolves a cascade', () => {
+  const h = harness();
+  const model = h.context.NP_Engines.drMarioModel;
+  const state = model.create(321);
+  const grid = Array.from({ length: model.constants.rows }, () => Array(model.constants.columns).fill(null));
+  state.grid = grid; state.viruses = 6; state.phase = 'playing';
+  for (const x of [0, 1, 2]) grid[11][x] = { color: 0, virus: true, pairId: null };
+  for (const x of [0, 1, 2]) grid[15][x] = { color: 1, virus: true, pairId: null };
+  grid[11][3] = { color: 0, virus: false, pairId: 77, side: 0 };
+  grid[10][3] = { color: 1, virus: false, pairId: 77, side: 1 };
+  const result = model.resolve(state);
+  assert.deepEqual(JSON.parse(JSON.stringify(result)), { removed: 8, viruses: 6, chain: 2 });
+  assert.equal(state.viruses, 0);
+  assert.equal(state.score, 2250);
+  assert.ok(grid[15].every(cell => cell === null), 'the detached half falls into the second color group and clears');
+});
+
+test('Dr. Mario exact route uses capsule rules, advances stages, supports bottle top-out and final victory', () => {
+  const h = harness();
+  const model = h.context.NP_Engines.drMarioModel;
+  const first = model.create(2026), same = model.create(2026);
+  assert.equal(JSON.stringify(first.grid), JSON.stringify(same.grid), 'seeded virus placement is repeatable');
+  assert.equal(first.active.colors[0], 1); assert.equal(first.active.colors[1], 0);
+  assert.ok(model.rotate(first, 1), 'capsules rotate');
+  assert.ok(model.move(first, -1), 'capsules move');
+  const generated = model.create(2026);
+  for (let stage = 2; stage <= model.constants.maxStage; stage++) {
+    model.startLevel(generated, stage);
+    assert.equal(generated.viruses, 4 + (stage - 1) * 4, `stage ${stage} places its full local virus count`);
+    assert.deepEqual(JSON.parse(JSON.stringify(model.resolve(generated))), { removed: 0, viruses: 0, chain: 0 }, `stage ${stage} starts without an immediate match`);
+  }
+  const clear = model.create(2026);
+  clear.fallElapsed = 0.8;
+  model.hardDrop(clear);
+  assert.equal(clear.phase, 'stage-clear');
+  for (let i = 0; i < 20 && clear.stage === 1; i++) model.tick(clear, {}, 0.05);
+  assert.equal(clear.stage, 2);
+  assert.equal(clear.viruses, 8);
+  assert.equal(clear.fallElapsed, 0, 'the next bottle gives the new capsule a fresh gravity interval');
+
+  const topout = model.create(99);
+  topout.grid[0][4] = { color: 2, virus: false, pairId: null };
+  assert.equal(model.move(topout, -1), true);
+  topout.active.x = 4;
+  assert.equal(model.hardDrop(topout), 0);
+  assert.equal(topout.phase, 'over', 'a capsule cannot lock above the bottle mouth');
+
+  const last = model.create(123);
+  last.stage = 5; last.phase = 'playing'; last.viruses = 3;
+  last.grid = Array.from({ length: model.constants.rows }, () => Array(model.constants.columns).fill(null));
+  for (const x of [2, 3, 4]) last.grid[15][x] = { color: 0, virus: true, pairId: null };
+  last.active = { x: 5, y: 15, direction: 0, colors: [0, 0], pairId: 900, fall: 0 };
+  model.hardDrop(last);
+  assert.equal(last.phase, 'stage-clear');
+  for (let i = 0; i < 20; i++) model.tick(last, {}, 0.05);
+  assert.equal(last.phase, 'won', 'clearing the fifth bottle completes the five-stage adaptation');
+
+  h.context.openGameById('lemonade-tycoon');
+  assert.ok(h.container.querySelector('#ltScene'));
+  assert.equal(h.container.querySelector('#arcCanvas'), null);
+  h.context.closeGameModal(); assertStopped(h);
+
+  h.context.openGameById('dr-mario-diet-khuan');
+  assert.ok(h.container.querySelector('#dmCanvas'));
+  assert.equal(h.container.querySelector('#tetrisCanvas'), null);
+  h.window.dispatch('keydown', { key: ' ', code: 'Space' });
+  for (let i = 0; i < 20; i++) h.frame(50);
+  assert.equal(h.container.querySelector('#dmStage').textContent, '2 / 5');
+  assert.equal(h.container.querySelector('#dmViruses').textContent, 8);
   h.context.closeGameModal(); assertStopped(h);
 });
 
