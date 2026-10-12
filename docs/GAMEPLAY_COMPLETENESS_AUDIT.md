@@ -5,10 +5,10 @@ Sổ bao phủ theo từng catalog title: [docs/GAME_COVERAGE.md](./GAME_COVERAG
 Tài liệu này phân biệt **game mở được**, **có vòng chơi và tiến trình**, và **tái hiện đầy đủ luật đặc trưng**. Không dùng việc mở canvas thành công để suy diễn game đã hoàn thiện.
 
 - Danh mục trong `data/games.json`: **150** tựa.
-- Vòng chơi riêng theo từng game: **68** tựa; **82** tựa còn dùng một trong 7 archetype chung. Các con số là phân loại router từ code, không phải đếm những tựa đã được chơi thử hay xác nhận fidelity.
-- Bốn loop riêng theo ID trong `engines-archetypes.js` là Frogger, Asteroids, Galaga và Piano Tiles. Mỗi loop tách khỏi canvas genre fallback; các game khác cùng một engine có thể vẫn chia sẻ cơ chế.
-- Galaga trước đây đã nằm ngoài fallback chung nhưng chạy nhầm Chicken Invaders; Piano Tiles từng dùng archetype reflex. Hai route nay mở loop đúng tựa, nên phân loại chuyển từ 67/83 sang 68/82.
-- `tests/game-flow.test.cjs` kiểm tra 82 route generic, 150 lượt mở/đóng và vài kịch bản mô phỏng; điều đó không thay thế QA browser cho từng tựa.
+- Vòng chơi riêng theo từng game: **69** tựa; **81** tựa còn dùng một trong 7 archetype chung. Các con số là phân loại router từ code, không phải đếm những tựa đã được chơi thử hay xác nhận fidelity.
+- Năm loop riêng theo ID trong `engines-archetypes.js` là Frogger, Asteroids, Galaga, Piano Tiles và Bubble Trouble. Mỗi loop tách khỏi canvas genre fallback; các game khác cùng một engine có thể vẫn chia sẻ cơ chế.
+- Galaga trước đây đã nằm ngoài fallback chung nhưng chạy nhầm Chicken Invaders; Piano Tiles và Bubble Trouble từng dùng archetype chung. Các route nay mở loop đúng tựa, nên inventory hiện tại chuyển từ 67/83 ban đầu sang 69/81.
+- `tests/game-flow.test.cjs` kiểm tra 81 route generic, 150 lượt mở/đóng và vài kịch bản mô phỏng; điều đó không thay thế QA browser cho từng tựa.
 - Kiểm thử mô phỏng đã đạt màn 2 ở 7 archetype. Điều này **không xác nhận** toàn bộ chiến dịch của từng game chuyên biệt có thể hoàn thành, hoặc gameplay đã trung thành với tên game.
 - `tests/game-flow.test.cjs` kiểm tra 150 lượt mở, đóng, cleanup và các kịch bản qua màn minh họa; cần bổ sung test theo đặc tả riêng và QA trên máy thật.
 - Cần QA thủ công với chuột, bàn phím, Android Chrome và iPhone Safari; kiểm tra 60/90/120 Hz, màn cuối, khởi động lại, lưu trữ, cảm ứng đa điểm.
@@ -19,7 +19,7 @@ Tài liệu này phân biệt **game mở được**, **có vòng chơi và ti�
 | --- | ---: | --- |
 | `shooter` | 10 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
 | `runner` | 18 | Các game còn lại dùng vòng chạy chung; Frogger đã có vòng sang đường riêng |
-| `reflex` | 10 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
+| `reflex` | 9 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
 | `puzzle` | 16 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
 | `management` | 5 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
 | `quiz` | 6 | Vượt mục tiêu màn → tăng khó → mở màn tiếp; có thua, chơi lại và lưu màn cao nhất |
@@ -81,7 +81,7 @@ Tài liệu này phân biệt **game mở được**, **có vòng chơi và ti�
 | 48 | `truc-thang-heli-attack` | Trực Thăng Bắn Súng (Heli Attack) | `launchRetroArcade` | `runner` |
 | 49 | `thu-thanh-bloons-td` | Thủ Thành Khỉ Ném Phi Tiêu | `launchPvZ` | — |
 | 50 | `contra-2d` | Contra 2D Cổ Điển | `launchRetroArcade` | `shooter` |
-| 51 | `bong-bong-nuoc-bubble-trouble` | Bắn Bong Bóng Nước (Bubble Trouble) | `launchRetroArcade` | `reflex` |
+| 51 | `bong-bong-nuoc-bubble-trouble` | Bắn Bong Bóng Nước (Bubble Trouble) | `launchRetroArcade` → Bubble Trouble loop (exact ID) | — |
 | 52 | `crossy-road` | Băng Qua Đường (Crossy Road) | `launchRetroArcade` | `runner` |
 | 53 | `sonic-chay-nhanh` | Nhím Sonic Chạy Nhanh | `launchMario` | — |
 | 54 | `dua-xe-nam-mario-kart` | Đua Xe Nấm Mini | `launchMario` | — |

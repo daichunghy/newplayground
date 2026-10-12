@@ -140,7 +140,7 @@ test('one specialized or generic launcher per catalog selection; Retro50 has pri
     assert.equal(h.context.openGameById(game.id), true);
     assert.equal(calls.length, 1, game.id + ' must start exactly one engine');
   }
-  for (const [id, expected] of [['hang-rong', 'launchHangRong'], ['zuma-ech-ban-ngoc', 'launchZuma'], ['line-98', 'launchLine98'], ['ran-san-moi-snake', 'launchSnake'], ['boom-online-bnb', 'retro50'], ['bubble-bobble-khung-long-bong-bong', 'retro50'], ['lemonade-tycoon', 'launchRetroArcade'], ['ban-ruoi-galaga', 'launchRetroArcade']]) {
+  for (const [id, expected] of [['hang-rong', 'launchHangRong'], ['zuma-ech-ban-ngoc', 'launchZuma'], ['line-98', 'launchLine98'], ['ran-san-moi-snake', 'launchSnake'], ['boom-online-bnb', 'retro50'], ['bubble-bobble-khung-long-bong-bong', 'retro50'], ['bong-bong-nuoc-bubble-trouble', 'launchRetroArcade'], ['lemonade-tycoon', 'launchRetroArcade'], ['ban-ruoi-galaga', 'launchRetroArcade']]) {
     calls.length = 0; h.context.openGameById(id); assert.deepEqual(calls, [expected]);
   }
   calls.length = 0; h.context.openGameById('ban-ga-vu-tru'); assert.deepEqual(calls, ['launchChickenInvaders'], 'Chicken Invaders keeps its own engine after Galaga is split out');
@@ -325,7 +325,7 @@ test('fallback catalog has real, distinct genre loops and closes resources safel
   for (const game of games) {
     h.context.openGameById(game.id);
     const canvas = h.container.querySelector('#arcCanvas');
-    const dedicatedDispatch = ['frogger-ech-bang-qua-duong', 'asteroids-tau-ban-thien-thach', 'ban-ruoi-galaga', 'piano-tiles-phim-nhac'].includes(game.id);
+    const dedicatedDispatch = ['frogger-ech-bang-qua-duong', 'asteroids-tau-ban-thien-thach', 'ban-ruoi-galaga', 'piano-tiles-phim-nhac', 'bong-bong-nuoc-bubble-trouble'].includes(game.id);
     if (canvas && !dedicatedDispatch) {
       count++;
       const kind = h.context.NP_Archetypes.kindFor(game);
@@ -339,7 +339,7 @@ test('fallback catalog has real, distinct genre loops and closes resources safel
     assertStopped(h);
     assert.equal(h.errors.length, 0, game.id + ': ' + h.errors.join('; '));
   }
-  assert.equal(count, 82, 'Piano Tiles now has a dedicated 50-key mode outside the generic reflex archetype');
+  assert.equal(count, 81, 'Bubble Trouble now has a dedicated 10-stage harpoon-and-split mode outside the generic reflex archetype');
   assert.deepEqual([...found].sort(), ['duel', 'management', 'puzzle', 'quiz', 'reflex', 'runner', 'shooter']);
 });
 
