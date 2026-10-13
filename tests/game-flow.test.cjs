@@ -225,6 +225,26 @@ test('Contra and Snow Bros use their dedicated playfields and release session re
   }
 });
 
+test('Pac-Man uses its own maze frame, accepts keyboard and button input, and pauses/restarts cleanly', () => {
+  const h = harness();
+  h.context.openGameById('pac-man');
+  assert.ok(h.container.querySelector('#pmCanvas'));
+  assert.ok(h.container.querySelector('.np-pacman-shell'));
+  assert.equal(h.container.querySelector('#arcCanvas'), null, 'Pac-Man does not fall through to the shared arcade engine');
+  assert.ok(h.container.querySelector('#pmPause'));
+  assert.ok(h.container.querySelector('#pmRestart'));
+  h.window.dispatch('keydown', { key: 'ArrowDown' });
+  for (let i = 0; i < 48; i++) h.frame();
+  assert.ok(Number(h.container.querySelector('#pmScore').textContent) > 0, 'the real engine collects dots from keyboard input');
+  h.container.querySelector('#pmPause').dispatch('click');
+  assert.equal(h.container.querySelector('#pmOverlayTitle').textContent, 'TẠM DỪNG');
+  h.container.querySelector('#pmOverlayAction').dispatch('click');
+  h.container.querySelector('#pmRestart').dispatch('click');
+  assert.equal(h.container.querySelector('#pmScore').textContent, '0');
+  h.context.closeGameModal(); assertStopped(h);
+  assert.equal(h.errors.length, 0);
+});
+
 test('failed launch cleans partial resources and can reopen; missing engines show a message', () => {
   const h = harness(); const original = h.context.NP_Engines.launchSnake;
   h.context.NP_Engines.launchSnake = () => {

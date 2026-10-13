@@ -3100,6 +3100,230 @@ body.dark-theme .filter-pill.active {
   .np-typer-shark { width:min(100%, 600px); }
 }
 
+/* Pac-Man has its own compact maze-first frame; keep the 19:20 playfield intact. */
+.np-pacman-shell {
+  width: min(100%, 680px);
+  margin: 0 auto;
+  padding: 8px;
+  box-sizing: border-box;
+  color: #F5F6FF;
+  background: #090D1D;
+  border: 1px solid #27345F;
+  border-radius: 16px;
+  box-shadow: 0 16px 44px rgba(1, 5, 20, .42);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  font-family: Calibri, Inter, -apple-system, sans-serif;
+}
+.np-pm-hud {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(52px, 1fr)) auto auto;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 3px;
+}
+.np-pm-stat {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.np-pm-stat span {
+  color: #9BA9CF;
+  font-size: .58rem;
+  font-weight: 800;
+  letter-spacing: .13em;
+}
+.np-pm-stat strong {
+  color: #F7F2DE;
+  font-size: .92rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.np-pm-dot-stat strong { color: #F5C96A; }
+.np-pm-lives {
+  min-width: 48px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
+.np-pm-life {
+  width: 8px;
+  height: 8px;
+  border: 1px solid #667299;
+  border-radius: 50%;
+  background: transparent;
+}
+.np-pm-life.is-filled {
+  border-color: #FFD166;
+  background: #FFD166;
+  box-shadow: 0 0 7px rgba(255, 209, 102, .6);
+}
+.np-pm-actions { display: flex; gap: 5px; }
+.np-pm-actions button,
+.np-pm-dpad button,
+.np-pm-overlay button {
+  min-width: 48px;
+  min-height: 48px;
+  border: 1px solid #52659B;
+  border-radius: 11px;
+  color: #F5F6FF;
+  background: #1A2447;
+  font: 800 .72rem Calibri, Inter, sans-serif;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.np-pm-actions button:last-child { min-width: 48px; font-size: 1.1rem; }
+.np-pm-actions button:active,
+.np-pm-dpad button:active,
+.np-pm-overlay button:active { transform: translateY(1px); background: #2C3B70; }
+.np-pm-actions button:focus-visible,
+.np-pm-dpad button:focus-visible,
+.np-pm-overlay button:focus-visible,
+.np-pm-board canvas:focus-visible {
+  outline: 3px solid #FFD166;
+  outline-offset: 2px;
+}
+.np-pm-board {
+  position: relative;
+  width: min(100%, 620px, calc(95dvh - 247px));
+  aspect-ratio: 19 / 20;
+  margin: 0 auto;
+  overflow: hidden;
+  border: 2px solid #34467F;
+  border-radius: 10px;
+  background: #070A18;
+  box-shadow: 0 0 25px rgba(51, 84, 201, .16), inset 0 0 28px rgba(18, 34, 91, .2);
+}
+.np-pm-board canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  aspect-ratio: 19 / 20;
+  image-rendering: auto;
+  touch-action: none;
+  user-select: none;
+}
+.np-pm-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 18px;
+  box-sizing: border-box;
+  text-align: center;
+  background: rgba(5, 8, 22, .84);
+  backdrop-filter: blur(3px);
+}
+.np-pm-overlay strong {
+  color: #FFD166;
+  font-size: clamp(1.2rem, 5vw, 2rem);
+  letter-spacing: .12em;
+}
+.np-pm-overlay span {
+  min-height: 1em;
+  color: #D8DDF1;
+  font-size: .9rem;
+  font-variant-numeric: tabular-nums;
+}
+.np-pm-overlay button {
+  min-width: 136px;
+  padding: 0 18px;
+  border-color: #F0C75D;
+  color: #1A1A26;
+  background: #FFD166;
+}
+.np-pm-controls {
+  width: min(100%, 620px);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.np-pm-controls small {
+  color: #9BA9CF;
+  font-size: .75rem;
+  text-align: right;
+}
+.np-pm-dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 48px);
+  grid-template-rows: repeat(2, 48px);
+  gap: 4px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.np-pm-dpad button { min-width: 48px; min-height: 48px; font-size: .9rem; }
+.np-pm-dpad .np-pm-up { grid-column: 2; grid-row: 1; }
+.np-pm-dpad #pmLeft { grid-column: 1; grid-row: 2; }
+.np-pm-dpad #pmDown { grid-column: 2; grid-row: 2; }
+.np-pm-dpad #pmRight { grid-column: 3; grid-row: 2; }
+#gameModal .canvas-game-box:has(.np-pacman-shell) {
+  width: 100%;
+  max-width: 900px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+#gameModal:has(.np-pacman-shell) .modal-backdrop {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+@media (min-width: 1000px) {
+  .np-pacman-shell {
+    width: min(100%, 850px);
+    max-width: 850px;
+    display: grid;
+    grid-template-columns: minmax(0, 620px) 164px;
+    grid-template-rows: auto 1fr;
+    align-items: center;
+    gap: 10px;
+  }
+  .np-pm-hud { grid-column: 1 / -1; }
+  .np-pm-board {
+    grid-column: 1;
+    grid-row: 2;
+    width: min(100%, 620px, calc(95dvh - 247px));
+  }
+  .np-pm-controls {
+    grid-column: 2;
+    grid-row: 2;
+    height: 100%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .np-pm-controls small { text-align: center; }
+}
+@media (max-width: 520px) {
+  .np-pacman-shell { padding: 6px; gap: 7px; border-radius: 12px; }
+  .np-pm-hud { grid-template-columns: repeat(4, minmax(42px, 1fr)) auto; gap: 4px; padding: 3px 1px; }
+  .np-pm-stat span { font-size: .52rem; }
+  .np-pm-stat strong { font-size: .78rem; }
+  .np-pm-lives { grid-column: 1 / span 2; justify-content: flex-start; }
+  .np-pm-actions { grid-column: 4 / span 2; grid-row: 2; justify-content: flex-end; }
+  .np-pm-actions button, .np-pm-dpad button { min-width: 48px; min-height: 48px; }
+  .np-pm-controls { justify-content: center; }
+  .np-pm-controls small { display: none; }
+}
+@media (max-height: 560px) {
+  .np-pacman-shell { gap: 4px; padding: 4px; }
+  .np-pm-board { width: min(100%, calc(86dvh - 145px)); }
+  .np-pm-dpad { grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(2, 44px); }
+  .np-pm-dpad button { min-width: 44px; min-height: 44px; }
+}
+
 
 /* Deep gameplay viewport and touch affordances, 11 Oct 2026 */
 /* Keep the playfield dominant; preserve original native canvas aspect ratio. */
