@@ -30,7 +30,7 @@ test('Pac-Man uses an original connected maze, three starting lives, and a narro
   assert.equal(state.maze.length, C.rows);
   assert.ok(state.maze.every(row => row.length === C.cols));
   assert.equal(state.lives, 3);
-  assert.deepEqual(Array.from(state.ghosts, ghost => ghost.releaseTimer), [0, 1.75, 3.5, 5.25]);
+  assert.deepEqual(Array.from(state.ghosts, ghost => ghost.releaseTimer), [3, 5.25, 7.5, 9.75]);
   assert.equal(reachableCount(state), state.maze.flat().filter(tile => tile !== 1).length);
   assert.equal(model.canMove(state.maze, 0, 10, { x: -1, y: 0 }, 'player'), true);
   assert.equal(model.canMove(state.maze, 0, 9, { x: -1, y: 0 }, 'player'), false);
@@ -67,12 +67,57 @@ test('dot and power-pellet rewards consume one tile and frightened time shortens
   assert.equal(state.pelletsLeft, initialPellets - 2);
 });
 
+test('eating a power pellet reverses ghosts without changing their positions', () => {
+  const state = model.create();
+  const ghost = state.ghosts[0];
+  Object.assign(ghost, { x: 8, y: 8, progress: 10, dirX: 1, dirY: 0, nextX: 1, nextY: 0 });
+  const before = model.actorPosition(ghost);
+  state.player.x = 17; state.player.y = 1;
+  model.consumeCell(state);
+  const after = model.actorPosition(ghost);
+  assert.equal(ghost.dirX, -1);
+  assert.ok(Math.abs(ghost.dirY) < 0.001);
+  assert.ok(Math.abs(before.x - after.x) < 0.001);
+  assert.ok(Math.abs(before.y - after.y) < 0.001);
+});
+
+test('player gets the arcade frightened-speed boost through level four', () => {
+  const first = model.create();
+  first.ghosts.forEach(ghost => { ghost.releaseTimer = 100; });
+  first.frightenedTimer = 5;
+  model.tick(first, { direction: model.directions.find(dir => dir.key === 'down') }, 0.05);
+  assert.ok(Math.abs(first.player.progress - C.playerSpeed * (90 / 80) * 0.05) < 0.001);
+
+  const later = model.create();
+  later.level = 5;
+  later.ghosts.forEach(ghost => { ghost.releaseTimer = 100; });
+  later.frightenedTimer = 5;
+  model.tick(later, { direction: model.directions.find(dir => dir.key === 'down') }, 0.05);
+  assert.equal(later.player.progress, C.playerSpeed * 0.05);
+});
+
 test('ghost routing chooses a legal path through the maze toward a target', () => {
   const state = model.create();
   const ghost = state.ghosts[0];
   const direction = model.routeDirection(state.maze, ghost, { x: 1, y: 1 }, { x: -ghost.dirX, y: -ghost.dirY });
   assert.ok(direction);
   assert.ok(model.canMove(state.maze, ghost.x, ghost.y, direction, 'ghost'));
+});
+
+test('ghosts switch between scatter and chase on the arcade level-one schedule, pausing the mode timer while frightened', () => {
+  const state = model.create();
+  state.ghosts.forEach(ghost => { ghost.releaseTimer = 100; });
+  assert.equal(state.ghostMode, 'scatter');
+  assert.equal(state.ghostModeTimer, 7);
+  for (let i = 0; i < 150; i++) model.tick(state, {}, 0.05);
+  assert.equal(state.ghostMode, 'chase');
+  assert.equal(state.ghostModeIndex, 1);
+  assert.ok(Math.abs(state.ghostModeTimer - 19.55) < 0.01);
+  state.frightenedTimer = 2;
+  const pausedTimer = state.ghostModeTimer;
+  for (let i = 0; i < 10; i++) model.tick(state, {}, 0.05);
+  assert.equal(state.ghostModeTimer, pausedTimer);
+  assert.equal(state.ghostMode, 'chase');
 });
 
 test('collisions cost one life, terminal loss waits for an explicit retry, and retry retains the record', () => {
@@ -116,9 +161,10 @@ test('clearing the maze advances to the next level and refills dots', () => {
 });
 
 test('ghost and player pace are bounded for later levels', () => {
-  assert.equal(model.ghostSpeed(1), 88);
-  assert.equal(model.ghostSpeed(2), 91);
+  assert.equal(model.ghostSpeed(1), 48);
+  assert.equal(model.ghostSpeed(2), 50);
   assert.ok(model.ghostSpeed(3) > model.ghostSpeed(1));
-  assert.equal(model.ghostSpeed(20), 116);
+  assert.equal(model.ghostSpeed(25), 90);
+  assert.equal(model.ghostSpeed(40), 90);
   assert.equal(C.tile * C.cols / (C.tile * C.rows), 19 / 20);
 });

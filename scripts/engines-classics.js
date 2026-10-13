@@ -24,9 +24,9 @@
   window.NP_Engines = window.NP_Engines || {};
 
   // =========================================================================
-  // 1. ENGINE: PAC-MAN ĂN ĐẬU (NAMCO 1980 AUTHENTIC MAZE)
+  // 1. ENGINE: PAC-MAN-STYLE MAZE CHASE ADAPTATION
   // =========================================================================
-  // Original, deterministic maze layout plus a time-based grid simulation.
+  // Original, deterministically generated maze plus a time-based grid simulation.
   // The maze is generated from a seeded depth-first carving pass, with a few
   // extra loops and a single center tunnel; no commercial board is embedded.
   const pacManModel = (() => {
@@ -38,6 +38,12 @@
       Object.freeze({ x: 1, y: 0, key: 'right' })
     ]);
     const SPAWNS = Object.freeze([{ x: 9, y: 9 }, { x: 7, y: 9 }, { x: 11, y: 9 }, { x: 9, y: 7 }]);
+    function ghostModeDurations(level) {
+      const later = level >= 5;
+      return [later ? 5 : 7, 20, later ? 5 : 7, 20, 5,
+        level === 1 ? 20 : level < 5 ? 1033 : 1037,
+        level === 1 ? 5 : 1 / 60, Infinity];
+    }
     const GHOSTS = Object.freeze([
       Object.freeze({ name: 'Blinky', color: '#FF665F' }),
       Object.freeze({ name: 'Pinky', color: '#FF70B8' }),
@@ -175,7 +181,12 @@
     }
 
     function frightenedDuration(level) { return Math.max(2.8, C.frightenedSeconds - Math.max(0, level - 1) * 0.28); }
-    function ghostSpeed(level) { return Math.min(116, 88 + Math.max(0, level - 1) * 3); }
+    function ghostSpeed(level) { return Math.min(90, 48 + Math.max(0, level - 1) * 2); }
+    function playerSpeed(state) {
+      if (state.level === 1) return C.playerSpeed * (90 / 80);
+      if (state.level < 5) return C.playerSpeed * (95 / 90);
+      return C.playerSpeed;
+    }
 
     function makeActor(x, y, speed, dir = { x: 0, y: 0 }) {
       return { x, y, progress: 0, dirX: dir.x, dirY: dir.y, nextX: dir.x, nextY: dir.y, speed };
@@ -185,10 +196,14 @@
       state.player = makeActor(1, 1, C.playerSpeed);
       state.ghosts = GHOSTS.map((ghost, index) => ({
         ...ghost, ...makeActor(SPAWNS[index].x, SPAWNS[index].y, ghostSpeed(state.level)),
-        // Stagger the first intersections so the opening gives the player
-        // time to find a route instead of releasing the whole pack at once.
-        releaseTimer: index * 1.75, respawnTimer: 0
+        // Give the player a route-finding window, then release each ghost
+        // separately so the opening does not collapse into a four-ghost chase.
+        releaseTimer: 3 + index * 2.25, respawnTimer: 0
       }));
+      state.ghostModeIndex = 0;
+      state.ghostMode = 'scatter';
+      state.ghostModeSchedule = ghostModeDurations(state.level);
+      state.ghostModeTimer = state.ghostModeSchedule[0];
       state.hitTimer = 0;
     }
 
@@ -255,10 +270,14 @@
       return { x, y: rawY };
     }
 
-    function reverseActor(actor) {
-      if (!(actor.progress > 0.001) || (actor.dirX === 0 && actor.dirY === 0)) return;
+    function reverseActor(actor, force = false) {
+      if (actor.dirX === 0 && actor.dirY === 0) return;
       const reversed = { x: -actor.dirX, y: -actor.dirY };
-      if (actor.nextX !== reversed.x || actor.nextY !== reversed.y) return;
+      if (actor.progress <= 0.001) {
+        if (force) { actor.dirX = reversed.x; actor.dirY = reversed.y; }
+        return;
+      }
+      if (!force && (actor.nextX !== reversed.x || actor.nextY !== reversed.y)) return;
       const destination = nextCell(actor.x, actor.y, { x: actor.dirX, y: actor.dirY });
       if (!destination) return;
       actor.x = destination.x; actor.y = destination.y;
@@ -281,6 +300,13 @@
         }, null).dir;
       }
 
+      if (state.ghostMode === 'scatter') {
+        const corners = [{ x: 17, y: 1 }, { x: 1, y: 1 }, { x: 17, y: 18 }, { x: 1, y: 18 }];
+        const route = routeDirection(state.maze, ghost, corners[index], reverse);
+        if (route && options.some(dir => sameDir(dir, route))) return route;
+        return options[0];
+      }
+
       const pac = state.player;
       let target = { x: pac.x + (pac.progress > C.tile / 2 ? pac.dirX : 0), y: pac.y + (pac.progress > C.tile / 2 ? pac.dirY : 0) };
       if (ghost.name === 'Pinky') { target.x += pac.dirX * 3; target.y += pac.dirY * 3; }
@@ -301,14 +327,15 @@
         state.maze[state.player.y][state.player.x] = 0;
         state.pelletsLeft--;
         award(state, 10);
-        recordEvent(state, 'dot');
+        recordEvent(state, 'dot', { x: state.player.x, y: state.player.y });
       } else if (tile === 3) {
         state.maze[state.player.y][state.player.x] = 0;
         state.pelletsLeft--;
+        if (state.frightenedTimer <= 0) for (const ghost of state.ghosts) reverseActor(ghost, true);
         award(state, 50);
         state.frightenedTimer = frightenedDuration(state.level);
         state.eatenChain = 0;
-        recordEvent(state, 'power');
+        recordEvent(state, 'power', { x: state.player.x, y: state.player.y });
       }
       if (state.pelletsLeft <= 0 && state.phase === 'playing') {
         state.phase = 'level-clear';
@@ -349,6 +376,18 @@
           if (kind === 'player') consumeCell(state);
         }
       }
+    }
+
+    function advanceGhostMode(state, dt) {
+      const schedule = state.ghostModeSchedule;
+      if (state.frightenedTimer > 0 || state.ghostModeIndex >= schedule.length - 1) return;
+      state.ghostModeTimer -= dt;
+      if (state.ghostModeTimer > 0) return;
+      state.ghostModeIndex++;
+      state.ghostMode = state.ghostModeIndex % 2 === 0 ? 'scatter' : 'chase';
+      state.ghostModeTimer = schedule[state.ghostModeIndex];
+      for (const ghost of state.ghosts) reverseActor(ghost, true);
+      recordEvent(state, 'ghost-mode', { mode: state.ghostMode, index: state.ghostModeIndex });
     }
 
     function segmentDistance(a0, a1, b0, b1) {
@@ -407,10 +446,12 @@
       state.frightenedTimer = Math.max(0, state.frightenedTimer - dt);
       if (state.frightenedTimer === 0) state.eatenChain = 0;
       if (state.hitTimer > 0) { state.hitTimer = Math.max(0, state.hitTimer - dt); return state; }
+      advanceGhostMode(state, dt);
 
       const oldPlayer = actorPosition(state.player);
       const oldGhosts = state.ghosts.map(actorPosition);
-      advanceActor(state, state.player, C.playerSpeed, dt, 'player');
+      const pacSpeed = state.frightenedTimer > 0 ? playerSpeed(state) : C.playerSpeed;
+      advanceActor(state, state.player, pacSpeed, dt, 'player');
       if (state.phase !== 'playing') return state;
 
       for (let index = 0; index < state.ghosts.length; index++) {
@@ -449,6 +490,7 @@
     } catch (_) { /* Local storage can be disabled or contain old/corrupt data. */ }
     let state = pacManModel.create(saved);
     let frameId = null, lastTime = null, swipe = null, pausedBeforeHide = false;
+    let mazeLayer = null, mazeLayerCtx = null;
 
     container.innerHTML = `
       <div class="np-pacman-shell">
@@ -552,6 +594,7 @@
 
     function startAgain() {
       pacManModel.restart(state);
+      drawMazeLayer();
       lastTime = null;
       updateHud();
       canvas.focus?.({ preventScroll: true });
@@ -603,14 +646,32 @@
       updateHud();
     });
 
-    function drawWall(x, y) {
+    function drawWall(x, y, target = ctx) {
       const inset = 2.5;
-      ctx.fillStyle = '#101B49';
-      ctx.strokeStyle = '#3554C9';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.roundRect(x + inset, y + inset, pacManModel.constants.tile - inset * 2, pacManModel.constants.tile - inset * 2, 5);
-      ctx.fill(); ctx.stroke();
+      target.fillStyle = '#101B49';
+      target.strokeStyle = '#3554C9';
+      target.lineWidth = 1.5;
+      target.beginPath();
+      target.roundRect(x + inset, y + inset, pacManModel.constants.tile - inset * 2, pacManModel.constants.tile - inset * 2, 5);
+      target.fill(); target.stroke();
+    }
+
+    function drawMazeLayer() {
+      const { cols, rows, tile } = pacManModel.constants;
+      if (!mazeLayer) {
+        mazeLayer = document.createElement('canvas');
+        mazeLayer.width = canvas.width; mazeLayer.height = canvas.height;
+        mazeLayerCtx = mazeLayer.getContext('2d');
+      }
+      mazeLayerCtx.clearRect(0, 0, mazeLayer.width, mazeLayer.height);
+      for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+        const value = state.maze[y][x], px = x * tile, py = y * tile;
+        if (value === 1) drawWall(px, py, mazeLayerCtx);
+        else if (value === 2) {
+          mazeLayerCtx.fillStyle = '#F5C96A';
+          mazeLayerCtx.beginPath(); mazeLayerCtx.arc(px + tile / 2, py + tile / 2, 2.8, 0, Math.PI * 2); mazeLayerCtx.fill();
+        }
+      }
     }
 
     function drawPlayer(time) {
@@ -650,15 +711,12 @@
     function draw(time) {
       const { cols, rows, tile } = pacManModel.constants;
       ctx.fillStyle = '#070A18'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-      for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
-        const value = state.maze[y][x], px = x * tile, py = y * tile;
-        if (value === 1) drawWall(px, py);
-        else if (value === 2 || value === 3) {
-          const power = value === 3;
-          const pulse = power ? 5.5 + Math.sin(time / 145) * 1.2 : 2.8;
-          ctx.fillStyle = power ? '#FFE29A' : '#F5C96A'; ctx.shadowColor = power ? '#FFE29A' : 'transparent'; ctx.shadowBlur = power ? 8 : 0;
-          ctx.beginPath(); ctx.arc(px + tile / 2, py + tile / 2, pulse, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
-        }
+      if (!mazeLayer) drawMazeLayer();
+      ctx.drawImage(mazeLayer, 0, 0);
+      for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) if (state.maze[y][x] === 3) {
+        const px = x * tile, py = y * tile, pulse = 5.5 + Math.sin(time / 145) * 1.2;
+        ctx.fillStyle = '#FFE29A'; ctx.shadowColor = '#FFE29A'; ctx.shadowBlur = 8;
+        ctx.beginPath(); ctx.arc(px + tile / 2, py + tile / 2, pulse, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
       }
       for (const ghost of state.ghosts) drawGhost(ghost, time);
       drawPlayer(time);
@@ -669,12 +727,16 @@
 
     function onEvents() {
       for (const event of state.events) {
-        if (event.type === 'dot') play('pop');
-        else if (event.type === 'power') { play('powerup'); try { window.NP_Juice?.vibrate?.medium?.(); } catch (_) {} }
+        if (event.type === 'dot' || event.type === 'power') {
+          mazeLayerCtx?.clearRect(event.x * pacManModel.constants.tile, event.y * pacManModel.constants.tile, pacManModel.constants.tile, pacManModel.constants.tile);
+          if (event.type === 'dot') play('pop');
+          else { play('powerup'); try { window.NP_Juice?.vibrate?.medium?.(); } catch (_) {} }
+        }
         else if (event.type === 'ghost-eaten') { play('coin'); try { window.NP_Juice?.vibrate?.combo?.(); } catch (_) {} }
         else if (event.type === 'life-lost' || event.type === 'game-over') { play('explosion'); try { window.NP_Juice?.vibrate?.heavy?.(); } catch (_) {} }
         else if (event.type === 'level-clear') play('win');
         else if (event.type === 'extra-life') play('coin');
+        else if (event.type === 'level-start') drawMazeLayer();
       }
     }
 

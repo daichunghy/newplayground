@@ -3276,6 +3276,10 @@ body.dark-theme .filter-pill.active {
   box-shadow: none;
   overflow: visible;
 }
+#gameModal:has(.np-pacman-shell) .modal-backdrop {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
 @media (min-width: 1000px) {
   .np-pacman-shell {
     width: min(100%, 850px);
