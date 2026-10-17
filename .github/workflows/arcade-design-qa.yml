@@ -4,13 +4,18 @@ on:
   pull_request:
     paths:
       - 'index.html'
+      - 'app.js'
       - 'arcade.css'
-      - 'scripts/arcade-*.js'
+      - 'scripts/arcade-*'
       - 'tests/arcade-*'
       - '.github/workflows/arcade-design-qa.yml'
 
 permissions:
   contents: read
+
+concurrency:
+  group: arcade-design-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   review:
@@ -23,8 +28,16 @@ jobs:
           node-version: '22'
       - name: Syntax and regression checks
         run: |
-          for file in app.js games-data.js scripts/*.js; do node --check "$file"; done
+          for file in app.js games-data.js scripts/*.js scripts/arcade-*.cjs; do node --check "$file"; done
           node --test tests/*.test.cjs
+      - name: Install development-only browser tools
+        run: |
+          npm install --prefix /tmp/arcade-tools --no-save --package-lock=false playwright@1.56.1
+          node /tmp/arcade-tools/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Capture desktop and touch-emulated review
+        env:
+          NODE_PATH: /tmp/arcade-tools/node_modules
+        run: node scripts/arcade-browser-qa.cjs
       - name: Package review source
         if: always()
         run: |
