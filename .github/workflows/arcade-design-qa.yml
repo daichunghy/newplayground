@@ -1,0 +1,39 @@
+name: Arcade design review
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'arcade.css'
+      - 'scripts/arcade-*.js'
+      - 'tests/arcade-*'
+      - '.github/workflows/arcade-design-qa.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and regression checks
+        run: |
+          for file in app.js games-data.js scripts/*.js; do node --check "$file"; done
+          node --test tests/*.test.cjs
+      - name: Package review source
+        if: always()
+        run: |
+          mkdir -p /tmp/arcade-review
+          git archive --format=tar HEAD | gzip > /tmp/arcade-review/newplayground-source.tar.gz
+      - name: Upload review bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcade-design-review
+          path: /tmp/arcade-review/
+          retention-days: 3
