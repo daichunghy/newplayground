@@ -1,6 +1,4 @@
-/* Read-only presentation adapters for existing games. These never alter scores,
- * saved boards, timers, collisions or game rules. Observers are scoped/cleaned up.
- */
+/* Read-only presentation adapters. No score, save, timer or collision mutation. */
 (function () {
   'use strict';
   const C=window.NP_ArcadeCore;
@@ -12,14 +10,14 @@
     'boom-online-bnb':['np_boom_online_best','điểm'], 'flappy-bird':['np_flappy_high','ống'],
     'dao-vang':['np_daovang_high_score','điểm'], 'kim-cuong-bejeweled':['np_kimcuong_high_score','điểm']
   };
-  let current=null, stageRoot=null, initialBest=0, dispose=[];
+  let current=null,stageRoot=null,initialBest=0,dispose=[];
   function readRecord(id){
     const spec=records[id];if(!spec)return 0;
     try{const n=Number(localStorage.getItem(spec[0]));return Number.isFinite(n)&&n>0?Math.floor(n):0;}catch(_){return 0;}
   }
   function paintLibrary(){
     document.querySelectorAll('#gridAll .game-card').forEach(card=>{
-      const n=readRecord(card.dataset.id), existing=card.querySelector('.personal-record');
+      const n=readRecord(card.dataset.id),existing=card.querySelector('.personal-record');
       if(!n){existing?.remove();return;}
       const el=existing||document.createElement('span');el.className='personal-record';
       el.textContent=`Cao nhất · ${n.toLocaleString('vi-VN')} ${records[card.dataset.id][1]}`;
@@ -49,27 +47,40 @@
   }
   function addZoom(board){
     if(!board)return;
-    const wrap=document.createElement('div');wrap.className='arcade-zoom-wrap';
-    board.before(wrap);wrap.appendChild(board);
-    const button=document.createElement('button');button.type='button';button.className='arcade-board-zoom';button.setAttribute('aria-pressed','false');button.textContent='Phóng to bàn';
-    wrap.before(button);
+    const wrap=document.createElement('div');wrap.className='arcade-zoom-wrap';board.before(wrap);wrap.appendChild(board);
+    const button=document.createElement('button');button.type='button';button.className='arcade-board-zoom';button.setAttribute('aria-pressed','false');button.textContent='Phóng to bàn';wrap.before(button);
     button.addEventListener('click',()=>{const zoom=wrap.classList.toggle('is-zoomed');button.setAttribute('aria-pressed',String(zoom));button.textContent=zoom?'Thu gọn bàn':'Phóng to bàn';});
     addPan(wrap,board);
-    // The board belongs to the engine. Cleanup never deletes or resets it.
     dispose.push(()=>{button.remove();if(wrap.isConnected){wrap.before(board);wrap.remove();}});
   }
+  function minesZoom(wrap,grid){
+    const button=document.createElement('button');button.type='button';button.className='arcade-board-zoom';button.setAttribute('aria-pressed','false');button.textContent='Phóng to ô';wrap.before(button);
+    const difficulty=document.getElementById('dmDifficulty');let zoom=false;
+    function update(){
+      const columns={beginner:9,intermediate:16,expert:30}[difficulty?.value]||9;
+      if(zoom){grid.style.setProperty('grid-template-columns',`repeat(${columns},48px)`,'important');grid.style.setProperty('width','max-content','important');}
+      else {grid.style.removeProperty('grid-template-columns');grid.style.gridTemplateColumns=`repeat(${columns},minmax(38px,1fr))`;grid.style.removeProperty('width');grid.style.width='max-content';}
+      button.setAttribute('aria-pressed',String(zoom));button.textContent=zoom?'Thu gọn ô':'Phóng to ô';
+    }
+    button.addEventListener('click',()=>{zoom=!zoom;update();});
+    difficulty?.addEventListener('change',update);
+    const next=document.getElementById('dmNextBtn'),reset=document.getElementById('dmFaceBtn');
+    next?.addEventListener('click',update);reset?.addEventListener('click',update);
+    dispose.push(()=>{difficulty?.removeEventListener('change',update);next?.removeEventListener('click',update);reset?.removeEventListener('click',update);button.remove();});
+    addPan(wrap,grid);
+  }
   function install(){
-    const modal=document.getElementById('gameModal'),stage=document.getElementById('modalGameContainer');
-    if(!modal||!stage)return;
+    const modal=document.getElementById('gameModal'),stage=document.getElementById('modalGameContainer');if(!modal||!stage)return;
+    // Consistent native hit sizes and immediate touch activation in portal chrome.
+    const style=document.createElement('style');style.textContent='.np-arcade button{touch-action:manipulation}.np-arcade #gameModal .play-header .arcade-icon{min-width:44px;min-height:44px}.np-arcade .game-card-small .card-save{width:44px;min-height:44px}.np-arcade .game-card-small .card-info{padding-right:33px}';document.head.appendChild(style);
     function sync(){
       if(modal.hidden||modal.style.display==='none'){if(current)stop();return;}
       if(current===modal.dataset.game&&stageRoot===stage.firstElementChild)return;
-      stop();current=modal.dataset.game;stageRoot=stage.firstElementChild;initialBest=readRecord(current);
-      sizeCanvases(stage);
+      stop();current=modal.dataset.game;stageRoot=stage.firstElementChild;initialBest=readRecord(current);sizeCanvases(stage);
       const childObserver=new MutationObserver(items=>{if(items.some(i=>[...i.addedNodes].some(n=>n.nodeType===1)))sizeCanvases(stage);});
       childObserver.observe(stage,{subtree:true,childList:true});dispose.push(()=>childObserver.disconnect());
       if(current==='do-min-minesweeper'){
-        const wrap=document.getElementById('dmGridWrap');if(wrap)addPan(wrap,document.getElementById('dmGrid'));
+        const wrap=document.getElementById('dmGridWrap'),grid=document.getElementById('dmGrid');if(wrap&&grid)minesZoom(wrap,grid);
         for(const [id,label] of [['dmMineCount','Còn lại'],['dmTimer','Giây']]){
           const node=document.getElementById(id);if(!node)continue;
           const box=document.createElement('div');box.className='arcade-mine-counter';
@@ -79,12 +90,8 @@
       if(current==='co-caro')addZoom(document.getElementById('caroGrid'));
       if(current==='line-98')addZoom(document.getElementById('l98Grid'));
     }
-    const roomObserver=new MutationObserver(sync);
-    roomObserver.observe(modal,{attributes:true,attributeFilter:['data-game','style','hidden']});
-    for(const id of ['gridAll','recentGames']){
-      const grid=document.getElementById(id);if(!grid)continue;
-      const observer=new MutationObserver(paintLibrary);observer.observe(grid,{childList:true});
-    }
+    const roomObserver=new MutationObserver(sync);roomObserver.observe(modal,{attributes:true,attributeFilter:['data-game','style','hidden']});
+    for(const id of ['gridAll','recentGames']){const grid=document.getElementById(id);if(!grid)continue;const observer=new MutationObserver(paintLibrary);observer.observe(grid,{childList:true});}
     sync();paintLibrary();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
