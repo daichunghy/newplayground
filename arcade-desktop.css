@@ -1,0 +1,176 @@
+/* Desktop-first game rooms. No selector targets the portal outside #gameModal. */
+.np-arcade #gameModal.desktop-depth{padding:12px;background:#16202c}
+.np-arcade #gameModal.desktop-depth .modal-backdrop{background:#16202c}
+.np-arcade #gameModal.desktop-depth .modal-window{width:min(1440px,100%);max-width:1440px;max-height:calc(100dvh - 24px);border:0;border-radius:15px;background:#233143;box-shadow:none;color:#e9f2f4}
+#gameModal.desktop-depth .play-header{background:#233143;border-bottom:1px solid #35465a;padding:10px 18px;min-height:63px}
+#gameModal.desktop-depth .play-heading h2{color:#f1f5f4;font-size:19px;font-weight:700}
+#gameModal.desktop-depth .play-heading p{color:#a5b6c6}
+#gameModal.desktop-depth .play-heading .arcade-icon{background:#34475b;color:#dbe9ee}
+#gameModal.desktop-depth .play-actions .arcade-icon{color:#c7d8e4}
+#gameModal.desktop-depth .play-actions .arcade-icon:hover{background:#34475b}
+#gameModal.desktop-depth .room-scroll{padding:16px;background:#16202c;scrollbar-gutter:auto}
+#gameModal.desktop-depth :is(#gameHelp,.play-bottom,#relatedSection){display:none!important}
+#gameModal.desktop-depth #roomEdition{font-size:11px;max-width:1180px;margin:0 auto 8px;color:#a5b6c6}
+.np-arcade #gameModal.desktop-depth #modalGameContainer{padding:0;min-height:0;color:#273746}
+.np-arcade #gameModal.desktop-depth .canvas-game-box{max-width:1180px!important;border:0!important;border-radius:12px;background:#223447;overflow:hidden}
+.np-arcade #gameModal.desktop-depth :is(.canvas-game-hud,.canvas-controls-bar){background:#23374a!important;color:#dce8ee!important;border:0!important;gap:9px;padding:9px 14px}
+.np-arcade #gameModal.desktop-depth .canvas-game-hud .hud-pill{background:#30495f!important;color:#e3edf0!important;border:0;font-weight:600;border-radius:6px}
+.np-arcade #gameModal.desktop-depth .canvas-game-hud .hud-pill span{color:#f0cd7b!important}
+.np-arcade #gameModal.desktop-depth :is(.canvas-controls-bar,.canvas-game-hud) button{background:#476879;border-color:#476879;color:#fff;border-radius:7px;box-shadow:none!important}
+.np-arcade #gameModal.desktop-depth :is(.canvas-controls-bar,.canvas-game-hud) button:hover{background:#568395;border-color:#568395}
+.np-arcade #gameModal.desktop-depth .canvas-controls-bar small{display:none!important}
+.np-arcade #gameModal.desktop-depth :is(.np-arc-help,.intro-desc,.intro-features,#roomInstructions){display:none!important}
+.np-arcade #gameModal.desktop-depth :is(.canvas-main-viewport,.np-arc-canvas,.np-boom-canvas,.np-egg-canvas){--stage-height:min(72dvh,700px);width:min(100%,calc(var(--stage-height)*var(--canvas-aspect,1.5)))!important;max-height:none!important;aspect-ratio:var(--intrinsic-ratio)!important}
+.np-arcade #gameModal.desktop-depth :is(#tetCanvas,#fbCanvas){--stage-height:min(70dvh,650px)}
+.np-arcade #gameModal.desktop-depth .intro-modal-card{border:0;max-width:360px;padding:22px;box-shadow:0 12px 40px #0005}
+#gameModal.desktop-depth .desktop-key-ribbon{display:flex;gap:7px;align-items:center;margin-left:auto;color:#9db2c3;font-size:11px}
+#gameModal.desktop-depth kbd{font:600 10px Calibri,sans-serif;padding:3px 7px;border:1px solid #557185;border-bottom-width:2px;border-radius:4px;color:#c8dbe4;background:#243b4b}
+#gameModal.desktop-depth .line98-board-wrapper{max-width:1000px!important;min-width:0;color:#354153}
+#gameModal.desktop-depth #l98Grid{width:min(56dvh,560px)!important;max-width:100%;background:#7c91ab;border:1px solid #8da6bf;border-radius:10px;padding:7px}
+#gameModal.desktop-depth .line98-cell{background:#dde6ee;border-radius:5px;box-shadow:inset 0 -2px 0 #bfd0dc}
+#gameModal.desktop-depth #caroGrid{width:min(66dvh,680px)!important;max-width:100%;background:#d8bf94}
+#gameModal.desktop-depth[data-art="2048"] .canvas-game-box{max-width:510px!important;background:#ede2cf}
+#gameModal.desktop-depth #g2048Grid{width:min(62dvh,460px)!important;margin:15px auto!important;gap:11px!important;padding:11px!important}
+#gameModal.desktop-depth #g2048Grid>div{font-size:clamp(24px,3vw,38px)!important}
+#gameModal.desktop-depth .np-deep-mines{max-width:1100px!important}
+#gameModal.desktop-depth .np-stall-game{max-width:1180px!important;background:#e9d9b9;padding:12px;border-radius:14px;color:#574029;--bg-surface:#fff5dc;--bg-primary:#f2e4ca;--text-main:#5d4932;--text-muted:#7d694d}
+#gameModal.desktop-depth .np-stall-game .engine-tab-nav{background:#c5a579!important;gap:5px;border-radius:8px;padding:5px}
+#gameModal.desktop-depth .np-stall-game .engine-tab-btn{background:transparent;color:#59422c;font-weight:700;border-radius:6px;min-height:43px}
+#gameModal.desktop-depth .np-stall-game .engine-tab-btn.active{background:#7c4e34;color:#fff4df}
+#gameModal.desktop-depth .np-stall-game .stage-progress-card{margin-top:10px;background:#f2e6c9;border:0;color:#59462e;box-shadow:none}
+#gameModal.desktop-depth .np-stall-game #hrTabViewport:has(#hrCustomerRow){display:grid!important;grid-template-columns:1.12fr 1fr!important;gap:13px;align-items:stretch}
+#gameModal.desktop-depth .np-stall-game #hrTabViewport>div:has(>#hrStreetCanvas){display:none!important}
+#gameModal.desktop-depth .np-stall-game #hrTabViewport>div:has(>#hrCustomerRow){grid-column:1/-1;border:0!important;background:#f7edcd!important;border-radius:10px!important;min-height:180px}
+#gameModal.desktop-depth .np-stall-game #hrCustomerRow{justify-content:center;gap:18px!important;overflow:visible!important;min-height:150px!important;align-items:center}
+#gameModal.desktop-depth .np-stall-game .customer-slot{width:180px;min-width:145px!important;flex:0 1 180px;border:0!important;background:#efe1be!important;padding:11px!important;box-shadow:0 4px 0 #d8c39b;position:relative;transition:transform .12s,outline .12s}
+#gameModal.desktop-depth .np-stall-game .customer-slot:hover{transform:translateY(-4px);outline:3px solid #aab67b}
+#gameModal.desktop-depth .np-stall-game .customer-slot.is-servable{outline:3px solid #5ea68b;background:#e4eed1!important}
+#gameModal.desktop-depth .np-stall-game .np-stall-avatar{width:40px;height:46px}
+#gameModal.desktop-depth .np-stall-game .np-stall-order-art{width:46px!important;height:46px!important}
+#gameModal.desktop-depth .np-stall-game .np-stall-burner{background:#d8c19b!important;border:0!important;border-radius:12px;box-shadow:inset 0 -5px 0 #b59b74;min-height:164px}
+#gameModal.desktop-depth .np-stall-game .np-stall-burner-top{display:flex;flex-direction:column;gap:5px;align-items:center}
+#gameModal.desktop-depth .np-stall-game .np-stall-burner-top .np-stall-dish-art{width:76px!important;height:65px!important}
+#gameModal.desktop-depth .np-stall-game .np-stall-burner[data-cook-phase="perfect"]{outline:3px solid #67a681}
+#gameModal.desktop-depth .np-stall-game .np-stall-burner[data-cook-phase="burnt"]{outline:3px solid #c27054}
+#gameModal.desktop-depth .np-stall-game .np-stall-cook-meta small{display:none}
+#gameModal.desktop-depth .np-stall-game #hrTabViewport>div:has(#hrTraySlots){grid-column:auto!important;display:flex!important;flex-direction:column-reverse;gap:10px}
+#gameModal.desktop-depth .np-stall-game #hrRecipeBtns{display:flex!important;gap:8px;flex-wrap:wrap;justify-content:space-evenly}
+#gameModal.desktop-depth .np-stall-game #hrRecipeBtns .btn-cook-action{min-width:95px;flex:1;background:#f9eed0!important;border:1px solid #ceb991!important;border-radius:10px;padding:7px!important}
+#gameModal.desktop-depth .np-stall-game #hrRecipeBtns .np-stall-dish-art{width:48px;height:45px}
+#gameModal.desktop-depth .np-stall-game #hrTraySlots{grid-template-columns:repeat(4,1fr)!important;gap:9px!important}
+#gameModal.desktop-depth .np-stall-game .tray-box{background:#fff8e6!important;border-radius:50%!important;border:4px solid #e6d8b9!important;box-shadow:0 4px 0 #c9b692;max-height:75px}
+#gameModal.desktop-depth .np-stall-game .tray-box.selected{outline:3px solid #62a080}
+#gameModal.desktop-depth .np-stall-game #hrTabViewport:has(#hrCustomerRow) small{display:none!important}
+#gameModal.desktop-depth .np-stall-game #hrTabViewport:has(#hrCustomerRow)>div:has(#hrCookingSlots)>div:first-child>span:last-child{display:none}
+#gameModal.desktop-depth .np-stall-game [data-dish-discard]{width:36px;height:36px;min-height:36px;background:#9e6650;border:0;color:#fff3df;border-radius:50%;margin-left:auto;align-self:flex-end}
+/* Distinct game scenes, rather than another set of settings cards. */
+#gameModal .depth-game{position:relative;max-width:1180px;margin:auto;border-radius:12px;overflow:hidden;background:#17293b;color:#ebf2f1;--depth-edge:#405c70}
+#gameModal .depth-hud{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:12px 23px;background:#21374a;border-bottom:1px solid #3b5266}
+#gameModal .depth-stats{display:flex;gap:32px;align-items:center}
+#gameModal .depth-stats>div{min-width:64px}
+#gameModal .depth-stats small{display:block;font-size:10px;letter-spacing:1.1px;line-height:1.5;color:#b1c6d3}
+#gameModal .depth-stats strong{font-size:24px;line-height:1.2;font-weight:750;font-variant-numeric:tabular-nums;display:block;color:#f1ead5}
+#gameModal .depth-actions{display:flex;gap:7px}
+#gameModal .depth-actions button{width:44px;height:44px;border:1px solid #476075;background:#2e495f;color:#e1ebee;border-radius:7px;font-size:25px;line-height:1}
+#gameModal .depth-surface{position:relative;min-width:0;outline-offset:-3px;overflow:auto}
+#gameModal .depth-surface>canvas{display:block;width:100%;max-width:1150px;height:auto;max-height:none;aspect-ratio:960/580;margin:auto;touch-action:none}
+#gameModal .depth-result{position:absolute;inset:75px 0 0;background:#102432c9;z-index:20;display:flex;align-items:center;justify-content:center;text-align:center}
+#gameModal .depth-result>div{display:flex;align-items:center;flex-direction:column;gap:16px;background:#254459;border:1px solid #557489;border-radius:18px;padding:28px 44px;min-width:270px;box-shadow:0 15px 40px #0005}
+#gameModal .depth-result strong{font-size:27px;font-weight:700;line-height:1.3;color:#f6f1db}
+#gameModal .depth-result span{font-size:17px;color:#b9d0d6}
+#gameModal .depth-result-symbol{font-size:45px!important;color:#96dbc4!important}
+#gameModal .depth-result button{min-height:46px;background:#f0c678;color:#43341f;border:0;border-radius:9px;padding:12px 26px;font-weight:700;font-size:16px}
+#gameModal .depth-key-controls{display:flex;justify-content:center;gap:10px;padding:10px;background:#20354a}
+#gameModal .depth-key-controls button{display:flex;gap:7px;align-items:center;min-width:62px;min-height:40px;justify-content:center;border:1px solid #456279;background:#2c475d;color:#d5e5ec;font-size:22px;border-radius:8px}
+#gameModal .depth-key-controls kbd{font-size:9px;background:none;border:0}
+#gameModal .depth-hanoi{background:#e9d8b6;max-width:1080px}
+#gameModal .depth-hanoi .depth-hud{background:#886040;border-color:#a78260}
+#gameModal .depth-hanoi .depth-stats small{color:#e1cba6}
+#gameModal .depth-hanoi-board{height:min(65dvh,550px);min-height:340px;display:flex;gap:20px;padding:50px 35px 35px;background:#eddfc0;align-items:flex-end}
+#gameModal .depth-peg{height:100%;flex:1;background:none;border:0;position:relative;cursor:grab;display:flex;justify-content:center;outline-offset:3px}
+#gameModal .depth-peg-rod{position:absolute;bottom:16px;height:80%;width:12px;background:#b99567;border-radius:7px}
+#gameModal .depth-peg-base{position:absolute;bottom:11px;height:18px;background:#b18a5b;border-radius:8px;width:100%;box-shadow:0 5px 0 #987046}
+#gameModal .depth-disk{position:absolute;height:28px;display:flex;align-items:center;justify-content:center;color:#26374b;font-size:15px;font-weight:700;border-radius:9px;background:var(--disk-color);box-shadow:inset 0 -4px 0 #0002;transition:bottom .15s ease,transform .15s ease;user-select:none}
+#gameModal .depth-disk.selected{transform:translateY(-20px);outline:3px solid #ffffffb0}
+#gameModal .depth-peg-goal{position:absolute;top:5px;color:#b39756;font-size:60px;font-weight:400}
+#gameModal .depth-pipes .depth-surface{background:#233c50;padding:22px;display:flex;justify-content:center}
+#gameModal .depth-pipe-board{display:grid;gap:5px;width:min(62dvh,560px);max-width:100%;background:#172d41;padding:9px;border-radius:13px}
+#gameModal .depth-pipe{background:#385a70;border:1px solid #45697d;border-radius:8px;aspect-ratio:1;padding:0;min-width:0;overflow:hidden;transition:background .15s}
+#gameModal .depth-pipe:hover{background:#476f82;outline:2px solid #76a8b8;outline-offset:0}
+#gameModal .depth-pipe.wet{background:#356679;border-color:#548a97}
+#gameModal .depth-pipe svg{width:100%;height:100%;display:block}
+#gameModal .depth-piano .depth-surface>canvas{max-width:1050px}
+#gameModal .depth-capsules .depth-surface>canvas{max-width:1080px}
+#gameModal :is(.depth-klondike,.depth-freecell,.depth-spider){background:#174f45;--card-width:88px;--card-height:124px}
+#gameModal :is(.depth-klondike,.depth-freecell,.depth-spider) .depth-hud{background:#17493f;border-color:#376d60}
+#gameModal :is(.depth-klondike,.depth-freecell,.depth-spider) .depth-surface{padding:24px 28px 30px;background:#205c4f;min-height:570px}
+#gameModal .depth-card-board{min-width:750px;width:100%;max-width:1090px;margin:auto;--columns:7;--card-width:calc((100% - 100px)/var(--columns))}
+#gameModal .depth-card-top{display:flex;gap:13px;align-items:flex-start;margin-bottom:34px;height:124px}
+#gameModal .card-top-space{flex:1}
+#gameModal .playing-slot{position:relative;flex:0 0 88px;width:88px;height:124px;border:2px solid #79ab945c;border-radius:8px;background:#174f4555;display:flex;align-items:center;justify-content:center;color:#91bca694;font-size:38px}
+#gameModal .playing-slot>small{position:absolute;bottom:7px;right:9px;font-size:12px;color:#fff1d0}
+#gameModal .playing-slot>span{pointer-events:none}
+#gameModal .playing-slot>.playing-card{position:absolute;inset:-2px;width:88px;height:124px}
+#gameModal .depth-card-columns{display:grid;grid-template-columns:repeat(var(--columns),minmax(0,1fr));gap:14px;align-items:start}
+#gameModal .playing-column{position:relative;min-width:0;border-radius:9px;outline:2px solid transparent;min-height:170px}
+#gameModal .playing-column:before{content:'';position:absolute;left:0;top:0;width:100%;height:124px;border:2px solid #73ac9240;border-radius:8px;box-sizing:border-box}
+#gameModal .playing-card{position:absolute;left:0;width:100%;height:124px;aspect-ratio:auto;border:1px solid #f9efd0;border-radius:7px;background:#fffbef;color:#253c44;box-shadow:0 2px 2px #0004;overflow:hidden;display:block;padding:0;user-select:none;touch-action:none;text-align:left}
+#gameModal .playing-card.back{background:#315777;border:4px solid #e6e2c9;box-shadow:inset 0 0 0 1px #a1b7c3,0 2px 2px #0003;color:#a4c3cf;cursor:pointer;opacity:1}
+#gameModal .playing-card.red{color:#bd5049}
+#gameModal .playing-card.face:hover{filter:brightness(1.02);outline:3px solid #e8c781;outline-offset:-3px}
+#gameModal .playing-corner{position:absolute;left:7px;top:4px;font:700 18px/1.02 Calibri,serif;display:flex;flex-direction:column;align-items:center}
+#gameModal .playing-corner i{font-style:normal;font-size:16px}
+#gameModal .playing-corner.bottom{left:auto;right:7px;bottom:4px;top:auto;transform:rotate(180deg)}
+#gameModal .playing-suit{position:absolute;left:0;right:0;top:36px;text-align:center;font-size:43px;line-height:1}
+#gameModal .card-back-mark{display:flex;align-items:center;justify-content:center;height:100%;font-size:38px;color:#b2cfda}
+#gameModal .playing-card.selected{outline:3px solid #f3d28d;outline-offset:-3px;filter:brightness(1.06)}
+#gameModal .legal-drop{outline:3px solid #9edb9b;outline-offset:3px;background:#43846a66}
+.depth-drag-ghost{background:#fffbed;border:2px solid #e2b96d;border-radius:9px;color:#324746;box-shadow:0 12px 30px #0006;opacity:.95}
+.depth-drag-ghost .playing-corner{position:absolute;top:6px;left:8px;font-weight:700;font-size:19px}
+.depth-drag-ghost .playing-corner i{display:block;font-style:normal}
+.depth-drag-ghost .bottom{display:none}
+.depth-drag-ghost .playing-suit{display:block;text-align:center;font-size:44px;padding-top:35px}
+@media(min-width:1000px){
+ #gameModal.desktop-depth:has(.depth-game) .modal-window{max-width:1310px}
+ #gameModal.desktop-depth:has(.depth-game) .room-scroll{padding:13px 20px}
+ #gameModal.desktop-depth .np-stall-game #hrTabViewport>div:has(#hrCookingSlots){background:#cfb48c!important;border:0!important;border-radius:10px!important}
+}
+@media(max-width:760px){
+ .np-arcade #gameModal.desktop-depth{padding:0}
+ .np-arcade #gameModal.desktop-depth .modal-window{max-height:100dvh;border-radius:0}
+ #gameModal.desktop-depth .room-scroll{padding:10px}
+ #gameModal.desktop-depth .desktop-key-ribbon{display:none}
+ #gameModal .depth-hud{padding:9px;gap:8px}
+ #gameModal .depth-stats{gap:12px}
+ #gameModal .depth-stats small{font-size:8px;letter-spacing:.4px}
+ #gameModal .depth-stats strong{font-size:17px}
+ #gameModal .depth-stats>div{min-width:0}
+ #gameModal .depth-actions{gap:3px}
+ #gameModal .depth-actions button{width:40px;height:44px;font-size:23px}
+ #gameModal .depth-hanoi-board{height:360px;min-height:320px;padding:30px 10px;gap:9px}
+ #gameModal .depth-disk{height:26px;font-size:12px}
+ #gameModal .depth-pipes .depth-surface{padding:10px}
+ #gameModal .depth-key-controls{gap:5px;padding:7px}
+ #gameModal .depth-key-controls button{min-width:46px;min-height:44px;padding:4px}
+ #gameModal .depth-key-controls kbd{display:none}
+ #gameModal :is(.depth-klondike,.depth-freecell,.depth-spider) .depth-surface{padding:16px;min-height:520px}
+ #gameModal .depth-card-board{min-width:680px}
+ #gameModal .playing-slot{flex-basis:76px;width:76px}
+ #gameModal .playing-slot>.playing-card{width:76px}
+ #gameModal .depth-result>div{padding:23px;min-width:200px}
+ #gameModal.desktop-depth .np-stall-game #hrTabViewport:has(#hrCustomerRow){grid-template-columns:1fr!important}
+ #gameModal.desktop-depth .np-stall-game #hrCustomerRow{gap:9px!important}
+ #gameModal.desktop-depth .np-stall-game .customer-slot{min-width:100px!important}
+ #gameModal.desktop-depth #g2048Grid{width:calc(100% - 20px)!important;gap:7px!important;padding:7px!important}
+ #gameModal.desktop-depth #g2048Grid>div{font-size:24px!important}
+}
+@media(prefers-reduced-motion:reduce){#gameModal .depth-disk,#gameModal .depth-pipe,#gameModal .customer-slot{transition:none!important}}
+#gameModal .depth-peg-number{position:absolute;bottom:2px;font-size:13px;color:#8b704f;line-height:1.5}
+#gameModal .depth-spider .depth-card-top{gap:9px}
+#gameModal .depth-spider .foundation{flex-basis:64px;width:64px;height:90px;font-size:28px}
+#gameModal .depth-actions button,#gameModal .depth-key-controls button{min-width:44px;min-height:44px}
+#gameModal .depth-card-board [data-dest]:focus-visible{outline:3px solid #edd187;outline-offset:3px}
+#gameModal .depth-card-top>#depthStock{position:relative;left:auto;width:88px;flex:0 0 88px}
+#gameModal.desktop-depth .np-stall-game .np-stall-burner:not(.empty){cursor:pointer}
+#gameModal .depth-surface>canvas{max-width:min(1150px,calc((100dvh - 228px)*960/580))}
+@media(max-width:760px){#gameModal .depth-surface>canvas{max-width:100%}#gameModal .depth-card-top>#depthStock{width:76px;flex-basis:76px}#gameModal.desktop-depth .np-stall-game #hrCustomerRow{flex-wrap:wrap}}

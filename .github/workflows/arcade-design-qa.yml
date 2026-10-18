@@ -44,6 +44,11 @@ jobs:
         env:
           NODE_PATH: /tmp/arcade-tools/node_modules
         run: node scripts/arcade-browser-qa.cjs
+      - name: Verify desktop-first game mechanics and presentation
+        if: success() || failure()
+        env:
+          NODE_PATH: /tmp/arcade-tools/node_modules
+        run: node scripts/arcade-desktop-qa.cjs
       - name: Package review source
         if: always()
         run: |
