@@ -65,8 +65,7 @@ async function journeys(page,name,touch){
     await openGame(page,'xep-gach-tetris');await act('#tetHardDropBtn');assert.ok(await number('#tetScore')>0);await act('#tetPauseBtn');assert.match(await text('#tetPauseBtn'),/Tiếp tục/i);await capture('tetris');await act('#tetRestartBtn');assert.equal(await number('#tetScore'),0);await closeGame(page);assert.match(await text('#gridAll [data-id="xep-gach-tetris"] .personal-record'),/Cao nhất/);
   });
   await check(name+' Snake pause freezes position, direction input and restart',async()=>{
-    // Observe the engine's real draw coordinates. Food pulses while paused, so
-    // byte-equality of PNGs is not a valid test of simulation pause.
+    // Observe draw coordinates: pulsing food pixels are not simulation movement.
     await page.evaluate(()=>{const p=CanvasRenderingContext2D.prototype,original=p.roundRect;window.__snakeHead=null;p.roundRect=function(...a){if(this.canvas.id==='snkCanvas'&&a[4]===6)window.__snakeHead=[a[0],a[1]];return original.apply(this,a);};window.__restoreSnakeProbe=()=>{p.roundRect=original;};});
     try{
       await openGame(page,'ran-san-moi-snake');await act('#snkPauseBtn');assert.match(await text('#snkPauseBtn'),/Tiếp tục/i);await page.waitForTimeout(100);const paused=await page.evaluate(()=>window.__snakeHead);assert.ok(paused);await page.waitForTimeout(240);assert.deepEqual(await page.evaluate(()=>window.__snakeHead),paused);
@@ -87,7 +86,7 @@ async function journeys(page,name,touch){
     await openGame(page,'hang-rong');await act('#hrRecipeBtns .btn-cook-action');await page.waitForTimeout(250);assert.ok(await page.locator('#hrCookingSlots .np-stall-burner:not(.empty)').count()>0);await capture('hang-rong');await act('.engine-tab-btn[data-tab="market"]');assert.ok(await page.locator('#hrTabViewport button').count()>0);await act('.engine-tab-btn[data-tab="stall"]');assert.ok(await page.locator('#hrCookingSlots').count()>0);await closeGame(page);
   });
   await check(name+' Egg shooter start, fire and swap input',async()=>{
-    await openGame(page,'ban-trung-khung-long');await act('#btStartGameBtn');await act('#btFireBtn');await act('#btSwapEggBtn');await page.waitForTimeout(350);assert.equal(await page.locator('#btStartGameBtn').isVisible(),false);assert.equal(await page.locator('#btRestartInGameBtn').isVisible(),true);await capture('eggs');await closeGame(page);
+    await openGame(page,'ban-trung-khung-long');if(await page.locator('#btStartGameBtn').isVisible())await act('#btStartGameBtn');await act('#btFireBtn');await act('#btSwapEggBtn');await page.waitForTimeout(350);assert.equal(await page.locator('#btStartGameBtn').isVisible(),false);assert.equal(await page.locator('#btRestartInGameBtn').isVisible(),true);await capture('eggs');await closeGame(page);
   });
   await check(name+' Pong and DXBall native pause and restart',async()=>{
     for(const [id,pause,restart] of [['pong-1972','pongPause','pongRestart'],['pha-gach-dx-ball','dxPauseBtn','dxRestartBtn']]){await openGame(page,id);if(id==='pha-gach-dx-ball'){await page.locator('#modalGameContainer').focus();await page.keyboard.press('Space');}await page.waitForTimeout(120);await act('#'+pause);assert.match(await text('#'+pause),/Tiếp tục/i);await capture(id);await act('#'+restart);await closeGame(page);}

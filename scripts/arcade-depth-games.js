@@ -9,7 +9,6 @@ const registry={
 };
 const colors=['#f29d48','#7ed2cc','#9aa1ed','#ee7496','#cfb159','#75b6ee','#a5ce80','#dfb9df'];
 const escape=s=>window.NP_ArcadeCore.escape(s);
-const icon=n=>window.NP_ArcadeCore.icon(n);
 const round=(ctx,x,y,w,h,r,fill)=>{ctx.fillStyle=fill;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill();};
 function launch(container,game){
  const kind=registry[game.id],s=window.NP_GameSession.start();let level=1,seed=Date.now()>>>0,model,paused=false,previous=0,clock=0,selection=null,drag=null,dropTick=0,closed=false;
@@ -22,7 +21,7 @@ function launch(container,game){
  if(canvasKinds.includes(kind)){canvas=document.createElement('canvas');canvas.width=960;canvas.height=580;canvas.id='depthCanvas';canvas.setAttribute('aria-label',game.title);surface.appendChild(canvas);ctx=canvas.getContext('2d');}
  function sound(type='pop'){try{window.NP_Audio?.[type]?.();}catch(_){} }
  function save(){const n=model.score??model.hits??0;if(n>best){best=n;try{localStorage.setItem(bestKey,String(best));}catch(_){}}}
- function reset(next=false){if(next)level++;else {level=1;seed=(seed+1)>>>0;}paused=false;selection=null;dropTick=0;flashes=[];clock=0;
+ function reset(next=false){Object.keys(keys).forEach(k=>keys[k]=false);drag?.ghost?.remove();drag=null;if(next)level++;else {level=1;seed=(seed+1)>>>0;}paused=false;selection=null;dropTick=0;flashes=[];clock=0;
   if(kind==='hanoi')model=new M.Hanoi(3+Math.min(5,level-1));
   else if(kind==='pipes')model=new M.Pipes(level,seed+level);
   else if(kind==='piano')model=new M.Piano(seed);
@@ -110,20 +109,19 @@ function launch(container,game){
  s.listen(surface,'keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('[data-dest]')){e.preventDefault();e.stopPropagation();if(selection&&model.move(selection,destFrom(e.target))){selection=null;updateDOM();sound('cardSlide');}}});
  s.listen(surface,'dblclick',e=>{if(!['klondike','freecell'].includes(kind))return;const el=e.target.closest('[data-source]');if(!el)return;const source=sourceFrom(el);for(let i=0;i<4;i++)if(model.move(source,{type:'foundation',index:i})){selection=null;updateDOM();sound('match');break;}});
  s.listen(surface,'contextmenu',e=>{if(kind==='pipes'){const t=e.target.closest('[data-pipe]');if(t){e.preventDefault();model.turn(Number(t.dataset.pipe),true);updateDOM();}}});
- // Drag uses the same legal-move function as keyboard/click. Preview never edits
- // the model, and a pointer cancellation cannot accidentally commit a move.
+ // Drag and click share legal-move validation; cancelled previews never mutate cards.
  s.listen(surface,'pointerdown',e=>{if(e.button!==0||paused)return;const el=e.target.closest('[data-source], [data-disk]');if(!el)return;
   const source=kind==='hanoi'?Number(el.closest('[data-peg]').dataset.peg):sourceFrom(el);if(kind!=='hanoi'&&!model.moving(source).length)return;
   if(kind==='hanoi'&&Number(el.dataset.disk)!==model.pegs[source].at(-1))return;
-  if(kind!=='hanoi'){selection=source;paintSelection();}drag={id:e.pointerId,x:e.clientX,y:e.clientY,source,el,ghost:null,active:false};
+  drag={id:e.pointerId,x:e.clientX,y:e.clientY,source,el,ghost:null,active:false};
  });
- s.listen(window,'pointermove',e=>{if(!drag||drag.id!==e.pointerId||!drag.el)return;if(!drag.active&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>6){drag.active=true;drag.ghost=drag.el.cloneNode(true);drag.ghost.classList.add('depth-drag-ghost');const b=drag.el.getBoundingClientRect();Object.assign(drag.ghost.style,{width:b.width+'px',height:b.height+'px',position:'fixed',top:0,left:0,zIndex:500,pointerEvents:'none',margin:0});document.body.appendChild(drag.ghost);}
+ s.listen(window,'pointermove',e=>{if(!drag||drag.id!==e.pointerId||!drag.el)return;if(!drag.active&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>6){drag.active=true;if(kind!=='hanoi'){selection=drag.source;paintSelection();}drag.ghost=drag.el.cloneNode(true);drag.ghost.classList.add('depth-drag-ghost');const b=drag.el.getBoundingClientRect();Object.assign(drag.ghost.style,{width:b.width+'px',height:b.height+'px',position:'fixed',top:0,left:0,zIndex:500,pointerEvents:'none',margin:0});document.body.appendChild(drag.ghost);}
   if(drag.ghost){e.preventDefault();drag.ghost.style.transform=`translate(${e.clientX-40}px,${e.clientY-30}px)`;}
  });
  s.listen(window,'pointerup',e=>{if(!drag||drag.id!==e.pointerId)return;drag.ghost?.remove();if(drag.active){e.preventDefault();const el=document.elementFromPoint(e.clientX,e.clientY);let ok=false;if(kind==='hanoi'){const p=el?.closest('[data-peg]');if(p)ok=model.move(drag.source,Number(p.dataset.peg));}else {const d=el?.closest('[data-dest]');if(d)ok=model.move(drag.source,destFrom(d));}selection=null;drag={suppress:true};s.setTimeout(()=>{if(drag?.suppress)drag=null;},0);updateDOM();sound(ok?'match':'clack');}else drag=null;});
  s.listen(window,'pointercancel',()=>{drag?.ghost?.remove();drag=null;});
  function point(e){const b=canvas.getBoundingClientRect();return {x:(e.clientX-b.left)*960/b.width,y:(e.clientY-b.top)*580/b.height};}
- if(canvas){s.listen(canvas,'pointermove',e=>{aim=point(e);if(kind==='bubbles'&&e.pointerType==='mouse')model.player.x=M.clamp(aim.x,26,934);if(kind==='asteroids'&&e.pointerType==='mouse')model.ship.a=Math.atan2(aim.y-model.ship.y,aim.x-model.ship.x);});
+ if(canvas){s.listen(canvas,'pointermove',e=>{if(paused||['won','over'].includes(phase()))return;aim=point(e);if(kind==='bubbles'&&e.pointerType==='mouse')model.player.x=M.clamp(aim.x,26,934);if(kind==='asteroids'&&e.pointerType==='mouse')model.ship.a=Math.atan2(aim.y-model.ship.y,aim.x-model.ship.x);});
   s.listen(canvas,'pointerdown',e=>{if(e.button!==0||paused)return;e.preventDefault();surface.focus({preventScroll:true});aim=point(e);
    if(phase()==='over'||phase()==='won')return;
    if(kind==='piano'){const lane=Math.floor((aim.x-220)/130);if(lane>=0&&lane<4){const y=385+model.offset*112;model.hit(aim.y>=y&&aim.y<=y+105?lane:-1);note(lane);}}
@@ -149,7 +147,7 @@ function launch(container,game){
  s.listen(window,'keydown',onKey);s.listen(window,'keyup',e=>{if(['KeyA','ArrowLeft'].includes(e.code))keys.left=false;if(['KeyD','ArrowRight'].includes(e.code))keys.right=false;if(['KeyW','ArrowUp'].includes(e.code))keys.up=false;if(e.code==='Space')keys.fire=false;});
  s.listen(window,'blur',()=>{Object.keys(keys).forEach(k=>keys[k]=false);if(!pauseBtn.hidden&&!paused&&phase()==='playing')togglePause();});
  s.listen(document,'visibilitychange',()=>{if(document.hidden&&!pauseBtn.hidden&&!paused&&phase()==='playing')togglePause();});
- // Short, actionable controls are part of the board, not a tutorial panel.
+ // Short actionable controls belong to the board, not a tutorial panel.
  if(['capsules','asteroids','bubbles','frogger'].includes(kind)){
   const controls=document.createElement('div');controls.className='depth-key-controls';
   const specs=kind==='capsules'?[['←','ArrowLeft','Trái'],['↻','ArrowUp','Xoay'],['→','ArrowRight','Phải'],['↓','ArrowDown','Hạ'],['⤓','Space','Thả']]:kind==='bubbles'?[['←','ArrowLeft','Sang trái'],['●','Space','Bắn'],['→','ArrowRight','Sang phải']]:kind==='frogger'?[['←','ArrowLeft','Sang trái'],['↑','ArrowUp','Tiến lên'],['↓','ArrowDown','Lùi xuống'],['→','ArrowRight','Sang phải']]:[['↶','ArrowLeft','Xoay trái'],['▲','ArrowUp','Đẩy'],['↷','ArrowRight','Xoay phải'],['●','Space','Bắn']];
@@ -162,8 +160,6 @@ function launch(container,game){
  function drawPiano(){
   ctx.fillStyle='#e9ede9';ctx.fillRect(0,0,960,580);round(ctx,206,0,548,580,0,'#cbd4cb');
   for(let lane=0;lane<4;lane++){round(ctx,220+lane*130,0,128,580,0,'#fffef8');text(['D','F','J','K'][lane],285+lane*130,550,25,'#637567');}
-  // The bottom row is always the actionable row. Visual motion is interpolated
-  // independently, so accepting fast taps never waits on a CSS animation.
   model.rows.forEach((lane,i)=>{const y=385-i*112+model.offset*112;if(y<-112||y>530)return;round(ctx,223+lane*130,y,122,105,6,i===0?'#327662':'#20313a');if(i===0){circle(284+lane*130,y+54,12,'#a5e2c4');}});
   ctx.fillStyle='#dd7352';ctx.fillRect(220,522,520,3);text('50',120,270,76,'#abbcaf');text('♪',840,300,96,'#bac9bf');
  }
@@ -196,7 +192,6 @@ function launch(container,game){
   if(sh.shield){ctx.strokeStyle='#a4e4d47a';ctx.lineWidth=2;ctx.beginPath();ctx.arc(sh.x,sh.y,30,0,Math.PI*2);ctx.stroke();}
   while(model.events.length)flashes.push({...model.events.shift(),t:.3});for(const f of flashes){ctx.globalAlpha=f.t/.3;for(let i=0;i<8;i++){const a=i*Math.PI/4,rr=(.3-f.t)*170;circle(f.x+Math.cos(a)*rr,f.y+Math.sin(a)*rr,2,'#eac28a');}ctx.globalAlpha=1;}
  }
-
  function drawFrogger(){
   ctx.fillStyle='#567747';ctx.fillRect(0,0,960,580);
   for(let row=0;row<11;row++){const y=8+row*49,river=row>0&&row<4,road=row>=5&&row<=8;ctx.fillStyle=river?'#376f8c':road?'#3b4653':row===0?'#345b42':'#719259';ctx.fillRect(88,y,784,49);if(road){ctx.strokeStyle='#74808a';ctx.setLineDash([20,20]);ctx.beginPath();ctx.moveTo(88,y);ctx.lineTo(872,y);ctx.stroke();ctx.setLineDash([]);}if(river){for(let x=108;x<860;x+=87){ctx.strokeStyle='#5894a1';ctx.beginPath();ctx.moveTo(x,y+30);ctx.lineTo(x+27,y+30);ctx.stroke();}}}
@@ -223,12 +218,10 @@ function launch(container,game){
   hud();if(root.dataset.phase!==phase())showResult();s.requestAnimationFrame(loop);
  }
  reset();if(canvas)s.requestAnimationFrame(loop);
- // Read-only snapshot for deterministic browser evidence; no test setter exists.
  surface.depthSnapshot=()=>M.clone(model);
  s.onCleanup(()=>{closed=true;drag?.ghost?.remove();Object.keys(keys).forEach(k=>keys[k]=false);save();});
 }
-// Exact-ID overrides come before inherited regex aliases. Existing APIs and IDs
-// remain stable; unrelated engines and the homepage are not replaced.
+// Exact-ID overrides come before inherited aliases. Other engines stay unchanged.
 for(const name of ['launchRetroArcade','launchSokoban','launchMario','launchDXBall']){const old=window.NP_Engines[name];if(typeof old==='function')window.NP_Engines[name]=function(c,g){if(registry[g.id])return launch(c,g);return old(c,g);};}
 window.NP_DepthGames={registry,launch,has:id=>Object.hasOwn(registry,id)};
 })();
