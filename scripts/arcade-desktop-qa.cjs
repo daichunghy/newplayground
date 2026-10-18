@@ -46,7 +46,7 @@ async function desktopJourneys(){
   await shot('desktop-'+kind+'-playing');
  });
  await run('Peggle launched ball hits actual pegs and resets',async()=>{
-  await open('peggle-pachinko');await clickWorld(480,300);assert.equal((await state()).balls,9);await page.waitForTimeout(1100);assert.ok((await state()).score>0);await shot('desktop-peggle-shot');await page.locator('#depthNew').click();assert.equal((await state()).balls,10);
+  await open('peggle-pachinko');await clickWorld(433,138);assert.equal((await state()).balls,9);await page.waitForTimeout(1100);assert.ok((await state()).score>0);await shot('desktop-peggle-shot');await page.locator('#depthNew').click();assert.equal((await state()).balls,10);
  });
  await run('Asteroids thrust inertia fire and paused position',async()=>{
   await open('asteroids-tau-ban-thien-thach');const before=await state();await page.locator('#depthSurface').focus();await page.keyboard.down('ArrowUp');await page.keyboard.down('Space');await page.waitForTimeout(500);await page.keyboard.up('ArrowUp');await page.keyboard.up('Space');const after=await state();assert.notEqual(after.ship.y,before.ship.y);assert.ok(Math.hypot(after.ship.vx,after.ship.vy)>0);await shot('desktop-asteroids-playing');
@@ -68,7 +68,9 @@ async function desktopJourneys(){
   await open('hang-rong');await page.locator('#hrRecipeBtns .btn-cook-action').first().click();await page.waitForSelector('#hrCookingSlots .np-stall-burner[data-cook-phase="perfect"]',{timeout:6500});
   const burners=page.locator('#hrCookingSlots .np-stall-burner:not(.empty)');assert.ok(await burners.count()>0);await burners.first().click();await page.waitForTimeout(100);
   const occupied=()=>page.locator('#hrTraySlots .tray-box').evaluateAll(a=>a.filter(e=>e.querySelector('svg')).length);assert.ok(await occupied()>0,'cooking must produce a tray dish');const n=await occupied();const dish=page.locator('#hrTraySlots .tray-box:has(svg)').first();await dish.click();assert.equal(await occupied(),n);assert.ok(await dish.evaluate(e=>e.classList.contains('selected')));await shot('desktop-hang-rong-selected');
-  await page.locator('[data-dish-discard]').click();assert.equal(await occupied(),n-1);
+  const coins=Number(await page.locator('#hrCoinsText').textContent());
+  await page.locator('.stall-scene-serve.is-servable').first().click();await page.waitForTimeout(100);assert.equal(await occupied(),n-1);assert.ok(Number(await page.locator('#hrCoinsText').textContent())>coins,'serving the character must pay the player');
+  await page.locator('#hrRecipeBtns .btn-cook-action').first().click();await page.waitForSelector('#hrCookingSlots .np-stall-burner[data-cook-phase="perfect"]',{timeout:6500});await burners.first().click();await page.locator('#hrTraySlots .tray-box:has(svg)').first().click();const beforeDiscard=await occupied();await page.locator('[data-dish-discard]').click();assert.equal(await occupied(),beforeDiscard-1);
  });
 }
 (async()=>{
