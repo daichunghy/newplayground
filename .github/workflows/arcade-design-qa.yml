@@ -1,0 +1,63 @@
+name: Arcade design review
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'app.js'
+      - 'style.css'
+      - 'arcade*.css'
+      - 'games-data.js'
+      - 'data/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - '.github/workflows/arcade-design-qa.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: arcade-design-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and regression checks
+        run: |
+          set -o pipefail
+          mkdir -p /tmp/arcade-review
+          git rev-parse HEAD > /tmp/arcade-review/tested-checkout.txt
+          for file in app.js games-data.js scripts/*.js scripts/arcade-*.cjs; do node --check "$file"; done
+          node --test tests/*.test.cjs | tee /tmp/arcade-review/node-tests.txt
+      - name: Install development-only browser tools
+        run: |
+          npm install --prefix /tmp/arcade-tools --no-save --package-lock=false playwright@1.56.1
+          node /tmp/arcade-tools/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Capture desktop and touch-emulated review
+        env:
+          NODE_PATH: /tmp/arcade-tools/node_modules
+        run: node scripts/arcade-browser-qa.cjs
+      - name: Verify desktop-first game mechanics and presentation
+        if: success() || failure()
+        env:
+          NODE_PATH: /tmp/arcade-tools/node_modules
+        run: node scripts/arcade-desktop-qa.cjs
+      - name: Package review source
+        if: always()
+        run: |
+          mkdir -p /tmp/arcade-review
+          git archive --format=tar HEAD | gzip > /tmp/arcade-review/newplayground-source.tar.gz
+      - name: Upload review bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcade-design-review
+          path: /tmp/arcade-review/
+          retention-days: 7

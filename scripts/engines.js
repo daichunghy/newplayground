@@ -336,7 +336,14 @@
 
     // Runtime state variables
     let currentTab = 'stall'; // 'stall', 'market', 'upgrades', 'handbook'
-    let customers = [];
+    // A real first order makes the opening immediately actionable.
+    let nextCustomerId = 1;
+    let sessionSeconds = 0;
+    let customers = [{
+      id: nextCustomerId++, name: 'Khách ghé quán', avatar: '🙂',
+      order: ALL_RECIPES[STAGES[state.stageIndex].recipes[0]],
+      patience: 100, maxPatience: 100
+    }];
     let cookingSlots = [
       { id: 1, status: 'empty', recipe: null, progress: 0, timer: null },
       { id: 2, status: 'empty', recipe: null, progress: 0, timer: null },
@@ -768,7 +775,7 @@
 
       row.querySelectorAll('.customer-slot').forEach(slot => {
         slot.addEventListener('click', () => {
-          const custId = parseInt(slot.getAttribute('data-cust-id'));
+          const custId = Number(slot.getAttribute('data-cust-id'));
           serveCustomerDirect(custId);
         });
       });
@@ -1327,6 +1334,7 @@
     ];
 
     mainLoopInterval = setInterval(() => {
+      sessionSeconds++;
       // 1. Customer arrival
       const maxCust = state.upgrades.extraChair ? 4 : 2;
       const arrivalRate = state.upgrades.speaker ? 0.45 : 0.25;
@@ -1337,7 +1345,7 @@
         const avatar = customerAvatars[Math.floor(Math.random() * customerAvatars.length)];
 
         customers.push({
-          id: Date.now() + Math.random(),
+          id: nextCustomerId++,
           name: avatar.name,
           avatar: avatar.avatar,
           order: ALL_RECIPES[rKey],
@@ -1361,7 +1369,7 @@
       if (currentTab === 'stall') { renderCustomersList(); drawStreetScene(); }
 
       // 3. Random Street Events (Đô thị đi tuần, Trời mưa)
-      if (!emergencyAlert && Math.random() < 0.03) {
+      if (sessionSeconds >= 25 && !emergencyAlert && Math.random() < 0.03) {
         triggerStreetEvent();
       }
 
