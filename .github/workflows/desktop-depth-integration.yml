@@ -6,8 +6,8 @@ on:
       - '.github/desktop-reviewed.patch'
       - '.github/workflows/desktop-depth-integration.yml'
 
-# Temporary integration job restricted to this existing same-repository branch.
-# It commits only the three reviewed source/test files and never deploys.
+# Temporary job restricted to the existing same-repository review branch.
+# Commits only reviewed source/test files after browser checks; never deploys.
 permissions:
   contents: write
 
@@ -30,14 +30,23 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Apply only the reviewed patch
+      - name: Apply only reviewed source changes
         run: |
           git apply --check .github/desktop-reviewed.patch
           git apply .github/desktop-reviewed.patch
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          text = p.read_text()
+          anchor = '  <script src="scripts/arcade-desktop.js?v=20261018_depth1" defer></script>'
+          assert text.count(anchor) == 1
+          text = text.replace(anchor, anchor + '\n  <script src="scripts/arcade-stall-scene.js?v=20261018_depth2" defer></script>')
+          p.write_text(text)
+          PY
           git diff --check
-          test "$(git diff --name-only | wc -l)" -eq 3
+          test "$(git diff --name-only | wc -l)" -eq 4
           git diff --name-only | sort > /tmp/changed-paths
-          printf '%s\n' scripts/arcade-desktop-qa.cjs scripts/arcade-desktop.js scripts/engines.js | sort > /tmp/expected-paths
+          printf '%s\n' index.html scripts/arcade-desktop-qa.cjs scripts/arcade-desktop.js scripts/engines.js | sort > /tmp/expected-paths
           diff -u /tmp/expected-paths /tmp/changed-paths
       - name: Verify syntax and all model regressions
         run: |
@@ -65,8 +74,8 @@ jobs:
           test "$CURRENT_HEAD" = "$EXPECTED_HEAD"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add scripts/engines.js scripts/arcade-desktop.js scripts/arcade-desktop-qa.cjs
-          git commit -m 'fix: verified direct serving, readable card pips and desktop input regression fixes'
+          git add index.html scripts/engines.js scripts/arcade-desktop.js scripts/arcade-desktop-qa.cjs
+          git commit -m 'fix: verify direct scene serving, card drop areas and desktop gameplay'
           git push origin "HEAD:refs/heads/$TARGET_BRANCH"
           git rev-parse HEAD > /tmp/arcade-review/tested-checkout.txt
       - name: Package exact reviewed worktree
