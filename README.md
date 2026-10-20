@@ -80,7 +80,7 @@ Chỉ cần mở repository trên GitHub và nhấn **Codespaces -> Create codes
 Chạy bằng Node.js 18 trở lên, không cần cài thêm thư viện:
 
 ```bash
-node --test tests/game-flow.test.cjs
+node --test tests/*.test.cjs
 ```
 
 Bộ kiểm tra chạy mã nguồn thật với DOM/Canvas/âm thanh giả lập: định tuyến một engine mỗi lần mở,
@@ -101,7 +101,7 @@ Vui lòng tham khảo file [`AGENTS.md`](./AGENTS.md) để nắm rõ:
 - Các vòng arcade cũ chuyển sang simulation 60 Hz độc lập tần số render; đây là thay đổi về tốc độ gameplay, không phải cam kết mọi thiết bị đạt 60 FPS.
 - Sửa các lỗi qua màn/kết thúc, va chạm, thao tác cảm ứng, chọn màu/lượt AI UNO, di chuyển Pac-Man, Bloxorz và các cơ chế riêng trong từng nhóm.
 - Cả 7 chế độ arcade dùng chung được sửa và có hình ảnh theo thể loại; ghép cặp dùng ô nút thật để dễ chạm và điều khiển bằng bàn phím.
-- Canvas giữ tỉ lệ khi co giãn, nút chung đủ 44 px, có focus rõ và tôn trọng chế độ giảm chuyển động.
+- Canvas giữ tỉ lệ và lấy giới hạn chiều cao từ viewport để không nhỏ dần khi modal tự co giãn; các thông báo resize được gộp và hủy khi đóng game. Nút chung đủ 44 px, có focus rõ và tôn trọng chế độ giảm chuyển động.
 - Danh mục hiện có **150 mục: 65 mục dùng engine chuyên biệt/biến thể, 85 mục dùng 7 chế độ arcade theo thể loại**. Đợt sửa này không biến 150 tên trong danh mục thành 150 bản tái hiện độc lập của game gốc.
 
 Chạy tất cả kiểm tra hồi quy:
