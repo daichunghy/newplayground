@@ -2420,7 +2420,7 @@ body.dark-theme .filter-pill.active {
 }
 .np-arc-help {
   margin: 7px 2px 8px;
-  color: var(--text-muted);
+  color: #CBD5D1;
   font-size: 0.84rem;
   line-height: 1.4;
   text-align: center;
@@ -2450,7 +2450,7 @@ body.dark-theme .filter-pill.active {
   text-align: center;
   padding: 5px 8px;
   min-height: 1.6em;
-  color: var(--text-muted);
+  color: #CBD5D1;
   font-size: 0.81rem;
 }
 .np-arc-box button:focus-visible {
