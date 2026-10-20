@@ -1014,7 +1014,14 @@
       const width = canvas.parentElement?.clientWidth || container.clientWidth;
       if (!width) return;
       const ratio = canvas.width / canvas.height;
-      const fittedWidth = Math.max(1, Math.min(width, container.clientWidth - 12, maxHeight * ratio));
+      let heightBudget = maxHeight;
+      const gameBox = canvas.closest?.('.canvas-game-box');
+      if (gameBox && container.clientHeight > 0) {
+        const chromeHeight = Math.max(0, gameBox.getBoundingClientRect().height - canvas.getBoundingClientRect().height);
+        // Reserve the game's HUD, help and controls as well as the container padding.
+        heightBudget = Math.max(160, Math.min(maxHeight, container.clientHeight - chromeHeight - 32));
+      }
+      const fittedWidth = Math.max(1, Math.min(width, container.clientWidth - 12, heightBudget * ratio));
       // Intrinsic height also follows CSS max-width caps, including the narrow Tetris layout.
       canvas.style.width = fittedWidth + 'px';
       canvas.style.height = 'auto';
