@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NewPlayground • Một chỗ để chơi. Không cần cài gì.</title>
   <meta name="description" content="Tuyển tập 150 trò chơi nhỏ miễn phí chơi ngay trên trình duyệt. Chọn game, bấm chơi, xả não vài phút.">
-  <link rel="stylesheet" href="style.css?v=20261011_arcade_02">
+  <link rel="stylesheet" href="style.css?v=20261020_allgames">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23151816'/><rect x='6' y='6' width='14' height='14' rx='4' fill='%23C8FF4A'/><path d='M14 14l8 8-3 1-1 3-4-12z' fill='%23FFFFFF' stroke='%23151816' stroke-width='1.5'/></svg>">
 </head>
 <body>
@@ -97,7 +97,7 @@
           <div class="hero-features-list">
             <span>• Lấy cảm hứng từ game tuổi thơ</span>
             <span>• Miễn phí 100%</span>
-            <span>• Lưu tiến trình tự động</span>
+            <span>• Không cần tạo tài khoản</span>
           </div>
         </div>
 
@@ -128,7 +128,7 @@
             </div>
           </div>
           <div class="sticker-badge bottom-sticker">
-            <span>100% BẢN SẮC NGUYÊN BẢN TUỔI THƠ</span>
+            <span>CHƠI LẠI NHỮNG ĐIỀU QUEN THUỘC</span>
           </div>
         </div>
       </div>
@@ -308,20 +308,45 @@
   <div class="game-modal" id="gameModal" style="display: none;">
     <div class="modal-backdrop" id="closeModalBackdrop"></div>
     <div class="modal-window" role="dialog" aria-modal="true" aria-labelledby="modalGameTitle">
-      <div class="modal-header">
+      <div class="modal-header" data-np-shell>
         <div class="modal-title-group">
           <span class="modal-badge" id="modalGameBadge">Game</span>
           <h2 class="modal-game-title" id="modalGameTitle">Tên Trò Chơi</h2>
         </div>
         <div class="modal-header-actions">
-          <button class="modal-btn-icon" id="crtToggleBtn" title="Hiệu ứng CRT Scanlines: Tắt">📺</button>
+          <button class="modal-btn-icon" id="crtToggleBtn" title="Hiệu ứng CRT Scanlines: Tắt" aria-label="Hiệu ứng màn hình hoài cổ" aria-pressed="false">📺</button>
           <button class="modal-btn-icon" id="modalSoundToggleBtn" title="Bật/Tắt âm thanh (Hiện đang tắt)" aria-label="Âm thanh">🔇</button>
-          <button class="modal-btn-icon" id="fullscreenGameBtn" title="Toàn màn hình">⛶</button>
+          <button class="modal-btn-icon" id="fullscreenGameBtn" title="Toàn màn hình" aria-label="Toàn màn hình">⛶</button>
           <button class="modal-btn-icon modal-close-btn" id="closeModalBtn" title="Đóng" aria-label="Đóng trò chơi">✕</button>
         </div>
       </div>
-      <div class="modal-body" id="modalGameContainer">
-        <!-- Interactive Game Engine injected here -->
+      <div class="game-toolbar" id="gameToolbar" data-np-shell>
+        <span class="game-session-status" id="gameSessionStatus" role="status">Sẵn sàng chơi</span>
+        <div class="game-toolbar-actions">
+          <button class="game-tool-btn" id="pauseGameBtn" type="button" aria-pressed="false" aria-keyshortcuts="Escape p"><span aria-hidden="true">Ⅱ</span> Tạm dừng</button>
+          <button class="game-tool-btn" id="restartGameBtn" type="button"><span aria-hidden="true">↻</span> Chơi lại</button>
+          <button class="game-tool-btn" id="helpGameBtn" type="button" aria-expanded="false" aria-controls="gameSessionOverlay"><span aria-hidden="true">?</span> Cách chơi</button>
+        </div>
+      </div>
+      <div class="game-stage-shell" id="gameStageShell">
+        <div class="modal-body" id="modalGameContainer" tabindex="-1">
+          <!-- Interactive Game Engine injected here -->
+        </div>
+        <section class="game-session-overlay" id="gameSessionOverlay" hidden data-np-shell aria-labelledby="gameOverlayTitle">
+          <div class="game-session-card">
+            <span class="game-session-eyebrow" id="gameOverlayEyebrow">NGHỈ MỘT CHÚT</span>
+            <h3 id="gameOverlayTitle">Đã tạm dừng</h3>
+            <p class="game-overlay-description" id="gameOverlayDescription">Sẵn sàng thì mình chơi tiếp.</p>
+            <div class="game-help-details" id="gameHelpDetails" hidden>
+              <div><h4>Mục tiêu</h4><p id="gameHelpObjective"></p></div>
+              <div><h4>Bàn phím & chuột</h4><p id="gameHelpKeyboard"></p></div>
+              <div><h4>Điện thoại</h4><p id="gameHelpTouch"></p></div>
+              <p class="game-help-note" id="gameHelpNote" hidden></p>
+            </div>
+            <button class="btn btn-hero game-resume-btn" id="resumeGameBtn" type="button">Tiếp tục chơi <span aria-hidden="true">→</span></button>
+            <p class="game-resume-hint">Esc để tạm dừng hoặc tiếp tục</p>
+          </div>
+        </section>
       </div>
     </div>
   </div>
@@ -350,19 +375,20 @@
   </div>
 
   <!-- TOAST NOTIFICATION -->
-  <div class="toast-notification" id="toastBox"></div>
+  <div class="toast-notification" id="toastBox" role="status" aria-live="polite"></div>
 
   <!-- SCRIPTS -->
-  <script src="games-data.js?v=20261007_v5"></script>
-  <script src="scripts/game-session.js?v=20261007_v6"></script>
-  <script src="scripts/game-feel.js?v=20261007_v6"></script>
-  <script src="scripts/game-art.js?v=20261010_visual_01"></script>
-  <script src="scripts/engines.js?v=20261011_arcade_02"></script>
-  <script src="scripts/engines-classics.js?v=20261010_visual_01"></script>
-  <script src="scripts/engines-popcap.js?v=20261010_visual_01"></script>
-  <script src="scripts/engines-retro50.js?v=20261011_arcade_02"></script>
-  <script src="scripts/engines-archetypes.js?v=20261010_v8"></script>
-  <script src="scripts/engines-typer-shark.js?v=20261011_v3"></script>
-  <script src="app.js?v=20261010_v9"></script>
+  <script src="games-data.js?v=20261020_allgames"></script>
+  <script src="scripts/game-session.js?v=20261020_allgames"></script>
+  <script src="scripts/game-feel.js?v=20261020_allgames"></script>
+  <script src="scripts/game-art.js?v=20261020_allgames"></script>
+  <script src="scripts/engines.js?v=20261020_allgames"></script>
+  <script src="scripts/engines-classics.js?v=20261020_allgames"></script>
+  <script src="scripts/engines-popcap.js?v=20261020_allgames"></script>
+  <script src="scripts/engines-retro50.js?v=20261020_allgames"></script>
+  <script src="scripts/engines-archetypes.js?v=20261020_allgames"></script>
+  <script src="scripts/engines-typer-shark.js?v=20261020_allgames"></script>
+  <script src="scripts/game-guide.js?v=20261020_allgames"></script>
+  <script src="app.js?v=20261020_allgames"></script>
 </body>
 </html>

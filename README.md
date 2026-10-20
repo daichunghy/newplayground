@@ -94,6 +94,26 @@ Vui lòng tham khảo file [`AGENTS.md`](./AGENTS.md) để nắm rõ:
 
 ---
 
+### Cải thiện toàn bộ danh mục (20/10/2026)
+
+- Thanh điều khiển chung cho 150 mục: tạm dừng, tiếp tục, chơi lại/mở lại và hướng dẫn theo game thực sự đang chạy. Đổi tab hoặc rời cửa sổ tự tạm dừng; quay lại cần bấm Tiếp tục.
+- Session giữ thời gian còn lại của timer, dừng RAF, nhả phím/chạm đang giữ và loại thời gian nghỉ khỏi đồng hồ gameplay. Không thay đổi thời gian thực dùng cho cây trồng.
+- Các vòng arcade cũ chuyển sang simulation 60 Hz độc lập tần số render; đây là thay đổi về tốc độ gameplay, không phải cam kết mọi thiết bị đạt 60 FPS.
+- Sửa các lỗi qua màn/kết thúc, va chạm, thao tác cảm ứng, chọn màu/lượt AI UNO, di chuyển Pac-Man, Bloxorz và các cơ chế riêng trong từng nhóm.
+- Cả 7 chế độ arcade dùng chung được sửa và có hình ảnh theo thể loại; ghép cặp dùng ô nút thật để dễ chạm và điều khiển bằng bàn phím.
+- Canvas giữ tỉ lệ khi co giãn, nút chung đủ 44 px, có focus rõ và tôn trọng chế độ giảm chuyển động.
+- Danh mục hiện có **150 mục: 65 mục dùng engine chuyên biệt/biến thể, 85 mục dùng 7 chế độ arcade theo thể loại**. Đợt sửa này không biến 150 tên trong danh mục thành 150 bản tái hiện độc lập của game gốc.
+
+Chạy tất cả kiểm tra hồi quy:
+
+```bash
+node --test tests/*.test.cjs
+```
+
+Chạy kiểm tra trên trình duyệt bằng cách mở [`tests/browser-smoke.html`](./tests/browser-smoke.html) trên cùng máy chủ HTTP. Bộ kiểm tra mở/vẽ/tạm dừng/hướng dẫn/tiếp tục/đóng 150 mục ở hai khung desktop và mobile; không thay thế việc chơi hết chiến dịch hay kiểm tra phần cứng thật.
+
+Chi tiết phạm vi và bằng chứng kiểm tra trong [báo cáo cải thiện 20/10](./docs/GAMEPLAY_IMPROVEMENTS_2026_10_20.md).
+
 ### Gameplay và cảm giác điều khiển Arcade (11/10/2026)
 
 - **Boom Online** được bổ sung giao diện arcade gọn, nhân vật/sân chơi/vật phẩm vẽ trực tiếp thay emoji, D-pad thống nhất touch/pointer, va chạm theo hitbox nhân vật và simulation 60Hz. Trùm không còn bị trừ máu lặp bởi cùng một vụ nổ; có kết thúc thắng/thua, nút chơi lại và kỷ lục.

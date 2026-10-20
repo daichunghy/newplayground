@@ -17,12 +17,27 @@
     return session ? session.setTimeout(callback, delay, ...args) : window.setTimeout(callback, delay, ...args);
   }
   const screenShakes = new WeakMap();
+  let motionPreference = null;
+  function reducedMotion() {
+    if (!motionPreference && typeof window.matchMedia === 'function') {
+      motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    }
+    return !!motionPreference?.matches;
+  }
+  const getSession = () => window.NP_GameSession?.getCurrent() || null;
 
   // =========================================================================
   // 1. ADVANCED PROCEDURAL AUDIO ENGINE (ZERO ASSETS, 100% WEB AUDIO API)
   // =========================================================================
   let audioCtx = null;
-  let isGlobalMuted = true; // Mặc định tắt hết âm thanh trong lúc làm / phát triển
+  let isGlobalMuted = true; // Sound starts only when the player enables it.
+  let isGlobalPaused = false;
+  let bgmRequest = null;
+  let cancelBgmTimer = null;
+  let removeBgmCleanup = null;
+  let bgmGeneration = 0;
+  let bgmBus = null;
+  const contextPauseRequests = new WeakMap();
   try {
     const saved = localStorage.getItem('np_muted');
     if (saved !== null) {
@@ -35,21 +50,51 @@
   }
   window.NEWPLAYGROUND_MUTED = isGlobalMuted;
 
+  function audioPaused() {
+    return isGlobalPaused || !!getSession()?.isPaused();
+  }
+  function audioBlocked() {
+    return isGlobalMuted || window.NEWPLAYGROUND_MUTED || audioPaused();
+  }
+  function updateContextState(ctx, blocked) {
+    if (!ctx || ctx.state === 'closed') return;
+    const previousRequest = contextPauseRequests.get(ctx);
+    contextPauseRequests.set(ctx, blocked);
+    // State changes are asynchronous: a fast resume must follow a pending suspend.
+    if (ctx.state === (blocked ? 'suspended' : 'running') && previousRequest !== !blocked) return;
+    try {
+      const result = blocked ? ctx.suspend() : ctx.resume();
+      if (result && typeof result.catch === 'function') result.catch(() => {});
+    } catch (error) { /* Older browsers may not support a context state transition. */ }
+  }
+  function syncAudioState() {
+    const blocked = audioBlocked();
+    updateContextState(audioCtx, blocked);
+    const legacyCtx = window.NP_AudioEngine?.ctx;
+    if (legacyCtx !== audioCtx) updateContextState(legacyCtx, blocked);
+  }
   function getAudioCtx() {
-    if (isGlobalMuted || window.NEWPLAYGROUND_MUTED) {
-      if (audioCtx && audioCtx.state !== 'suspended') {
-        try { audioCtx.suspend(); } catch (e) {}
-      }
+    if (audioBlocked()) {
+      syncAudioState();
       return null;
     }
     if (!audioCtx) {
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      if (AudioContextClass) audioCtx = new AudioContextClass();
+      try { if (AudioContextClass) audioCtx = new AudioContextClass(); } catch (error) { return null; }
     }
-    if (audioCtx && audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
+    updateContextState(audioCtx, false);
     return audioCtx;
+  }
+  function cancelBgmPlayback() {
+    bgmGeneration++;
+    if (cancelBgmTimer) cancelBgmTimer();
+    cancelBgmTimer = null;
+    NP_Audio.currentBgmTimer = null;
+    // Old notes may still be suspended in the context; disconnect their output.
+    if (bgmBus) {
+      try { bgmBus.disconnect(); } catch (error) {}
+      bgmBus = null;
+    }
   }
 
   // Pre-generate 1-second white noise buffer for crisp noise hits
@@ -514,6 +559,7 @@
     currentBgmTimer: null,
     currentBgmTheme: null,
     isMuted: isGlobalMuted,
+    isPaused: false,
 
     setMuted(muted) {
       this.isMuted = !!muted;
@@ -522,18 +568,20 @@
       try {
         localStorage.setItem('np_muted', this.isMuted ? 'true' : 'false');
       } catch (e) {}
-      if (this.isMuted) {
-        this.stopBGM();
-        if (audioCtx && audioCtx.state !== 'suspended') {
-          try { audioCtx.suspend(); } catch (e) {}
-        }
-      } else {
-        if (audioCtx && audioCtx.state === 'suspended') {
-          try { audioCtx.resume(); } catch (e) {}
-        }
-      }
+      if (this.isMuted) cancelBgmPlayback();
+      syncAudioState();
+      if (!audioBlocked() && this.currentBgmTheme) this.startBGM(this.currentBgmTheme);
       this.syncSoundButtons();
       return this.isMuted;
+    },
+
+    setPaused(paused) {
+      this.isPaused = !!paused;
+      isGlobalPaused = this.isPaused;
+      if (this.isPaused) cancelBgmPlayback();
+      syncAudioState();
+      if (!audioBlocked() && this.currentBgmTheme) this.startBGM(this.currentBgmTheme);
+      return this.isPaused;
     },
 
     toggleMute() {
@@ -545,6 +593,8 @@
       const title = this.isMuted ? 'Bật âm thanh (Hiện đang tắt)' : 'Tắt âm thanh (Hiện đang bật)';
       document.querySelectorAll('#soundToggleBtn, #modalSoundToggleBtn').forEach(btn => {
         btn.setAttribute('title', title);
+        btn.setAttribute('aria-label', title);
+        btn.setAttribute('aria-pressed', String(!this.isMuted));
         const iconEl = btn.querySelector('.sound-icon');
         if (iconEl) iconEl.textContent = icon;
         else btn.textContent = icon;
@@ -552,24 +602,41 @@
     },
 
     stopBGM() {
-      if (this.currentBgmTimer) {
-        clearInterval(this.currentBgmTimer);
-        this.currentBgmTimer = null;
-      }
+      cancelBgmPlayback();
+      if (removeBgmCleanup) removeBgmCleanup();
+      removeBgmCleanup = null;
+      bgmRequest = null;
       this.currentBgmTheme = null;
     },
 
     startBGM(theme) {
-      if (this.isMuted) return;
-      if (this.currentBgmTheme === theme && this.currentBgmTimer) return;
-      this.stopBGM();
-      this.currentBgmTheme = theme;
+      const owner = getSession();
+      if (owner && !owner.isActive()) return;
+      if (!bgmRequest || bgmRequest.theme !== theme || bgmRequest.owner !== owner) {
+        this.stopBGM();
+        bgmRequest = { theme, owner, step: 0 };
+        this.currentBgmTheme = theme;
+        // Keep ownership even when a game is opened with sound muted.
+        const request = bgmRequest;
+        if (owner) removeBgmCleanup = owner.onCleanup(() => {
+          if (bgmRequest === request) this.stopBGM();
+        });
+      }
+      if (audioBlocked() || this.currentBgmTimer !== null) return;
 
       const ctx = getAudioCtx();
       if (!ctx) return;
+      const request = bgmRequest;
+      const generation = ++bgmGeneration;
+      bgmBus = ctx.createGain();
+      bgmBus.connect(ctx.destination);
+      const output = bgmBus;
+      const schedule = owner ? owner.setTimeout : window.setTimeout.bind(window);
+      const cancel = owner ? owner.clearTimeout : window.clearTimeout.bind(window);
 
       // Note frequency map
       const N = {
+        G2: 98.00,
         C3: 130.81, D3: 146.83, E3: 164.81, F3: 174.61, G3: 196.00, A3: 220.00, B3: 246.94,
         C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392.00, A4: 440.00, B4: 493.88,
         C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99, A5: 880.00,
@@ -700,24 +767,27 @@
       };
 
       const track = THEMES[theme] || THEMES.daovang;
-      let step = 0;
-
       const playNextStep = () => {
-        if (this.isMuted || this.currentBgmTheme !== theme) return;
-        const [mel, bas, dur] = track[step];
+        if (bgmRequest !== request || generation !== bgmGeneration) return;
+        this.currentBgmTimer = null;
+        cancelBgmTimer = null;
+        if (audioBlocked() || (owner && !owner.isActive())) return;
+        const [mel, bas, dur] = track[request.step];
         const stepTime = (dur || 160) / 1000;
 
         if (mel && mel > 0) {
           // Melody tone (triangle/sine blend for warm retro warmth)
-          this.tone(mel, 'triangle', stepTime * 0.9, 0.05);
+          this.tone(mel, 'triangle', stepTime * 0.9, 0.05, output);
         }
         if (bas && bas > 0) {
           // Bouncy bass pulse
-          this.tone(bas, 'sine', stepTime * 0.7, 0.07);
+          this.tone(bas, 'sine', stepTime * 0.7, 0.07, output);
         }
 
-        step = (step + 1) % track.length;
-        this.currentBgmTimer = setTimeout(playNextStep, dur || 160);
+        request.step = (request.step + 1) % track.length;
+        const timerId = schedule(playNextStep, dur || 160);
+        this.currentBgmTimer = timerId;
+        cancelBgmTimer = () => cancel(timerId);
       };
 
       playNextStep();
@@ -752,9 +822,10 @@
       if (!element) return;
       const previous = screenShakes.get(element);
       if (previous) previous();
-      const start = performance.now();
+      if (reducedMotion()) return;
       const origTransform = element.style.transform || '';
       const session = window.NP_GameSession && window.NP_GameSession.getCurrent();
+      const start = (session ? session.clock : performance).now();
       const scheduleFrame = session ? session.requestAnimationFrame : window.requestAnimationFrame.bind(window);
       const cancelFrame = session ? session.cancelAnimationFrame : window.cancelAnimationFrame.bind(window);
       let frameId = null;
@@ -769,13 +840,14 @@
       if (session) unregisterCleanup = session.onCleanup(reset);
 
       function step(now) {
+        if (reducedMotion()) { reset(); return; }
         const elapsed = now - start;
         if (elapsed < durationMs) {
           const factor = 1 - elapsed / durationMs;
           const currentIntensity = intensity * factor;
           const dx = (Math.random() * 2 - 1) * currentIntensity;
           const dy = (Math.random() * 2 - 1) * currentIntensity;
-          element.style.transform = `translate(${dx}px, ${dy}px)`;
+          element.style.transform = `${origTransform} translate(${dx}px, ${dy}px)`.trim();
           frameId = scheduleFrame(step);
         } else {
           reset();
@@ -790,9 +862,11 @@
         trauma: 0, // 0 to 1
         decay: 0.05,
         addTrauma(amount = 0.5) {
+          if (reducedMotion()) { this.trauma = 0; return; }
           this.trauma = Math.min(1.0, this.trauma + amount);
         },
         getOffset(maxOffset = 14) {
+          if (reducedMotion()) { this.trauma = 0; return { x: 0, y: 0 }; }
           if (this.trauma <= 0) return { x: 0, y: 0 };
           const shake = this.trauma * this.trauma; // Non-linear decay
           const x = (Math.random() * 2 - 1) * maxOffset * shake;
@@ -1090,6 +1164,17 @@
     NP_Juice.vibrate.success();
     return originalWin.apply(this, arguments);
   };
+
+  // Ignore actions during pause, including fanfare timers and their haptic hooks.
+  for (const name of ['tone', 'explosion', 'thud', 'chomp', 'clack', 'sizzle', 'splash', 'splat',
+    'whoosh', 'metalClank', 'chickenCluck', 'laser', 'cannonFire', 'coin', 'pop', 'combo',
+    'win', 'alarm', 'powerup', 'match', 'hit', 'marbleClack', 'woodThud', 'dinerBell', 'cardSlide']) {
+    const effect = NP_Audio[name];
+    NP_Audio[name] = function (...args) {
+      if (audioPaused()) return;
+      return effect.apply(this, args);
+    };
+  }
 
   // Automatically initialize global tactile listener
   if (typeof document !== 'undefined') {
