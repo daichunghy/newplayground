@@ -1016,10 +1016,10 @@
       const ratio = canvas.width / canvas.height;
       let heightBudget = maxHeight;
       const gameBox = canvas.closest?.('.canvas-game-box');
-      if (gameBox && container.clientHeight > 0) {
+      if (gameBox) {
         const chromeHeight = Math.max(0, gameBox.getBoundingClientRect().height - canvas.getBoundingClientRect().height);
-        // Reserve the game's HUD, help and controls as well as the container padding.
-        heightBudget = Math.max(160, Math.min(maxHeight, container.clientHeight - chromeHeight - 32));
+        // The modal has automatic height: use the viewport, never its previous fitted size.
+        heightBudget = Math.max(160, Math.min(maxHeight, window.innerHeight - toolbarHeight - headerHeight - chromeHeight - 72));
       }
       const fittedWidth = Math.max(1, Math.min(width, container.clientWidth - 12, heightBudget * ratio));
       // Intrinsic height also follows CSS max-width caps, including the narrow Tetris layout.
@@ -1056,9 +1056,17 @@
     syncGameShell();
     fitGameCanvases();
     if (typeof ResizeObserver !== 'undefined') {
-      const observer = new ResizeObserver(fitGameCanvases);
+      let pendingFit = null;
+      const observer = new ResizeObserver(() => {
+        if (pendingFit !== null) return;
+        pendingFit = window.requestAnimationFrame(() => { pendingFit = null; fitGameCanvases(); });
+      });
       observer.observe(container);
-      removeGameObserver = () => observer.disconnect();
+      removeGameObserver = () => {
+        observer.disconnect();
+        if (pendingFit !== null) window.cancelAnimationFrame(pendingFit);
+        pendingFit = null;
+      };
     }
     focusPlayfield();
   }

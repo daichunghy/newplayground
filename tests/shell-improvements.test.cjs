@@ -336,6 +336,50 @@ test('canvas fitting preserves intrinsic dimensions and the aspect ratio on narr
   h.context.closeGameModal(); assert.equal(h.observers.size, 0);
 });
 
+test('auto-height resize feedback keeps a stable canvas size and coalesces observer work until cleanup', () => {
+  const h = shellHarness();
+  const controlsHeight = 180;
+  let measurements = 0;
+  h.window.innerHeight = 760;
+  h.context.NP_Engines.launchSnake = container => {
+    h.context.NP_GameSession.start();
+    container.innerHTML = '<div class="canvas-game-box" id="resizeGameBox"><canvas id="resizeCanvas" width="640" height="480"></canvas></div>';
+    const canvas = container.querySelector('#resizeCanvas');
+    const gameBox = container.querySelector('#resizeGameBox');
+    gameBox.clientWidth = container.clientWidth;
+    gameBox.getBoundingClientRect = () => {
+      measurements++;
+      const rect = canvas.getBoundingClientRect();
+      return { ...rect, height: rect.height + controlsHeight };
+    };
+    container.clientHeight = canvas.height + controlsHeight;
+  };
+  h.context.openGameById('ran-san-moi-snake');
+  const canvas = h.container.querySelector('#resizeCanvas');
+  const observer = [...h.observers][0];
+  const fittedWidth = canvas.getBoundingClientRect().width;
+  assert.ok(fittedWidth > 400, 'the available viewport supports a useful playfield');
+  assert.ok(canvas.getBoundingClientRect().height < canvas.height, 'initial fitting actually shrinks the automatic-height modal');
+  for (let iteration = 0; iteration < 5; iteration++) {
+    // The container follows its newly fitted child, reproducing the browser feedback path.
+    h.container.clientHeight = canvas.getBoundingClientRect().height + controlsHeight;
+    const before = measurements;
+    observer.callback(); observer.callback(); observer.callback();
+    assert.equal(measurements, before, 'observer delivery does not synchronously resize its own target');
+    assert.equal(h.frames.size, 1, 'an observer burst requests one coalesced native animation frame');
+    h.frame(16);
+    assert.equal(h.frames.size, 0);
+    assert.equal(canvas.getBoundingClientRect().width, fittedWidth, 'automatic container shrink cannot reduce the next height budget');
+  }
+  observer.callback(); observer.callback();
+  assert.equal(h.frames.size, 1);
+  h.context.closeGameModal();
+  assert.equal(h.frames.size, 0, 'closing cancels an already queued resize frame');
+  assert.equal(h.observers.size, 0, 'closing disconnects the observed container');
+  h.frame(16);
+  assert.equal(h.errors.length, 0, h.errors.join('; '));
+});
+
 test('native replay keeps Pong options while persistent Hàng Rong reopen restores saved progress', () => {
   const h = shellHarness(); h.context.openGameById('pong-1972');
   const canvas = h.container.querySelector('#pongCanvas'), session = h.context.NP_GameSession.getCurrent();
