@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>NewPlayground · Browser smoke test</title>
 <style>
-*{box-sizing:border-box}body{margin:0;padding:24px;background:#eef1e8;color:#193125;font:16px Calibri,Inter,sans-serif}h1{margin:0 0 8px;font-size:28px}p{max-width:920px;line-height:1.5}button{font:700 16px Calibri,sans-serif;padding:12px 20px;border:0;border-radius:8px;background:#234f39;color:white;cursor:pointer;min-height:44px}#status{font-weight:bold}#results{max-height:320px;overflow:auto;background:white;border-radius:12px;padding:18px;font:14px/1.5 Calibri,sans-serif;white-space:pre-wrap}#stage{overflow:auto;margin-top:20px}iframe{border:1px solid #c5d0c1;border-radius:12px;background:white;display:block}#summary{padding:16px;background:#fff;border-left:5px solid #7baf27;border-radius:8px;margin:16px 0}.fail{border-color:#bb342c!important}
+*{box-sizing:border-box}body{margin:0;padding:24px;background:#eef1e8;color:#193125;font:16px Calibri,Inter,sans-serif}h1{margin:0 0 8px;font-size:28px}p{max-width:920px;line-height:1.5}button{font:700 16px Calibri,sans-serif;padding:12px 20px;border:0;border-radius:8px;background:#234f39;color:white;cursor:pointer;min-height:44px}#status{font-weight:bold}#results{max-height:320px;overflow:auto;background:white;border-radius:12px;padding:18px;font:14px/1.5 Calibri,sans-serif;white-space:pre-wrap}#stage{overflow:auto;margin-top:20px}iframe{box-sizing:content-box;border:1px solid #c5d0c1;border-radius:12px;background:white;display:block}#summary{padding:16px;background:#fff;border-left:5px solid #7baf27;border-radius:8px;margin:16px 0}.fail{border-color:#bb342c!important}
 </style>
 </head>
 <body>
@@ -19,7 +19,11 @@
 const button = document.getElementById('run'), summary = document.getElementById('summary'), results = document.getElementById('results'), frame = document.getElementById('gameFrame');
 const report = { cases: [], errors: [], completed: false, started: null };
 window.NP_BROWSER_REPORT = report;
-const tick = win => new Promise(resolve => win.requestAnimationFrame(() => win.requestAnimationFrame(resolve)));
+// Registered after each engine's RAF, this waits for a real rendered frame.
+const tick = win => new Promise((resolve, reject) => {
+  const timeout = setTimeout(() => reject(new Error('Không nhận được frame trình duyệt trong 10 giây.')), 10000);
+  win.requestAnimationFrame(() => { clearTimeout(timeout); resolve(); });
+});
 function assert(value, message) { if (!value) throw new Error(message); }
 function loadFrame() {
   return new Promise((resolve, reject) => {
@@ -58,7 +62,8 @@ button.addEventListener('click', async () => {
           doc.getElementById('pauseGameBtn').click();
           assert(session.isPaused(), 'Nút tạm dừng chưa dừng session.');
           const stoppedAt = session.clock.now();
-          await tick(win);
+          // Wall time must pass, even when the game has no scheduled frames while paused.
+          await new Promise(resolve => setTimeout(resolve, 30));
           assert(session.clock.now() === stoppedAt, 'Đồng hồ vẫn chạy trong lúc tạm dừng.');
           doc.getElementById('helpGameBtn').click();
           assert(!doc.getElementById('gameHelpDetails').hidden, 'Hướng dẫn chưa hiện.');
@@ -77,6 +82,7 @@ button.addEventListener('click', async () => {
       }
     }
     report.completed = true;
+    report.finished = new Date().toISOString();
     const failed = report.cases.filter(item => !item.pass);
     summary.textContent = `Hoàn tất · ${report.cases.length - failed.length}/300 lượt đạt · ${failed.length} lỗi luồng · ${report.errors.length} lỗi JavaScript`;
     summary.classList.toggle('fail', !!failed.length || !!report.errors.length);
