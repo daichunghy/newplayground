@@ -1,0 +1,1510 @@
+{
+  "sourceCommit": "6ac72a9c74e236c8e721b0b98823a85c48bdf070",
+  "url": "https://raw.githack.com/daichunghy/newplayground/6ac72a9c74e236c8e721b0b98823a85c48bdf070/tests/browser-smoke.html",
+  "cases": [
+    {
+      "id": "hang-rong",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "dao-vang",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "ban-trung-khung-long",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "kim-cuong-bejeweled",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "line-98",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "dat-bom-bomberman",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "ban-xe-tang-1990",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "nong-trai-vui-ve",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "gunny-2d",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "nuoi-ca-nemo",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "diner-dash",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "zuma-ech-ban-ngoc",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "co-caro",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "co-tuong",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "ban-bi-ve",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "o-an-quan",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "do-min-minesweeper",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "xep-gach-tetris",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "pac-man",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "ran-san-moi-snake",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "plants-vs-zombies-2d",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "feeding-frenzy",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "peggle-pachinko",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "lemonade-tycoon",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "pizza-frenzy",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "heavy-weapon",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "typer-shark",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "chuzzle",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "flappy-bird",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "chem-hoa-qua",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "lua-va-nuoc",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "mario-co-dien",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "nguoi-tuyet-snow-bros",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "angry-birds-mini",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "cut-the-rope",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "ban-ruoi-galaga",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "pha-gach-dx-ball",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "day-thung-sokoban",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "noi-ong-nuoc-pipemania",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "tro-choi-2048",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "xep-bai-nhen-spider",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "xep-bai-solitaire",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "xep-bai-freecell",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "pinball-3d-space-cadet",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "danh-bai-uno",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "dap-chuot-chui",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "xay-cau-bridge-builder",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "truc-thang-heli-attack",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "thu-thanh-bloons-td",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "contra-2d",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "bong-bong-nuoc-bubble-trouble",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "crossy-road",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "sonic-chay-nhanh",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "dua-xe-nam-mario-kart",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "pong-1972",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "rambo-lun-metal-slug",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "excitebike-dua-xe-dia-hinh",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "dr-mario-diet-khuan",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "circus-charlie-xiec",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "kung-fu-master",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "nem-lon-truong-lang",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "tat-lon-via-he",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "ban-ga-vu-tru",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "rong-den-mortal-kombat",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "co-ca-ngua",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "co-ty-phu-monopoly",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "ai-la-trieu-phu",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "duo-hinh-bat-chu",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "tim-diem-khac-biet",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "thap-ha-noi-tower",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "piano-tiles-phim-nhac",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "among-us-impostor",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "skribbl-ve-doan-chu",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "bi-lac-ban-go",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "keo-co-doi-khang",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "lat-the-tri-nho",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "khoi-rubik-mini",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "ninja-cuu-me",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "bomberman-93-arena",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "dua-xe-micro-machines",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "puzzle-bobble-khung-long",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "arkanoid-dap-gach",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "sky-garden-khu-vuon-tren-may",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "dao-rong-dragon-island",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "tien-len-mien-nam",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "phi-tieu-bong-bong",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "gap-thu-bong-dien-tu",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "tam-cuc-co-dien",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "nem-vong-co-chai",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "lac-bau-cua-tom-ca",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "chay-tron-canh-sat-subway",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "nguoi-que-ban-cung",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "dau-vat-hai-nguoi",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "thoi-bong-xa-phong",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "tiem-banh-ngot-ba-baker",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "dap-ruoi-ban-tay",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "xe-dap-giao-bao",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "dau-truong-xe-dung",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "gap-chu-cho-qua-duong",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "tiem-sach-cu-pho-co",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "boom-online-bnb",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "audition-nhip-dieu",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "road-rash-dua-xe-moto",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "rockman-mega-man",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "duck-hunt-ban-vit",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "adventure-island-dao-hoang",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "street-fighter-2-doi-khang",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "prince-of-persia-1989",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "bubble-bobble-khung-long-bong-bong",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "age-of-war-thoi-dai-chien-tranh",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "bloxorz-khoi-da-lan",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "raft-wars-ban-sung-phao",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "papa-pizzeria-tiem-banh-pizza",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "stick-war-chien-tranh-nguoi-que",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "defend-your-castle-thu-thanh-nguoi-que",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "donkey-kong-1981",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "dig-dug-dao-dat-bom-quai",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "pooyan-lon-me-ban-bong",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "yie-ar-kung-fu-vo-dai",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "asteroids-tau-ban-thien-thach",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "frogger-ech-bang-qua-duong",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "elevator-action-diep-vien-thang-may",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "double-dragon-hiep-si-rong-doi",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "golden-axe-riu-vang",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "cadillacs-dinosaurs-bo-doi",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "snowcraft-nem-tuyet-3v3",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "bowman-nguoi-que-ban-cung",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "line-rider-truot-tuyet-vat-ly",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "boulder-dash-tho-dao-ngoc",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "moorhuhn-ban-ga-dam-lay",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "gun-mayhem-dau-sung-loan-da",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "electric-man-2-vo-thuat-nguoi-que",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "fancy-pants-chay-nhay-quan-cam",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "impossible-quiz-do-vui-xoan-nao",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "centipede-ban-sau-ret",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "qbert-nhay-khoi-lap-phuong",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "1942-khong-chien-thai-binh-duong",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "shinobi-ninja-phi-tieu",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "chip-dale-soc-chuot-cuu-ho",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "tiny-toon-tho-buster-phieu-luu",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "balloon-fight-dap-bong-bay",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "ice-climber-dap-bang-leo-nui",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "mappy-chuot-canh-sat-nhay-bat",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "twinbee-ban-chuong-bay",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "worms-armageddon-giun-chien-tranh",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "digger-xe-ui-dao-ham",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "bookworm-sau-noi-chu",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "atomix-ghep-phan-tu-hoa-hoc",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "icy-tower-thap-bang-nhay-cao",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "hamsterball-lan-cau-hamster",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "hang-rong",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "dao-vang",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "ban-trung-khung-long",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "kim-cuong-bejeweled",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "line-98",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "dat-bom-bomberman",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "ban-xe-tang-1990",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "nong-trai-vui-ve",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "gunny-2d",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "nuoi-ca-nemo",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "diner-dash",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "zuma-ech-ban-ngoc",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "co-caro",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "co-tuong",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "ban-bi-ve",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "o-an-quan",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "do-min-minesweeper",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "xep-gach-tetris",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "pac-man",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "ran-san-moi-snake",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "plants-vs-zombies-2d",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "feeding-frenzy",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "peggle-pachinko",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "lemonade-tycoon",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "pizza-frenzy",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "heavy-weapon",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "typer-shark",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "chuzzle",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "flappy-bird",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "chem-hoa-qua",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "lua-va-nuoc",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "mario-co-dien",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "nguoi-tuyet-snow-bros",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "angry-birds-mini",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "cut-the-rope",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "ban-ruoi-galaga",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "pha-gach-dx-ball",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "day-thung-sokoban",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "noi-ong-nuoc-pipemania",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "tro-choi-2048",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "xep-bai-nhen-spider",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "xep-bai-solitaire",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "xep-bai-freecell",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "pinball-3d-space-cadet",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "danh-bai-uno",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "dap-chuot-chui",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "xay-cau-bridge-builder",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "truc-thang-heli-attack",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "thu-thanh-bloons-td",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "contra-2d",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "bong-bong-nuoc-bubble-trouble",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "crossy-road",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "sonic-chay-nhanh",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "dua-xe-nam-mario-kart",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "pong-1972",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "rambo-lun-metal-slug",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "excitebike-dua-xe-dia-hinh",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "dr-mario-diet-khuan",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "circus-charlie-xiec",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "kung-fu-master",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "nem-lon-truong-lang",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "tat-lon-via-he",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "ban-ga-vu-tru",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "rong-den-mortal-kombat",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "co-ca-ngua",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "co-ty-phu-monopoly",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "ai-la-trieu-phu",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "duo-hinh-bat-chu",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "tim-diem-khac-biet",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "thap-ha-noi-tower",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "piano-tiles-phim-nhac",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "among-us-impostor",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "skribbl-ve-doan-chu",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "bi-lac-ban-go",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "keo-co-doi-khang",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "lat-the-tri-nho",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "khoi-rubik-mini",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "ninja-cuu-me",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "bomberman-93-arena",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "dua-xe-micro-machines",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "puzzle-bobble-khung-long",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "arkanoid-dap-gach",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "sky-garden-khu-vuon-tren-may",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "dao-rong-dragon-island",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "tien-len-mien-nam",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "phi-tieu-bong-bong",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "gap-thu-bong-dien-tu",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "tam-cuc-co-dien",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "nem-vong-co-chai",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "lac-bau-cua-tom-ca",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "chay-tron-canh-sat-subway",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "nguoi-que-ban-cung",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "dau-vat-hai-nguoi",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "thoi-bong-xa-phong",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "tiem-banh-ngot-ba-baker",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "dap-ruoi-ban-tay",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "xe-dap-giao-bao",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "dau-truong-xe-dung",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "gap-chu-cho-qua-duong",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "tiem-sach-cu-pho-co",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "boom-online-bnb",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "audition-nhip-dieu",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "road-rash-dua-xe-moto",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "rockman-mega-man",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "duck-hunt-ban-vit",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "adventure-island-dao-hoang",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "street-fighter-2-doi-khang",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "prince-of-persia-1989",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "bubble-bobble-khung-long-bong-bong",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "age-of-war-thoi-dai-chien-tranh",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "bloxorz-khoi-da-lan",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "raft-wars-ban-sung-phao",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "papa-pizzeria-tiem-banh-pizza",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "stick-war-chien-tranh-nguoi-que",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "defend-your-castle-thu-thanh-nguoi-que",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "donkey-kong-1981",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "dig-dug-dao-dat-bom-quai",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "pooyan-lon-me-ban-bong",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "yie-ar-kung-fu-vo-dai",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "asteroids-tau-ban-thien-thach",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "frogger-ech-bang-qua-duong",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "elevator-action-diep-vien-thang-may",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "double-dragon-hiep-si-rong-doi",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "golden-axe-riu-vang",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "cadillacs-dinosaurs-bo-doi",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "snowcraft-nem-tuyet-3v3",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "bowman-nguoi-que-ban-cung",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "line-rider-truot-tuyet-vat-ly",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "boulder-dash-tho-dao-ngoc",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "moorhuhn-ban-ga-dam-lay",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "gun-mayhem-dau-sung-loan-da",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "electric-man-2-vo-thuat-nguoi-que",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "fancy-pants-chay-nhay-quan-cam",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "impossible-quiz-do-vui-xoan-nao",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "centipede-ban-sau-ret",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "qbert-nhay-khoi-lap-phuong",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "1942-khong-chien-thai-binh-duong",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "shinobi-ninja-phi-tieu",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "chip-dale-soc-chuot-cuu-ho",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "tiny-toon-tho-buster-phieu-luu",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "balloon-fight-dap-bong-bay",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "ice-climber-dap-bang-leo-nui",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "mappy-chuot-canh-sat-nhay-bat",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "twinbee-ban-chuong-bay",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "worms-armageddon-giun-chien-tranh",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "digger-xe-ui-dao-ham",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "bookworm-sau-noi-chu",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "atomix-ghep-phan-tu-hoa-hoc",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "icy-tower-thap-bang-nhay-cao",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "hamsterball-lan-cau-hamster",
+      "width": 390,
+      "pass": true
+    }
+  ],
+  "errors": [],
+  "completed": true,
+  "started": "2026-10-20T10:48:28.384Z",
+  "finished": "2026-10-20T10:57:50.292Z"
+}

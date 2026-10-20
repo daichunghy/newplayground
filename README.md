@@ -80,7 +80,7 @@ Chỉ cần mở repository trên GitHub và nhấn **Codespaces -> Create codes
 Chạy bằng Node.js 18 trở lên, không cần cài thêm thư viện:
 
 ```bash
-node --test tests/game-flow.test.cjs
+node --test tests/*.test.cjs
 ```
 
 Bộ kiểm tra chạy mã nguồn thật với DOM/Canvas/âm thanh giả lập: định tuyến một engine mỗi lần mở,
@@ -93,6 +93,26 @@ Vui lòng tham khảo file [`AGENTS.md`](./AGENTS.md) để nắm rõ:
 - Quy chuẩn font chữ `Calibri` và kích thước cảm ứng trên di động (≥ 44px).
 
 ---
+
+### Cải thiện toàn bộ danh mục (20/10/2026)
+
+- Thanh điều khiển chung cho 150 mục: tạm dừng, tiếp tục, chơi lại/mở lại và hướng dẫn theo game thực sự đang chạy. Đổi tab hoặc rời cửa sổ tự tạm dừng; quay lại cần bấm Tiếp tục.
+- Session giữ thời gian còn lại của timer, dừng RAF, nhả phím/chạm đang giữ và loại thời gian nghỉ khỏi đồng hồ gameplay. Không thay đổi thời gian thực dùng cho cây trồng.
+- Các vòng arcade cũ chuyển sang simulation 60 Hz độc lập tần số render; đây là thay đổi về tốc độ gameplay, không phải cam kết mọi thiết bị đạt 60 FPS.
+- Sửa các lỗi qua màn/kết thúc, va chạm, thao tác cảm ứng, chọn màu/lượt AI UNO, di chuyển Pac-Man, Bloxorz và các cơ chế riêng trong từng nhóm.
+- Cả 7 chế độ arcade dùng chung được sửa và có hình ảnh theo thể loại; ghép cặp dùng ô nút thật để dễ chạm và điều khiển bằng bàn phím.
+- Canvas giữ tỉ lệ và lấy giới hạn chiều cao từ viewport để không nhỏ dần khi modal tự co giãn; các thông báo resize được gộp và hủy khi đóng game. Nút chung đủ 44 px, có focus rõ và tôn trọng chế độ giảm chuyển động.
+- Danh mục hiện có **150 mục: 65 mục dùng engine chuyên biệt/biến thể, 85 mục dùng 7 chế độ arcade theo thể loại**. Đợt sửa này không biến 150 tên trong danh mục thành 150 bản tái hiện độc lập của game gốc.
+
+Chạy tất cả kiểm tra hồi quy:
+
+```bash
+node --test tests/*.test.cjs
+```
+
+Chạy kiểm tra trên trình duyệt bằng cách mở [`tests/browser-smoke.html`](./tests/browser-smoke.html) trên cùng máy chủ HTTP. Bộ kiểm tra mở/vẽ/tạm dừng/hướng dẫn/tiếp tục/đóng 150 mục ở hai khung desktop và mobile; không thay thế việc chơi hết chiến dịch hay kiểm tra phần cứng thật.
+
+Chi tiết phạm vi và bằng chứng kiểm tra trong [báo cáo cải thiện 20/10](./docs/GAMEPLAY_IMPROVEMENTS_2026_10_20.md).
 
 ### Gameplay và cảm giác điều khiển Arcade (11/10/2026)
 

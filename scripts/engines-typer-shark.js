@@ -7,6 +7,7 @@
   function launch(container) {
     const session = window.NP_GameSession.start();
     const { listen, requestAnimationFrame } = session;
+    const sharedPause = typeof session.pause === 'function' && typeof session.resume === 'function' && typeof session.onPauseChange === 'function';
     container.innerHTML =
       '<div class="canvas-game-box np-typer-shark">' +
         '<div class="canvas-game-hud np-ts-hud">' +
@@ -41,7 +42,10 @@
       kills: 0, charge: 0, typed: '', phase: 'playing', paused: false,
       flash: 0, diverKick: 0
     };
-    try { state.best = Number(localStorage.getItem('np_typer_shark_best') || 0) || 0; } catch (_) {}
+    try {
+      const best = Number(localStorage.getItem('np_typer_shark_best') || 0);
+      state.best = Number.isFinite(best) ? Math.max(0, best) : 0;
+    } catch (_) {}
 
     const text = (id, value) => {
       const el = container.querySelector(id);
@@ -49,7 +53,8 @@
     };
 
     function spawnShark(initial) {
-      const word = WORDS[Math.floor(Math.random() * WORDS.length)];
+      const available = WORDS.filter(word => !state.sharks.some(shark => shark.word === word));
+      const word = available[Math.floor(Math.random() * available.length)];
       state.sharks.push({
         x: initial ? W - 70 - state.sharks.length * 110 : W - 70, y: 88 + Math.random() * 292, word,
         speed: 27 + state.level * 3 + Math.random() * 10,
@@ -73,7 +78,14 @@
       const fill = container.querySelector('#tsMeterFill');
       if (fill) fill.style.width = state.charge + '%';
       const pause = container.querySelector('#tsPause');
-      if (pause) pause.textContent = state.paused ? 'TIẾP TỤC' : 'PAUSE';
+      if (pause) {
+        pause.textContent = state.paused ? 'TIẾP TỤC' : 'TẠM DỪNG';
+        pause.disabled = state.phase === 'over';
+        pause.setAttribute('aria-pressed', String(state.paused));
+      }
+      input.disabled = state.paused || state.phase !== 'playing';
+      const zapper = container.querySelector('#tsZapper');
+      if (zapper) zapper.disabled = input.disabled || state.charge < 100;
       updateTargets();
     }
 
@@ -133,6 +145,7 @@
     function submitLetters(raw) {
       if (state.phase !== 'playing' || state.paused) return;
       const value = String(raw || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 12);
+      input.value = value;
       state.typed = value;
       if (!value) return;
       const matching = state.sharks.filter(shark => shark.word.startsWith(value)).sort((a, b) => a.x - b.x);
@@ -181,6 +194,8 @@
       spawnShark(true);
       message('READY! Gõ đúng từ đang bơi về phía bạn.');
       updateHUD();
+      if (sharedPause && session.isPaused()) session.resume();
+      input.focus();
     }
 
     function loseLife() {
@@ -329,7 +344,7 @@
       ctx.fillRect(-43, -63, 86, 25);
       ctx.strokeStyle = marked ? '#fff0ac' : '#6cabb2'; ctx.lineWidth = 1.5; ctx.strokeRect(-43, -63, 86, 25);
       ctx.fillStyle = marked ? '#142d3a' : '#f5f4e8';
-      ctx.font = 'bold 17px Trebuchet MS, sans-serif';
+      ctx.font = 'bold 17px Calibri, sans-serif';
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(shark.word, 0, -50);
       if (marked) {
         ctx.fillStyle = '#e85f45';
@@ -345,7 +360,7 @@
         if (effect.kind === 'zap') {
           ctx.strokeStyle = '#fff0a6'; ctx.lineWidth = 4;
           ctx.beginPath(); ctx.arc(effect.x, effect.y, 18 + (1 - pct) * 34, 0, Math.PI * 2); ctx.stroke();
-          ctx.fillStyle = '#fff9d1'; ctx.font = 'bold 20px Trebuchet MS';
+          ctx.fillStyle = '#fff9d1'; ctx.font = 'bold 20px Calibri, sans-serif';
           ctx.textAlign = 'center'; ctx.fillText('+', effect.x, effect.y - 14);
         } else if (effect.kind === 'wave') {
           ctx.strokeStyle = '#83f5e5'; ctx.lineWidth = 8;
@@ -363,9 +378,9 @@
       ctx.fillStyle = 'rgba(1, 19, 35, .74)'; ctx.fillRect(0, 0, W, H);
       ctx.textAlign = 'center';
       ctx.fillStyle = state.phase === 'over' ? '#ffcb5b' : '#fff5d9';
-      ctx.font = 'bold 34px Trebuchet MS, sans-serif';
+      ctx.font = 'bold 34px Calibri, sans-serif';
       ctx.fillText(state.phase === 'over' ? 'DIVE OVER' : 'PAUSED', W / 2, H / 2 - 12);
-      ctx.fillStyle = '#e9f3e8'; ctx.font = '18px Trebuchet MS, sans-serif';
+      ctx.fillStyle = '#e9f3e8'; ctx.font = '18px Calibri, sans-serif';
       ctx.fillText(state.phase === 'over' ? 'SCORE ' + state.score + ' • BEST ' + state.best : 'Nhấn TIẾP TỤC để quay lại vùng biển.', W / 2, H / 2 + 24);
     }
 
@@ -377,14 +392,20 @@
       requestAnimationFrame(render);
     }
 
-    input.addEventListener('input', event => submitLetters(event.target.value));
+    listen(input, 'input', event => {
+      if (!event.isComposing) submitLetters(event.target.value);
+    });
+    listen(input, 'compositionend', event => submitLetters(event.target.value));
     listen(window, 'keydown', event => {
+      if (event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
+      if (state.paused || state.phase !== 'playing') return;
       if (event.target === input) {
         if (event.key === 'Enter') { event.preventDefault(); useZapper(); }
         return;
       }
       // Focused buttons use their native Enter-to-click behavior; don't fire the same action twice.
-      if (event.target && String(event.target.tagName).toLowerCase() === 'button') return;
+      if (event.target && String(event.target.tagName).toLowerCase() === 'button' &&
+          (event.key === 'Enter' || event.key === ' ')) return;
       if (/^[a-z]$/i.test(event.key)) {
         event.preventDefault(); input.value = (input.value || '') + event.key.toUpperCase();
         submitLetters(input.value); input.focus();
@@ -394,16 +415,21 @@
         event.preventDefault(); useZapper();
       } else if (event.key === 'Escape') {
         input.value = ''; state.typed = ''; updateTargets();
-      } else if ((event.key === 'p' || event.key === 'P') && !event.repeat) {
-        state.paused = !state.paused; updateHUD();
       }
     });
     listen(canvas, 'pointerdown', event => { event.preventDefault(); input.focus(); });
+    function syncPause(next) {
+      state.paused = Boolean(next);
+      state.lastTime = 0;
+      if (state.phase === 'playing') message(state.paused ? 'GAME PAUSED' : 'READY! Gõ từ đang bơi về phía bạn.');
+      updateHUD();
+      if (!state.paused && state.phase === 'playing') input.focus();
+    }
+    if (sharedPause) session.onPauseChange(syncPause);
     container.querySelector('#tsPause').addEventListener('click', () => {
       if (state.phase === 'over') return;
-      state.paused = !state.paused;
-      message(state.paused ? 'GAME PAUSED' : 'READY! Gõ từ đang bơi về phía bạn.');
-      updateHUD();
+      if (sharedPause) { if (session.isPaused()) session.resume(); else session.pause(); }
+      else syncPause(!state.paused);
     });
     container.querySelector('#tsRestart').addEventListener('click', resetGame);
     container.querySelector('#tsZapper').addEventListener('click', useZapper);

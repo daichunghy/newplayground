@@ -19,10 +19,17 @@
   let currentFilter = 'all';
   let searchQuery = '';
 
+  function readPreference(key, fallback = null) {
+    try { return localStorage.getItem(key) ?? fallback; } catch (error) { return fallback; }
+  }
+  function writePreference(key, value) {
+    try { localStorage.setItem(key, value); } catch (error) { /* Play remains available without storage. */ }
+  }
+
   // --- AUDIO SYNTHESIS FOR ZERO-DEPENDENCY INSTANT SOUND ---
   let audioCtx = null;
   function getAudioContext() {
-    if (window.NEWPLAYGROUND_MUTED || (window.NP_Audio && window.NP_Audio.isMuted)) return null;
+    if (window.NEWPLAYGROUND_MUTED || window.NP_Audio?.isMuted || currentSession()?.isPaused()) return null;
     if (!audioCtx) {
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
       if (AudioContextClass) audioCtx = new AudioContextClass();
@@ -97,6 +104,11 @@
     setupEventListeners();
     setupTheme();
     setupSoundControls();
+    // A bookmarked game opens only after the catalog has loaded.
+    if (window.location && typeof URLSearchParams === 'function') {
+      const linkedGame = new URLSearchParams(window.location.search).get('game');
+      if (linkedGame) window.openGameById(linkedGame);
+    }
   }
 
   // --- RENDERING ---
@@ -772,12 +784,13 @@
 
     // CRT Scanlines toggle
     const crtBtn = document.getElementById('crtToggleBtn');
-    let crtEnabled = localStorage.getItem('np_crt') === 'true';
+    let crtEnabled = readPreference('np_crt') === 'true';
     function updateCrtState(active) {
       crtEnabled = active;
       try { localStorage.setItem('np_crt', crtEnabled ? 'true' : 'false'); } catch (e) {}
       if (crtBtn) {
         crtBtn.classList.toggle('active', crtEnabled);
+        crtBtn.setAttribute('aria-pressed', String(crtEnabled));
         crtBtn.title = crtEnabled ? 'Hiệu ứng CRT Scanlines: Đang bật 📺' : 'Hiệu ứng CRT Scanlines: Đang tắt 📺';
       }
       document.querySelectorAll('.canvas-game-box').forEach(box => {
@@ -793,13 +806,7 @@
       updateCrtState(crtEnabled);
     }
 
-    // Escape key
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        closeGameModal();
-        closeDonateModal();
-      }
-    });
+    setupGameShell();
   }
 
   function setActiveBottomNav(id) {
@@ -819,7 +826,7 @@
 
   // --- THEME TOGGLE ---
   function setupTheme() {
-    const savedTheme = localStorage.getItem('np_theme') || 'light';
+    const savedTheme = readPreference('np_theme', 'light');
     if (savedTheme === 'dark') {
       document.body.classList.add('dark-theme');
       updateThemeIcon(true);
@@ -829,7 +836,7 @@
       themeBtn.addEventListener('click', () => {
         playClickSound();
         const isDark = document.body.classList.toggle('dark-theme');
-        localStorage.setItem('np_theme', isDark ? 'dark' : 'light');
+        writePreference('np_theme', isDark ? 'dark' : 'light');
         updateThemeIcon(isDark);
       });
     }
@@ -848,12 +855,16 @@
       const headerBtn = document.getElementById('soundToggleBtn');
       if (headerBtn) {
         headerBtn.setAttribute('title', title);
+        headerBtn.setAttribute('aria-label', title);
+        headerBtn.setAttribute('aria-pressed', String(!muted));
         const iconSpan = headerBtn.querySelector('.sound-icon');
         if (iconSpan) iconSpan.textContent = icon;
       }
       const modalBtn = document.getElementById('modalSoundToggleBtn');
       if (modalBtn) {
         modalBtn.setAttribute('title', title);
+        modalBtn.setAttribute('aria-label', title);
+        modalBtn.setAttribute('aria-pressed', String(!muted));
         modalBtn.textContent = icon;
       }
     }
@@ -888,8 +899,232 @@
   let gameInterval = null;
   let focusBeforeGame = null;
   let overflowBeforeGame = '';
+  let activeGame = null;
+  let focusBeforePause = null;
+  let removeGameObserver = null;
+
+  function currentSession() {
+    return window.NP_GameSession?.getCurrent();
+  }
+
+  function currentGuide() {
+    const container = document.getElementById('modalGameContainer');
+    return window.NP_GameGuide?.describe(container, activeGame) || {
+      objective: 'Theo dõi mục tiêu và điểm số trên sân chơi.',
+      keyboard: 'Dùng các phím và nút được ghi ngay dưới sân chơi.',
+      touch: 'Chạm các nút điều khiển hoặc các ô trên sân chơi.'
+    };
+  }
+
+  function focusPlayfield() {
+    const container = document.getElementById('modalGameContainer');
+    if (!container) return;
+    const input = container.querySelector('input[type="text"], input:not([type]), textarea');
+    const canvas = [...container.querySelectorAll('canvas')].find(el => el.style.display !== 'none' && el.getAttribute('aria-hidden') !== 'true' && el.width >= 200);
+    (input || canvas || container).focus?.({ preventScroll: true });
+  }
+
+  function syncGameShell() {
+    const session = currentSession();
+    const paused = !!session?.isPaused();
+    window.NP_Audio?.setPaused?.(paused);
+    const pauseButton = document.getElementById('pauseGameBtn');
+    if (pauseButton) {
+      pauseButton.disabled = !session;
+      pauseButton.textContent = paused ? '▶ Tiếp tục' : 'Ⅱ Tạm dừng';
+      pauseButton.setAttribute('aria-pressed', String(paused));
+      pauseButton.title = 'Tạm dừng hoặc tiếp tục (Esc / P)';
+    }
+    const status = document.getElementById('gameSessionStatus');
+    if (status) status.textContent = !session ? 'Chưa sẵn sàng' : paused ? 'Đã tạm dừng' : 'Đang chơi';
+    document.getElementById('gameToolbar')?.classList.toggle('is-paused', paused);
+    const container = document.getElementById('modalGameContainer');
+    if (container) container.inert = paused;
+    const restartButton = document.getElementById('restartGameBtn');
+    if (restartButton) {
+      const persistent = activeGame && currentGuide().persistent;
+      restartButton.textContent = persistent ? '↻ Mở lại' : '↻ Chơi lại';
+      restartButton.title = persistent ? 'Mở lại trò chơi, giữ tiến trình đã lưu' : 'Bắt đầu lại ván chơi';
+    }
+  }
+
+  function showGameOverlay(mode = 'pause', reason = '') {
+    const session = currentSession();
+    if (!activeGame || !session) return;
+    const overlay = document.getElementById('gameSessionOverlay');
+    if (!session.isPaused()) focusBeforePause = document.activeElement;
+    const help = mode === 'help';
+    const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+    setText('gameOverlayEyebrow', help ? 'CHƠI THẾ NÀO?' : 'NGHỈ MỘT CHÚT');
+    setText('gameOverlayTitle', help ? activeGame.title : 'Đã tạm dừng');
+    setText('gameOverlayDescription', help ? 'Xem cách điều khiển rồi vào chơi tiếp.' : reason || 'Sẵn sàng thì mình chơi tiếp.');
+    const details = document.getElementById('gameHelpDetails');
+    if (details) details.hidden = !help;
+    if (help) {
+      const guide = currentGuide();
+      setText('gameHelpObjective', guide.objective);
+      setText('gameHelpKeyboard', guide.keyboard);
+      setText('gameHelpTouch', guide.touch);
+      setText('gameHelpNote', guide.note || '');
+      const note = document.getElementById('gameHelpNote');
+      if (note) note.hidden = !guide.note;
+    }
+    if (overlay) overlay.hidden = false;
+    document.getElementById('helpGameBtn')?.setAttribute('aria-expanded', String(help));
+    session.pause();
+    syncGameShell();
+    if (mode !== 'background') document.getElementById('resumeGameBtn')?.focus({ preventScroll: true });
+  }
+
+  function resumeGame() {
+    if (!activeGame) return;
+    const overlay = document.getElementById('gameSessionOverlay');
+    if (overlay) overlay.hidden = true;
+    document.getElementById('helpGameBtn')?.setAttribute('aria-expanded', 'false');
+    currentSession()?.resume();
+    syncGameShell();
+    const container = document.getElementById('modalGameContainer');
+    if (focusBeforePause && container?.contains?.(focusBeforePause) && focusBeforePause.isConnected !== false) {
+      focusBeforePause.focus?.({ preventScroll: true });
+    } else focusPlayfield();
+    focusBeforePause = null;
+  }
+
+  function restartGame() {
+    if (!activeGame) return;
+    const game = activeGame;
+    const guide = currentGuide();
+    const container = document.getElementById('modalGameContainer');
+    const nativeRestart = guide.restartSelector && container.querySelector(guide.restartSelector);
+    if (nativeRestart && typeof nativeRestart.click === 'function') {
+      resumeGame();
+      nativeRestart.click();
+      focusPlayfield();
+    } else openGameModal(game);
+  }
+
+  function fitGameCanvases() {
+    const container = document.getElementById('modalGameContainer');
+    if (!activeGame || !container?.clientWidth) return;
+    const toolbarHeight = document.getElementById('gameToolbar')?.offsetHeight || 54;
+    const headerHeight = document.querySelector('#gameModal .modal-header')?.offsetHeight || 64;
+    const maxHeight = Math.max(160, window.innerHeight - toolbarHeight - headerHeight - 126);
+    container.querySelectorAll('canvas').forEach(canvas => {
+      if (canvas.width < 200 || canvas.height < 140 || canvas.style.display === 'none' || canvas.getAttribute('aria-hidden') === 'true') return;
+      const width = canvas.parentElement?.clientWidth || container.clientWidth;
+      if (!width) return;
+      const ratio = canvas.width / canvas.height;
+      let heightBudget = maxHeight;
+      const gameBox = canvas.closest?.('.canvas-game-box');
+      if (gameBox) {
+        const chromeHeight = Math.max(0, gameBox.getBoundingClientRect().height - canvas.getBoundingClientRect().height);
+        // The modal has automatic height: use the viewport, never its previous fitted size.
+        heightBudget = Math.max(160, Math.min(maxHeight, window.innerHeight - toolbarHeight - headerHeight - chromeHeight - 72));
+      }
+      const fittedWidth = Math.max(1, Math.min(width, container.clientWidth - 12, heightBudget * ratio));
+      // Intrinsic height also follows CSS max-width caps, including the narrow Tetris layout.
+      canvas.style.width = fittedWidth + 'px';
+      canvas.style.height = 'auto';
+      canvas.style.aspectRatio = 'auto';
+      canvas.style.maxHeight = 'none';
+      canvas.style.flexShrink = '0';
+    });
+  }
+
+  function prepareGameShell() {
+    const container = document.getElementById('modalGameContainer');
+    const overlay = document.getElementById('gameSessionOverlay');
+    if (overlay) overlay.hidden = true;
+    document.getElementById('helpGameBtn')?.setAttribute('aria-expanded', 'false');
+    focusBeforePause = null;
+    currentSession()?.onPauseChange(paused => {
+      if (paused && overlay?.hidden) {
+        focusBeforePause = document.activeElement;
+        showGameOverlay();
+      } else if (!paused) {
+        if (overlay) overlay.hidden = true;
+        document.getElementById('helpGameBtn')?.setAttribute('aria-expanded', 'false');
+      }
+      syncGameShell();
+    });
+    container.querySelectorAll('canvas').forEach(canvas => {
+      if (canvas.width >= 200 && canvas.height >= 140 && canvas.getAttribute('aria-hidden') !== 'true') {
+        canvas.setAttribute('tabindex', '0');
+        if (!canvas.getAttribute('aria-label')) canvas.setAttribute('aria-label', activeGame.title + ' · Sân chơi. Mở Cách chơi để xem điều khiển.');
+      }
+    });
+    syncGameShell();
+    fitGameCanvases();
+    if (typeof ResizeObserver !== 'undefined') {
+      let pendingFit = null;
+      const observer = new ResizeObserver(() => {
+        if (pendingFit !== null) return;
+        pendingFit = window.requestAnimationFrame(() => { pendingFit = null; fitGameCanvases(); });
+      });
+      observer.observe(container);
+      removeGameObserver = () => {
+        observer.disconnect();
+        if (pendingFit !== null) window.cancelAnimationFrame(pendingFit);
+        pendingFit = null;
+      };
+    }
+    focusPlayfield();
+  }
+
+  function setupGameShell() {
+    document.getElementById('pauseGameBtn')?.addEventListener('click', () => {
+      if (currentSession()?.isPaused()) resumeGame(); else showGameOverlay();
+    });
+    document.getElementById('resumeGameBtn')?.addEventListener('click', resumeGame);
+    document.getElementById('restartGameBtn')?.addEventListener('click', restartGame);
+    document.getElementById('helpGameBtn')?.addEventListener('click', () => showGameOverlay('help'));
+    window.addEventListener('resize', fitGameCanvases);
+    window.addEventListener('blur', () => {
+      if (activeGame && !currentSession()?.isPaused()) showGameOverlay('background', 'Bạn vừa rời màn chơi. Bấm Tiếp tục khi quay lại.');
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && activeGame && !currentSession()?.isPaused()) showGameOverlay('background', 'Game đã dừng khi bạn đổi tab. Bấm Tiếp tục để chơi tiếp.');
+    });
+    window.addEventListener('keydown', event => {
+      const donate = document.getElementById('donateModal');
+      if (event.key === 'Escape' && donate?.style.display === 'flex') {
+        event.preventDefault(); closeDonateModal(); return;
+      }
+      if (!activeGame) return;
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      const editable = event.target?.closest?.('input, textarea, select, [contenteditable="true"]');
+      if (event.key === 'Escape' || (!editable && (event.key === 'p' || event.key === 'P'))) {
+        event.preventDefault(); event.stopImmediatePropagation();
+        if (!event.repeat) {
+          if (currentSession()?.isPaused()) resumeGame(); else showGameOverlay();
+        }
+        return;
+      }
+      if (event.key === 'Tab') {
+        const modal = document.querySelector('#gameModal .modal-window');
+        const controls = [...(modal?.querySelectorAll('button, input, select, textarea, a[href], [tabindex]') || [])].filter(el =>
+          !el.disabled && el.tabIndex >= 0 && !el.closest('[hidden], [inert]') && el.getClientRects().length);
+        if (controls.length) {
+          const first = controls[0], last = controls[controls.length - 1];
+          if (event.shiftKey && (document.activeElement === first || !controls.includes(document.activeElement))) {
+            event.preventDefault(); last.focus();
+          } else if (!event.shiftKey && (document.activeElement === last || !controls.includes(document.activeElement))) {
+            event.preventDefault(); first.focus();
+          }
+        }
+        event.stopImmediatePropagation();
+        return;
+      }
+      // Direct DOM handlers in older games are also covered by the pause boundary.
+      if (currentSession()?.isPaused() && !event.target?.closest?.('[data-np-shell]')) {
+        event.preventDefault(); event.stopImmediatePropagation();
+      }
+    }, true);
+  }
+
 
   function openGameModal(game) {
+    if (!game) return;
     playClickSound();
     const modal = document.getElementById('gameModal');
     const title = document.getElementById('modalGameTitle');
@@ -906,6 +1141,7 @@
     document.body.style.overflow = 'hidden';
 
     cleanupGameRuntime();
+    activeGame = game;
 
     const gId = typeof game.id === 'string' ? game.id.toLowerCase() : '';
     try {
@@ -989,7 +1225,7 @@
     }
 
     // Apply CRT state if active
-    if (localStorage.getItem('np_crt') === 'true') {
+    if (readPreference('np_crt') === 'true') {
       container.querySelectorAll('.canvas-game-box').forEach(box => box.classList.add('crt-active'));
     }
     // Apply vector mode to smooth canvas vector games
@@ -997,13 +1233,14 @@
     if (isVectorGame) {
       container.querySelectorAll('canvas').forEach(c => c.classList.add('canvas-vector-mode'));
     }
-    document.getElementById('closeModalBtn')?.focus();
+    prepareGameShell();
   }
 
   function closeGameModal() {
     const modal = document.getElementById('gameModal');
     if (modal) modal.style.display = 'none';
     document.body.style.overflow = overflowBeforeGame;
+    activeGame = null;
     cleanupGameRuntime();
     if (document.fullscreenElement && typeof document.exitFullscreen === 'function') {
       document.exitFullscreen().catch(() => {});
@@ -1015,12 +1252,18 @@
   }
 
   function cleanupGameRuntime() {
+    removeGameObserver?.();
+    removeGameObserver = null;
+    const overlay = document.getElementById('gameSessionOverlay');
+    if (overlay) overlay.hidden = true;
+    focusBeforePause = null;
     clearInterval(gameInterval);
     gameInterval = null;
     if (window.NP_GameSession) window.NP_GameSession.stop();
     if (window.NP_Audio && typeof window.NP_Audio.stopBGM === 'function') window.NP_Audio.stopBGM();
+    window.NP_Audio?.setPaused?.(false);
     const container = document.getElementById('modalGameContainer');
-    if (container) container.replaceChildren();
+    if (container) { container.inert = false; container.replaceChildren(); }
   }
 
   function closeDonateModal() {

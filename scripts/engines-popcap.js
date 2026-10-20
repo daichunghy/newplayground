@@ -1,13 +1,13 @@
 /**
  * NEWPLAYGROUND - POPCAP, BOARD & RETRO CLASSICS ENGINE SUITE
- * Implements 100% authentic childhood original gameplay with tactile feel & complete stage progression:
+ * Lightweight browser adaptations with local input, scoring and stage progression:
  * 1. Zuma Deluxe (PopCap Ếch Bắn Ngọc 2003) - Frog turret, recoil kick, intro screen, stage 1-3, pull-back combos
  * 2. Diner Dash (PlayFirst Phục Vụ Bàn 2004) - Color matching booths, Flo dual-carry, shift clear screens, calm pacing
  * 3. Cờ Tướng Tàn Cuộc (Xiangqi Endgame Tactics) - Intro art, 5 endgame puzzles, carved wooden board, move validation
  * 4. Bắn Bi Ve Tuổi Thơ (Vietnamese Childhood Marbles) - Intro art, sand friction, slingshot aim, round 1-3 progression
  * 5. Đánh Bài Đổi Màu (Uno Classic) - Intro art, action cards, turn rotation, HÔ UNO! button, 3 AI opponents
  *
- * Strict Calibri typography and 100% synthesized Web Audio API (Muted during work as instructed).
+ * Calibri typography and synthesized Web Audio effects.
  */
 
 (function () {
@@ -21,7 +21,7 @@
   // 1. ZUMA DELUXE (POPCAP ẾCH BẮN NGỌC 2003)
   // =========================================================================
   function launchZuma(container, game) {
-    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance = window.performance } = window.NP_GameSession.start();
     let score = 0;
     let coins = 0;
     let stage = 1;
@@ -97,8 +97,10 @@
     // Bonus golden coin
     let bonusCoin = null;
     let coinTimer = 0;
+    let boardRevision = 0;
 
     function initTrainForStage(stg) {
+      boardRevision++;
       stage = stg;
       train = [];
       ballIdCounter = 1;
@@ -291,14 +293,6 @@
       frog.angle = Math.atan2(my - frog.y, mx - frog.x);
     }
 
-    canvas.addEventListener('mousemove', (e) => handleAim(e.clientX, e.clientY));
-    canvas.addEventListener('touchmove', (e) => {
-      if (e.touches && e.touches[0]) {
-        e.preventDefault();
-        handleAim(e.touches[0].clientX, e.touches[0].clientY);
-      }
-    }, { passive: false });
-
     function handleShoot() {
       if (gameState !== 'PLAYING' || bullet) return;
       const speed = 9.2; // Calibrated tactile speed
@@ -317,53 +311,52 @@
       if (window.NP_Juice) window.NP_Juice.vibrate(10);
     }
 
-    canvas.addEventListener('mousedown', (e) => {
-      if (gameState !== 'PLAYING') return;
-      if (e.button === 2) {
-        e.preventDefault();
-        swapFrogBall();
-        return;
-      }
-      if (e.button === 0) handleShoot();
-    });
-
+    canvas.style.touchAction = 'none';
+    let aimPointer = null;
     let touchAimed = false;
-    canvas.addEventListener('touchstart', (e) => {
+    listen(canvas, 'pointermove', event => {
+      if (event.pointerType === 'mouse' || aimPointer === event.pointerId) handleAim(event.clientX, event.clientY);
+    });
+    listen(canvas, 'pointerdown', event => {
+      if (gameState !== 'PLAYING' || aimPointer !== null) return;
+      event.preventDefault();
+      handleAim(event.clientX, event.clientY);
+      if (event.button === 2) { swapFrogBall(); return; }
+      if (event.button > 0) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = (event.clientX - rect.left) * canvas.width / rect.width;
+      const y = (event.clientY - rect.top) * canvas.height / rect.height;
+      const touch = event.pointerType !== 'mouse';
+      if (touch && Math.hypot(x - frog.x, y - frog.y) < 38) { swapFrogBall(); return; }
+      aimPointer = event.pointerId;
+      if (canvas.setPointerCapture && event.pointerId !== undefined) {
+        try { canvas.setPointerCapture(event.pointerId); } catch (error) {}
+      }
+      touchAimed = touch;
+      if (!touch) handleShoot();
+    });
+    listen(canvas, 'pointerup', event => {
+      if (aimPointer !== event.pointerId) return;
+      aimPointer = null;
+      if (touchAimed) { handleAim(event.clientX, event.clientY); handleShoot(); }
+      touchAimed = false;
+    });
+    const cancelAim = () => { aimPointer = null; touchAimed = false; };
+    listen(canvas, 'pointercancel', cancelAim);
+    listen(canvas, 'lostpointercapture', cancelAim);
+    listen(window, 'blur', cancelAim);
+    listen(canvas, 'contextmenu', event => event.preventDefault());
+
+    listen(window, 'keydown', event => {
+      const target = event.target;
+      if (target && (['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'A'].includes(target.tagName) || target.isContentEditable)) return;
       if (gameState !== 'PLAYING') return;
-      if (e.touches && e.touches[0]) {
-        e.preventDefault();
-        const rect = canvas.getBoundingClientRect();
-        const mx = (e.touches[0].clientX - rect.left) * (canvas.width / rect.width);
-        const my = (e.touches[0].clientY - rect.top) * (canvas.height / rect.height);
-        // Tap on frog to swap ball
-        if (Math.hypot(mx - frog.x, my - frog.y) < 38) {
-          swapFrogBall();
-          touchAimed = false;
-          return;
-        }
-        handleAim(e.touches[0].clientX, e.touches[0].clientY);
-        touchAimed = true;
-      }
-    }, { passive: false });
-
-    canvas.addEventListener('touchend', (e) => {
-      if (gameState !== 'PLAYING') return;
-      if (touchAimed) {
-        e.preventDefault();
-        touchAimed = false;
-        handleShoot();
-      }
-    }, { passive: false });
-
-    canvas.addEventListener('contextmenu', (e) => e.preventDefault());
-
-    const onKeyDown = (e) => {
-      if (e.code === 'Space' || e.key === 'c' || e.key === 'C') {
-        e.preventDefault();
-        swapFrogBall();
-      }
-    };
-    listen(window, 'keydown', onKeyDown);
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        event.preventDefault(); frog.angle += event.key === 'ArrowLeft' ? -0.08 : 0.08;
+      } else if (!event.repeat && (event.code === 'Space' || event.key === 'c' || event.key === 'C')) {
+        event.preventDefault(); swapFrogBall();
+      } else if (!event.repeat && event.key === 'Enter') { event.preventDefault(); handleShoot(); }
+    });
 
     function getTrackPos(dist) {
       if (dist < 0) return { x: -999, y: -999, valid: false };
@@ -413,8 +406,11 @@
             isReversing = true;
             reverseTimer = 35;
             if (window.NP_Audio) window.NP_Audio.whoosh();
+            const revision = boardRevision;
             setTimeout(() => {
-              checkMatchesAt(left, comboCount + 1);
+              if (boardRevision !== revision || gameState !== 'PLAYING') return;
+              const index = train.indexOf(nextBall);
+              if (index >= 0) checkMatchesAt(index, comboCount + 1);
             }, 300);
           }
         }
@@ -714,7 +710,7 @@
   // 2. DINER DASH (PHỤC VỤ BÀN - PLAYFIRST FLO'S DINER 2004)
   // =========================================================================
   function launchDinerDash(container, game) {
-    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance = window.performance } = window.NP_GameSession.start();
     let score = 0;
     let stage = 1;
     let targetScore = 600;
@@ -1134,13 +1130,12 @@
       }
     }
 
-    canvas.addEventListener('click', (e) => handleDinerClick(e.clientX, e.clientY));
-    canvas.addEventListener('touchstart', (e) => {
-      if (e.touches && e.touches[0]) {
-        e.preventDefault();
-        handleDinerClick(e.touches[0].clientX, e.touches[0].clientY);
-      }
-    }, { passive: false });
+    canvas.style.touchAction = 'none';
+    listen(canvas, 'pointerdown', event => {
+      if (event.button > 0) return;
+      event.preventDefault();
+      handleDinerClick(event.clientX, event.clientY);
+    });
 
     // Main Game Loop with 60 FPS Fixed Delta-Time
     function loop(now) {
@@ -1372,7 +1367,7 @@
   // 3. CỜ TƯỚNG TÀN CUỘC (XIANGQI ENDGAME TACTICS)
   // =========================================================================
   function launchCoTuong(container, game) {
-    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance = window.performance } = window.NP_GameSession.start();
     let currentPuzzleIdx = 0;
     let selectedCell = null;
     let validMoves = [];
@@ -1390,8 +1385,8 @@
       {
         id: 1,
         title: 'Thế 1: Mã Điếu Ngư (Điếu Ngư Mã Chiếu Bí)',
-        desc: 'Mã đỏ khống chế góc cửu cung, Xe đỏ thọc đáy phối hợp chiếu bí!',
-        hint: 'Nước 1: Xe đỏ thọc chiếu đáy ép Tướng đen lên -> Nước 2: Mã đỏ phi góc chiếu bí!',
+        desc: 'Đưa Xe đỏ lên hàng đáy, gỡ quân Sĩ chắn đường rồi bắt Tướng đen.',
+        hint: 'Xe lên hàng đáy, ăn Sĩ bên trái Tướng rồi tiến sang bắt Tướng.',
         board: [
           { r: 0, c: 4, type: 'k', side: 'black' },
           { r: 0, c: 3, type: 'a', side: 'black' },
@@ -1404,7 +1399,8 @@
         ],
         solution: [
           { from: { r: 8, c: 1 }, to: { r: 0, c: 1 } },
-          { from: { r: 0, c: 1 }, to: { r: 0, c: 4 } }
+          { from: { r: 0, c: 1 }, to: { r: 0, c: 3 } },
+          { from: { r: 0, c: 3 }, to: { r: 0, c: 4 } }
         ]
       },
       {
@@ -1461,7 +1457,7 @@
         id: 5,
         title: 'Thế 5: Song Pháo Trùng Chiếu Bí',
         desc: 'Hai pháo giăng hàng thẳng tắp, pháo trước ngòi pháo sau chiếu bí.',
-        hint: 'Tấn pháo trước chiếu, pháo sau tiếp ứng không thể cản phá!',
+        hint: 'Đưa Pháo trước lên một ô làm ngòi, rồi dùng Pháo sau nhảy qua để bắt Tướng.',
         board: [
           { r: 0, c: 4, type: 'k', side: 'black' },
           { r: 0, c: 3, type: 'a', side: 'black' },
@@ -1471,7 +1467,8 @@
           { r: 3, c: 4, type: 'C', side: 'red' }
         ],
         solution: [
-          { from: { r: 2, c: 4 }, to: { r: 0, c: 4 } }
+          { from: { r: 2, c: 4 }, to: { r: 1, c: 4 } },
+          { from: { r: 3, c: 4 }, to: { r: 0, c: 4 } }
         ]
       }
     ];
@@ -1614,7 +1611,11 @@
       });
     }
 
-    if (resetBtn) resetBtn.addEventListener('click', () => loadPuzzle(currentPuzzleIdx));
+    if (resetBtn) resetBtn.addEventListener('click', () => {
+      introOverlay.style.display = 'none';
+      clearOverlay.style.display = 'none';
+      loadPuzzle(currentPuzzleIdx);
+    });
     if (hintBtn) {
       hintBtn.addEventListener('click', () => {
         const p = PUZZLES[currentPuzzleIdx];
@@ -1892,13 +1893,12 @@
       }
     }
 
-    canvas.addEventListener('click', (e) => handleBoardClick(e.clientX, e.clientY));
-    canvas.addEventListener('touchstart', (e) => {
-      if (e.touches && e.touches[0]) {
-        e.preventDefault();
-        handleBoardClick(e.touches[0].clientX, e.touches[0].clientY);
-      }
-    }, { passive: false });
+    canvas.style.touchAction = 'none';
+    listen(canvas, 'pointerdown', event => {
+      if (event.button > 0) return;
+      event.preventDefault();
+      handleBoardClick(event.clientX, event.clientY);
+    });
 
     loadPuzzle(0);
 
@@ -1911,12 +1911,12 @@
   // 4. BẮN BI VE TUỔI THƠ (VIETNAMESE CHILDHOOD MARBLES)
   // =========================================================================
   function launchBanBiVe(container, game) {
-    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance = window.performance } = window.NP_GameSession.start();
     let score = 0;
     let round = 1;
-    let maxRounds = 3;
+    const maxRounds = 3;
     let shotsLeft = 8;
-    let gameState = 'INTRO'; // 'INTRO', 'PLAYING', 'STAGE_CLEAR', 'GAMEOVER'
+    let gameState = 'INTRO'; // 'INTRO', 'PLAYING', 'STAGE_CLEAR', 'WON', 'GAMEOVER'
     let animId = null;
     let lastFrameTime = performance.now();
 
@@ -1944,8 +1944,15 @@
     let isDragging = false;
     let dragStart = { x: 0, y: 0 };
     let dragCurrent = { x: 0, y: 0 };
+    let shotPending = false;
 
     function initRound(rnd) {
+      cancelDrag();
+      shotPending = false;
+      gameState = 'PLAYING';
+      introOverlay.style.display = 'none';
+      clearOverlay.style.display = 'none';
+      gameOverOverlay.style.display = 'none';
       round = rnd;
       shotsLeft = 7 + rnd;
       shooter.x = 100;
@@ -2025,10 +2032,10 @@
           <div class="game-stage-overlay" id="bvClearOverlay" style="display: none;">
             <div class="intro-modal-card stage-clear-card">
               <div class="stage-clear-stars">⭐⭐⭐</div>
-              <h3 class="intro-title" style="color: #10B981; font-size: 1.5rem;">SẠCH VÒNG BI XUẤT SẮC!</h3>
+              <h3 class="intro-title" id="bvClearTitle" style="color: #10B981; font-size: 1.5rem;">SẠCH VÒNG BI XUẤT SẮC!</h3>
               <p class="intro-desc">Bạn đã gom trọn vẹn dàn bi ve trong sân trường!</p>
               <div style="background: rgba(255,255,255,0.05); padding: 14px; border-radius: 8px; margin: 12px 0;">
-                <div style="font-size: 1.15rem; color: #10B981; font-weight: 900;">Tổng điểm: $<span id="bvClearScore">0</span></div>
+                <div style="font-size: 1.15rem; color: #10B981; font-weight: 900;">Tổng điểm: <span id="bvClearScore">0</span></div>
               </div>
               <div class="intro-actions">
                 <button class="btn-intro-start" id="bvNextRoundBtn">➔ TIẾP TỤC SANG VÒNG TIẾP THEO</button>
@@ -2071,6 +2078,7 @@
     const gameOverOverlay = container.querySelector('#bvGameOverOverlay');
     const retryBtn = container.querySelector('#bvRetryBtn');
     const clearScoreEl = container.querySelector('#bvClearScore');
+    const clearTitleEl = container.querySelector('#bvClearTitle');
 
     function updateHUD() {
       if (scoreEl) scoreEl.textContent = `${score}`;
@@ -2088,10 +2096,9 @@
 
     if (nextRoundBtn) {
       nextRoundBtn.addEventListener('click', () => {
-        clearOverlay.style.display = 'none';
-        round = Math.min(maxRounds, round + 1);
-        gameState = 'PLAYING';
-        initRound(round);
+        if (gameState !== 'STAGE_CLEAR' && gameState !== 'WON') return;
+        if (round === maxRounds) { score = 0; initRound(1); }
+        else initRound(round + 1);
       });
     }
 
@@ -2115,7 +2122,7 @@
     let lastPullBracket = 0;
 
     function handleDragStart(clientX, clientY) {
-      if (shooter.isMoving || gameState !== 'PLAYING') return;
+      if (shooter.isMoving || shotPending || shotsLeft <= 0 || gameState !== 'PLAYING') return;
       const rect = canvas.getBoundingClientRect();
       const mx = (clientX - rect.left) * (canvas.width / rect.width);
       const my = (clientY - rect.top) * (canvas.height / rect.height);
@@ -2162,6 +2169,7 @@
         shooter.vx = Math.cos(ang) * power;
         shooter.vy = Math.sin(ang) * power;
         shooter.isMoving = true;
+        shotPending = true;
         shotsLeft--;
         updateHUD();
         if (powerEl) powerEl.textContent = '0%';
@@ -2170,25 +2178,33 @@
       }
     }
 
-    canvas.addEventListener('mousedown', (e) => handleDragStart(e.clientX, e.clientY));
-    canvas.addEventListener('mousemove', (e) => handleDragMove(e.clientX, e.clientY));
-    listen(window, 'mouseup', handleDragEnd);
-
-    canvas.addEventListener('touchstart', (e) => {
-      if (e.touches && e.touches[0]) {
-        e.preventDefault();
-        handleDragStart(e.touches[0].clientX, e.touches[0].clientY);
+    let dragPointer = null;
+    canvas.style.touchAction = 'none';
+    listen(canvas, 'pointerdown', event => {
+      if (event.button > 0 || dragPointer !== null) return;
+      event.preventDefault();
+      handleDragStart(event.clientX, event.clientY);
+      if (!isDragging) return;
+      dragPointer = event.pointerId;
+      if (canvas.setPointerCapture && event.pointerId !== undefined) {
+        try { canvas.setPointerCapture(event.pointerId); } catch (error) {}
       }
-    }, { passive: false });
-
-    canvas.addEventListener('touchmove', (e) => {
-      if (e.touches && e.touches[0]) {
-        e.preventDefault();
-        handleDragMove(e.touches[0].clientX, e.touches[0].clientY);
-      }
-    }, { passive: false });
-
-    listen(window, 'touchend', handleDragEnd);
+    });
+    listen(canvas, 'pointermove', event => {
+      if (dragPointer === event.pointerId) handleDragMove(event.clientX, event.clientY);
+    });
+    listen(canvas, 'pointerup', event => {
+      if (dragPointer !== event.pointerId) return;
+      handleDragMove(event.clientX, event.clientY);
+      dragPointer = null; handleDragEnd();
+    });
+    function cancelDrag() {
+      dragPointer = null; isDragging = false;
+      if (powerEl) powerEl.textContent = '0%';
+    }
+    listen(canvas, 'pointercancel', cancelDrag);
+    listen(canvas, 'lostpointercapture', cancelDrag);
+    listen(window, 'blur', cancelDrag);
 
     function resolveCollision(c1, c2) {
       const dx = c2.x - c1.x;
@@ -2255,17 +2271,6 @@
             shooter.vy = 0;
             shooter.isMoving = false;
 
-            const remaining = marbles.filter(m => m.inRing).length;
-            if (remaining === 0) {
-              gameState = 'STAGE_CLEAR';
-              if (clearScoreEl) clearScoreEl.textContent = `${score}`;
-              if (clearOverlay) clearOverlay.style.display = 'flex';
-              if (window.NP_Audio) window.NP_Audio.win();
-            } else if (shotsLeft <= 0) {
-              gameState = 'GAMEOVER';
-              if (gameOverOverlay) gameOverOverlay.style.display = 'flex';
-              if (window.NP_Audio) window.NP_Audio.alarm();
-            }
           }
         }
 
@@ -2300,6 +2305,24 @@
         for (let i = 0; i < marbles.length; i++) {
           for (let j = i + 1; j < marbles.length; j++) {
             resolveCollision(marbles[i], marbles[j]);
+          }
+        }
+        // A shot finishes only after all balls settle; impacts can wake the shooter again.
+        if (shotPending) shooter.isMoving = Math.hypot(shooter.vx, shooter.vy) >= 0.1;
+        if (shotPending && !shooter.isMoving && marbles.every(m => Math.hypot(m.vx, m.vy) < 0.08)) {
+          shotPending = false;
+          const remaining = marbles.filter(m => m.inRing).length;
+          if (remaining === 0) {
+            gameState = round === maxRounds ? 'WON' : 'STAGE_CLEAR';
+            if (clearTitleEl) clearTitleEl.textContent = gameState === 'WON' ? 'HOÀN THÀNH CẢ 3 VÒNG!' : 'SẠCH VÒNG BI XUẤT SẮC!';
+            if (nextRoundBtn) nextRoundBtn.textContent = gameState === 'WON' ? 'Chơi lại từ Vòng 1' : '➔ TIẾP TỤC SANG VÒNG TIẾP THEO';
+            if (clearScoreEl) clearScoreEl.textContent = `${score}`;
+            if (clearOverlay) clearOverlay.style.display = 'flex';
+            if (window.NP_Audio) window.NP_Audio.win();
+          } else if (shotsLeft <= 0) {
+            gameState = 'GAMEOVER';
+            if (gameOverOverlay) gameOverOverlay.style.display = 'flex';
+            if (window.NP_Audio) window.NP_Audio.alarm();
           }
         }
       }
@@ -2396,7 +2419,7 @@
   // 5. ĐÁNH BÀI ĐỔI MÀU (UNO CLASSIC)
   // =========================================================================
   function launchDanhBaiUno(container, game) {
-    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance = window.performance } = window.NP_GameSession.start();
     let animId = null;
     let turn = 0;
     let direction = 1;
@@ -2406,6 +2429,10 @@
     let discardPile = [];
     let unoShouted = false;
     let gameState = 'INTRO'; // 'INTRO', 'PLAYING', 'GAMEOVER'
+    let aiTurnTimer = null;
+    let pendingWild = null;
+    let selectedCard = 0;
+    let winner = null;
 
     if (window.NP_Audio && typeof window.NP_Audio.startBGM === 'function') {
       window.NP_Audio.startBGM('uno');
@@ -2458,6 +2485,11 @@
     }
 
     function initGame() {
+      if (aiTurnTimer !== null) { clearTimeout(aiTurnTimer); aiTurnTimer = null; }
+      gameState = 'PLAYING'; pendingWild = null; selectedCard = 0; winner = null;
+      if (introOverlay) introOverlay.style.display = 'none';
+      const colorPicker = container.querySelector('#unoColorPicker');
+      if (colorPicker) colorPicker.style.display = 'none';
       drawPile = createDeck();
       discardPile = [];
       turn = 0;
@@ -2472,7 +2504,7 @@
       });
 
       let top = drawPile.pop();
-      while (top.color === 'WILD') {
+      while (top.type !== 'NUM') {
         drawPile.unshift(top);
         top = drawPile.pop();
       }
@@ -2482,6 +2514,21 @@
 
       updateHUD();
       render();
+    }
+
+    function drawCards(player, count) {
+      for (let n = 0; n < count; n++) {
+        if (drawPile.length === 0 && discardPile.length > 1) {
+          const top = discardPile.pop();
+          drawPile = discardPile; discardPile = [top];
+          for (let i = drawPile.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [drawPile[i], drawPile[j]] = [drawPile[j], drawPile[i]];
+          }
+        }
+        if (drawPile.length === 0) break;
+        player.hand.push(drawPile.pop());
+      }
     }
 
     container.innerHTML = `
@@ -2537,6 +2584,18 @@
           <small style="color: #E2E8F0;">Bấm bài hợp lệ dưới tay để đánh • Hô UNO khi còn 2 lá đánh 1!</small>
           <button class="btn-canvas-action" id="unoNewGameBtn">Ván mới</button>
         </div>
+        <div class="canvas-controls-bar" id="unoHandControls">
+          <button class="btn-canvas-action" id="unoPrevCard" aria-label="Chọn lá trước">◀</button>
+          <button class="btn-canvas-action" id="unoPlayCard">Đánh lá đã chọn</button>
+          <button class="btn-canvas-action" id="unoNextCard" aria-label="Chọn lá sau">▶</button>
+        </div>
+        <div class="canvas-controls-bar" id="unoColorPicker" style="display:none" role="group" aria-label="Chọn màu tiếp theo">
+          <strong>Chọn màu</strong>
+          <button class="btn-canvas-action" id="unoColorRED" style="background:#B91C1C;color:white">Đỏ</button>
+          <button class="btn-canvas-action" id="unoColorBLUE" style="background:#1D4ED8;color:white">Xanh dương</button>
+          <button class="btn-canvas-action" id="unoColorGREEN" style="background:#047857;color:white">Xanh lá</button>
+          <button class="btn-canvas-action" id="unoColorYELLOW" style="background:#FDE047;color:#422006">Vàng</button>
+        </div>
       </div>
     `;
 
@@ -2565,10 +2624,19 @@
         colorEl.style.color = COLORS[activeColor].hex;
       }
       if (turnEl) {
-        turnEl.textContent = turn === 0 ? 'Lượt của bạn' : `Lượt của ${PLAYERS[turn].name}`;
+        turnEl.textContent = gameState === 'GAMEOVER' ? (winner === 0 ? 'Bạn thắng! Bấm Ván mới để chơi tiếp.' : PLAYERS[winner].name + ' thắng. Bấm Ván mới.') :
+          gameState === 'COLOR' ? 'Chọn màu cho lá đổi màu' : turn === 0 ? 'Lượt của bạn' : `Lượt của ${PLAYERS[turn].name}`;
       }
       if (dirEl) {
         dirEl.textContent = direction === 1 ? 'Thuận ↶' : 'Nghịch ↷';
+      }
+      if (drawBtn) drawBtn.disabled = turn !== 0 || gameState !== 'PLAYING';
+      if (shoutBtn) shoutBtn.disabled = turn !== 0 || gameState !== 'PLAYING' || PLAYERS[0].hand.length !== 2;
+      const play = container.querySelector('#unoPlayCard');
+      if (play) {
+        const card = PLAYERS[0].hand[selectedCard];
+        play.disabled = turn !== 0 || gameState !== 'PLAYING' || !checkCanPlay(card);
+        play.textContent = card ? 'Đánh ' + COLORS[card.color].name + ' ' + card.val : 'Hết bài';
       }
     }
 
@@ -2582,6 +2650,7 @@
 
     if (shoutBtn) {
       shoutBtn.addEventListener('click', () => {
+        if (turn !== 0 || gameState !== 'PLAYING' || PLAYERS[0].hand.length !== 2) return;
         unoShouted = true;
         if (window.NP_Audio) window.NP_Audio.win();
         if (popups) popups.spawn(320, 240, '⚡ BẠN ĐÃ HÔ UNO! ⚡', '#EF4444', 28);
@@ -2591,8 +2660,8 @@
     if (drawBtn) {
       drawBtn.addEventListener('click', () => {
         if (turn !== 0 || gameState !== 'PLAYING') return;
-        if (drawPile.length === 0) drawPile = createDeck();
-        PLAYERS[0].hand.push(drawPile.pop());
+        drawCards(PLAYERS[0], 1);
+        unoShouted = false;
         if (window.NP_Audio) window.NP_Audio.cardSlide();
         if (popups) popups.spawn(320, 380, 'Bạn đã rút 1 lá', '#3B82F6', 16);
         advanceTurn();
@@ -2608,7 +2677,8 @@
       render();
 
       if (turn !== 0) {
-        setTimeout(playAITurn, 1100);
+        if (aiTurnTimer !== null) clearTimeout(aiTurnTimer);
+        aiTurnTimer = setTimeout(() => { aiTurnTimer = null; playAITurn(); }, 1100);
       }
     }
 
@@ -2623,21 +2693,29 @@
         ai.hand.splice(idx, 1);
         applyCardEffect(chosen, ai);
       } else {
-        if (drawPile.length === 0) drawPile = createDeck();
-        ai.hand.push(drawPile.pop());
+        drawCards(ai, 1);
         if (window.NP_Audio) window.NP_Audio.cardSlide();
         if (popups) popups.spawn(320, 200, `${ai.name} rút 1 lá!`, '#9CA3AF', 16);
         advanceTurn();
       }
     }
 
-    function applyCardEffect(card, player) {
+    function applyCardEffect(card, player, chosenColor = null) {
+      if (card.color === 'WILD' && player.isHuman && !chosenColor) {
+        pendingWild = { card, player }; gameState = 'COLOR';
+        const picker = container.querySelector('#unoColorPicker');
+        if (picker) picker.style.display = 'flex';
+        updateHUD(); render();
+        const first = container.querySelector('#unoColorRED'); if (first) first.focus();
+        return;
+      }
       activeCard = card;
+      discardPile.push(card);
       if (card.color !== 'WILD') {
         activeColor = card.color;
       } else {
         const colors = ['RED', 'BLUE', 'GREEN', 'YELLOW'];
-        activeColor = colors[Math.floor(Math.random() * colors.length)];
+        activeColor = chosenColor || colors.sort((a, b) => player.hand.filter(c => c.color === b).length - player.hand.filter(c => c.color === a).length)[0];
       }
 
       if (window.NP_Audio) window.NP_Audio.cardSlide();
@@ -2650,24 +2728,19 @@
         if (popups) popups.spawn(320, 240, '🔁 ĐỔI CHIỀU BÀN CHƠI!', '#3B82F6', 22);
       } else if (card.type === 'DRAW2') {
         const target = (turn + direction + 4) % 4;
-        for (let i = 0; i < 2; i++) {
-          if (drawPile.length === 0) drawPile = createDeck();
-          PLAYERS[target].hand.push(drawPile.pop());
-        }
+        drawCards(PLAYERS[target], 2);
         turn = target;
         if (popups) popups.spawn(320, 240, `➕2️⃣ ${PLAYERS[target].name} bị phạt rút 2 lá!`, '#F59E0B', 20);
       } else if (card.type === 'WILD4') {
         const target = (turn + direction + 4) % 4;
-        for (let i = 0; i < 4; i++) {
-          if (drawPile.length === 0) drawPile = createDeck();
-          PLAYERS[target].hand.push(drawPile.pop());
-        }
+        drawCards(PLAYERS[target], 4);
         turn = target;
         if (popups) popups.spawn(320, 240, `💥+4! ${PLAYERS[target].name} bị phạt rút 4 lá!`, '#EF4444', 22);
       }
 
       if (player.hand.length === 0) {
         gameState = 'GAMEOVER';
+        winner = player.id;
         if (player.id === 0) {
           if (popups) popups.spawn(320, 240, '🏆 BẠN ĐÃ THẮNG CUỘC! 🏆', '#10B981', 28);
           if (window.NP_Audio) window.NP_Audio.win();
@@ -2675,30 +2748,69 @@
           if (popups) popups.spawn(320, 240, `${player.name} ĐÃ HẾT BÀI! BẠN THUA!`, '#EF4444', 24);
           if (window.NP_Audio) window.NP_Audio.alarm();
         }
-        render();
+        updateHUD(); render();
         return;
+      }
+
+      if (player.isHuman) {
+        if (player.hand.length === 1 && !unoShouted) {
+          drawCards(player, 2);
+          if (popups) popups.spawn(320, 300, 'Quên hô UNO: rút thêm 2 lá', '#FCD34D', 18);
+        }
+        unoShouted = false;
       }
 
       advanceTurn();
     }
 
-    canvas.addEventListener('click', (e) => {
+    function handLayout() {
+      const spacing = Math.min(48, 564 / Math.max(1, PLAYERS[0].hand.length - 1));
+      return { spacing, startX: 320 - (PLAYERS[0].hand.length - 1) * spacing / 2 };
+    }
+    function playHumanCard(index) {
+      if (turn !== 0 || gameState !== 'PLAYING') return;
+      const card = PLAYERS[0].hand[index];
+      if (!checkCanPlay(card)) return;
+      PLAYERS[0].hand.splice(index, 1);
+      selectedCard = Math.max(0, Math.min(index, PLAYERS[0].hand.length - 1));
+      applyCardEffect(card, PLAYERS[0]);
+    }
+    function selectCard(delta) {
+      const count = PLAYERS[0].hand.length;
+      if (!count || turn !== 0 || gameState !== 'PLAYING') return;
+      selectedCard = (selectedCard + delta + count) % count;
+      updateHUD(); render();
+    }
+    listen(container.querySelector('#unoPrevCard'), 'click', () => selectCard(-1));
+    listen(container.querySelector('#unoNextCard'), 'click', () => selectCard(1));
+    listen(container.querySelector('#unoPlayCard'), 'click', () => playHumanCard(selectedCard));
+    for (const color of ['RED', 'BLUE', 'GREEN', 'YELLOW']) {
+      listen(container.querySelector('#unoColor' + color), 'click', () => {
+        if (!pendingWild || gameState !== 'COLOR') return;
+        const pending = pendingWild; pendingWild = null; gameState = 'PLAYING';
+        container.querySelector('#unoColorPicker').style.display = 'none';
+        applyCardEffect(pending.card, pending.player, color);
+      });
+    }
+    canvas.style.touchAction = 'none';
+    listen(canvas, 'pointerdown', (e) => {
+      if (e.button > 0) return;
+      e.preventDefault();
       if (turn !== 0 || gameState !== 'PLAYING') return;
       const rect = canvas.getBoundingClientRect();
       const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
       const my = (e.clientY - rect.top) * (canvas.height / rect.height);
 
       const humanHand = PLAYERS[0].hand;
-      const startX = 320 - (humanHand.length * 48) / 2;
+      const { startX, spacing } = handLayout();
 
       for (let i = humanHand.length - 1; i >= 0; i--) {
-        const cx = startX + i * 48;
+        const cx = startX + i * spacing;
         const cy = 390;
         if (Math.abs(mx - cx) < 24 && Math.abs(my - cy) < 35) {
           const card = humanHand[i];
           if (checkCanPlay(card)) {
-            humanHand.splice(i, 1);
-            applyCardEffect(card, PLAYERS[0]);
+            playHumanCard(i);
             return;
           } else {
             if (popups) popups.spawn(mx, my - 20, 'Không cùng màu hoặc số!', '#EF4444', 16);
@@ -2740,12 +2852,17 @@
 
       // Human Hand Cards
       const humanHand = PLAYERS[0].hand;
-      const startX = 320 - (humanHand.length * 48) / 2;
+      selectedCard = Math.max(0, Math.min(selectedCard, humanHand.length - 1));
+      const { startX, spacing } = handLayout();
       humanHand.forEach((c, idx) => {
-        const cx = startX + idx * 48;
+        const cx = startX + idx * spacing;
         const cy = 390;
         drawCard(cx, cy, c, false, checkCanPlay(c));
       });
+      if (humanHand[selectedCard]) {
+        ctx.strokeStyle = '#FDE047'; ctx.lineWidth = 3;
+        ctx.strokeRect(startX + selectedCard * spacing - 23, 353, 46, 74);
+      }
 
       if (popups) popups.updateAndDraw(ctx);
     }

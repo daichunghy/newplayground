@@ -10,6 +10,60 @@
 (function () {
   'use strict';
 
+  // A browser may block storage entirely; records must never interrupt a game.
+  const storage = {
+    getItem(key) { try { return window.localStorage.getItem(key); } catch (_) { return null; } },
+    setItem(key, value) { try { window.localStorage.setItem(key, String(value)); } catch (_) {} },
+    removeItem(key) { try { window.localStorage.removeItem(key); } catch (_) {} }
+  };
+  function storedScore(key) {
+    const value = Number(storage.getItem(key));
+    return Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0;
+  }
+
+  // Each control owns its pointers, so releasing fire does not release movement.
+  function bindHeldControl(listen, button, change, label) {
+    if (!button) return;
+    const pointers = new Set();
+    let keyboard = false;
+    let pressed = false;
+    const sync = () => {
+      const next = keyboard || pointers.size > 0;
+      if (next === pressed) return;
+      pressed = next;
+      button.setAttribute('aria-pressed', String(pressed));
+      change(pressed);
+    };
+    const release = () => { pointers.clear(); keyboard = false; sync(); };
+    button.setAttribute('type', 'button');
+    button.setAttribute('aria-label', label);
+    button.setAttribute('aria-pressed', 'false');
+    button.style.touchAction = 'none';
+    button.style.minWidth = '44px';
+    button.style.minHeight = '44px';
+    listen(button, 'pointerdown', event => {
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      event.preventDefault();
+      pointers.add(event.pointerId ?? 'primary');
+      try { button.setPointerCapture?.(event.pointerId); } catch (_) {}
+      sync();
+    });
+    const releasePointer = event => { pointers.delete(event.pointerId ?? 'primary'); sync(); };
+    for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) listen(button, type, releasePointer);
+    listen(window, 'pointerup', releasePointer);
+    listen(window, 'pointercancel', releasePointer);
+    listen(button, 'keydown', event => {
+      if (event.key !== ' ' && event.key !== 'Enter') return;
+      event.preventDefault(); event.stopPropagation(); keyboard = true; sync();
+    });
+    listen(button, 'keyup', event => {
+      if (event.key !== ' ' && event.key !== 'Enter') return;
+      event.preventDefault(); event.stopPropagation(); keyboard = false; sync();
+    });
+    listen(button, 'blur', release);
+    listen(window, 'blur', release);
+  }
+
   // Keep the legacy shared synthesizer's delayed notes in the active game session.
   function setTimeout(callback, delay, ...args) {
     const session = window.NP_GameSession && window.NP_GameSession.getCurrent();
@@ -28,6 +82,7 @@
     playTone(freq, type, duration, vol = 0.1) {
       try {
         if (window.NEWPLAYGROUND_MUTED || (window.NP_Audio && window.NP_Audio.isMuted)) return;
+        if (window.NP_Audio?.isPaused || window.NP_GameSession?.getCurrent()?.isPaused()) return;
         this.init();
         if (!this.ctx) return;
         const osc = this.ctx.createOscillator();
@@ -89,7 +144,7 @@
   // 1. ENGINE: HÀNG RONG (FULL WEB-GAME REMAKE)
   // =========================================================================
   function launchHangRong(container, game) {
-    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance } = window.NP_GameSession.start();
     const art = (type,id,cls='') => window.NP_GameArt?.svg(type,id,cls) || '';
     const shortDish = id => ({
       banhmi_trung:'Bánh mì trứng', tra_da:'Trà đá',keo_lac:'Kẹo lạc',
@@ -101,8 +156,10 @@
     const STORAGE_KEY = 'np_hangrong_save_v2';
     let saved = null;
     try {
-      saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+      saved = JSON.parse(storage.getItem(STORAGE_KEY) || 'null');
     } catch (e) {}
+    if (!saved || typeof saved !== 'object' || Array.isArray(saved) ||
+        !saved.inventory || !saved.upgrades) saved = null;
 
     // Start Hanoi Street Atmosphere BGM
     if (window.NP_Audio && typeof window.NP_Audio.startBGM === 'function') {
@@ -348,7 +405,7 @@
 
     function saveState() {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        storage.setItem(STORAGE_KEY, JSON.stringify(state));
       } catch (e) {}
     }
 
@@ -1123,10 +1180,13 @@
       let pointerPos = 0;
       let pointerDir = 1;
       let pointerSpeed = 1.6;
+      let bargainLastFrame = null;
 
-      function updateBargainLoop() {
+      function updateBargainLoop(timestamp) {
         if (!bargainModalActive) return;
-        pointerPos += pointerDir * pointerSpeed;
+        const elapsed = bargainLastFrame === null ? 1000 / 60 : Math.max(0, Math.min(50, timestamp - bargainLastFrame));
+        bargainLastFrame = timestamp;
+        pointerPos += pointerDir * pointerSpeed * elapsed / (1000 / 60);
         if (pointerPos >= 100) {
           pointerPos = 100;
           pointerDir = -1;
@@ -1181,6 +1241,7 @@
           bargainModalActive = true;
           pointerPos = 0;
           pointerDir = 1;
+          bargainLastFrame = null;
           if (bTitle) bTitle.textContent = `MẶC CẢ: ${item.name.toUpperCase()}`;
           if (bIcon) bIcon.textContent = item.icon;
           if (bModal) bModal.style.display = 'flex';
@@ -1309,7 +1370,7 @@
       const resetBtn = viewport.querySelector('#hrResetSaveBtn');
       if (resetBtn) {
         resetBtn.addEventListener('click', () => {
-          localStorage.removeItem(STORAGE_KEY);
+          storage.removeItem(STORAGE_KEY);
           clearInterval(mainLoopInterval);
           showFeedback('Đã đặt lại tiến trình Hàng Rong về Cấp 1!');
           launchHangRong(container, game);
@@ -1518,9 +1579,9 @@
   // 2. ENGINE: ĐÀO VÀNG (GOLD MINER CANVAS 2D PHYSICS ENGINE)
   // =========================================================================
   function launchDaoVang(container, game) {
-    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance } = window.NP_GameSession.start();
     const HIGH_SCORE_KEY = 'np_daovang_high_score';
-    let highScore = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
+    let highScore = storedScore(HIGH_SCORE_KEY);
 
     let stage = 1;
     let score = 0;
@@ -1778,6 +1839,7 @@
     }
 
     function fireClaw() {
+      if (gameState === 'gameover') { restartRun(); return; }
       if (gameState !== 'playing') return;
       if (clawState === 'swinging') {
         clawState = 'shooting';
@@ -1800,24 +1862,21 @@
     if (bombBtn) bombBtn.addEventListener('click', useDynamite);
 
     const keyHandler = (e) => {
-      if (gameState !== 'playing') return;
-      if (e.key === 'ArrowDown' || e.key === 's') fireClaw();
-      if (e.key === 'ArrowUp' || e.key === 'w') useDynamite();
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName || '') || e.repeat ||
+          (e.target?.tagName === 'BUTTON' && (e.key === ' ' || e.key === 'Enter'))) return;
+      if (e.key === 'ArrowDown' || e.key.toLowerCase() === 's' || e.code === 'Space' || e.key === 'Enter') {
+        e.preventDefault(); fireClaw();
+      } else if (e.key === 'ArrowUp' || e.key.toLowerCase() === 'w') {
+        e.preventDefault(); useDynamite();
+      }
     };
     listen(window, 'keydown', keyHandler);
-
-    canvas.addEventListener('click', (e) => {
-      if (gameState === 'playing' && clawState === 'swinging') {
-        fireClaw();
-      }
+    canvas.style.touchAction = 'none';
+    listen(canvas, 'pointerdown', event => {
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      event.preventDefault();
+      fireClaw();
     });
-
-    canvas.addEventListener('touchstart', (e) => {
-      if (gameState === 'playing' && clawState === 'swinging') {
-        e.preventDefault();
-        fireClaw();
-      }
-    }, { passive: false });
 
     // Second Timer Interval
     const timerInterval = setInterval(() => {
@@ -1901,9 +1960,13 @@
       if (window.NP_Audio) window.NP_Audio.explosion();
       if (score > highScore) {
         highScore = score;
-        localStorage.setItem(HIGH_SCORE_KEY, highScore.toString());
+        storage.setItem(HIGH_SCORE_KEY, highScore.toString());
       }
 
+      if (fireBtn) fireBtn.textContent = 'Chơi lại';
+    }
+
+    function drawGameOver() {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -1917,19 +1980,20 @@
       ctx.fillText(`Tổng điểm kiếm được: $${score} (Kỷ lục: $${highScore})`, canvas.width / 2, 210);
       ctx.fillText('Bấm vào màn hình để chơi lại từ Màn 1!', canvas.width / 2, 250);
 
-      const restartHandler = () => {
-        canvas.removeEventListener('click', restartHandler);
-        stage = 1;
-        score = 0;
-        dynamites = 2;
-        powerDrinkActive = false;
-        cloverActive = false;
-        diamondBookActive = false;
-        rockBookActive = false;
-        generateMineralsForStage(1);
-        gameState = 'playing';
-      };
-      setTimeout(() => canvas.addEventListener('click', restartHandler), 500);
+    }
+
+    function restartRun() {
+      if (gameState !== 'gameover') return;
+      stage = 1;
+      score = 0;
+      dynamites = 2;
+      powerDrinkActive = false;
+      cloverActive = false;
+      diamondBookActive = false;
+      rockBookActive = false;
+      if (fireBtn) fireBtn.textContent = 'Thả móc';
+      generateMineralsForStage(1);
+      gameState = 'playing';
     }
 
     // Main Game Render Loop with 60 FPS Delta-Time
@@ -2250,6 +2314,7 @@
         popups.draw(ctx);
       }
 
+      if (gameState === 'gameover') drawGameOver();
       animId = requestAnimationFrame(render);
     }
 
@@ -2268,9 +2333,9 @@
   // 3. ENGINE: LINE 98 CỔ ĐIỂN (9x9 BFS PATHFINDING & UNDO ENGINE)
   // =========================================================================
   function launchLine98(container, game) {
-    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance } = window.NP_GameSession.start();
     const HIGH_SCORE_KEY = 'np_line98_high_score';
-    let highScore = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
+    let highScore = storedScore(HIGH_SCORE_KEY);
 
     let score = 0;
     let board = Array(9).fill(null).map(() => Array(9).fill(0));
@@ -2485,7 +2550,7 @@
       if (el) el.textContent = score;
       if (score > highScore) {
         highScore = score;
-        try { localStorage.setItem(HIGH_SCORE_KEY, highScore.toString()); } catch (_) {}
+        try { storage.setItem(HIGH_SCORE_KEY, highScore.toString()); } catch (_) {}
       }
       const bestEl = container.querySelector('#l98Best');
       if (bestEl) bestEl.textContent = highScore;
@@ -2608,10 +2673,10 @@
   // 4. ENGINE: BẮN TRỨNG KHỦNG LONG (DYNOMITE CANVAS ENGINE FULL)
   // =========================================================================
   function launchBanTrung(container, game) {
-    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance } = window.NP_GameSession.start();
     const HIGH_SCORE_KEY = 'np_bantrung_high_score';
     let highScore = 0;
-    try { highScore = Math.max(0,parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0') || 0); }
+    try { highScore = Math.max(0,storedScore(HIGH_SCORE_KEY) || 0); }
     catch (error) { /* blocked storage must not prevent play */ }
 
     let score = 0;
@@ -2668,7 +2733,7 @@
     function saveHighScore() {
       if (score <= highScore) return;
       highScore = score;
-      try { localStorage.setItem(HIGH_SCORE_KEY,String(highScore)); }
+      try { storage.setItem(HIGH_SCORE_KEY,String(highScore)); }
       catch (error) { /* private browsing */ }
     }
 
@@ -3635,9 +3700,9 @@
 // 5. ENGINE: KIM CƯƠNG (BEJEWELED CỔ ĐIỂN FULL ENGINE)
 // =========================================================================
 function launchKimCuong(container, game) {
-  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance } = window.NP_GameSession.start();
   const HIGH_SCORE_KEY = 'np_kimcuong_high_score';
-  let highScore = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
+  let highScore = storedScore(HIGH_SCORE_KEY);
 
   let level = 1;
   let score = 0;
@@ -3667,15 +3732,17 @@ function launchKimCuong(container, game) {
     board = Array(ROWS).fill(null).map(() => Array(COLS).fill(0));
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
-        let g;
-        do {
-          g = randomGem();
-        } while (
-          (c >= 2 && board[r][c - 1] === g && board[r][c - 2] === g) ||
-          (r >= 2 && board[r - 1][c] === g && board[r - 2][c] === g)
-        );
-        board[r][c] = g;
+        const choices = GEMS.map(g => g.id).filter(g =>
+          !(c >= 2 && board[r][c - 1] === g && board[r][c - 2] === g) &&
+          !(r >= 2 && board[r - 1][c] === g && board[r - 2][c] === g));
+        board[r][c] = choices[Math.floor(Math.random() * choices.length)];
       }
+    }
+    // Always offer a legal first swap, including on unlucky regenerated boards.
+    if (!findLegalMove()) {
+      board = Array.from({ length: ROWS }, (_, r) =>
+        Array.from({ length: COLS }, (_, c) => (r * 2 + c) % GEMS.length + 1));
+      board[0][0] = 1; board[0][1] = 2; board[0][2] = 1; board[1][1] = 1;
     }
   }
 
@@ -3849,6 +3916,12 @@ function launchKimCuong(container, game) {
       renderBoard();
     }
     isProcessing = false;
+    if (!findLegalMove()) {
+      selectedCell = null;
+      initBoard();
+      renderBoard();
+      window.showToastNotification?.('Đã xáo lại kim cương vì không còn nước đi. Điểm được giữ nguyên.');
+    }
   }
 
   function handleCellClick(r, c) {
@@ -3881,7 +3954,7 @@ function launchKimCuong(container, game) {
     score += matches.length * 30 * combo * level;
     if (score > highScore) {
       highScore = score;
-      localStorage.setItem(HIGH_SCORE_KEY, highScore);
+      storage.setItem(HIGH_SCORE_KEY, highScore);
     }
     updateHUD();
 
@@ -3925,40 +3998,41 @@ function launchKimCuong(container, game) {
     await processCascade(combo + 1);
   }
 
-  if (hintBtn) {
-    hintBtn.addEventListener('click', () => {
-      for (let r = 0; r < ROWS; r++) {
-        for (let c = 0; c < COLS; c++) {
-          const directions = [{ dr: 0, dc: 1 }, { dr: 1, dc: 0 }];
-          for (const d of directions) {
-            const nr = r + d.dr;
-            const nc = c + d.dc;
-            if (nr < ROWS && nc < COLS) {
-              const t = board[r][c];
-              board[r][c] = board[nr][nc];
-              board[nr][nc] = t;
-              const matches = findMatches();
-              board[nr][nc] = board[r][c];
-              board[r][c] = t;
+  function findLegalMove() {
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const directions = [{ dr: 0, dc: 1 }, { dr: 1, dc: 0 }];
+        for (const d of directions) {
+          const nr = r + d.dr;
+          const nc = c + d.dc;
+          if (nr < ROWS && nc < COLS) {
+            const t = board[r][c];
+            board[r][c] = board[nr][nc];
+            board[nr][nc] = t;
+            const matches = findMatches();
+            board[nr][nc] = board[r][c];
+            board[r][c] = t;
 
-              if (matches.length > 0) {
-                AudioEngine.coin();
-                const c1 = gridEl.querySelector(`[data-r="${r}"][data-c="${c}"] .gem-item`);
-                const c2 = gridEl.querySelector(`[data-r="${nr}"][data-c="${nc}"] .gem-item`);
-                if (c1) c1.style.transform = 'scale(1.25)';
-                if (c2) c2.style.transform = 'scale(1.25)';
-                setTimeout(() => {
-                  if (c1) c1.style.transform = 'scale(1)';
-                  if (c2) c2.style.transform = 'scale(1)';
-                }, 800);
-                return;
-              }
+            if (matches.length > 0) {
+              return [{ r, c }, { r: nr, c: nc }];
             }
           }
         }
       }
-      initBoard();
-      renderBoard();
+    }
+    return null;
+  }
+
+  if (hintBtn) {
+    hintBtn.addEventListener('click', () => {
+      // Searching during gravity would mistake half-cleared rows for a dead board.
+      if (isProcessing) return;
+      const move = findLegalMove();
+      if (!move) { selectedCell = null; initBoard(); renderBoard(); return; }
+      AudioEngine.coin();
+      const hints = move.map(({ r, c }) => gridEl.querySelector(`[data-r="${r}"][data-c="${c}"] .gem-item`));
+      hints.forEach(cell => { if (cell) cell.style.transform = 'scale(1.25)'; });
+      setTimeout(() => hints.forEach(cell => { if (cell) cell.style.transform = 'scale(1)'; }), 800);
     });
   }
 
@@ -3973,9 +4047,9 @@ function launchKimCuong(container, game) {
 // 6. ENGINE: ĐẶT BOM (BOMBERMAN CỔ ĐIỂN FULL ENGINE)
 // =========================================================================
 function launchDatBom(container, game) {
-  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance } = window.NP_GameSession.start();
   const HIGH_SCORE_KEY = 'np_datbom_high_score';
-  let highScore = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
+  let highScore = storedScore(HIGH_SCORE_KEY);
 
   let stage = 1;
   let score = 0;
@@ -4206,15 +4280,26 @@ function launchDatBom(container, game) {
       powerups[`${cell.r},${cell.c}`] = pTypes[Math.floor(Math.random() * pTypes.length)];
     }
 
-    // Spawn Pirate Penguins
+    // Choose distinct spawn cells without an unbounded random retry loop.
     enemies = [];
     const numEnemies = 2 + Math.min(4, stg);
+    const spawnCells = [];
+    for (let r = 1; r < ROWS - 1; r++) {
+      for (let c = 1; c < COLS - 1; c++) {
+        if (map[r][c] !== 1 && !(r <= 3 && c <= 3)) spawnCells.push({ r, c });
+      }
+    }
+    for (let i = spawnCells.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [spawnCells[i], spawnCells[j]] = [spawnCells[j], spawnCells[i]];
+    }
     for (let i = 0; i < numEnemies; i++) {
-      let er, ec;
-      do {
-        er = Math.floor(Math.random() * (ROWS - 2)) + 1;
-        ec = Math.floor(Math.random() * (COLS - 2)) + 1;
-      } while (map[er][ec] !== 0 || (er <= 3 && ec <= 3));
+      const { r: er, c: ec } = spawnCells[i];
+      map[er][ec] = 0;
+      // Leave at least one neighbouring tile open for an initial patrol step.
+      const neighbour = [{ r: er, c: ec - 1 }, { r: er, c: ec + 1 },
+        { r: er - 1, c: ec }, { r: er + 1, c: ec }].find(p => map[p.r]?.[p.c] !== 1);
+      if (neighbour) map[neighbour.r][neighbour.c] = 0;
 
       const dirs = [{ vx: 1.1, vy: 0 }, { vx: -1.1, vy: 0 }, { vx: 0, vy: 1.1 }, { vx: 0, vy: -1.1 }];
       const chosen = dirs[Math.floor(Math.random() * dirs.length)];
@@ -4251,7 +4336,7 @@ function launchDatBom(container, game) {
   }
 
   function useReviveNeedle() {
-    if (player.isTrapped && needles > 0) {
+    if (gameState === 'playing' && player.isTrapped && needles > 0) {
       needles--;
       player.isTrapped = false;
       player.invincibleTimer = 90;
@@ -4287,13 +4372,16 @@ function launchDatBom(container, game) {
 
   const keys = {};
   const onKeyDown = (e) => {
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName || '') ||
+        (e.target?.tagName === 'BUTTON' && (e.key === ' ' || e.key === 'Enter'))) return;
     keys[e.key] = true;
+    if (e.key.startsWith('Arrow')) e.preventDefault();
     if (e.key === ' ' || e.code === 'Space') {
       e.preventDefault();
-      placeWaterBomb();
+      if (!e.repeat) placeWaterBomb();
     } else if (e.key === 'j' || e.key === 'J') {
       e.preventDefault();
-      useReviveNeedle();
+      if (!e.repeat) useReviveNeedle();
     }
   };
   const onKeyUp = (e) => {
@@ -4301,6 +4389,7 @@ function launchDatBom(container, game) {
   };
   listen(window, 'keydown', onKeyDown);
   listen(window, 'keyup', onKeyUp);
+  listen(window, 'blur', () => { for (const key of Object.keys(keys)) keys[key] = false; });
 
   // Overlay Buttons
   const startBtn = container.querySelector('#dbStartGameBtn');
@@ -4328,6 +4417,12 @@ function launchDatBom(container, game) {
       gameState = 'playing';
       lives = 3;
       score = 0;
+      needles = 1;
+      player.speed = selectedChar.speed;
+      player.bombCapacity = selectedChar.bombs;
+      player.flameRange = selectedChar.range;
+      player.hasTurtle = false;
+      for (const key of Object.keys(keys)) keys[key] = false;
       initStage(1);
     });
   }
@@ -4337,17 +4432,13 @@ function launchDatBom(container, game) {
   if (placeBtn) placeBtn.addEventListener('click', placeWaterBomb);
   if (needleBtn) needleBtn.addEventListener('click', useReviveNeedle);
 
-  // Touch D-Pad Handlers
+  // Pointer capture keeps held directions reliable outside a button's bounds.
   function bindDpad(btnId, keyName) {
     const btn = container.querySelector(btnId);
-    if (!btn) return;
-    const press = (e) => { e.preventDefault(); keys[keyName] = true; btn.style.background = 'rgba(255,255,255,0.4)'; };
-    const release = (e) => { e.preventDefault(); keys[keyName] = false; btn.style.background = 'rgba(255,255,255,0.15)'; };
-    btn.addEventListener('touchstart', press, { passive: false });
-    btn.addEventListener('touchend', release, { passive: false });
-    btn.addEventListener('mousedown', press);
-    btn.addEventListener('mouseup', release);
-    btn.addEventListener('mouseleave', release);
+    bindHeldControl(listen, btn, pressed => {
+      keys[keyName] = pressed;
+      btn.style.background = pressed ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.15)';
+    }, { ArrowUp: 'Đi lên', ArrowDown: 'Đi xuống', ArrowLeft: 'Sang trái', ArrowRight: 'Sang phải' }[keyName]);
   }
   bindDpad('#dbDpadUp', 'ArrowUp');
   bindDpad('#dbDpadDown', 'ArrowDown');
@@ -4406,7 +4497,7 @@ function launchDatBom(container, game) {
           score += 25;
           if (score > highScore) {
             highScore = score;
-            localStorage.setItem(HIGH_SCORE_KEY, highScore);
+            storage.setItem(HIGH_SCORE_KEY, highScore);
           }
           const px = nc * TILE + TILE / 2;
           const py = nr * TILE + TILE / 2;
@@ -4466,11 +4557,9 @@ function launchDatBom(container, game) {
     return false;
   }
 
-  function loop() {
-    const now = performance.now();
-    const dt = now - lastTime;
-    lastTime = now;
-    const dtRatio = Math.min(2.5, dt / 16.67);
+  function step() {
+    if (gameState !== 'playing') return;
+    const dtRatio = 1;
 
     // 1. Player Movement & State (60 FPS Delta-Time + Smooth Corner Sliding)
     if (gameState === 'playing' && !player.isTrapped) {
@@ -4481,6 +4570,8 @@ function launchDatBom(container, game) {
       if (keys['ArrowLeft'] || keys['a'] || keys['A']) { vx -= 1; player.direction = 'left'; }
       if (keys['ArrowRight'] || keys['d'] || keys['D']) { vx += 1; player.direction = 'right'; }
 
+      const length = Math.hypot(vx, vy);
+      if (length > 1) { vx /= length; vy /= length; }
       const moveStep = player.speed * dtRatio;
 
       if (vx !== 0) {
@@ -4560,7 +4651,7 @@ function launchDatBom(container, game) {
         score += 100;
         if (score > highScore) {
           highScore = score;
-          localStorage.setItem(HIGH_SCORE_KEY, highScore);
+          storage.setItem(HIGH_SCORE_KEY, highScore);
         }
         updateHUD();
       }
@@ -4571,7 +4662,7 @@ function launchDatBom(container, game) {
         score += 1500 * stage;
         if (score > highScore) {
           highScore = score;
-          localStorage.setItem(HIGH_SCORE_KEY, highScore);
+          storage.setItem(HIGH_SCORE_KEY, highScore);
         }
         updateHUD();
         gameState = 'stageclear';
@@ -4657,7 +4748,7 @@ function launchDatBom(container, game) {
               score += 200;
               if (score > highScore) {
                 highScore = score;
-                localStorage.setItem(HIGH_SCORE_KEY, highScore);
+                storage.setItem(HIGH_SCORE_KEY, highScore);
               }
               if (popups) popups.add('💦 BẪY ĐƯỢC QUÁI! +200', e.x, e.y - 15, '#38BDF8', 18);
               updateHUD();
@@ -4679,7 +4770,7 @@ function launchDatBom(container, game) {
           score += 300;
           if (score > highScore) {
             highScore = score;
-            localStorage.setItem(HIGH_SCORE_KEY, highScore);
+            storage.setItem(HIGH_SCORE_KEY, highScore);
           }
           if (window.NP_Audio) window.NP_Audio.pop();
           if (popups) popups.add('⭐ TIÊU DIỆT! +300', e.x, e.y - 15, '#F59E0B', 20);
@@ -4699,7 +4790,7 @@ function launchDatBom(container, game) {
           score += 400;
           if (score > highScore) {
             highScore = score;
-            localStorage.setItem(HIGH_SCORE_KEY, highScore);
+            storage.setItem(HIGH_SCORE_KEY, highScore);
           }
           if (window.NP_Audio) window.NP_Audio.pop();
           if (popups) popups.add('💥 ĐẠP VỠ BÓNG! +400', e.x, e.y - 15, '#10B981', 20);
@@ -4751,6 +4842,9 @@ function launchDatBom(container, game) {
       }
     }
 
+  }
+
+  function draw() {
     // ==========================================
     // RENDER PASS
     // ==========================================
@@ -4988,6 +5082,18 @@ function launchDatBom(container, game) {
       popups.draw(ctx);
     }
 
+  }
+
+  let accumulated = 0;
+  function loop(timestamp) {
+    const elapsed = Math.min(50, Math.max(0, timestamp - lastTime));
+    lastTime = timestamp;
+    accumulated = Math.min(50, accumulated + elapsed);
+    while (accumulated >= 1000 / 60 - 0.00001) {
+      step();
+      accumulated -= 1000 / 60;
+    }
+    draw();
     animId = requestAnimationFrame(loop);
   }
 
@@ -5006,12 +5112,15 @@ function launchDatBom(container, game) {
 // 7. ENGINE: BẮN XE TĂNG 1990 (BATTLE CITY NES FULL ENGINE)
 // =========================================================================
 function launchXeTang1990(container, game) {
-  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance } = window.NP_GameSession.start();
   let stage = 1;
   let score = 0;
   let lives = 3;
   let animId = null;
   let baseAlive = true;
+  let gameOver = false;
+  let lastFrame = performance.now();
+  let accumulated = 0;
 
   const COLS = 13;
   const ROWS = 13;
@@ -5052,6 +5161,7 @@ function launchXeTang1990(container, game) {
   function initStage(stg) {
     stage = stg;
     baseAlive = true;
+    gameOver = false;
     bullets = [];
     enemyTanks = [];
     powerups = [];
@@ -5062,6 +5172,7 @@ function launchXeTang1990(container, game) {
     player.x = 4 * TILE + TILE / 2;
     player.y = 12 * TILE + TILE / 2;
     player.dir = 0;
+    player.cooldown = 0;
     player.recoilX = 0;
     player.recoilY = 0;
     player.invincibleTimer = 120;
@@ -5131,8 +5242,11 @@ function launchXeTang1990(container, game) {
 
   const keys = {};
   const onKeyDown = (e) => {
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName || '') ||
+        (e.target?.tagName === 'BUTTON' && (e.key === ' ' || e.key === 'Enter'))) return;
     keys[e.key] = true;
     keys[e.code] = true;
+    if (e.key.startsWith('Arrow')) e.preventDefault();
     if (e.key === ' ' || e.code === 'Space' || e.key === 'Enter') {
       e.preventDefault();
       firePlayerBullet();
@@ -5145,36 +5259,32 @@ function launchXeTang1990(container, game) {
 
   listen(window, 'keydown', onKeyDown);
   listen(window, 'keyup', onKeyUp);
+  listen(window, 'blur', () => { for (const key of Object.keys(keys)) keys[key] = false; });
 
   function bindBtn(id, key) {
     const btn = container.querySelector(id);
-    if (!btn) return;
-    const press = (e) => { e.preventDefault(); keys[key] = true; if (window.NP_Juice) window.NP_Juice.vibrate(8); };
-    const release = (e) => { e.preventDefault(); keys[key] = false; };
-    btn.addEventListener('mousedown', press);
-    btn.addEventListener('mouseup', release);
-    btn.addEventListener('mouseleave', release);
-    btn.addEventListener('touchstart', press, { passive: false });
-    btn.addEventListener('touchend', release, { passive: false });
+    bindHeldControl(listen, btn, pressed => {
+      keys[key] = pressed;
+      if (pressed && window.NP_Juice) window.NP_Juice.vibrate(8);
+    }, { ArrowUp: 'Đi lên', ArrowDown: 'Đi xuống', ArrowLeft: 'Sang trái', ArrowRight: 'Sang phải' }[key]);
   }
   bindBtn('#xtUp', 'ArrowUp');
   bindBtn('#xtDown', 'ArrowDown');
   bindBtn('#xtLeft', 'ArrowLeft');
   bindBtn('#xtRight', 'ArrowRight');
 
-  container.querySelector('#xtFireBtn')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    firePlayerBullet();
-  });
-  container.querySelector('#xtFireBtn')?.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    firePlayerBullet();
-  }, { passive: false });
+  const fireButton = container.querySelector('#xtFireBtn');
+  bindHeldControl(listen, fireButton, pressed => {
+    keys.Space = pressed;
+    if (pressed) firePlayerBullet();
+  }, 'Giữ để bắn');
+  listen(fireButton, 'click', event => { if (event.detail === 0) firePlayerBullet(); });
 
   container.querySelector('#xtRestartBtn')?.addEventListener('click', () => {
     lives = 3;
     score = 0;
     player.starLevel = 0;
+    for (const key of Object.keys(keys)) keys[key] = false;
     initStage(1);
   });
 
@@ -5195,7 +5305,7 @@ function launchXeTang1990(container, game) {
   }
 
   function firePlayerBullet() {
-    if (player.cooldown > 0 || !baseAlive) return;
+    if (player.cooldown > 0 || !baseAlive || gameOver || lives <= 0) return;
     const v = [
       { vx: 0, vy: -1 },
       { vx: 1, vy: 0 },
@@ -5296,22 +5406,9 @@ function launchXeTang1990(container, game) {
     updateHUD();
   }
 
-  function loop() {
+  function step() {
+    if (!baseAlive || gameOver) return;
     tick++;
-
-    if (!baseAlive) {
-      ctx.fillStyle = 'rgba(0,0,0,0.85)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#EF4444';
-      ctx.font = 'bold 22px Calibri, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('🏴‍☠️ CĂN CỨ ĐẠI BÀNG ĐÃ BỊ PHÁ HỦY!', canvas.width / 2, canvas.height / 2 - 10);
-      ctx.fillStyle = '#CBD5E1';
-      ctx.font = '16px Calibri, sans-serif';
-      ctx.fillText('Nhấp "Chơi lại" để phục thù.', canvas.width / 2, canvas.height / 2 + 25);
-      animId = requestAnimationFrame(loop);
-      return;
-    }
 
     // Timers
     if (enemyFrozenTimer > 0) enemyFrozenTimer--;
@@ -5329,6 +5426,7 @@ function launchXeTang1990(container, game) {
     // 1. Player Controls with CORNER ASSIST (NES Battle City Smooth Cornering)
     if (player.cooldown > 0) player.cooldown--;
     if (player.invincibleTimer > 0) player.invincibleTimer--;
+    if (keys.Space || keys[' '] || keys.Enter) firePlayerBullet();
 
     let moved = false;
     const upPressed = keys['ArrowUp'] || keys['w'] || keys['W'];
@@ -5587,13 +5685,6 @@ function launchXeTang1990(container, game) {
               }
               updateHUD();
 
-              if (remainingWave === 0 && enemyTanks.length === 0) {
-                if (window.NP_Audio) window.NP_Audio.win();
-                if (window.NP_Juice) window.NP_Juice.vibrate([30, 50, 80]);
-                score += 1000 * stage;
-                initStage(stage + 1);
-                return;
-              }
             } else {
               if (window.NP_Audio) window.NP_Audio.hit();
               if (window.NP_Juice) window.NP_Juice.vibrate(15);
@@ -5621,9 +5712,8 @@ function launchXeTang1990(container, game) {
             bullets.splice(i, 1);
 
             if (lives <= 0) {
-              score = 0;
-              lives = 3;
-              initStage(1);
+              gameOver = true;
+              for (const key of Object.keys(keys)) keys[key] = false;
               return;
             }
             break;
@@ -5632,6 +5722,16 @@ function launchXeTang1990(container, game) {
       }
     }
 
+    // Clearing the last tank by either bullets or a bomb power-up completes a wave.
+    if (baseAlive && !gameOver && remainingWave === 0 && enemyTanks.length === 0) {
+      if (window.NP_Audio) window.NP_Audio.win();
+      score += 1000 * stage;
+      initStage(stage + 1);
+      if (popups) popups.add('MÀN ' + stage, canvas.width / 2, 70, '#FBBF24', 24);
+    }
+  }
+
+  function draw() {
     // --- RENDER ---
     ctx.fillStyle = '#030712';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -5767,6 +5867,30 @@ function launchXeTang1990(container, game) {
     if (particles) particles.updateAndDraw(ctx);
     if (popups) popups.updateAndDraw(ctx);
 
+    if (!baseAlive || gameOver) {
+      ctx.fillStyle = 'rgba(0,0,0,0.85)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#EF4444';
+      ctx.font = 'bold 22px Calibri, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(gameOver ? 'HẾT MẠNG' : 'CĂN CỨ ĐÃ BỊ PHÁ HỦY', canvas.width / 2, canvas.height / 2 - 26);
+      ctx.fillStyle = '#F8FAFC';
+      ctx.font = '18px Calibri, sans-serif';
+      ctx.fillText('Màn ' + stage + ' · ' + score + ' điểm', canvas.width / 2, canvas.height / 2 + 6);
+      ctx.font = '16px Calibri, sans-serif';
+      ctx.fillText('Bấm Chơi lại để bắt đầu ván mới', canvas.width / 2, canvas.height / 2 + 37);
+    }
+  }
+
+  function loop(timestamp) {
+    const elapsed = Math.min(50, Math.max(0, timestamp - lastFrame));
+    lastFrame = timestamp;
+    accumulated = Math.min(50, accumulated + elapsed);
+    while (accumulated >= 1000 / 60 - 0.00001) {
+      step();
+      accumulated -= 1000 / 60;
+    }
+    draw();
     animId = requestAnimationFrame(loop);
   }
 
@@ -5786,7 +5910,7 @@ function launchXeTang1990(container, game) {
 // 8. ENGINE: CỜ CARO VIỆT NAM (15x15 CỔ ĐIỂN FULL AI ENGINE)
 // =========================================================================
 function launchCaro(container, game) {
-  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance } = window.NP_GameSession.start();
   const SIZE = 15;
   let board = Array(SIZE).fill(null).map(() => Array(SIZE).fill(0)); // 0: empty, 1: X (Player), 2: O (AI)
   let moveHistory = [];
@@ -6169,10 +6293,11 @@ function launchCaro(container, game) {
 // 9. ENGINE: RẮN SĂN MỒI (NOKIA 3310 RETRO SNAKE FULL ENGINE)
 // =========================================================================
 function launchSnake(container, game) {
-  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+  const session = window.NP_GameSession.start();
+  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance = window.performance } = session;
   const HIGH_SCORE_KEY = 'np_snake_high_score';
   let highScore = 0;
-  try { highScore = Math.max(0, parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0') || 0); } catch (_) {}
+  try { highScore = Math.max(0, storedScore(HIGH_SCORE_KEY) || 0); } catch (_) {}
 
   const COLS = 24;
   const ROWS = 16;
@@ -6303,17 +6428,24 @@ function launchSnake(container, game) {
   });
   listen(canvas, 'pointercancel', () => { swipe=null; });
 
-  function togglePause() {
-    if (gameOver) return;
-    paused = !paused;
+  function syncPause(value) {
+    paused = !!value;
     tickBudget = 0;
     lastTick = 0;
+    swipe = null;
     const pauseBtn = container.querySelector('#snkPauseBtn');
     if (pauseBtn) pauseBtn.textContent = paused ? 'Tiếp tục' : 'Tạm dừng';
   }
+  const sharedPause = !!(session.pause && session.resume && session.onPauseChange);
+  if (sharedPause) session.onPauseChange(syncPause);
+  function togglePause() {
+    if (gameOver) return;
+    if (sharedPause) { if (paused) session.resume(); else session.pause(); }
+    else syncPause(!paused);
+  }
   container.querySelector('#snkPauseBtn')?.addEventListener('click', togglePause);
   listen(window, 'blur', () => {
-    if (!paused && !gameOver) togglePause();
+    swipe = null;
   });
 
   const keyHandler = (e) => {
@@ -6400,7 +6532,7 @@ function launchSnake(container, game) {
 
       if (score > highScore) {
         highScore = score;
-        try { localStorage.setItem(HIGH_SCORE_KEY, highScore); } catch (_) {}
+        try { storage.setItem(HIGH_SCORE_KEY, highScore); } catch (_) {}
       }
       AudioEngine.coin();
 
@@ -6610,9 +6742,10 @@ function launchSnake(container, game) {
 // 10. ENGINE: XẾP GẠCH (TETRIS CỔ ĐIỂN FULL ENGINE)
 // =========================================================================
 function launchTetris(container, game) {
-  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+  const session = window.NP_GameSession.start();
+  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance = window.performance } = session;
   const HIGH_SCORE_KEY = 'np_tetris_high_score';
-  let highScore = parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0');
+  let highScore = storedScore(HIGH_SCORE_KEY);
 
   const COLS = 10;
   const ROWS = 20;
@@ -6759,7 +6892,7 @@ function launchTetris(container, game) {
     if (sEl) sEl.textContent = score;
     if (score > highScore) {
       highScore = score;
-      try { localStorage.setItem(HIGH_SCORE_KEY, String(highScore)); } catch (_) {}
+      try { storage.setItem(HIGH_SCORE_KEY, String(highScore)); } catch (_) {}
     }
     if (hEl) hEl.textContent = highScore;
     drawNextPiece();
@@ -6961,7 +7094,7 @@ function launchTetris(container, game) {
       score += pts;
       if (score > highScore) {
         highScore = score;
-        localStorage.setItem(HIGH_SCORE_KEY, highScore);
+        storage.setItem(HIGH_SCORE_KEY, highScore);
       }
 
       // Fanfare & particle burst & Haptics
@@ -7039,18 +7172,24 @@ function launchTetris(container, game) {
     updateHUD();
   }
 
-  function togglePause() {
-    if (gameOver) return;
-    paused = !paused;
+  function syncPause(value) {
+    paused = !!value;
     lastDrop = 0;
     gravityBudget = 0;
     held.left=held.right=held.down=false;
     holdDirection=0;holdDuration=repeatBudget=softDropBudget=0;
+    drag=null;
     const btn = container.querySelector('#tetPauseBtn');
     if (btn) btn.textContent = paused ? 'Tiếp tục' : 'Tạm dừng';
   }
+  const sharedPause = !!(session.pause && session.resume && session.onPauseChange);
+  if (sharedPause) session.onPauseChange(syncPause);
+  function togglePause() {
+    if (gameOver) return;
+    if (sharedPause) { if (paused) session.resume(); else session.pause(); }
+    else syncPause(!paused);
+  }
   container.querySelector('#tetPauseBtn')?.addEventListener('click', togglePause);
-  listen(window, 'blur', () => { if (!paused && !gameOver) togglePause(); });
   // Keyboard controls
   function directionForKey(key) {
     if (key === 'ArrowLeft' || key === 'a' || key === 'A') return 'left';
@@ -7096,6 +7235,7 @@ function launchTetris(container, game) {
   listen(window,'blur',()=>{
     held.left=held.right=held.down=false;
     holdDirection=0;holdDuration=repeatBudget=softDropBudget=0;
+    drag=null;
   });
 
   // Unified pointer gesture, scaled to the actual CSS canvas size.
@@ -7355,13 +7495,14 @@ function launchTetris(container, game) {
 // 12. ENGINE: FLAPPY BIRD (HUYỀN THOẠI NGUYỄN HÀ ĐÔNG 2013)
 // =========================================================================
 function launchFlappyBird(container, game) {
-  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+  const session = window.NP_GameSession.start();
+  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance = window.performance } = session;
   let score = 0;
   let mode='classic';
   const modes={classic:{gapBias:0,speed:1},practice:{gapBias:34,speed:.83}};
   const recordKey=()=>mode==='classic'?'np_flappy_high':'np_flappy_practice_high';
   let highScore=0;
-  try { highScore=Math.max(0,parseInt(localStorage.getItem(recordKey())||'0')||0); } catch (_) {}
+  try { highScore=Math.max(0,parseInt(storage.getItem(recordKey())||'0')||0); } catch (_) {}
   let bird = { y: 200, vy: 0 };
   let pipes = [];
   let frame = 0;
@@ -7438,24 +7579,28 @@ function launchFlappyBird(container, game) {
     flap();
   });
   container.querySelector('#fbFlapBtn')?.addEventListener('click', flap);
-  function togglePause() {
-    if (gameOver || !started) return;
-    paused = !paused;
+  function syncPause(value) {
+    paused = !!value;
     const btn = container.querySelector('#fbPauseBtn');
     if (btn) btn.textContent = paused ? 'Tiếp tục' : 'Tạm dừng';
     lastFrame = 0; frameBudget = 0;
+  }
+  const sharedPause = !!(session.pause && session.resume && session.onPauseChange);
+  if (sharedPause) session.onPauseChange(syncPause);
+  function togglePause() {
+    if (gameOver || !started) return;
+    if (sharedPause) { if (paused) session.resume(); else session.pause(); }
+    else syncPause(!paused);
   }
   container.querySelector('#fbPauseBtn')?.addEventListener('click', togglePause);
   container.querySelector('#fbMode')?.addEventListener('change',e=>{
     const chosen=String(e.target.value);
     if(!Object.prototype.hasOwnProperty.call(modes,chosen))return;
     mode=chosen;
-    try { highScore=Math.max(0,parseInt(localStorage.getItem(recordKey())||'0')||0); }
+    try { highScore=Math.max(0,parseInt(storage.getItem(recordKey())||'0')||0); }
     catch (_) { highScore=0; }
     resetRun();
   });
-  listen(window, 'blur', () => { if (started && !paused && !gameOver) togglePause(); });
-
   function updateHUD() {
     const sEl = container.querySelector('#fbScore');
     const hEl = container.querySelector('#fbHigh');
@@ -7491,7 +7636,7 @@ function launchFlappyBird(container, game) {
           score++;
           if (score > highScore) {
             highScore = score;
-            try { localStorage.setItem(recordKey(),String(highScore)); } catch (_) {}
+            try { storage.setItem(recordKey(),String(highScore)); } catch (_) {}
           }
           AudioEngine.coin();
           if(window.NP_Juice)window.NP_Juice.vibrate(15);
@@ -7668,7 +7813,7 @@ function launchFlappyBird(container, game) {
 // 13. ENGINE: CHÉM HOA QUẢ (FRUIT NINJA CỔ ĐIỂN FULL ENGINE)
 // =========================================================================
 function launchFruitNinja(container, game) {
-  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance } = window.NP_GameSession.start();
   let score = 0;
   let combo = 0;
   let lives = 3;
@@ -7703,60 +7848,74 @@ function launchFruitNinja(container, game) {
 
   const canvas = container.querySelector('#fnCanvas');
   const ctx = canvas.getContext('2d');
-  let isSwiping = false;
-
-  canvas.addEventListener('mousedown', (e) => {
-    isSwiping = true;
-    addTrailPoint(e);
+  let swipePointer = null;
+  let lastSlashPoint = null;
+  let swipeCuts = 0;
+  let swipeBonus = 0;
+  canvas.style.touchAction = 'none';
+  listen(canvas, 'pointerdown', event => {
+    if (gameOver || swipePointer !== null || (event.pointerType === 'mouse' && event.button !== 0)) return;
+    event.preventDefault();
+    swipePointer = event.pointerId ?? 'primary';
+    lastSlashPoint = null;
+    swipeCuts = 0;
+    swipeBonus = 0;
+    trail = [];
+    try { canvas.setPointerCapture?.(event.pointerId); } catch (_) {}
+    addTrailPoint(event);
   });
-  canvas.addEventListener('mousemove', (e) => {
-    if (isSwiping) addTrailPoint(e);
+  listen(canvas, 'pointermove', event => {
+    if (swipePointer === null || swipePointer !== (event.pointerId ?? 'primary')) return;
+    event.preventDefault();
+    addTrailPoint(event);
   });
-  listen(window, 'mouseup', () => { isSwiping = false; });
-
-  canvas.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    isSwiping = true;
-    addTrailPoint(e.touches[0]);
+  const releaseSwipe = event => {
+    if (event && swipePointer !== (event.pointerId ?? 'primary')) return;
+    swipePointer = null;
+    lastSlashPoint = null;
+  };
+  listen(canvas, 'pointerup', event => {
+    if (swipePointer !== (event.pointerId ?? 'primary')) return;
+    addTrailPoint(event);
+    releaseSwipe(event);
   });
-  canvas.addEventListener('touchmove', (e) => {
-    e.preventDefault();
-    if (isSwiping) addTrailPoint(e.touches[0]);
-  });
-  listen(window, 'touchend', () => { isSwiping = false; });
+  for (const type of ['pointercancel', 'lostpointercapture']) listen(canvas, type, releaseSwipe);
+  listen(window, 'pointerup', releaseSwipe);
+  listen(window, 'blur', () => releaseSwipe());
 
   let floatingScores = [];
   let screenShake = 0;
 
   function addTrailPoint(e) {
     const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
+    const scaleX = canvas.width / (rect.width || canvas.width);
+    const scaleY = canvas.height / (rect.height || canvas.height);
     const x = (e.clientX - rect.left) * scaleX;
     const y = (e.clientY - rect.top) * scaleY;
     trail.push({ x, y, life: 14 });
-    checkSlash(x, y);
+    if (trail.length > 48) trail.shift();
+    checkSlash(lastSlashPoint || { x, y }, { x, y });
+    lastSlashPoint = { x, y };
   }
 
-  function checkSlash(x, y) {
+  function checkSlash(from, to) {
     if (gameOver) return;
+    const { x, y } = to;
     let cutInThisSwipe = 0;
 
-    // Determine current slash direction vector
-    let slashDirX = 1, slashDirY = 0;
-    if (trail.length >= 2) {
-      const p1 = trail[trail.length - 2];
-      const p2 = trail[trail.length - 1];
-      const len = Math.hypot(p2.x - p1.x, p2.y - p1.y);
-      if (len > 0) {
-        slashDirX = (p2.x - p1.x) / len;
-        slashDirY = (p2.y - p1.y) / len;
-      }
-    }
+    // Swept segment collision catches fruit between sparse pointer samples.
+    const dx = x - from.x, dy = y - from.y;
+    const lengthSquared = dx * dx + dy * dy;
+    const length = Math.sqrt(lengthSquared);
+    const slashDirX = length ? dx / length : 1;
+    const slashDirY = length ? dy / length : 0;
 
     for (let i = fruits.length - 1; i >= 0; i--) {
       const f = fruits[i];
-      if (!f.sliced && Math.hypot(x - f.x, y - f.y) < f.radius + 18) {
+      const progress = lengthSquared ? Math.max(0, Math.min(1,
+        ((f.x - from.x) * dx + (f.y - from.y) * dy) / lengthSquared)) : 0;
+      const distance = Math.hypot(from.x + dx * progress - f.x, from.y + dy * progress - f.y);
+      if (!f.sliced && distance < f.radius + 8) {
         if (f.isBomb) {
           gameOver = true;
           screenShake = 16;
@@ -7805,10 +7964,12 @@ function launchFruitNinja(container, game) {
       }
     }
 
-    if (cutInThisSwipe > 1) {
-      const bonus = cutInThisSwipe * 15;
+    swipeCuts += cutInThisSwipe;
+    if (cutInThisSwipe > 0 && swipeCuts > 1) {
+      const bonus = swipeCuts * 15 - swipeBonus;
+      swipeBonus += bonus;
       score += bonus;
-      combo += cutInThisSwipe;
+      combo += bonus / 15;
       screenShake = 6;
       if (window.NP_Juice) NP_Juice.vibrate.combo();
       AudioEngine.powerup();
@@ -7817,7 +7978,7 @@ function launchFruitNinja(container, game) {
         x: x,
         y: y - 25,
         vy: -3,
-        text: `⚡ COMBO x${cutInThisSwipe}! +${bonus}`,
+        text: `⚡ COMBO x${swipeCuts}! +${bonus}`,
         color: '#F59E0B'
       });
     }
@@ -7834,6 +7995,7 @@ function launchFruitNinja(container, game) {
     floatingScores = [];
     screenShake = 0;
     gameOver = false;
+    releaseSwipe();
     updateHUD();
   });
 
@@ -7867,25 +8029,48 @@ function launchFruitNinja(container, game) {
     });
   }
 
-  function loop() {
-    // Check hitstop freeze
-    if (window.NP_Juice && NP_Juice.isFrozen()) {
-      animId = requestAnimationFrame(loop);
-      return;
+  let lastFrame = performance.now();
+  let accumulated = 0;
+  function step() {
+    if (screenShake > 0) {
+      screenShake *= 0.82;
+      if (screenShake < 0.3) screenShake = 0;
     }
-
-    if (!gameOver && Math.random() < 0.038) {
-      spawnFruit();
+    for (let i = splatters.length - 1; i >= 0; i--) {
+      const sp = splatters[i];
+      sp.x += sp.vx; sp.y += sp.vy; sp.vx *= 0.95; sp.vy += 0.15; sp.alpha -= 0.015;
+      if (sp.alpha <= 0) splatters.splice(i, 1);
     }
+    for (let i = trail.length - 1; i >= 0; i--) if (--trail[i].life <= 0) trail.splice(i, 1);
+    for (let i = floatingScores.length - 1; i >= 0; i--) {
+      const fs = floatingScores[i]; fs.y += fs.vy; fs.vy *= 0.94;
+      if (fs.vy > -0.3) floatingScores.splice(i, 1);
+    }
+    if (gameOver) return;
+    if (Math.random() < 0.038) spawnFruit();
+    for (let i = fruits.length - 1; i >= 0; i--) {
+      const f = fruits[i];
+      f.x += f.vx; f.y += f.vy; f.vy += 0.28; f.rotation += f.rotSpeed;
+      if (f.sliced) {
+        f.half1X -= f.perpX; f.half1Y -= f.perpY;
+        f.half2X += f.perpX; f.half2Y += f.perpY;
+      }
+      if (f.y <= canvas.height + 40) continue;
+      fruits.splice(i, 1);
+      if (!f.sliced && !f.isBomb) {
+        lives--; screenShake = 6; AudioEngine.hit(); updateHUD();
+        if (lives <= 0) { gameOver = true; AudioEngine.explosion(); return; }
+      }
+    }
+  }
 
+  function draw() {
     ctx.save();
     // Screen shake
     if (screenShake > 0) {
       const ox = (Math.random() - 0.5) * screenShake;
       const oy = (Math.random() - 0.5) * screenShake;
       ctx.translate(ox, oy);
-      screenShake *= 0.82;
-      if (screenShake < 0.3) screenShake = 0;
     }
 
     // Dojo wooden wall background
@@ -7897,34 +8082,17 @@ function launchFruitNinja(container, game) {
     }
 
     // Splatters on wall
-    for (let i = splatters.length - 1; i >= 0; i--) {
-      const sp = splatters[i];
-      sp.x += sp.vx;
-      sp.y += sp.vy;
-      sp.vx *= 0.95;
-      sp.vy += 0.15;
-      sp.alpha -= 0.015;
-      if (sp.alpha <= 0) {
-        splatters.splice(i, 1);
-      } else {
-        ctx.save();
-        ctx.globalAlpha = sp.alpha;
-        ctx.fillStyle = sp.color;
-        ctx.beginPath();
-        ctx.arc(sp.x, sp.y, sp.radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      }
+    for (const sp of splatters) {
+      ctx.save();
+      ctx.globalAlpha = sp.alpha;
+      ctx.fillStyle = sp.color;
+      ctx.beginPath(); ctx.arc(sp.x, sp.y, sp.radius, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
     }
 
     // Fruits & Bomb rendering
     for (let i = fruits.length - 1; i >= 0; i--) {
       const f = fruits[i];
-      f.x += f.vx;
-      f.y += f.vy;
-      f.vy += 0.28;
-      f.rotation += f.rotSpeed;
-
       if (!f.sliced) {
         ctx.save();
         ctx.translate(f.x, f.y);
@@ -7956,11 +8124,6 @@ function launchFruitNinja(container, game) {
         ctx.restore();
       } else {
         // Sliced fruit: separate halves flying apart!
-        f.half1X -= f.perpX || 3;
-        f.half1Y -= f.perpY || 1;
-        f.half2X += f.perpX || 3;
-        f.half2Y += f.perpY || 1;
-
         ctx.save();
         ctx.translate(f.x + f.half1X, f.y + f.half1Y);
         ctx.rotate(f.rotation - 0.4);
@@ -7980,28 +8143,9 @@ function launchFruitNinja(container, game) {
         ctx.restore();
       }
 
-      // Check drop out of screen
-      if (f.y > canvas.height + 40) {
-        if (!f.sliced && !f.isBomb && !gameOver) {
-          lives--;
-          screenShake = 6;
-          AudioEngine.hit();
-          updateHUD();
-          if (lives <= 0) {
-            gameOver = true;
-            AudioEngine.explosion();
-          }
-        }
-        fruits.splice(i, 1);
-      }
     }
 
     // Katana Blade Trail (Tapered, Glowing, Sharp)
-    for (let i = trail.length - 1; i >= 0; i--) {
-      trail[i].life--;
-      if (trail[i].life <= 0) trail.splice(i, 1);
-    }
-
     if (trail.length > 2) {
       // 1. Glowing outer blade aura
       ctx.save();
@@ -8037,13 +8181,10 @@ function launchFruitNinja(container, game) {
     // Floating Score Popups (Font Calibri)
     for (let i = floatingScores.length - 1; i >= 0; i--) {
       const fs = floatingScores[i];
-      fs.y += fs.vy;
-      fs.vy *= 0.94;
       ctx.fillStyle = fs.color;
       ctx.font = 'bold 15px Calibri, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(fs.text, fs.x, fs.y);
-      if (fs.vy > -0.3) floatingScores.splice(i, 1);
     }
 
     if (gameOver) {
@@ -8059,6 +8200,19 @@ function launchFruitNinja(container, game) {
     }
 
     ctx.restore();
+  }
+
+  function loop(timestamp) {
+    const elapsed = Math.min(50, Math.max(0, timestamp - lastFrame));
+    lastFrame = timestamp;
+    if (!(window.NP_Juice && window.NP_Juice.isFrozen())) {
+      accumulated = Math.min(50, accumulated + elapsed);
+      while (accumulated >= 1000 / 60 - 0.00001) {
+        step();
+        accumulated -= 1000 / 60;
+      }
+    }
+    draw();
     animId = requestAnimationFrame(loop);
   }
 
@@ -8074,7 +8228,7 @@ function launchFruitNinja(container, game) {
 // 14. ENGINE: DÒ MÌN (MINESWEEPER WINDOWS 98 CỔ ĐIỂN)
 // =========================================================================
 function launchDoMin(container, game) {
-  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance } = window.NP_GameSession.start();
   const MODES = {
     beginner: { rows: 9, cols: 9, mines: 10, step: 2 },
     intermediate: { rows: 16, cols: 16, mines: 40, step: 4 },
@@ -8303,8 +8457,8 @@ function launchDoMin(container, game) {
       clearInterval(timerInterval);
       try {
         const key = recordKey();
-        const old = localStorage.getItem(key) ?? (difficulty === 'beginner' ? localStorage.getItem('np_mine_best_' + stage) : null);
-        if (old === null || timer < Number(old)) localStorage.setItem(key, String(timer));
+        const old = storage.getItem(key) ?? (difficulty === 'beginner' ? storage.getItem('np_mine_best_' + stage) : null);
+        if (old === null || timer < Number(old)) storage.setItem(key, String(timer));
       } catch (_) {}
       const result = container.querySelector('#dmResult');
       if (result) result.textContent = 'Hoàn thành màn ' + stage + ' trong ' + timer + ' giây.';
@@ -8326,8 +8480,8 @@ function launchDoMin(container, game) {
     if (bestEl) {
       let best = null;
       try {
-        best = localStorage.getItem(recordKey()) ??
-          (difficulty === 'beginner' ? localStorage.getItem('np_mine_best_' + stage) : null);
+        best = storage.getItem(recordKey()) ??
+          (difficulty === 'beginner' ? storage.getItem('np_mine_best_' + stage) : null);
       } catch (_) {}
       bestEl.textContent = best === null ? '—' : best + 's';
     }
@@ -8507,6 +8661,10 @@ function launchDoMin(container, game) {
   };
   listen(window, 'mouseup', globalMouseUp);
   listen(window, 'touchend', globalMouseUp);
+  listen(window, 'blur', () => {
+    cancelLongPresses();
+    globalMouseUp();
+  });
 
   initBoard();
 
@@ -8521,7 +8679,7 @@ function launchDoMin(container, game) {
 // 15. ENGINE: PIKACHU NỐI HÌNH CỔ ĐIỂN (KAWAII 2003 FULL ENGINE)
 // =========================================================================
 function launchPikachu(container, game) {
-  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance } = window.NP_GameSession.start();
   const ROWS = 8;
   const COLS = 12;
   let board = [];
@@ -9129,7 +9287,7 @@ function launchPikachu(container, game) {
       window.NP_Archetypes.launch(container, game);
       return;
     }
-    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance } = window.NP_GameSession.start();
     let lives = 3;
     let level = 1;
     let score = 0;

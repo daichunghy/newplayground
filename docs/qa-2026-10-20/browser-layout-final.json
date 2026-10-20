@@ -1,0 +1,112 @@
+{
+  "sourceCommit": "fdad08815e138687c3b5462af65fd518f67f9767",
+  "url": "https://raw.githack.com/daichunghy/newplayground/fdad08815e138687c3b5462af65fd518f67f9767/tests/browser-smoke.html",
+  "cases": [
+    {
+      "id": "hang-rong",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "nong-trai-vui-ve",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "gunny-2d",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "nuoi-ca-nemo",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "xep-gach-tetris",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "typer-shark",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "lua-va-nuoc",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "danh-bai-uno",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "contra-2d",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "road-rash-dua-xe-moto",
+      "width": 1280,
+      "pass": true
+    },
+    {
+      "id": "hang-rong",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "nong-trai-vui-ve",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "gunny-2d",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "nuoi-ca-nemo",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "xep-gach-tetris",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "typer-shark",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "lua-va-nuoc",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "danh-bai-uno",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "contra-2d",
+      "width": 390,
+      "pass": true
+    },
+    {
+      "id": "road-rash-dua-xe-moto",
+      "width": 390,
+      "pass": true
+    }
+  ],
+  "errors": [],
+  "completed": true,
+  "started": "2026-10-20T11:09:51.091Z",
+  "finished": "2026-10-20T11:10:31.821Z",
+  "scope": "layout",
+  "expectedCases": 20
+}

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NewPlayground · Browser smoke test</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:24px;background:#eef1e8;color:#193125;font:16px Calibri,Inter,sans-serif}h1{margin:0 0 8px;font-size:28px}p{max-width:920px;line-height:1.5}button{font:700 16px Calibri,sans-serif;padding:12px 20px;border:0;border-radius:8px;background:#234f39;color:white;cursor:pointer;min-height:44px}#status{font-weight:bold}#results{max-height:320px;overflow:auto;background:white;border-radius:12px;padding:18px;font:14px/1.5 Calibri,sans-serif;white-space:pre-wrap}#stage{overflow:auto;margin-top:20px}iframe{box-sizing:content-box;border:1px solid #c5d0c1;border-radius:12px;background:white;display:block}#summary{padding:16px;background:#fff;border-left:5px solid #7baf27;border-radius:8px;margin:16px 0}.fail{border-color:#bb342c!important}
+</style>
+</head>
+<body>
+<h1>NewPlayground · Kiểm tra trên trình duyệt</h1>
+<p>Mở, vẽ, tạm dừng, mở hướng dẫn, tiếp tục và đóng đủ 150 game ở hai khung 1280 × 800 và 390 × 844. Kiểm tra lỗi JavaScript và tỉ lệ canvas. Đây là kiểm tra luồng chạy; không thay thế việc chơi hết chiến dịch hay đo FPS trên thiết bị thật.</p>
+<label for="scope">Phạm vi: </label><select id="scope" style="font:inherit;min-height:44px;padding:8px;margin-right:12px"><option value="all">Toàn bộ 150 game</option><option value="layout">10 game đại diện bố cục</option></select>
+<button id="run">Chạy kiểm tra 150 game</button>
+<div id="summary" role="status">Sẵn sàng.</div>
+<pre id="results"></pre>
+<div id="stage"><iframe id="gameFrame" title="Game đang kiểm tra" width="1280" height="800"></iframe></div>
+<script>
+'use strict';
+const button = document.getElementById('run'), summary = document.getElementById('summary'), results = document.getElementById('results'), frame = document.getElementById('gameFrame');
+const scope = document.getElementById('scope');
+const layoutIds = new Set(['hang-rong','nong-trai-vui-ve','gunny-2d','nuoi-ca-nemo','xep-gach-tetris','typer-shark','danh-bai-uno','lua-va-nuoc','contra-2d','road-rash-dua-xe-moto']);
+scope.addEventListener('change', () => { button.textContent = scope.value === 'all' ? 'Chạy kiểm tra 150 game' : 'Chạy kiểm tra 10 game'; });
+const report = { cases: [], errors: [], completed: false, started: null };
+window.NP_BROWSER_REPORT = report;
+// Registered after each engine's RAF, this waits for a real rendered frame.
+const tick = win => new Promise((resolve, reject) => {
+  const timeout = setTimeout(() => reject(new Error('Không nhận được frame trình duyệt trong 10 giây.')), 10000);
+  win.requestAnimationFrame(() => { clearTimeout(timeout); resolve(); });
+});
+function assert(value, message) { if (!value) throw new Error(message); }
+function loadFrame() {
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => reject(new Error('Trang game không tải xong trong 30 giây.')), 30000);
+    frame.onload = () => { clearTimeout(timeout); resolve(frame.contentWindow); };
+    frame.src = '../index.html?qa=browser';
+  });
+}
+button.addEventListener('click', async () => {
+  button.disabled = true; scope.disabled = true; results.textContent = ''; summary.className = '';
+  report.cases = []; report.errors = []; report.completed = false; report.started = new Date().toISOString();
+  report.finished = null; report.scope = scope.value;
+  try {
+    const win = await loadFrame();
+    for (let tries = 0; tries < 120 && !win.document.querySelector('#gridAll .game-card'); tries++) await new Promise(resolve => setTimeout(resolve, 50));
+    const games = win.__NP_GAMES_CACHE__;
+    assert(Array.isArray(games) && games.length === 150, 'Danh mục phải có đúng 150 game.');
+    const selectedGames = scope.value === 'layout' ? games.filter(game => layoutIds.has(game.id)) : games;
+    const expectedCases = selectedGames.length * 2;
+    report.expectedCases = expectedCases;
+    win.addEventListener('error', event => report.errors.push(event.message));
+    win.addEventListener('unhandledrejection', event => report.errors.push(String(event.reason)));
+    for (const [width, height] of [[1280, 800], [390, 844]]) {
+      frame.width = width; frame.height = height;
+      await tick(win);
+      for (const game of selectedGames) {
+        const result = { id: game.id, width, pass: false };
+        try {
+          assert(win.openGameById(game.id), 'Không tìm được game.');
+          await tick(win);
+          const doc = win.document, session = win.NP_GameSession.getCurrent();
+          assert(session?.isActive(), 'Không có phiên game đang chạy.');
+          assert(!doc.getElementById('modalGameContainer').textContent.includes('Không thể mở trò chơi'), 'Khởi tạo game thất bại.');
+          for (const canvas of doc.querySelectorAll('#modalGameContainer canvas')) {
+            const rect = canvas.getBoundingClientRect();
+            if (canvas.width >= 200 && canvas.height >= 140 && canvas.getAttribute('aria-hidden') !== 'true' && rect.width && rect.height) {
+              assert(Math.abs(rect.width / rect.height - canvas.width / canvas.height) < .04, 'Canvas bị méo: ' + canvas.id);
+            }
+          }
+          if (game.id === 'contra-2d') {
+            const controls = doc.querySelector('.np-arc-controls').getBoundingClientRect();
+            const stage = doc.getElementById('modalGameContainer').getBoundingClientRect();
+            assert(controls.bottom <= stage.bottom + 2, 'Nút arcade nằm dưới mép vùng chơi.');
+          }
+          doc.getElementById('pauseGameBtn').click();
+          assert(session.isPaused(), 'Nút tạm dừng chưa dừng session.');
+          const stoppedAt = session.clock.now();
+          // Wall time must pass, even when the game has no scheduled frames while paused.
+          await new Promise(resolve => setTimeout(resolve, 30));
+          assert(session.clock.now() === stoppedAt, 'Đồng hồ vẫn chạy trong lúc tạm dừng.');
+          doc.getElementById('helpGameBtn').click();
+          assert(!doc.getElementById('gameHelpDetails').hidden, 'Hướng dẫn chưa hiện.');
+          assert(doc.getElementById('gameHelpObjective').textContent.trim(), 'Thiếu mục tiêu chơi.');
+          doc.getElementById('resumeGameBtn').click();
+          assert(!session.isPaused() && !doc.getElementById('modalGameContainer').inert, 'Chưa tiếp tục được game.');
+          await tick(win);
+          win.closeGameModal();
+          assert(!win.NP_GameSession.getCurrent(), 'Phiên game còn tồn tại sau khi đóng.');
+          result.pass = true;
+        } catch (error) { result.error = error.message; win.closeGameModal(); }
+        report.cases.push(result);
+        const passed = report.cases.filter(item => item.pass).length;
+        summary.textContent = `Đang kiểm tra ${width}px · ${report.cases.length}/${expectedCases} · ${passed} đạt · ${report.cases.length - passed} lỗi`;
+        if (!result.pass) results.textContent += `${width}px · ${game.title}: ${result.error}\n`;
+      }
+    }
+    report.completed = true;
+    report.finished = new Date().toISOString();
+    const failed = report.cases.filter(item => !item.pass);
+    summary.textContent = `Hoàn tất · ${report.cases.length - failed.length}/${expectedCases} lượt đạt · ${failed.length} lỗi luồng · ${report.errors.length} lỗi JavaScript`;
+    summary.classList.toggle('fail', !!failed.length || !!report.errors.length);
+    results.textContent += JSON.stringify(report, null, 2);
+  } catch (error) { report.errors.push(error.message); summary.textContent = error.message; summary.className = 'fail'; }
+  button.disabled = false; scope.disabled = false;
+});
+</script>
+</body>
+</html>

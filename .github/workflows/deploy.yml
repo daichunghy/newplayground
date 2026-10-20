@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -12,7 +15,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
+  group: "pages-${{ github.event.pull_request.number || github.ref }}"
   cancel-in-progress: false
 
 jobs:
@@ -29,12 +32,13 @@ jobs:
         run: |
           for file in app.js games-data.js scripts/*.js; do node --check "$file"; done
       - name: Run game regression suite
-        run: node --test tests/game-flow.test.cjs
+        run: node --test tests/*.test.cjs
       - name: Validate game catalog
         run: |
           node -e 'const data = require("./data/games.json"); if (!Array.isArray(data) || data.length !== 150 || new Set(data.map(g => g.id)).size !== data.length) process.exit(1);'
 
   deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: test
     environment:
       name: github-pages

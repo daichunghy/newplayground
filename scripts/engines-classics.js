@@ -17,8 +17,43 @@
     alarm() {},
     laser() {},
     hit() {},
-    match() {}
+    match() {},
+    powerup() {}
   };
+
+  // Legacy arcade rules are measured in 60 Hz ticks, independently of display refresh.
+  // Cap catch-up after a stall so the player cannot lose several seconds in one frame.
+  function fixedClassicUpdate() {
+    const step = 1000 / 60;
+    let previous = null, pending = 0;
+    return (timestamp, update) => {
+      if (previous === null) pending = step;
+      else pending += Math.max(0, Math.min(100, timestamp - previous));
+      previous = timestamp;
+      let count = 0;
+      while (pending + 0.00001 >= step && count++ < 6) {
+        pending -= step;
+        update();
+      }
+    };
+  }
+
+  function drawClassicResult(ctx, canvas, title, detail) {
+    ctx.save();
+    ctx.fillStyle = 'rgba(4, 12, 24, .86)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#FBBF24';
+    ctx.font = 'bold 27px Calibri, sans-serif';
+    ctx.fillText(title, canvas.width / 2, canvas.height / 2 - 22);
+    ctx.fillStyle = '#F8FAFC';
+    ctx.font = '18px Calibri, sans-serif';
+    ctx.fillText(detail, canvas.width / 2, canvas.height / 2 + 10);
+    ctx.fillStyle = '#CBD5E1';
+    ctx.font = '15px Calibri, sans-serif';
+    ctx.fillText('Chọn Chơi lại để bắt đầu ván mới.', canvas.width / 2, canvas.height / 2 + 40);
+    ctx.restore();
+  }
 
   // Ensure NP_Engines exists
   window.NP_Engines = window.NP_Engines || {};
@@ -27,7 +62,7 @@
   // 1. ENGINE: PAC-MAN ĂN ĐẬU (NAMCO 1980 AUTHENTIC MAZE)
   // =========================================================================
   function launchPacMan(container, game) {
-    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance = window.performance } = window.NP_GameSession.start();
     let score = 0;
     let lives = 3;
     let level = 1;
@@ -36,6 +71,7 @@
     let frightenedTimer = 0;
     let mouthAngle = 0.2;
     let mouthDir = 0.03;
+    let gameOver = false;
 
     // Maze grid: 0=empty, 1=wall, 2=dot, 3=power pellet, 4=ghost house
     const rawMaze = [
@@ -67,7 +103,7 @@
     const tileSize = 20;
 
     // Entities
-    let pacman = { x: 9, y: 14, px: 9 * tileSize + 10, py: 14 * tileSize + 10, dirX: 0, dirY: 0, nextDirX: 0, nextDirY: 0, speed: 2 };
+    let pacman;
     let ghosts = [];
 
     function initMaze() {
@@ -82,9 +118,10 @@
     }
 
     function resetPositions() {
-      pacman = { x: 9, y: 14, px: 9 * tileSize + 10, py: 14 * tileSize + 10, dirX: -1, dirY: 0, nextDirX: -1, nextDirY: 0, speed: 2 };
+      frightenedTimer = 0;
+      pacman = { x: 9, y: 16, px: 9 * tileSize + 10, py: 16 * tileSize + 10, dirX: -1, dirY: 0, nextDirX: -1, nextDirY: 0, speed: 2 };
       ghosts = [
-        { name: 'Blinky', color: '#EF4444', x: 9, y: 7, px: 9 * tileSize + 10, py: 7 * tileSize + 10, dirX: 1, dirY: 0, speed: 1.6 + level * 0.15 },
+        { name: 'Blinky', color: '#EF4444', x: 9, y: 8, px: 9 * tileSize + 10, py: 8 * tileSize + 10, dirX: 1, dirY: 0, speed: 1.6 + level * 0.15 },
         { name: 'Pinky', color: '#F472B6', x: 8, y: 10, px: 8 * tileSize + 10, py: 10 * tileSize + 10, dirX: 0, dirY: -1, speed: 1.5 + level * 0.15 },
         { name: 'Inky', color: '#38BDF8', x: 9, y: 10, px: 9 * tileSize + 10, py: 10 * tileSize + 10, dirX: 0, dirY: -1, speed: 1.4 + level * 0.15 },
         { name: 'Clyde', color: '#FB923C', x: 10, y: 10, px: 10 * tileSize + 10, py: 10 * tileSize + 10, dirX: 0, dirY: -1, speed: 1.3 + level * 0.15 }
@@ -131,6 +168,7 @@
     let floatingScores = [];
 
     function setDir(dx, dy) {
+      if (gameOver) return;
       pacman.nextDirX = dx;
       pacman.nextDirY = dy;
       if (window.NP_Juice) NP_Juice.vibrate.light();
@@ -178,12 +216,12 @@
     function canMove(gx, gy, dx, dy) {
       const tx = gx + dx;
       const ty = gy + dy;
-      if (tx < 0 || tx >= cols) return true; // wrap tunnel
       if (ty < 0 || ty >= rows) return false;
-      return maze[ty][tx] !== 1;
+      return maze[ty][(tx + cols) % cols] !== 1;
     }
 
     function update() {
+      if (gameOver) return;
       // Check hitstop freeze
       if (window.NP_Juice && NP_Juice.isFrozen()) return;
 
@@ -279,65 +317,53 @@
       const pacGX = Math.floor(pacman.px / tileSize);
       const pacGY = Math.floor(pacman.py / tileSize);
 
-      ghosts.forEach((g, idx) => {
-        const gx = Math.floor(g.px / tileSize);
-        const gy = Math.floor(g.py / tileSize);
-        const gAtCenter = Math.abs((g.px % tileSize) - (tileSize / 2)) < g.speed &&
-                          Math.abs((g.py % tileSize) - (tileSize / 2)) < g.speed;
-
-        if (gAtCenter) {
-          const dirs = [
-            { x: 0, y: -1 },
-            { x: 0, y: 1 },
-            { x: -1, y: 0 },
-            { x: 1, y: 0 }
-          ].filter(d => !(d.x === -g.dirX && d.y === -g.dirY) && canMove(gx, gy, d.x, d.y));
-
-          if (dirs.length > 0) {
+      for (const g of ghosts) {
+        let remaining = Math.min(2.8, g.speed) * (frightenedTimer > 0 ? 0.58 : 1);
+        while (remaining > 0.00001) {
+          if (!g.target) {
+            const gx = g.x, gy = g.y;
+            const valid = [
+              { x: 0, y: -1 }, { x: 0, y: 1 },
+              { x: -1, y: 0 }, { x: 1, y: 0 }
+            ].filter(d => canMove(gx, gy, d.x, d.y));
+            const forward = valid.filter(d => !(d.x === -g.dirX && d.y === -g.dirY));
+            const dirs = forward.length ? forward : valid; // Reverse out of a dead end.
+            if (!dirs.length) break;
+            let chosen;
             if (frightenedTimer > 0) {
-              // Frightened: Random scatter
-              const chosen = dirs[Math.floor(Math.random() * dirs.length)];
-              g.dirX = chosen.x;
-              g.dirY = chosen.y;
+              chosen = dirs[Math.floor(Math.random() * dirs.length)];
             } else {
-              // Authentic Pacman Ghost Targeting AI:
-              let targetX = pacGX;
-              let targetY = pacGY;
-
+              let targetX = pacGX, targetY = pacGY;
               if (g.name === 'Pinky') {
-                // Ambush: 4 tiles ahead of Pac-man
-                targetX = pacGX + pacman.dirX * 4;
-                targetY = pacGY + pacman.dirY * 4;
+                targetX += pacman.dirX * 4; targetY += pacman.dirY * 4;
               } else if (g.name === 'Inky') {
-                // Flanker: Symmetric reflection across Blinky and Pacman
-                const blinky = ghosts[0];
-                const bGX = Math.floor(blinky.px / tileSize);
-                const bGY = Math.floor(blinky.py / tileSize);
-                targetX = pacGX * 2 - bGX;
-                targetY = pacGY * 2 - bGY;
-              } else if (g.name === 'Clyde') {
-                // Shy/Coward: If distance < 8 tiles, retreat to bottom corner
-                const distToPac = Math.hypot(gx - pacGX, gy - pacGY);
-                if (distToPac < 7) {
-                  targetX = 1;
-                  targetY = rows - 2;
-                }
+                targetX = pacGX * 2 - ghosts[0].x;
+                targetY = pacGY * 2 - ghosts[0].y;
+              } else if (g.name === 'Clyde' && Math.hypot(gx - pacGX, gy - pacGY) < 7) {
+                targetX = 1; targetY = rows - 2;
               }
-
-              dirs.sort((a, b) => {
-                const distA = Math.hypot((gx + a.x) - targetX, (gy + a.y) - targetY);
-                const distB = Math.hypot((gx + b.x) - targetX, (gy + b.y) - targetY);
-                return distA - distB;
-              });
-              g.dirX = dirs[0].x;
-              g.dirY = dirs[0].y;
+              dirs.sort((a, b) =>
+                Math.hypot(gx + a.x - targetX, gy + a.y - targetY) -
+                Math.hypot(gx + b.x - targetX, gy + b.y - targetY));
+              chosen = dirs[0];
             }
+            g.dirX = chosen.x; g.dirY = chosen.y;
+            g.target = {
+              px: g.px + chosen.x * tileSize, py: g.py + chosen.y * tileSize,
+              x: (gx + chosen.x + cols) % cols, y: gy + chosen.y
+            };
+          }
+          const distance = Math.hypot(g.target.px - g.px, g.target.py - g.py);
+          const travel = Math.min(remaining, distance);
+          g.px += g.dirX * travel; g.py += g.dirY * travel;
+          remaining -= travel;
+          if (travel + 0.00001 >= distance) {
+            g.x = g.target.x; g.y = g.target.y;
+            g.px = g.x * tileSize + tileSize / 2;
+            g.py = g.y * tileSize + tileSize / 2;
+            g.target = null;
           }
         }
-
-        const spd = frightenedTimer > 0 ? g.speed * 0.58 : g.speed;
-        g.px += g.dirX * spd;
-        g.py += g.dirY * spd;
 
         // Collision with Pac-man
         if (Math.hypot(g.px - pacman.px, g.py - pacman.py) < 14) {
@@ -358,6 +384,8 @@
             });
 
             // Respawn to ghost house
+            g.x = 9; g.y = 10; g.target = null;
+            g.dirX = 0; g.dirY = -1;
             g.px = 9 * tileSize + 10;
             g.py = 10 * tileSize + 10;
             updateHUD();
@@ -366,18 +394,13 @@
             lives--;
             if (window.NP_Juice) NP_Juice.vibrate.heavy();
             AudioEngine.explosion();
+            if (lives <= 0) gameOver = true;
+            else resetPositions();
             updateHUD();
-            if (lives <= 0) {
-              lives = 3;
-              score = 0;
-              level = 1;
-              initMaze();
-            } else {
-              resetPositions();
-            }
+            break; // A contact costs one life, even if several ghosts overlap.
           }
         }
-      });
+      }
 
       // Update floating scores
       for (let i = floatingScores.length - 1; i >= 0; i--) {
@@ -476,9 +499,11 @@
       });
     }
 
-    function loop() {
-      update();
+    const advance = fixedClassicUpdate();
+    function loop(timestamp) {
+      advance(timestamp, update);
       draw();
+      if (gameOver) drawClassicResult(ctx, canvas, 'HẾT MẠNG', 'Điểm của bạn: ' + score);
       animId = requestAnimationFrame(loop);
     }
 
@@ -495,7 +520,7 @@
   // 2. ENGINE: SUPER MARIO CỔ ĐIỂN (NES PLATFORMER ENGINE)
   // =========================================================================
   function launchMario(container, game) {
-    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance = window.performance } = window.NP_GameSession.start();
     let score = 0;
     let coins = 0;
     let lives = 3;
@@ -1095,7 +1120,7 @@
   // 3. ENGINE: GUNNY 2D TỌA ĐỘ (ARTILLERY BALLISTICS BATTLE)
   // =========================================================================
   function launchGunny(container, game) {
-    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance = window.performance } = window.NP_GameSession.start();
     let wind = (Math.random() * 4 - 2).toFixed(1);
     let playerAngle = 45;
     let power = 0;
@@ -1107,6 +1132,7 @@
     let stamina = 100;
     let rage = 0; // 0 to 100%
     let activeBuffs = { triple: false, double: false, dmg50: false, pow: false };
+    let shotInFlight = false, pendingShots = 0, matchOver = false;
     let animId = null;
 
     if (window.NP_Audio && typeof window.NP_Audio.startBGM === 'function') {
@@ -1197,24 +1223,25 @@
     const btnPOW = container.querySelector('#gnBuffPOW');
 
     function toggleBuff(type) {
-      if (turn !== 'player' || bullets.length > 0) return;
+      if (matchOver || turn !== 'player' || shotInFlight || charging) return;
       if (type === 'pow') {
+        if (!activeBuffs.pow && rage < 100) return;
         activeBuffs.pow = !activeBuffs.pow;
         if (activeBuffs.pow && window.NP_Audio) window.NP_Audio.powerup();
       } else if (type === 'triple') {
-        if (stamina >= 30) {
+        if (activeBuffs.triple || stamina >= 30) {
           activeBuffs.triple = !activeBuffs.triple;
           if (activeBuffs.triple) stamina -= 30; else stamina += 30;
           if (window.NP_Audio) window.NP_Audio.pop();
         }
       } else if (type === 'double') {
-        if (stamina >= 35) {
+        if (activeBuffs.double || stamina >= 35) {
           activeBuffs.double = !activeBuffs.double;
           if (activeBuffs.double) stamina -= 35; else stamina += 35;
           if (window.NP_Audio) window.NP_Audio.pop();
         }
       } else if (type === 'dmg50') {
-        if (stamina >= 25) {
+        if (activeBuffs.dmg50 || stamina >= 25) {
           activeBuffs.dmg50 = !activeBuffs.dmg50;
           if (activeBuffs.dmg50) stamina -= 25; else stamina += 25;
           if (window.NP_Audio) window.NP_Audio.pop();
@@ -1224,10 +1251,19 @@
     }
 
     function updateBuffUI() {
+      const canChoose = !matchOver && turn === 'player' && !shotInFlight && !charging;
+      [[btnTriple, 'triple', 30], [btnDouble, 'double', 35], [btnDmg, 'dmg50', 25]].forEach(([btn, kind, cost]) => {
+        if (!btn) return;
+        btn.disabled = !canChoose || (!activeBuffs[kind] && stamina < cost);
+        btn.setAttribute('aria-pressed', String(activeBuffs[kind]));
+      });
       if (btnTriple) btnTriple.style.background = activeBuffs.triple ? '#22C55E' : '';
       if (btnDouble) btnDouble.style.background = activeBuffs.double ? '#22C55E' : '';
       if (btnDmg) btnDmg.style.background = activeBuffs.dmg50 ? '#22C55E' : '';
       if (btnPOW) {
+        btnPOW.disabled = !canChoose || (!activeBuffs.pow && rage < 100);
+        btnPOW.setAttribute('aria-pressed', String(activeBuffs.pow));
+        btnPOW.title = rage < 100 ? 'Cần 100% nộ để bộc phá' : 'Phím B: Bộc phá, dùng hết nộ';
         btnPOW.style.background = activeBuffs.pow ? '#F59E0B' : '#DC2626';
         btnPOW.style.boxShadow = activeBuffs.pow ? '0 0 12px #F59E0B' : '';
       }
@@ -1240,12 +1276,13 @@
 
     // Move player
     function movePlayer(dx) {
-      if (turn !== 'player' || bullets.length > 0 || stamina < 4) return;
+      if (matchOver || turn !== 'player' || shotInFlight || charging || stamina < 3) return;
       const newX = Math.max(30, Math.min(220, playerPos.x + dx));
       if (newX !== playerPos.x) {
         playerPos.x = newX;
         playerPos.y = terrain[Math.floor(playerPos.x)] - 14;
         stamina = Math.max(0, stamina - 3);
+        updateBuffUI();
         if (window.NP_Audio && tick % 4 === 0) window.NP_Audio.thud(80);
       }
     }
@@ -1255,8 +1292,9 @@
 
     // Fire mechanics
     function triggerFire() {
-      if (turn === 'player' && bullets.length === 0 && !charging) {
+      if (!matchOver && turn === 'player' && !shotInFlight && !charging) {
         charging = true;
+        updateBuffUI();
       }
     }
 
@@ -1269,14 +1307,29 @@
     }
 
     const fireBtn = container.querySelector('#gnFireBtn');
-    fireBtn.addEventListener('mousedown', triggerFire);
-    listen(window, 'mouseup', releaseFire);
-    fireBtn.addEventListener('touchstart', (e) => { e.preventDefault(); triggerFire(); });
-    listen(window, 'touchend', releaseFire);
+    let firePointer = null;
+    fireBtn.style.touchAction = 'none';
+    listen(fireBtn, 'pointerdown', e => {
+      if (e.button != null && e.button !== 0) return;
+      e.preventDefault(); firePointer = e.pointerId;
+      try { fireBtn.setPointerCapture(e.pointerId); } catch (_) {}
+      triggerFire();
+    });
+    listen(window, 'pointerup', e => {
+      if (firePointer !== e.pointerId) return;
+      firePointer = null; releaseFire();
+    });
+    const cancelCharge = () => { charging = false; power = 0; firePointer = null; updateBuffUI(); };
+    listen(fireBtn, 'pointercancel', cancelCharge);
+    listen(fireBtn, 'lostpointercapture', () => { if (firePointer !== null) cancelCharge(); });
+    listen(window, 'blur', cancelCharge);
 
     // Keyboard controls
     const keyState = {};
     const onKeyDown = (e) => {
+      if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+      if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
+      if (matchOver) return;
       keyState[e.code] = true;
       if (e.code === 'Space') {
         e.preventDefault();
@@ -1292,12 +1345,16 @@
       } else if (e.code === 'ArrowRight' || e.code === 'KeyD') {
         movePlayer(5);
       } else if (e.code === 'Digit1') {
+        if (e.repeat) return;
         toggleBuff('triple');
       } else if (e.code === 'Digit2') {
+        if (e.repeat) return;
         toggleBuff('double');
       } else if (e.code === 'Digit3') {
+        if (e.repeat) return;
         toggleBuff('dmg50');
       } else if (e.code === 'KeyB') {
+        if (e.repeat) return;
         toggleBuff('pow');
       }
     };
@@ -1328,7 +1385,7 @@
       }
       if (rEl) {
         rEl.textContent = `${Math.min(100, Math.floor(rage))}%`;
-        if (rage >= 100) rEl.style.color = '#F59E0B';
+        rEl.style.color = rage >= 100 ? '#F59E0B' : '#EF4444';
       }
     }
 
@@ -1347,8 +1404,10 @@
     }
 
     function executePlayerShot(pwr) {
+      shotInFlight = true;
       playerRecoil = 8;
       const isPow = activeBuffs.pow;
+      if (isPow) rage = 0;
       const dmgMult = (activeBuffs.dmg50 ? 1.5 : 1.0) * (isPow ? 1.6 : 1.0);
 
       if (isPow && popups) {
@@ -1377,7 +1436,10 @@
 
       // If Double shot buff (+1 lượt), spawn second wave slightly delayed
       if (activeBuffs.double) {
+        pendingShots++;
         setTimeout(() => {
+          pendingShots--;
+          if (matchOver) return;
           if (window.NP_Audio) window.NP_Audio.cannonFire();
           if (window.NP_Juice) window.NP_Juice.vibrate(isPow ? [25, 50] : 16);
           angles.forEach(ang => {
@@ -1388,6 +1450,7 @@
 
       // Reset turn buffs
       activeBuffs = { triple: false, double: false, dmg50: false, pow: false };
+      updateHUD();
       updateBuffUI();
     }
 
@@ -1403,7 +1466,8 @@
 
     function botTakeTurn() {
       setTimeout(() => {
-        if (botHP <= 0 || playerHP <= 0) return;
+        if (matchOver || turn !== 'bot') return;
+        shotInFlight = true;
         const dx = botPos.x - playerPos.x;
         const bAngle = 48 + Math.floor(Math.random() * 12);
         const bPower = Math.min(95, Math.max(35, (dx / 4.7) + (Math.random() * 10 - 5) - parseFloat(wind) * 4));
@@ -1414,6 +1478,7 @@
     }
 
     function finishTurn() {
+      shotInFlight = false;
       wind = (Math.random() * 4 - 2).toFixed(1);
       if (window.NP_Audio && typeof window.NP_Audio.whoosh === 'function') {
         window.NP_Audio.whoosh();
@@ -1427,9 +1492,11 @@
         stamina = 100; // Reset stamina
         updateHUD();
       }
+      updateBuffUI();
     }
 
-    function loop() {
+    function update() {
+      if (matchOver) return;
       tick++;
 
       if (playerRecoil > 0) playerRecoil -= 0.3;
@@ -1513,18 +1580,19 @@
         }
       }
 
-      // If all bullets resolved, end turn
-      if (bullets.length === 0 && (playerRecoil > 0 || botRecoil > 0 || turn === 'bot')) {
-        if (!charging) {
-          finishTurn();
-        }
+      if (botHP <= 0 || playerHP <= 0) {
+        matchOver = true;
+        charging = false;
+        updateHUD(); updateBuffUI();
+        return;
       }
+      // A projectile may fly longer than the recoil animation. Wait for the
+      // entire volley, including a delayed double-shot, before handing off.
+      if (shotInFlight && bullets.length === 0 && pendingShots === 0) finishTurn();
 
-      // Check win/lose
-      if (botHP <= 0 && window.showToastNotification) {
-        window.showToastNotification('🏆 CHIẾN THẮNG! Bạn đã hạ gục Gà đối thủ!');
-      }
+    }
 
+    function draw() {
       // --- DRAW SCENE ---
       // Sunny Sky
       ctx.fillStyle = '#BAE6FD';
@@ -1741,6 +1809,13 @@
       if (particles) particles.updateAndDraw(ctx);
       if (popups) popups.updateAndDraw(ctx);
 
+    }
+
+    const advance = fixedClassicUpdate();
+    function loop(timestamp) {
+      advance(timestamp, update);
+      draw();
+      if (matchOver) drawClassicResult(ctx, canvas, playerHP <= 0 ? 'HẾT MẠNG' : 'CHIẾN THẮNG', playerHP <= 0 ? 'Thử góc bắn khác trong ván tiếp theo.' : 'Bạn đã hạ gục đối thủ.');
       animId = requestAnimationFrame(loop);
     }
 
@@ -1760,7 +1835,7 @@
   // 4. ENGINE: NÔNG TRẠI VUI VẺ (HAPPY FARM ZING ME ENGINE)
   // =========================================================================
   function launchNongTrai(container, game) {
-    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance = window.performance } = window.NP_GameSession.start();
     let coins = 150;
     let exp = 0;
     let level = 1;
@@ -1845,6 +1920,82 @@
       }
     ];
 
+    const FARM_SAVE_KEY = 'np_nongtrai_save_v1';
+    const initialNeighbors = neighbors.map(nb => ({
+      awake: nb.dog.awake, plots: nb.plots.map(plot => ({ ...plot }))
+    }));
+    const hasCrop = crop => typeof crop === 'string' && Object.prototype.hasOwnProperty.call(CROPS, crop);
+    function saveFarm() {
+      // Store game values only; names, artwork and DOM state always come from this engine.
+      const snapshot = {
+        version: 1, coins, exp, level, bones, selectedTool, selectedSeed,
+        plots: myPlots.map(({ state, crop, plantTime, growTime, watered, hasPest, hasWeed }) =>
+          ({ state, crop, plantTime, growTime, watered, hasPest, hasWeed })),
+        neighbors: neighbors.map(nb => ({
+          awake: nb.dog.awake,
+          plots: nb.plots.map(({ stolen, canWater, hasPest }) => ({ stolen, canWater, hasPest }))
+        }))
+      };
+      try { localStorage.setItem(FARM_SAVE_KEY, JSON.stringify(snapshot)); } catch (_) {}
+    }
+    function loadFarm() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(FARM_SAVE_KEY) || 'null');
+        if (!saved || saved.version !== 1 || typeof saved !== 'object' || Array.isArray(saved)) return;
+        const integer = (value, fallback, min = 0, max = Number.MAX_SAFE_INTEGER) =>
+          Number.isSafeInteger(value) && value >= min && value <= max ? value : fallback;
+        coins = integer(saved.coins, coins);
+        level = integer(saved.level, level, 1, 1000000);
+        exp = integer(saved.exp, exp, 0, level * 60 - 1);
+        bones = integer(saved.bones, bones);
+        if (['plow', 'seed', 'water', 'care', 'fertilizer', 'harvest'].includes(saved.selectedTool)) selectedTool = saved.selectedTool;
+        if (hasCrop(saved.selectedSeed)) selectedSeed = saved.selectedSeed;
+        const now = Date.now();
+        myPlots.forEach((plot, index) => {
+          plot.locked = index >= 6 && level < 3;
+          const value = Array.isArray(saved.plots) ? saved.plots[index] : null;
+          if (plot.locked || !value || !['grass', 'plowed', 'growing', 'ripe'].includes(value.state)) return;
+          const planted = value.state === 'growing' || value.state === 'ripe';
+          if (planted && !hasCrop(value.crop)) return;
+          plot.state = value.state;
+          if (!planted) return;
+          plot.crop = value.crop;
+          plot.watered = value.watered === true;
+          plot.plantTime = Number.isFinite(value.plantTime) && value.plantTime >= 0 ? Math.min(now, value.plantTime) : now;
+          const defaultTime = CROPS[plot.crop].time * (plot.watered ? .75 : 1);
+          plot.growTime = Number.isFinite(value.growTime) && value.growTime >= 3 && value.growTime <= CROPS[plot.crop].time
+            ? value.growTime : defaultTime;
+          plot.hasPest = value.hasPest === true;
+          plot.hasWeed = value.hasWeed === true;
+        });
+        neighbors.forEach((neighbor, index) => {
+          const value = Array.isArray(saved.neighbors) ? saved.neighbors[index] : null;
+          if (!value || typeof value !== 'object') return;
+          if (typeof value.awake === 'boolean') neighbor.dog.awake = value.awake;
+          neighbor.plots.forEach((plot, plotIndex) => {
+            const previous = Array.isArray(value.plots) ? value.plots[plotIndex] : null;
+            if (!previous || typeof previous !== 'object') return;
+            for (const key of ['stolen', 'canWater', 'hasPest']) {
+              if (typeof previous[key] === 'boolean') plot[key] = previous[key];
+            }
+          });
+        });
+      } catch (_) { /* A damaged save or blocked storage leaves a playable new farm. */ }
+    }
+    function finishGrowth() {
+      let changed = false;
+      const now = Date.now();
+      myPlots.forEach(plot => {
+        if (plot.state !== 'growing') return;
+        const penalty = plot.hasPest || plot.hasWeed ? .3 : 1;
+        if ((now - plot.plantTime) / 1000 * penalty >= plot.growTime) {
+          plot.state = 'ripe'; changed = true;
+        }
+      });
+      return changed;
+    }
+    loadFarm();
+    finishGrowth(); // Crops keep their real-world growth while the farm is closed.
 
     const art = (type,id,cls='') => window.NP_GameArt?.svg(type,id,cls) || '';
     const CROP_SHORT = { radish:'Củ cải',corn:'Ngô',tomato:'Cà chua',watermelon:'Dưa hấu',sunflower:'Hướng dương' };
@@ -1964,6 +2115,7 @@
 
     function handlePlotClick(pid) {
       const p = myPlots[pid];
+      if (!p) return;
       if (p.locked) {
         showToast('Ô đất này cần đạt Cấp 3 để mở khóa khai hoang!', true);
         return;
@@ -2039,6 +2191,7 @@
         renderPlots();
         showToast(`Thu hoạch ${crop.name} thành công! (+${crop.sell} xu, +${crop.xp} EXP)`);
       }
+      saveFarm();
     }
 
     function checkLevelUp() {
@@ -2147,6 +2300,7 @@
           updateHUD();
           renderNeighbors();
           showToast(`Đã tưới nước hộ bạn ${nb.name}! (+15 XP, +10 xu thưởng)`);
+          saveFarm();
         });
       });
 
@@ -2162,13 +2316,15 @@
           updateHUD();
           renderNeighbors();
           showToast(`Đã bắt sâu hộ bạn ${nb.name}! Nhận danh hiệu Hàng Xóm Tốt Bụng!`);
+          saveFarm();
         });
       });
     }
 
     function handleSteal(nbIdx, pIdx) {
       const nb = neighbors[nbIdx];
-      const plot = nb.plots[pIdx];
+      const plot = nb?.plots[pIdx];
+      if (!plot || plot.stolen || plot.state !== 'ripe') return;
       const crop = CROPS[plot.crop];
 
       // Dog guard check!
@@ -2187,6 +2343,7 @@
           showToast(`🐕 GÂU GÂU! ${nb.dog.name} lao ra cắn bạn té khói! Bị phạt -25 xu!`, true);
           updateHUD();
           renderNeighbors();
+          saveFarm();
           return;
         }
       }
@@ -2203,6 +2360,7 @@
       updateHUD();
       renderNeighbors();
       showToast(`🥷 Trộm thành công ${crop.name} nhà ${nb.name}! (+${stolenVal} xu, +${stolenXp} EXP)`);
+      saveFarm();
     }
 
     // Buy Dog Bone
@@ -2217,6 +2375,7 @@
       } else {
         showToast('Không đủ 30 xu mua khúc xương!', true);
       }
+      saveFarm();
     });
 
     // Tab buttons
@@ -2253,6 +2412,7 @@
         container.querySelectorAll('.tool-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
         btn.classList.add('active'); btn.setAttribute('aria-pressed','true');
         selectedTool = btn.getAttribute('data-tool');
+        saveFarm();
       });
     });
 
@@ -2262,6 +2422,7 @@
         container.querySelectorAll('.seed-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
         btn.classList.add('active'); btn.setAttribute('aria-pressed','true');
         selectedSeed = btn.getAttribute('data-seed');
+        saveFarm();
       });
     });
 
@@ -2275,11 +2436,19 @@
         p.locked = idx >= 6;
         p.state = 'grass';
         p.crop = null;
+        p.plantTime = p.growTime = 0;
+        p.watered = false;
         p.hasPest = false;
         p.hasWeed = false;
       });
+      neighbors.forEach((neighbor, index) => {
+        neighbor.dog.awake = initialNeighbors[index].awake;
+        neighbor.plots = initialNeighbors[index].plots.map(plot => ({ ...plot }));
+      });
       updateHUD();
       renderPlots();
+      if (currentTab === 'neighbors') renderNeighbors();
+      saveFarm();
       if (window.NP_Audio?.startBGM) NP_Audio.startBGM('nongtrai');
     });
 
@@ -2295,19 +2464,14 @@
             changed = true;
           }
 
-          const penalty = (p.hasPest || p.hasWeed) ? 0.3 : 1.0;
-          const elapsed = (Date.now() - p.plantTime) / 1000 * penalty;
-          if (elapsed >= p.growTime) {
-            p.state = 'ripe';
-            changed = true;
-          }
         }
       });
+      changed = finishGrowth() || changed;
 
       // Randomize neighbor dog awake states periodically
       if (Math.random() < 0.08) {
         neighbors.forEach(nb => {
-          if (Math.random() < 0.25) nb.dog.awake = !nb.dog.awake;
+          if (Math.random() < 0.25) { nb.dog.awake = !nb.dog.awake; changed = true; }
         });
         if (currentTab === 'neighbors') renderNeighbors();
       }
@@ -2315,12 +2479,15 @@
       if (currentTab === 'myFarm') {
         renderPlots();
       }
+      if (changed) saveFarm();
     }, 1000);
 
     updateHUD();
     renderPlots();
+    saveFarm();
 
     onCleanup(() => {
+      saveFarm();
       clearInterval(farmInterval);
       clearTimeout(toastTimer);
       if (window.NP_Audio?.stopBGM) NP_Audio.stopBGM();
@@ -2331,7 +2498,7 @@
   // 5. ENGINE: CÁ LỚN NUỐT CÁ BÉ (FEEDING FRENZY POPCAP ENGINE)
   // =========================================================================
   function launchFeedingFrenzy(container, game) {
-    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance = window.performance } = window.NP_GameSession.start();
     let score = 0;
     let fishSize = 1; // 1: Cá bột, 2: Cá hề vừa, 3: Vua biển sâu
     let frenzy = 0;
@@ -2348,7 +2515,7 @@
       h: 24,
       state: 'closed', // 'closed' | 'opening' | 'open' | 'snapping'
       timer: 0,
-      hasPearl: true
+      hasPearl: true, hitPlayer: false
     };
 
     let starfish = null; // { x, y, vy, rot }
@@ -2376,7 +2543,7 @@
     const canvas = container.querySelector('#ffCanvas');
     const ctx = canvas.getContext('2d');
 
-    let player = { x: 250, y: 160, r: 14, targetX: 250, targetY: 160, facing: 1, mouthOpen: 0 };
+    let player = { x: 250, y: 160, r: 14, targetX: 250, targetY: 160, facing: 1, mouthOpen: 0, invuln: 0 };
     let fishes = [];
     let tick = 0;
     const popups = window.NP_Juice ? window.NP_Juice.createPopupManager() : null;
@@ -2390,16 +2557,17 @@
       player.targetY = (clientY - rect.top) * scaleY;
     }
 
-    canvas.addEventListener('mousemove', (e) => updatePlayerTarget(e.clientX, e.clientY));
-    canvas.addEventListener('mousedown', (e) => updatePlayerTarget(e.clientX, e.clientY));
-    canvas.addEventListener('touchstart', (e) => {
+    canvas.style.touchAction = 'none';
+    const aim = e => {
+      if (e.isPrimary === false) return;
       e.preventDefault();
-      if (e.touches[0]) updatePlayerTarget(e.touches[0].clientX, e.touches[0].clientY);
-    }, { passive: false });
-    canvas.addEventListener('touchmove', (e) => {
-      e.preventDefault();
-      if (e.touches[0]) updatePlayerTarget(e.touches[0].clientX, e.touches[0].clientY);
-    }, { passive: false });
+      updatePlayerTarget(e.clientX, e.clientY);
+      if (e.type === 'pointerdown') {
+        try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+      }
+    };
+    listen(canvas, 'pointerdown', aim);
+    listen(canvas, 'pointermove', aim);
 
     function triggerDash() {
       if (dashCooldown <= 0 && !isDashing) {
@@ -2524,13 +2692,12 @@
       ctx.restore();
     }
 
-    function loop() {
+    function update() {
       tick++;
 
-      if (window.NP_Juice && window.NP_Juice.isFrozen()) {
-        animId = requestAnimationFrame(loop);
-        return;
-      }
+      if (window.NP_Juice && window.NP_Juice.isFrozen()) return;
+
+      if (player.invuln > 0) player.invuln--;
 
       // Dash cooldown & effect
       if (dashCooldown > 0) dashCooldown--;
@@ -2592,6 +2759,7 @@
         clam.timer = 0;
       } else if (clam.state === 'open' && clam.timer > 180) {
         clam.state = 'snapping';
+        clam.hitPlayer = false;
         clam.timer = 0;
       } else if (clam.state === 'snapping' && clam.timer > 20) {
         clam.state = 'closed';
@@ -2606,8 +2774,10 @@
           if (window.NP_Audio) window.NP_Audio.coin();
           if (popups) popups.add('+400 💎 NGỌC TRAI!', clam.x, clam.y - 30, '#FDE047', 24);
         }
-      } else if (clam.state === 'snapping') {
+      } else if (clam.state === 'snapping' && !clam.hitPlayer) {
         if (Math.hypot(player.x - clam.x, player.y - clam.y) < player.r + 16) {
+          clam.hitPlayer = true;
+          player.invuln = 45;
           score = Math.max(0, score - 80);
           if (window.NP_Audio) window.NP_Audio.thud(180);
           if (window.NP_Juice) window.NP_Juice.screenShake(canvas, 10, 300);
@@ -2672,12 +2842,13 @@
               if (window.NP_Juice) window.NP_Juice.vibrate([20, 35]);
               if (popups) popups.add('LỚN THÀNH CÁ TRUNG!', canvas.width / 2, 80, '#4ADE80', 22);
             }
-          } else if (f.isShark || f.r > player.r) {
+          } else if (player.invuln <= 0 && (f.isShark || f.r > player.r)) {
             if (window.NP_Audio) window.NP_Audio.explosion(true);
             if (window.NP_Juice) {
               window.NP_Juice.screenShake(canvas, 10, 300);
               window.NP_Juice.vibrate([45, 80]);
             }
+            player.invuln = 60;
             score = Math.max(0, score - 150);
             fishSize = 1;
             player.r = 14;
@@ -2690,7 +2861,7 @@
       }
 
       // Frenzy decay
-      if (frenzy > 0) frenzy -= 0.12;
+      frenzy = Math.max(0, frenzy - 0.12);
 
       // HUD Update
       const sEl = container.querySelector('#ffScore');
@@ -2705,6 +2876,9 @@
         dEl.style.color = dashCooldown <= 0 ? '#10B981' : '#94A3B8';
       }
 
+    }
+
+    function draw() {
       // --- DRAW DEEP OCEAN ---
       const oceanGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
       oceanGrad.addColorStop(0, '#0284C7');
@@ -2841,6 +3015,12 @@
         ctx.fillText('🔥 FRENZY! NHÂN ĐÔI ĐIỂM SỐ! 🔥', canvas.width / 2, 45);
       }
 
+    }
+
+    const advance = fixedClassicUpdate();
+    function loop(timestamp) {
+      advance(timestamp, update);
+      draw();
       animId = requestAnimationFrame(loop);
     }
 
@@ -2858,7 +3038,7 @@
   // 6. ENGINE: PLANTS VS ZOMBIES 2D (POPCAP LAWN DEFENSE ENGINE)
   // =========================================================================
   function launchPvZ(container, game) {
-    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance = window.performance } = window.NP_GameSession.start();
     let sun = 150;
     let score = 0;
     let wave = 1;
@@ -2905,13 +3085,15 @@
     let mowers = [true, true, true, true, true];
     let activeMowers = [];
     let tick = 0;
+    let result = null;
     const popups = window.NP_Juice ? window.NP_Juice.createPopupManager() : null;
     const particles = window.NP_Juice ? window.NP_Juice.createParticleSystem() : null;
 
     let hoverTile = { col: -1, lane: -1 };
 
     container.querySelectorAll('.pvz-card').forEach(b => {
-      b.addEventListener('click', () => {
+      listen(b, 'click', () => {
+        if (result) return;
         container.querySelectorAll('.pvz-card').forEach(c => c.classList.remove('active'));
         b.classList.add('active');
         selectedTool = b.getAttribute('data-plant');
@@ -2920,6 +3102,7 @@
     });
 
     function handlePointerMove(cx, cy) {
+      if (result) return;
       // 1. Magnet Auto-Collection for Suns (within 36px)
       for (let i = suns.length - 1; i >= 0; i--) {
         if (Math.hypot(cx - suns[i].x, cy - suns[i].y) < 36) {
@@ -2960,7 +3143,8 @@
 
     canvas.addEventListener('mouseleave', () => { hoverTile = { col: -1, lane: -1 }; });
 
-    canvas.addEventListener('click', (e) => {
+    listen(canvas, 'click', (e) => {
+      if (result) return;
       const rect = canvas.getBoundingClientRect();
       const scaleX = canvas.width / rect.width;
       const scaleY = canvas.height / rect.height;
@@ -3008,12 +3192,12 @@
         if (existingPlantIdx === -1) {
           if (selectedTool === 'peashooter' && sun >= 100) {
             sun -= 100;
-            plants.push({ col, lane, type: 'peashooter', hp: 100, maxHp: 100, lastShot: Date.now(), shootRecoil: 0 });
+            plants.push({ col, lane, type: 'peashooter', hp: 100, maxHp: 100, lastShot: performance.wallNow ? performance.wallNow() : Date.now(), shootRecoil: 0 });
             if (window.NP_Audio) window.NP_Audio.pop();
             if (window.NP_Juice) window.NP_Juice.vibrate(20);
           } else if (selectedTool === 'sunflower' && sun >= 50) {
             sun -= 50;
-            plants.push({ col, lane, type: 'sunflower', hp: 100, maxHp: 100, lastSun: Date.now() });
+            plants.push({ col, lane, type: 'sunflower', hp: 100, maxHp: 100, lastSun: performance.wallNow ? performance.wallNow() : Date.now() });
             if (window.NP_Audio) window.NP_Audio.pop();
             if (window.NP_Juice) window.NP_Juice.vibrate(20);
           } else if (selectedTool === 'wallnut' && sun >= 50) {
@@ -3028,7 +3212,7 @@
               type: 'cherrybomb',
               hp: 100,
               maxHp: 100,
-              plantTime: Date.now(),
+              plantTime: performance.wallNow ? performance.wallNow() : Date.now(),
               exploded: false
             });
             if (window.NP_Audio) window.NP_Audio.pop();
@@ -3085,7 +3269,8 @@
     let zombiesSpawnedInWave = 0;
     const zombiesPerWave = [6, 10, 14, 18, 24];
 
-    function loop() {
+    function update() {
+      if (result) return;
       tick++;
 
       // Wave alert banner countdown
@@ -3095,7 +3280,7 @@
       }
 
       // Sky sun spawning
-      if (Math.random() < 0.009) {
+      if (suns.length < 24 && Math.random() < 0.009) {
         suns.push({
           x: 60 + Math.random() * (canvas.width - 120),
           y: -10,
@@ -3107,7 +3292,9 @@
       suns.forEach(s => {
         if (s.y < s.targetY) s.y += 1.2;
         s.rot += 0.03;
+        s.life = (s.life == null ? 900 : s.life) - 1;
       });
+      suns = suns.filter(s => s.life > 0);
 
       // Wave Spawning Controller
       zombieSpawnTimer++;
@@ -3133,14 +3320,14 @@
         if (popups) popups.add(`TIẾN VÀO ĐỢT ${wave}!`, canvas.width / 2, 70, '#38BDF8', 22);
         updateHUD();
       } else if (zombies.length === 0 && wave >= maxWaves) {
-        // VICTORY!
-        if (window.showToastNotification) {
-          window.showToastNotification('🎉 CHIẾN THẮNG! Bạn đã bảo vệ an toàn cho khu vườn!');
-        }
+        result = 'won';
+        if (window.NP_Audio) window.NP_Audio.win();
+        updateHUD();
+        return;
       }
 
       // Plants action
-      const now = Date.now();
+      const now = performance.wallNow ? performance.wallNow() : Date.now();
       for (let pi = plants.length - 1; pi >= 0; pi--) {
         const p = plants[pi];
         if (p.shootRecoil > 0) p.shootRecoil -= 0.15;
@@ -3315,19 +3502,16 @@
             if (popups) popups.add('MÁY CẮT CỎ KÍCH HOẠT!', canvas.width / 2, z.lane * laneH + 20, '#EF4444', 20);
           } else {
             if (window.NP_Audio) window.NP_Audio.explosion(true);
-            zombies = [];
-            plants = [];
-            sun = 150;
-            wave = 1;
-            zombiesSpawnedInWave = 0;
-            mowers = [true, true, true, true, true];
-            if (window.showToastNotification) window.showToastNotification('🧟 Zombie đã tràn vào nhà! Bắt đầu lại ván mới.');
+            result = 'lost';
             updateHUD();
             break;
           }
         }
       }
 
+    }
+
+    function draw() {
       // --- DRAW LAWN SCENE ---
       for (let l = 0; l < lanes; l++) {
         ctx.fillStyle = l % 2 === 0 ? '#15803D' : '#166534';
@@ -3510,7 +3694,7 @@
 
         } else if (p.type === 'cherrybomb') {
           // Double cherries with fuse and vibrating swelling animation
-          const elapsed = Date.now() - p.plantTime;
+          const elapsed = (performance.wallNow ? performance.wallNow() : Date.now()) - p.plantTime;
           const vib = Math.sin(elapsed * 0.05) * (elapsed / 300);
           const swell = 1 + (elapsed / 1200) * 0.35;
 
@@ -3692,6 +3876,13 @@
       if (particles) particles.updateAndDraw(ctx);
       if (popups) popups.updateAndDraw(ctx);
 
+    }
+
+    const advance = fixedClassicUpdate();
+    function loop(timestamp) {
+      advance(timestamp, update);
+      draw();
+      if (result) drawClassicResult(ctx, canvas, result === 'won' ? 'BẢO VỆ THÀNH CÔNG' : 'VƯỜN ĐÃ THẤT THỦ', 'Điểm: ' + score + ' · Đợt ' + wave + '/' + maxWaves);
       animId = requestAnimationFrame(loop);
     }
 
@@ -3709,7 +3900,7 @@
   // 7. ENGINE: BẮN GÀ VŨ TRỤ (CHICKEN INVADERS / GALAGA RETRO ENGINE)
   // =========================================================================
   function launchChickenInvaders(container, game) {
-    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance = window.performance } = window.NP_GameSession.start();
     let score = 0;
     let wave = 1;
     let lives = 3;
@@ -3734,6 +3925,7 @@
         </div>
         <canvas id="ciCanvas" width="460" height="340" class="canvas-main-viewport" style="background: #030712; display: block; margin: 0 auto; cursor: crosshair;"></canvas>
         <div class="canvas-controls-bar" style="gap: 8px; justify-content: center;">
+          <button class="v-btn" id="ciFireBtn" style="background: #0369A1; color: #FFF; font-weight: 700; min-height: 44px;">Giữ để bắn</button>
           <button class="v-btn" id="ciNukeBtn" style="background: #E11D48; color: #FFF; font-weight: 900; padding: 4px 14px;">🚀 PHÓNG NUKE [SHIFT]</button>
           <small style="color: #94A3B8; font-family: Calibri, sans-serif;">Rê chuột / Mũi tên: Bay • Chuột trái / Space: Bắn • Shift: Nuke hủy diệt</small>
         </div>
@@ -3750,6 +3942,8 @@
     let drumsticks = [];
     let gifts = []; // { x, y, vy, rot }
     let tick = 0;
+    let gameOver = false, pointerFiring = false;
+    const keys = { left: false, right: false, up: false, down: false, fire: false };
     const popups = window.NP_Juice ? window.NP_Juice.createPopupManager() : null;
     const particles = window.NP_Juice ? window.NP_Juice.createParticleSystem() : null;
 
@@ -3794,39 +3988,31 @@
       updateHUD();
     }
 
-    canvas.addEventListener('mousemove', (e) => {
+    canvas.style.touchAction = 'none';
+    let aimPointer = null;
+    const moveShip = e => {
+      if (gameOver || e.isPrimary === false) return;
       const rect = canvas.getBoundingClientRect();
-      const scaleX = canvas.width / rect.width;
-      const scaleY = canvas.height / rect.height;
-      ship.x = Math.max(18, Math.min(canvas.width - 18, (e.clientX - rect.left) * scaleX));
-      ship.y = Math.max(80, Math.min(canvas.height - 20, (e.clientY - rect.top) * scaleY));
+      ship.x = Math.max(18, Math.min(canvas.width - 18, (e.clientX - rect.left) * canvas.width / rect.width));
+      ship.y = Math.max(80, Math.min(canvas.height - 20, (e.clientY - rect.top) * canvas.height / rect.height));
+    };
+    listen(canvas, 'pointermove', moveShip);
+    listen(canvas, 'pointerdown', e => {
+      if (e.isPrimary === false || (e.button != null && e.button !== 0)) return;
+      e.preventDefault(); moveShip(e);
+      aimPointer = e.pointerId; pointerFiring = true; fire();
+      try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
     });
-
-    canvas.addEventListener('touchmove', (e) => {
-      e.preventDefault();
-      if (e.touches[0]) {
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        ship.x = Math.max(18, Math.min(canvas.width - 18, (e.touches[0].clientX - rect.left) * scaleX));
-        ship.y = Math.max(80, Math.min(canvas.height - 20, (e.touches[0].clientY - rect.top) * scaleY));
-      }
-    }, { passive: false });
-
-    canvas.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      if (e.touches[0]) {
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        ship.x = Math.max(18, Math.min(canvas.width - 18, (e.touches[0].clientX - rect.left) * scaleX));
-        ship.y = Math.max(80, Math.min(canvas.height - 20, (e.touches[0].clientY - rect.top) * scaleY));
-        fire();
-      }
-    }, { passive: false });
+    const releaseAim = e => {
+      if (aimPointer !== e.pointerId) return;
+      aimPointer = null; pointerFiring = false;
+    };
+    listen(window, 'pointerup', releaseAim);
+    listen(window, 'pointercancel', releaseAim);
+    listen(canvas, 'lostpointercapture', releaseAim);
 
     const fire = () => {
-      if (ship.recoil > 0) return;
+      if (gameOver || ship.recoil > 0) return;
       ship.recoil = 5;
 
       if (weaponLevel === 1) {
@@ -3857,7 +4043,7 @@
     };
 
     function triggerNuke() {
-      if (missiles <= 0) return;
+      if (gameOver || missiles <= 0) return;
       missiles--;
       updateHUD();
 
@@ -3882,6 +4068,7 @@
       if (boss) {
         boss.hp -= 250;
         if (popups) popups.add('-250 HP BOSS!', boss.x, boss.y - 20, '#FBBF24', 24);
+        if (boss.hp <= 0) defeatBoss();
       }
 
       if (particles) {
@@ -3893,19 +4080,54 @@
       }
     }
 
-    container.querySelector('#ciNukeBtn').addEventListener('click', triggerNuke);
-    canvas.addEventListener('click', fire);
-
-    const onKeyDown = (e) => {
-      if (e.code === 'Space') {
-        e.preventDefault();
-        fire();
-      } else if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
-        e.preventDefault();
-        triggerNuke();
-      }
+    listen(container.querySelector('#ciNukeBtn'), 'click', triggerNuke);
+    const fireButton = container.querySelector('#ciFireBtn');
+    let fireButtonPointer = null;
+    fireButton.style.touchAction = 'none';
+    listen(fireButton, 'pointerdown', e => {
+      if (e.button != null && e.button !== 0) return;
+      e.preventDefault(); fireButtonPointer = e.pointerId; keys.fire = true; fire();
+      try { fireButton.setPointerCapture(e.pointerId); } catch (_) {}
+    });
+    const releaseFireButton = e => {
+      if (fireButtonPointer !== e.pointerId) return;
+      fireButtonPointer = null; keys.fire = false;
     };
-    listen(window, 'keydown', onKeyDown);
+    listen(window, 'pointerup', releaseFireButton);
+    listen(window, 'pointercancel', releaseFireButton);
+    listen(fireButton, 'lostpointercapture', releaseFireButton);
+    listen(fireButton, 'click', e => { if (!e.detail) fire(); });
+
+    const keyMap = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right',
+      ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', Space: 'fire' };
+    listen(window, 'keydown', e => {
+      if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+      if (keyMap[e.code]) {
+        e.preventDefault(); keys[keyMap[e.code]] = true;
+      } else if ((e.code === 'ShiftLeft' || e.code === 'ShiftRight') && !e.repeat) {
+        e.preventDefault(); triggerNuke();
+      }
+    });
+    listen(window, 'keyup', e => { if (keyMap[e.code]) keys[keyMap[e.code]] = false; });
+    listen(window, 'blur', () => {
+      Object.keys(keys).forEach(key => { keys[key] = false; });
+      pointerFiring = false; aimPointer = fireButtonPointer = null;
+    });
+
+    function defeatBoss() {
+      if (!boss) return;
+      const defeated = boss;
+      boss = null;
+      score += 2000;
+      if (window.NP_Audio) window.NP_Audio.win();
+      if (window.NP_Juice) window.NP_Juice.screenShake(canvas, 20, 600);
+      if (popups) popups.add('HẠ GỤC BOSS GÀ! +2000', defeated.x, defeated.y, '#FBBF24', 28);
+      for (let k = 0; k < 6; k++) {
+        drumsticks.push({ x: defeated.x + (k - 2.5) * 18, y: defeated.y, vy: 2.0, rot: 0 });
+      }
+      gifts.push({ x: defeated.x, y: defeated.y, vy: 1.8, rot: 0 });
+      initWave(wave + 1);
+    }
 
     function updateHUD() {
       const sEl = container.querySelector('#ciScore');
@@ -3920,16 +4142,20 @@
       if (mEl) mEl.textContent = `x${missiles} [Shift]`;
     }
 
-    function loop() {
+    function update() {
+      if (gameOver) return;
       tick++;
 
-      if (window.NP_Juice && window.NP_Juice.isFrozen()) {
-        animId = requestAnimationFrame(loop);
-        return;
-      }
+      if (window.NP_Juice && window.NP_Juice.isFrozen()) return;
 
       if (ship.recoil > 0) ship.recoil--;
       if (ship.invuln > 0) ship.invuln--;
+      const dx = Number(keys.right) - Number(keys.left);
+      const dy = Number(keys.down) - Number(keys.up);
+      const speed = dx && dy ? 4.6 / Math.SQRT2 : 4.6;
+      ship.x = Math.max(18, Math.min(canvas.width - 18, ship.x + dx * speed));
+      ship.y = Math.max(80, Math.min(canvas.height - 20, ship.y + dy * speed));
+      if (keys.fire || pointerFiring) fire();
 
       // Lasers movement
       for (let i = lasers.length - 1; i >= 0; i--) {
@@ -3956,6 +4182,24 @@
           c.vx = -c.vx;
           c.y += 12;
         });
+      }
+
+      // A formation that reaches the bottom must resolve the attempt. Otherwise
+      // birds leave the screen below the ship and the wave can never be cleared.
+      if (chickens.some(c => c.y >= canvas.height - 28)) {
+        lives--;
+        ship.invuln = 90;
+        if (window.NP_Audio) window.NP_Audio.explosion(true);
+        if (lives <= 0) {
+          gameOver = true;
+          pointerFiring = false;
+          updateHUD();
+          return;
+        }
+        lasers = [];
+        initWave(wave);
+        if (popups) popups.add('ĐỘI HÌNH TRÀN QUA! -1 MẠNG', canvas.width / 2, 160, '#FCA5A5', 20);
+        return;
       }
 
       // Boss Chicken movement & attacks
@@ -3988,18 +4232,7 @@
             }
 
             if (boss.hp <= 0) {
-              // Boss Defeated!
-              score += 2000;
-              if (window.NP_Audio) window.NP_Audio.win();
-              if (window.NP_Juice) window.NP_Juice.screenShake(canvas, 20, 600);
-              if (popups) popups.add('🏆 HẠ GỤC BOSS GÀ! +2000', boss.x, boss.y, '#FBBF24', 28);
-              // Drop tons of drumsticks & gifts
-              for (let k = 0; k < 6; k++) {
-                drumsticks.push({ x: boss.x + (k - 2.5) * 18, y: boss.y, vy: 2.0, rot: 0 });
-              }
-              gifts.push({ x: boss.x, y: boss.y, vy: 1.8, rot: 0 });
-              boss = null;
-              initWave(wave + 1);
+              defeatBoss();
               break;
             }
           }
@@ -4040,11 +4273,9 @@
           if (popups) popups.add('TRÚNG TRỨNG! -1 MẠNG', ship.x, ship.y - 20, '#EF4444', 20);
           updateHUD();
           if (lives <= 0) {
-            lives = 3;
-            score = 0;
-            weaponLevel = 1;
-            missiles = 1;
-            initWave(1);
+            gameOver = true;
+            pointerFiring = false;
+            return;
           }
           continue;
         }
@@ -4136,6 +4367,9 @@
         initWave(wave + 1);
       }
 
+    }
+
+    function draw() {
       // --- DRAW SCENE ---
       ctx.fillStyle = '#030712';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -4355,6 +4589,13 @@
       if (particles) particles.updateAndDraw(ctx);
       if (popups) popups.updateAndDraw(ctx);
 
+    }
+
+    const advance = fixedClassicUpdate();
+    function loop(timestamp) {
+      advance(timestamp, update);
+      draw();
+      if (gameOver) drawClassicResult(ctx, canvas, 'HẾT MẠNG', 'Điểm: ' + score + ' · Đợt ' + wave);
       animId = requestAnimationFrame(loop);
     }
 
@@ -4373,7 +4614,7 @@
   // 8. ENGINE: 2048 SỐ TRƯỢT (CLASSIC 2048 PUZZLE ENGINE)
   // =========================================================================
   function launchGame2048(container, game) {
-    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance = window.performance } = window.NP_GameSession.start();
     let board = [
       [0, 0, 0, 0],
       [0, 0, 0, 0],
@@ -4635,7 +4876,9 @@
   // 9. ENGINE: PHÁ GẠCH DX-BALL & ARKANOID (CLASSIC BRICK BREAKER)
   // =========================================================================
   function launchDXBall(container, game) {
-    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+    const session = window.NP_GameSession.start();
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance = window.performance } = session;
+    const sharedPause = typeof session.pause === 'function' && typeof session.resume === 'function' && typeof session.onPauseChange === 'function';
     let score = 0;
     let lives = 3;
     let level = 1;
@@ -4693,13 +4936,24 @@
       const pauseBtn = container.querySelector('#dxPauseBtn');
       if (pauseBtn) pauseBtn.textContent = 'Tạm dừng';
       initBricks(); updateHUD();
+      if (sharedPause && session.isPaused()) session.resume();
     }
     function launchBall() { if (!gameOver && !paused) awaitingLaunch = false; }
+    function syncPause(next) {
+      paused = Boolean(next);
+      accumulator = 0; lastFrame = 0;
+      for (const key of Object.keys(dxKeys)) dxKeys[key] = false;
+      const btn = container.querySelector('#dxPauseBtn');
+      if (btn) {
+        btn.textContent = paused ? 'Tiếp tục' : 'Tạm dừng';
+        btn.setAttribute('aria-pressed', String(paused));
+      }
+    }
+    if (sharedPause) session.onPauseChange(syncPause);
     function togglePause() {
       if (gameOver) return;
-      paused = !paused;
-      const btn = container.querySelector('#dxPauseBtn');
-      if (btn) btn.textContent = paused ? 'Tiếp tục' : 'Tạm dừng';
+      if (sharedPause) { if (session.isPaused()) session.resume(); else session.pause(); }
+      else syncPause(!paused);
     }
 
     const BRICK_ROWS = 5;
@@ -4762,11 +5016,10 @@
       if ((e.key === ' ' || e.code === 'Space') && !e.repeat) {
         e.preventDefault(); launchBall();
       }
-      if (e.key === 'p' || e.key === 'P') togglePause();
+      if ((e.key === 'p' || e.key === 'P') && !e.repeat) togglePause();
     });
     listen(window,'blur',()=>{
       for(const k of Object.keys(dxKeys))dxKeys[k]=false;
-      if(!gameOver&&!paused)togglePause();
     });
     container.querySelector('#dxPauseBtn')?.addEventListener('click', togglePause);
     container.querySelector('#dxRestartBtn')?.addEventListener('click', resetGame);
@@ -5050,7 +5303,7 @@
   // 10. ENGINE: ĐẨY THÙNG SOKOBAN (CLASSIC WAREHOUSE PUZZLE)
   // =========================================================================
   function launchSokoban(container, game) {
-    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance = window.performance } = window.NP_GameSession.start();
     let currentLevel = 0;
     let moves = 0;
     let history = []; // Undo stack
@@ -5419,7 +5672,7 @@
   // 11. ENGINE: Ô ĂN QUAN DÂN GIAN VIỆT NAM (TRADITIONAL MANCALA ENGINE)
   // =========================================================================
   function launchOAnQuan(container, game) {
-    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance = window.performance } = window.NP_GameSession.start();
     let board = [
       10, // Quan Trái (index 0)
       5, 5, 5, 5, 5, // Dân dưới - Bạn (index 1 to 5)
@@ -5725,7 +5978,7 @@
   // 12. ENGINE: NUÔI CÁ NEMO (INSANIQUARIUM DELUXE POPCAP FULL VIRTUAL AQUARIUM)
   // =========================================================================
   function launchNuoiCaNemo(container, game) {
-    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+    const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance = window.performance } = window.NP_GameSession.start();
     let coins = 200;
     let animId = null;
     let foodLevel = 1; // 1: Brown flake, 2: Green mega pellet
@@ -5809,13 +6062,21 @@
         const nextPrice = [500, 1000, 1500][eggPieces] || 1500;
         bEgg.textContent = eggPieces >= 3 ? '🏆 Đã ấp trứng!' : `🥚 Trứng (${nextPrice} xu)`;
       }
-      if (bFood && foodLevel >= 2) {
-        bFood.textContent = '🌟 Mồi Cao Cấp (Tối đa)';
-        bFood.disabled = true;
+      if (bFood) {
+        bFood.textContent = foodLevel >= 2 ? 'Mồi Cao Cấp (Tối đa)' : 'Đổi mồi (200 xu)';
+        bFood.disabled = gameOver || gameWon || foodLevel >= 2;
       }
-      if (bLaser && laserPower >= 2) {
-        bLaser.textContent = '⚡ Laser II (Tối đa)';
-        bLaser.disabled = true;
+      if (bLaser) {
+        bLaser.textContent = laserPower >= 2 ? 'Laser II (Tối đa)' : 'Laser II (300 xu)';
+        bLaser.disabled = gameOver || gameWon || laserPower >= 2;
+      }
+      if (bEgg) bEgg.disabled = gameOver || gameWon;
+      const buyFish = container.querySelector('#ncBuyFish');
+      if (buyFish) buyFish.disabled = gameOver || gameWon;
+      const capacity = container.querySelector('#ncMaxFood');
+      if (capacity) {
+        capacity.disabled = gameOver || gameWon || maxFoods >= 6;
+        capacity.textContent = maxFoods >= 6 ? 'Sức chứa mồi tối đa' : '+1 Mồi (150 xu)';
       }
     }
 
@@ -5977,6 +6238,7 @@
 
     // Buttons bindings
     container.querySelector('#ncBuyFish')?.addEventListener('click', () => {
+      if (gameOver || gameWon) return;
       if (coins >= 100) {
         coins -= 100;
         fishes.push({
@@ -6001,6 +6263,7 @@
     });
 
     container.querySelector('#ncUpgradeFood')?.addEventListener('click', () => {
+      if (gameOver || gameWon) return;
       if (foodLevel < 2 && coins >= 200) {
         coins -= 200;
         foodLevel = 2;
@@ -6011,6 +6274,7 @@
     });
 
     container.querySelector('#ncMaxFood')?.addEventListener('click', () => {
+      if (gameOver || gameWon) return;
       if (maxFoods < 6 && coins >= 150) {
         coins -= 150;
         maxFoods += 1;
@@ -6021,6 +6285,7 @@
     });
 
     container.querySelector('#ncUpgradeLaser')?.addEventListener('click', () => {
+      if (gameOver || gameWon) return;
       if (laserPower < 2 && coins >= 300) {
         coins -= 300;
         laserPower = 2;
@@ -6031,6 +6296,7 @@
     });
 
     container.querySelector('#ncBuyEgg')?.addEventListener('click', () => {
+      if (gameOver || gameWon) return;
       const price = [500, 1000, 1500][eggPieces] || 1500;
       if (eggPieces < 3 && coins >= price) {
         coins -= price;
@@ -6042,6 +6308,7 @@
         if (eggPieces >= 3) {
           gameWon = true;
           screenShake = 15;
+          updateHUD();
         }
       } else {
         if (window.NP_Audio?.alarm) NP_Audio.alarm();
@@ -6057,6 +6324,11 @@
       gameWon = false;
       gameOver = false;
       alien = null;
+      nextAlienTimer = 35 * 60;
+      alienAlertTimer = 0;
+      screenShake = 0;
+      particles = [];
+      snail = { x: 200, y: canvas.height - 18, vx: 1.2, faceRight: true };
       if (alertBanner) alertBanner.style.display = 'none';
       fishes = [
         { id: 1, x: 120, y: 150, vx: 1.4, vy: 0.1, hunger: 90, tier: 1, bites: 0, coinTimer: 300, faceRight: true },
@@ -6083,7 +6355,10 @@
       if (alertBanner) alertBanner.style.display = 'block';
     }
 
-    function loop() {
+    function update() {
+      if (screenShake > 0) screenShake *= 0.86;
+      if (screenShake < 0.3) screenShake = 0;
+      if (gameOver || gameWon) return;
       // 1. Bubbles rising
       bubbles.forEach(b => {
         b.y -= b.vy;
@@ -6196,8 +6471,10 @@
       // 6. Fish AI & Life Cycle
       for (let i = fishes.length - 1; i >= 0; i--) {
         const f = fishes[i];
-        f.x += f.vx;
-        f.y += f.vy;
+        f.vx = Math.max(-2.8, Math.min(2.8, f.vx));
+        f.vy = Math.max(-2.2, Math.min(2.2, f.vy));
+        f.x = Math.max(25, Math.min(canvas.width - 25, f.x + f.vx));
+        f.y = Math.max(25, Math.min(canvas.height - 30, f.y + f.vy));
 
         // Turn around on edges
         if (f.x < 35) { f.vx = Math.abs(f.vx); f.faceRight = true; }
@@ -6283,18 +6560,25 @@
         // Starvation check
         if (f.hunger <= 0) {
           fishes.splice(i, 1);
-          if (fishes.length === 0 && coins < 100) {
-            gameOver = true;
-          }
         }
       }
 
+      if (!fishes.length && coins + droppedTreasures.reduce((sum, item) => sum + item.val, 0) < 100) {
+        gameOver = true;
+        updateHUD();
+      }
+      particles.forEach(pt => {
+        pt.life--;
+        if (pt.type === 'spark') { pt.x += pt.vx; pt.y += pt.vy; }
+      });
+      particles = particles.filter(pt => pt.life > 0);
+    }
+
+    function draw() {
       // --- RENDER PASS ---
       ctx.save();
       if (screenShake > 0) {
         ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake);
-        screenShake *= 0.86;
-        if (screenShake < 0.3) screenShake = 0;
       }
 
       // 1. Water Caustics Background
@@ -6490,7 +6774,6 @@
       // 9. Particle effects (Lasers, Sparks)
       for (let i = particles.length - 1; i >= 0; i--) {
         const pt = particles[i];
-        pt.life--;
         if (pt.type === 'laser') {
           ctx.strokeStyle = pt.color;
           ctx.lineWidth = laserPower === 1 ? 2.5 : 4.5;
@@ -6499,12 +6782,9 @@
           ctx.lineTo(pt.x2, pt.y2);
           ctx.stroke();
         } else if (pt.type === 'spark') {
-          pt.x += pt.vx;
-          pt.y += pt.vy;
           ctx.fillStyle = pt.color;
           ctx.fillRect(pt.x, pt.y, 3, 3);
         }
-        if (pt.life <= 0) particles.splice(i, 1);
       }
 
       // Victory / Game Over Overlay
@@ -6531,6 +6811,12 @@
       }
 
       ctx.restore();
+    }
+
+    const advance = fixedClassicUpdate();
+    function loop(timestamp) {
+      advance(timestamp, update);
+      draw();
       animId = requestAnimationFrame(loop);
     }
 
@@ -6548,7 +6834,9 @@
   // 13. ENGINE: PONG 1972 (CLASSIC TABLE TENNIS ENGINE)
   // =========================================================================
   function launchPong(container, game) {
-    const { requestAnimationFrame, cancelAnimationFrame, listen, onCleanup } = window.NP_GameSession.start();
+    const session = window.NP_GameSession.start();
+    const { requestAnimationFrame, cancelAnimationFrame, listen, onCleanup, clock: performance = window.performance } = session;
+    const sharedPause = typeof session.pause === 'function' && typeof session.resume === 'function' && typeof session.onPauseChange === 'function';
     const W = 460, H = 280, PADDLE_H = 50, PADDLE_W = 9, BALL_R = 4.5;
     const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
     let player = { y: (H - PADDLE_H) / 2, target: (H - PADDLE_H) / 2 };
@@ -6598,6 +6886,7 @@
       syncHUD();
       const pauseButton = container.querySelector('#pongPause');
       if (pauseButton) pauseButton.textContent = 'Tạm dừng';
+      if (sharedPause && session.isPaused()) session.resume();
     };
     function resetServe() {
       serve = .8; rally = 0;
@@ -6644,14 +6933,26 @@
     });
     listen(window,'blur',()=>{
       keys.up=keys.down=false;
-      if (!paused && winner<0) togglePause();
+      activeTouch=null;
     });
+    function syncPause(next) {
+      paused = Boolean(next);
+      keys.up = keys.down = false; activeTouch = null;
+      player.target = player.y;
+      playerVelocity = rivalVelocity = 0;
+      lastTime = accumulator = 0;
+      const btn = container.querySelector('#pongPause');
+      if (btn) {
+        btn.textContent = paused ? 'Tiếp tục' : 'Tạm dừng';
+        btn.setAttribute('aria-pressed', String(paused));
+      }
+      syncHUD();
+    }
+    if (sharedPause) session.onPauseChange(syncPause);
     function togglePause() {
       if (winner >= 0) return;
-      paused = !paused;
-      const btn = container.querySelector('#pongPause');
-      if (btn) btn.textContent = paused ? 'Tiếp tục' : 'Tạm dừng';
-      syncHUD();
+      if (sharedPause) { if (session.isPaused()) session.resume(); else session.pause(); }
+      else syncPause(!paused);
     }
     container.querySelector('#pongPause')?.addEventListener('click',togglePause);
     container.querySelector('#pongRestart')?.addEventListener('click',restart);
