@@ -112,7 +112,7 @@ function harness({ loadEngines = true, loadApp = true, ImageClass } = {}) {
   }));
   const run = file => vm.runInContext(read(file), context, { filename: file });
   if (ImageClass) context.Image = ImageClass;
-  run('scripts/game-session.js'); run('scripts/game-feel.js'); run('scripts/game-art.js');
+  run('scripts/game-session.js'); run('scripts/fidelity-core.js'); run('scripts/game-feel.js'); run('scripts/game-art.js');
   if (loadEngines) for (const file of ['engines.js', 'engines-classics.js', 'engines-popcap.js', 'engines-retro50.js', 'engines-archetypes.js', 'engines-typer-shark.js']) run('scripts/' + file);
   if (loadApp) vm.runInContext(read('app.js').replace('let allGames = [];', 'let allGames = globalThis.__testGames;'), context, { filename: 'app.js' });
   return {
