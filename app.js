@@ -1098,7 +1098,7 @@
       if (!activeGame) return;
       if (event.ctrlKey || event.metaKey || event.altKey) return;
       const editable = event.target?.closest?.('input, textarea, select, [contenteditable="true"]');
-      if (event.key === 'Escape' || (!editable && (event.key === 'p' || event.key === 'P'))) {
+      if (event.key === 'Escape' || (!editable && activeGame?.id !== 'qwop-flash' && (event.key === 'p' || event.key === 'P'))) {
         event.preventDefault(); event.stopImmediatePropagation();
         if (!event.repeat) {
           if (currentSession()?.isPaused()) resumeGame(); else showGameOverlay();
@@ -1150,7 +1150,9 @@
 
     const gId = typeof game.id === 'string' ? game.id.toLowerCase() : '';
     try {
-      if (window.NP_LifeSim && window.NP_LifeSim.hasGame(gId)) {
+      if (window.NP_ClassicWeb && window.NP_ClassicWeb.hasGame(gId)) {
+        window.NP_ClassicWeb.launchGame(container, game);
+      } else if (window.NP_LifeSim && window.NP_LifeSim.hasGame(gId)) {
         window.NP_LifeSim.launchGame(container, game);
       } else if (window.NP_Retro50Engines && window.NP_Retro50Engines.hasGame(gId)) {
         window.NP_Retro50Engines.launchGame(container, game);
