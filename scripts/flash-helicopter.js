@@ -17,7 +17,10 @@
    if(distance>best){best=Math.floor(distance);a.saveBest(best);}
   }
   function update(dt,keys){
-   if(lost)return;
+   if(lost){
+     if(press||keys.has('space')||keys.has('up')){reset();started=true;}
+     else return;
+   }
    const power=press||keys.has('space')||keys.has('up');
    if(!started){if(power)started=true;else return;}
    time+=dt;
@@ -36,8 +39,11 @@
     const bottom=clamp(prev.bottom+(Math.random()-.5)*16+mod,347,456);
     terrain.push({x:prev.x+stepW,top,bottom:Math.max(top+158,bottom)});
    }
-   const atX=terrain.find(p=>p.x>=210)||terrain[10];
-   if(height-14<=atX.top||height+14>=atX.bottom){crashed();return;}
+   const clipped=[178,210,242].some(x=>{
+     const point=terrain.find(p=>p.x>=x)||terrain[terrain.length-1];
+     return height-13<=point.top||height+13>=point.bottom;
+   });
+   if(clipped){crashed();return;}
    spawn-=dt;
    if(spawn<0){
     spawn=2.0-Math.min(.9,time*.012);
@@ -93,8 +99,8 @@
    line(c,-6,12,-6,16,'#bacad0',2);
    line(c,20,12,20,16,'#bacad0',2);
    c.restore();
-   label(c,'DISTANCE: '+Math.floor(distance),18,472,21,'#ffffff');
-   label(c,'BEST: '+Math.max(best,Math.floor(distance)),745,472,20,'#ffffff','right');
+   label(c,'DISTANCE: '+Math.floor(distance),18,472,21,'#030303');
+   label(c,'BEST: '+Math.max(best,Math.floor(distance)),745,472,20,'#030303','right');
    if(!started){
     rect(c,0,156,W,155,'rgba(0,0,0,.78)');
     label(c,lost?'GAME OVER':'THE HELICOPTER GAME',380,194,32,'#67fa56','center');

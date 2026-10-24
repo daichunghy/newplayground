@@ -329,14 +329,14 @@
           touch: 'Giữ tay trên canvas hoặc nút BAY để tăng lực nâng; thả để rơi.'
         },
         'red-ball-flash': {
-          objective: 'Lăn bóng đỏ qua nền tảng, nhảy qua hố và gai, đến cờ đỏ để qua màn.',
+          objective: 'Vượt 12 màn chính và 5 màn thưởng; đối phó gai, lò xo, cầu hộp, búa rìu, thang nâng và tới lá cờ đỏ.',
           keyboard: '←/→ hoặc A/D di chuyển, ↑ hoặc Space để nhảy.',
-          touch: 'Giữ ← hoặc → để lăn và nút ↑ để nhảy.'
+          touch: 'Nhấn PLAY để chơi, giữ ←/→ để lăn và ↑ hoặc chạm sân để nhảy; SELECT LEVEL mở những màn đã qua.'
         },
         'desktop-tower-defense': {
-          objective: 'Xây tháp cản đường và tiêu diệt kẻ địch trước khi chúng thoát qua bàn.',
-          keyboard: 'Nhấp chọn tháp, dùng chuột để đặt. Nút U nâng cấp, S bán và SEND để gọi đợt mới.',
-          touch: 'Chọn loại tháp, chạm ô lưới để đặt rồi chạm GỬI ĐỢT.'
+          objective: 'Xây mê cung bằng sáu loại tháp, chặn quái trên đất và trên không trong 50 đợt, có thể gửi đợt mới sớm.',
+          keyboard: '1–6 chọn tháp, U nâng cấp, S bán, Space/P/Esc tạm dừng; chọn SEND để gọi đợt mới.',
+          touch: 'Chọn loại tháp, chạm ô để đặt; SEND gọi đợt mới ngay cả khi đợt trước vẫn đang chạy.'
         }
       };
       return { ...(byGame[game && game.id] || generic), restartSelector: '#flashRestart' };

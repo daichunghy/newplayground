@@ -1098,7 +1098,10 @@
       if (!activeGame) return;
       if (event.ctrlKey || event.metaKey || event.altKey) return;
       const editable = event.target?.closest?.('input, textarea, select, [contenteditable="true"]');
-      if (event.key === 'Escape' || (!editable && activeGame?.id !== 'qwop-flash' && (event.key === 'p' || event.key === 'P'))) {
+      const classicSpacePause = activeGame?.id === 'desktop-tower-defense' &&
+        event.code === 'Space' && !editable && !event.target?.closest?.('button');
+      if (event.key === 'Escape' || classicSpacePause ||
+          (!editable && activeGame?.id !== 'qwop-flash' && (event.key === 'p' || event.key === 'P'))) {
         event.preventDefault(); event.stopImmediatePropagation();
         if (!event.repeat) {
           if (currentSession()?.isPaused()) resumeGame(); else showGameOverlay();

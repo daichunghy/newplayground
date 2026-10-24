@@ -489,3 +489,23 @@ test('native Pong, DXBall and Typer pause buttons resume through the shell witho
     h.context.closeGameModal();
   }
 });
+
+
+test('QWOP P remains a calf muscle, while Desktop Tower Defense Space pauses gameplay', () => {
+  const h = shellHarness();
+  h.context.openGameById('qwop-flash');
+  let canvas = h.container.querySelector('#flashCanvas');
+  const qwop = h.context.NP_GameSession.getCurrent();
+  h.window.dispatch('keydown', { target: canvas, key: 'p', code: 'KeyP' });
+  assert.equal(qwop.isPaused(), false, 'P must not open pause overlay in QWOP');
+  h.window.dispatch('keyup', { target: canvas, key: 'p', code: 'KeyP' });
+  h.context.openGameById('desktop-tower-defense');
+  canvas = h.container.querySelector('#flashCanvas');
+  const dtd = h.context.NP_GameSession.getCurrent();
+  h.window.dispatch('keydown', { target: canvas, key: ' ', code: 'Space' });
+  assert.equal(dtd.isPaused(), true, 'DTD Space must toggle original-style pause');
+  h.api.resumeGame();
+  assert.equal(dtd.isPaused(), false);
+  h.context.closeGameModal();
+  assert.equal(h.frames.size, 0);
+});
