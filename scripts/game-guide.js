@@ -311,6 +311,38 @@
 
   function describe(container, game) {
     if (!container || typeof container.querySelector !== 'function') return { ...generic };
+    // These five titles are purpose-built simulations, not the generic arcade runner.
+    if (container.querySelector('#lifeCanvas')) {
+      const guides = {
+        'pho-mua-giao-hang': {
+          objective: 'Lái xe trong phố mưa, tránh phương tiện và giao đủ bốn đơn với tốc độ thấp tại điểm giao.',
+          keyboard: 'Mũi tên hoặc WASD tăng tốc theo hướng; Space để phanh giảm quán tính.',
+          touch: 'Giữ bốn nút hướng để lái; chạm PHANH trước khi dừng tại vòng giao hàng.'
+        },
+        'do-xe-dung-chuan': {
+          objective: 'Đỗ vào đúng tâm và đúng chiều của ba ô được đánh dấu, giữ xe yên ít nhất 1,3 giây.',
+          keyboard: '↑ tăng ga, ↓ phanh, ←/→ đánh lái, Space hoặc E đổi số D/R khi xe đã chậm.',
+          touch: 'Giữ nút GA, PHANH, LÁI và dùng ĐỔI SỐ để chuyển giữa tiến/lùi.'
+        },
+        'doi-cuu-hoa-dem': {
+          objective: 'Khống chế đám cháy lan tại ba nhà, quản lý nước và giữ kết cấu khu phố an toàn.',
+          keyboard: 'WASD/mũi tên di chuyển tâm ngắm; Space phun ngắn; R hoặc E nạp nước.',
+          touch: 'Chạm và giữ trên ngọn lửa để phun; dùng nút NẠP NƯỚC khi bình gần cạn.'
+        },
+        'thu-ngan-ca-toi': {
+          objective: 'Quét đủ món, nhận tiền và trả chính xác tiền thừa cho năm khách. Ba lỗi sẽ thua.',
+          keyboard: 'Phím 1–4 chọn món, 1–6 chọn mệnh giá khi trả tiền, Enter thanh toán, Backspace xóa.',
+          touch: 'Chạm từng món hàng để quét, chạm các mệnh giá để cộng tiền thừa, sau đó xác nhận.'
+        },
+        'cang-cau-container': {
+          objective: 'Móc ba container, kiểm soát góc lắc và thả an toàn trong khu vực cầu cảng.',
+          keyboard: '←/→ di chuyển xe tời, ↑/↓ nâng/hạ móc cẩu, Space móc hoặc thả.',
+          touch: 'Giữ các nút hướng để lái tời và hạ/nâng móc; chạm MÓC/THẢ đúng lúc.'
+        }
+      };
+      return { ...(guides[game && game.id] || generic), restartSelector: '#lifeRestartBtn' };
+    }
+
     const entry = entries.find(item => container.querySelector(item.selector));
     if (entry) {
       const { selector, ...description } = entry;
