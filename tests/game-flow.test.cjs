@@ -213,7 +213,7 @@ test('fallback catalog has real, distinct genre loops and closes resources safel
     assertStopped(h);
     assert.equal(h.errors.length, 0, game.id + ': ' + h.errors.join('; '));
   }
-  assert.equal(count, 85, '85 catalog entries still use a generic archetype after Typer Shark split');
+  assert.equal(count, 71, '71 remaining catalog entries use genre-based arcade gameplay, not faithful game originals');
   assert.deepEqual([...found].sort(), ['duel', 'management', 'puzzle', 'quiz', 'reflex', 'runner', 'shooter']);
 });
 
