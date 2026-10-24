@@ -20,7 +20,7 @@
     });
     let aim = { x: 385, y: 266 };
     let spraying = false, pulse = 0, water = 100, integrity = 100, refill = 0, wind = .34;
-    let elapsed = 0, pulseNoise = 0, sprayPoints = [];
+    let elapsed = 0, pulseNoise = 0, sprayPoints = [], visibleSpray = false;
     function startRefill() {
       if (refill > 0) return;
       if (water >= 95) { s.say('Bình nước vẫn đầy, tập trung chữa cháy!'); return; }
@@ -41,6 +41,7 @@
         if (refill <= 0) { refill = 0; water = 100; s.say('Đã đầy bình, tiếp tục phun nước.'); }
       }
       const wet = (spraying || keys.has('primary') || pulse > 0) && refill <= 0 && water > 0;
+      visibleSpray = wet;
       if (wet) {
         water = Math.max(0, water - dt * 19);
         pulseNoise += dt;
@@ -139,7 +140,7 @@
       c.beginPath(); c.moveTo(98, 400); c.lineTo(aim.x, aim.y); c.stroke();
       c.strokeStyle = '#d8d9cd'; c.lineWidth = 4;
       c.beginPath(); c.moveTo(98, 400); c.lineTo(aim.x, aim.y); c.stroke();
-      const shooting = spraying || pulse > 0;
+      const shooting = visibleSpray;
       if (shooting && water > 0 && refill === 0) {
         c.strokeStyle = 'rgba(161,239,255,.6)'; c.lineWidth = 14;
         c.beginPath(); c.moveTo(100, 399); c.lineTo(aim.x, aim.y); c.stroke();
