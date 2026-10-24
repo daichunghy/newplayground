@@ -94,6 +94,12 @@ Vui lòng tham khảo file [`AGENTS.md`](./AGENTS.md) để nắm rõ:
 
 ---
 
+### Nâng độ trung thành năm game Flash (24/10/2026)
+
+Nâng cấp năm bản Flash mới: The World's Hardest Game có 30 bố cục khác nhau và checkpoint; Red Ball có 17 màn theo 17 chủ đề gốc cùng menu/chọn màn; QWOP dùng tổ hợp cơ đùi/bắp chân đối hướng; Helicopter Game sửa hitbox và điều khiển giữ để bay; Desktop Tower Defense có sáu họ tháp, 50 wave, quái bay và thưởng gửi đợt sớm. Không bổ sung game tự nghĩ, giữ 140 mục danh mục.
+
+Đây là **mô phỏng lại từ bản gốc**, chưa trùng chính xác toàn bộ dữ liệu cấp độ, ảnh sprite hoặc động cơ vật lý thương mại. Xem [báo cáo đối chiếu và giới hạn](./docs/FLASH_FIDELITY_PASS_2026_10_24.md).
+
 ### Kiểm toán bản gốc và game Flash quốc tế (24/10/2026)
 
 Danh mục hiện có **140 game**. Đã loại **20 mục** thiếu tựa game điện tử gốc xác định được (gồm 5 game mô phỏng do dự án vừa tự tạo), thêm **5 trò Flash có xuất xứ thật**: **The World's Hardest Game (2007)**, **QWOP (2008)**, **Helicopter Game (2002)**, **Desktop Tower Defense (2007)** và **Red Ball (Flash)**. Mỗi trò mới có cơ chế và đồ họa riêng bằng Canvas 2D, không sử dụng tài nguyên có bản quyền của nhà phát triển gốc.
