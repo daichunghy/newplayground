@@ -27,7 +27,7 @@
   ];
   let level=1,unlocked=clamp(Math.floor(a.getBest())+1,1,17),
       phase='menu',ball=null,stage=null,time=0,camera=0,tries=0,
-      world=1650,goalX=1540,heldJump=false,prevSupport=null,
+      world=1650,goalX=1540,heldJump=false,fingerJump=false,prevSupport=null,
       message='Roll, jump and reach the flag.',deathCount=0;
   function initScene(){
    stage={name:SPECS[level-1].name,feature:SPECS[level-1].feature,
@@ -94,7 +94,7 @@
       addBoulder(4,.45);addSpring(4,.75,540);break;
    }
    if(level>=8&&level!==8&&level!==12)addSpike(2,.82);
-   time=0;camera=0;prevSupport=null;heldJump=false;
+   time=0;camera=0;prevSupport=null;heldJump=false;fingerJump=false;
    ball={x:55,y:base[0].y-RAD-1,vx:0,vy:0,spin:0,onGround:true};
    message='Level '+level+' • '+stage.name;
   }
@@ -155,7 +155,7 @@
    const steer=Number(keys.has('right'))-Number(keys.has('left'));
    ball.vx=clamp(ball.vx+steer*(ball.onGround?980:495)*dt,-MAX_SPEED,MAX_SPEED);
    if(!steer)ball.vx*=Math.exp(-dt*(ball.onGround?4.7:.45));
-   const jump=keys.has('up')||keys.has('space');
+   const jump=keys.has('up')||keys.has('space')||fingerJump;
    if(!jump)heldJump=false;
    if(jump&&!heldJump&&ball.onGround){
      ball.vy=-JUMP;ball.onGround=false;prevSupport=null;heldJump=true;
@@ -317,6 +317,7 @@
    }
   }
   function pointer(type,x,y){
+   if(type==='up'||type==='cancel'){fingerJump=false;return;}
    if(type!=='down')return;
    if(phase==='menu'){
      if(y>=170&&y<=275)action('start');
@@ -327,7 +328,7 @@
        if(col>=0&&col<6&&row>=0&&i>=0&&i<17&&i+1<=unlocked){level=i+1;reset();}
      }else if(y>380)phase='menu';
    }else if(phase==='clear'||phase==='won')action('start');
-   else if(phase==='playing')heldJump=true;
+   else if(phase==='playing')fingerJump=true;
   }
   return{
    controls:[{id:'left',label:'← LĂN',hold:true},{id:'right',label:'LĂN →',hold:true},
@@ -336,7 +337,7 @@
    keys:['left','right','up','space','enter'],
    hint:'Red Ball Flash: ←/→ lăn, ↑ nhảy; 12 màn chính và 5 màn bonus. PLAY / NEXT để vào màn, SELECT LEVEL để mở bản đồ.',
    update,draw,pointer,action,
-   getState(){return {level,unlocked,phase,ball,stage,camera,goalX,deathCount};}
+   getState(){return {level,unlocked,phase,ball,stage,camera,goalX,deathCount,stageCount:SPECS.length};}
   };
  });
 })();
