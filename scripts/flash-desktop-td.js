@@ -6,10 +6,12 @@
   const {W,H,TAU,clamp,rect,circle,line,label,round,dist,polygon}=a;
   const X=37,Y=79,T=31,COLS=17,ROWS=12,WIDTH=COLS*T,HEIGHT=ROWS*T;
   const choices=[
-   {name:'SQUIRT',cost:15,damage:10,range:105,rate:.24,col:'#67adb2'},
-   {name:'DART',cost:20,damage:25,range:132,rate:.75,col:'#e8b15d'},
-   {name:'SPLASH',cost:45,damage:26,range:93,rate:1.35,col:'#cd8bb4'},
-   {name:'SNIPER',cost:70,damage:68,range:205,rate:1.6,col:'#9baa77'}
+   {name:'PELLET',cost:5,damage:7,range:77,rate:.55,col:'#9a9992',ground:true,air:true},
+   {name:'SQUIRT',cost:15,damage:6,range:89,rate:.16,col:'#5a9db0',ground:true,air:true},
+   {name:'DART',cost:20,damage:17,range:113,rate:1.1,col:'#d2b269',ground:true,air:false,splash:42},
+   {name:'SWARM',cost:30,damage:28,range:105,rate:.68,col:'#9eb7c7',ground:false,air:true,splash:30},
+   {name:'FROST',cost:40,damage:4,range:88,rate:.82,col:'#a7d9e2',ground:true,air:true,slow:.55},
+   {name:'BASH',cost:50,damage:26,range:62,rate:1.18,col:'#d1978d',ground:true,air:false,splash:55,stun:.21}
   ];
   let money=75,life=20,wave=0,score=0,choice=0,chosen=-1,
    grid=[], towers=[],creeps=[],effects=[],cooldown=0,spawning=0,spawnDelay=0,
@@ -94,7 +96,7 @@
    const tw=towers[chosen];if(!tw)return;
    const price=choices[tw.kind].cost*tw.level;
    if(money<price){message='Need '+price+' gold to upgrade.';return;}
-   if(tw.level>=5){message='Tower is maxed out.';return;}
+   if(tw.level>=6){message='Tower is maxed out.';return;}
    money-=price;tw.level++;message='Tower upgraded to '+tw.level+'.';
   }
   function sell(){
@@ -105,7 +107,7 @@
   }
   function nextWave(){
    if(state==='won'||state==='lost'||state==='running')return;
-   if(wave===20){state='won';return;}
+   if(wave===50){state='won';return;}
    wave++;state='running';
    spawning=7+wave*2;spawnDelay=.5;message='WAVE '+wave+' INCOMING.';
   }
@@ -177,8 +179,8 @@
    creeps=creeps.filter(cr=>!cr.passed);
    if(life<=0){state='lost';a.saveBest(Math.max(a.getBest(),wave-1));message='The creeps reached your desktop!';}
    if(spawning===0&&creeps.length===0&&state==='running'){
-    state=wave>=20?'won':'ready';money+=8+wave*2;
-    if(state==='won'){a.saveBest(Math.max(a.getBest(),20));message='You survived all 20 waves!';}
+    state=wave>=50?'won':'ready';money+=8+wave*2;
+    if(state==='won'){a.saveBest(Math.max(a.getBest(),50));message='You survived all 20 waves!';}
     else message='Wave cleared! Bonus gold. Build and send another.';
    }
   }
@@ -188,7 +190,7 @@
    for(let x=0;x<W;x+=40)line(c,x,0,x+23,H,'rgba(111,83,49,.13)',5);
    round(c,12,9,540,55,4,'#e8e6cf','#686858');
    label(c,'DESKTOP TOWER DEFENSE',25,28,25,'#403d30');
-   label(c,'LIVES '+life+'    GOLD '+money+'    WAVE '+wave+'/20    SCORE '+score,24,52,13,'#594b34');
+   label(c,'LIVES '+life+'    GOLD '+money+'    WAVE '+wave+'/50    SCORE '+score,24,52,13,'#594b34');
    round(c,X-4,Y-4,WIDTH+8,HEIGHT+8,2,'#f0eee4','#999b81');
    for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){
     rect(c,X+x*T,Y+y*T,T,T,(x+y)%2===0?'#edece1':'#f4f2e7');
@@ -239,7 +241,7 @@
    if(state==='won'||state==='lost'){
     rect(c,24,107,535,334,'rgba(245,242,214,.86)');
     label(c,state==='won'?'WELL DONE!':'GAME OVER',292,209,37,'#4f543a','center');
-    label(c,'SCORE '+score+' • WAVE '+wave+'/20',292,259,22,'#535746','center');
+    label(c,'SCORE '+score+' • WAVE '+wave+'/50',292,259,22,'#535746','center');
     label(c,'Press CHƠI LẠI to restart',292,294,16,'#6d6851','center');
    }
   }
