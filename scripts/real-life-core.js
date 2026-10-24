@@ -106,7 +106,7 @@
       '<button type="button" id="lifeRestartBtn" class="life-sim-restart">↻ Chơi lại</button></div>' +
       '<div class="life-sim-controls" aria-label="Điều khiển">' +
       controls.map(btn => '<button type="button" class="life-sim-control' + (btn.hold ? ' is-hold' : '') +
-      '" data-life-control="' + btn.id + '" data-life-hold="' + (btn.hold ? '1' : '0') +
+      '" id="lifeBtn-' + btn.id + '" data-life-control="' + btn.id + '" data-life-hold="' + (btn.hold ? '1' : '0') +
       '" aria-label="' + btn.label + '">' + btn.label + '</button>').join('') + '</div>' +
       '<p class="life-sim-hint">' + (mode.hint || 'Bàn phím hoặc nút cảm ứng • Esc / P để tạm dừng') + '</p></div>';
 
@@ -126,7 +126,8 @@
       };
       const left = Math.max(0, state.limit - state.time);
       set('#lifeScore', state.score);
-      set('#lifeTime', pad(left / 60 - (left % 60) / 60) + ':' + pad(left % 60));
+      const seconds = Math.max(0, Math.ceil(left));
+      set('#lifeTime', pad(Math.floor(seconds / 60)) + ':' + pad(seconds % 60));
       set('#lifeBest', state.best);
       set('#lifeObjective', objective);
       set('#lifeNotice', state.message);
@@ -134,7 +135,7 @@
     function restart() { if (session.isActive()) launchGame(container, game); }
     session.listen(container.querySelector('#lifeRestartBtn'), 'click', restart);
     for (const btn of controls) {
-      const element = container.querySelector('[data-life-control="' + btn.id + '"]');
+      const element = container.querySelector('#lifeBtn-' + btn.id);
       if (!element) continue;
       if (btn.hold) {
         session.listen(element, 'pointerdown', e => {
