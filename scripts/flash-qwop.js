@@ -113,12 +113,17 @@
    label(c,'Inspired by Bennett Foddy • 2008',380,43,14,'#dce8f0','center','400');
    label(c,Math.max(0,progress).toFixed(1)+' metres',380,85,38,'#fff','center');
    if(best>0)label(c,'BEST: '+best.toFixed(1)+' metres',380,117,17,'#d9eaf2','center');
-   for(const [i,key] of ['Q','W','O','P'].entries()){
-    const x=16+i*51;
-    round(c,x,12,42,44,5,'#e2e4dd','#34383c');
-    label(c,key,x+21,34,23,'#18252c','center');
-   }
-   if(fallen||won){
+   for(const [i,key] of ['Q','W'].entries()){
+      const x=16+i*53;round(c,x,12,45,42,5,'#e3e4dd','#3d4850');
+      label(c,key,x+22,32,24,'#263943','center');
+    }
+    label(c,'THIGHS',69,68,14,'#dce5f2','center');
+    for(const [i,key] of ['O','P'].entries()){
+      const x=644+i*53;round(c,x,12,45,42,5,'#e3e4dd','#3d4850');
+      label(c,key,x+22,32,24,'#263943','center');
+    }
+    label(c,'CALVES',699,68,14,'#dce5f2','center');
+    if(fallen||won){
     round(c,242,147,324,111,8,'rgba(11,25,38,.86)');
     label(c,won?'100 METRES!':'YOU FELL OVER',404,184,27,'#fff','center');
     label(c,'Press R / CHƠI LẠI to restart',404,226,16,'#d5e3ed','center');
