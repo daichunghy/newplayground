@@ -23,7 +23,7 @@
   }
   function allowed(x,y) {
     const half=playerSize/2;
-    const inside=(r)=>x-half>=r.x && x+half<=r.x+r.w && y-half>=r.y && y+half<=r.y+r.h;
+    const inside=(r)=>x>=r.x && x<=r.x+r.w && y>=r.y && y<=r.y+r.h;
     // Margin on all edges creates a completely traversable horizontal lane.
     return inside(start)||inside(end)||inside(field);
   }
