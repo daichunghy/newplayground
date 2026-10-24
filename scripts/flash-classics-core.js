@@ -86,9 +86,9 @@
     session.listen(window, 'keydown', e => {
       if (session.isPaused()) return;
       if (e.target?.closest?.('input,textarea,select,[contenteditable="true"]')) return;
-      const key = inputMap[e.code] || inputMap[e.key];
+      const key = gameState.keyMap?.[e.code] || inputMap[e.code] || inputMap[e.key];
       if (key && (controlsById.has(key) || gameState.keys?.includes(key))) {
-        if (key !== 'p') e.preventDefault?.();
+        e.preventDefault?.();
         held.add(key);
         if (!e.repeat) gameState.action?.(key, true);
       } else if (e.code === 'KeyR' && !e.repeat) {
@@ -96,7 +96,7 @@
       }
     });
     session.listen(window, 'keyup', e => {
-      const key = inputMap[e.code] || inputMap[e.key];
+      const key = gameState.keyMap?.[e.code] || inputMap[e.code] || inputMap[e.key];
       if (key) { held.delete(key); gameState.release?.(key); }
     });
     const point = e => {
