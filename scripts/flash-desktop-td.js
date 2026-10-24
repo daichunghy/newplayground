@@ -126,9 +126,9 @@
    if(px>X&&px<X+WIDTH&&py>Y&&py<Y+HEIGHT){
     const cell=cellFor(px,py);place(cell.x,cell.y);return;
    }
-   if(px>589&&px<744&&py>130&&py<305){
-    const index=Math.floor((py-145)/40);
-    if(index>=0&&index<4)action('t'+index);
+   if(px>589&&px<744&&py>80&&py<371){
+    const index=Math.floor((py-82)/46);
+    if(index>=0&&index<choices.length)action('t'+index);
    }
   }
   function update(dt){
@@ -225,15 +225,14 @@
    round(c,591,9,155,477,6,'#e3ddc8','#726c58');
    label(c,'TOWERS',668,34,21,'#3f463e','center');
    choices.forEach((k,i)=>{
-    const y=82+i*67;
-    round(c,600,y,137,59,4,i===choice?'#f5e8aa':'#f1ebd6',
-      i===choice?'#a18432':'#a9a58b');
-    circle(c,621,y+26,12,k.col,'#57655e',2);
-    label(c,(i+1)+'. '+k.name,640,y+20,14,'#3d4641');
-    label(c,'$'+k.cost+'  DMG '+k.damage,637,y+40,12,'#776d54');
+    const y=82+i*46;
+    round(c,600,y,137,43,4,i===choice?'#f5e8aa':'#f1ebd6',i===choice?'#a18432':'#a9a58b');
+    circle(c,616,y+19,10,k.col,'#57655e',2);
+    label(c,(i+1)+'. '+k.name,635,y+14,12,'#3d4641');
+    label(c,'$'+k.cost+'  DMG '+k.damage,634,y+32,11,'#776d54');
    });
-   round(c,602,377,132,33,4,'#e6a94a');
-   label(c,'SEND WAVE  →',668,392,15,'#463b27','center');
+   round(c,602,373,132,37,4,'#e6a94a');
+   label(c,'SEND NEXT LEVEL',668,392,13,'#463b27','center');
    label(c,'U: UPGRADE',602,430,13,'#62574a');
    label(c,'S: SELL',602,451,13,'#62574a');
    rect(c,11,464,557,28,'#e7ddc1');
@@ -248,13 +247,14 @@
   reset();
   return{
    controls:[
-    {id:'t0',label:'1 • SQUIRT'},{id:'t1',label:'2 • DART'},
-    {id:'t2',label:'3 • SPLASH'},{id:'t3',label:'4 • SNIPER'},
-    {id:'send',label:'SEND NEXT WAVE'},{id:'upgrade',label:'U • UPGRADE'},
+    {id:'t0',label:'1 • PELLET'},{id:'t1',label:'2 • SQUIRT'},
+    {id:'t2',label:'3 • DART'},{id:'t3',label:'4 • SWARM'},
+    {id:'t4',label:'5 • FROST'},{id:'t5',label:'6 • BASH'},
+        {id:'send',label:'SEND NEXT WAVE'},{id:'upgrade',label:'U • UPGRADE'},
     {id:'sell',label:'S • SELL'}
    ],
-   hint:'Desktop Tower Defense (2007): chọn tháp (1–4), chạm ô để đặt, u nâng cấp, s bán, gửi đợt quái.',
-   keyMap:{Digit1:'t0',Digit2:'t1',Digit3:'t2',Digit4:'t3',
+   hint:'Desktop Tower Defense (2007): chọn tháp (1–6), chạm ô để đặt, u nâng cấp, s bán, gửi đợt quái.',
+   keyMap:{Digit1:'t0',Digit2:'t1',Digit3:'t2',Digit4:'t3',Digit5:'t4',Digit6:'t5',
      KeyU:'upgrade',KeyS:'sell'},
    draw,update,pointer,action,
    getState(){return {wave,life,money,score,state,grid,towers,creeps,path};}
