@@ -57,6 +57,7 @@
    if(!newPath){message='Cannot completely block the creeps!';return;}
    // Place only if all living enemies can still reach exit.
    for(const cr of creeps){
+    if(cr.air)continue;
     const source=cellFor(cr.x,cr.y);
     const snap={x:clamp(source.x,0,COLS-1),y:clamp(source.y,0,ROWS-1)};
     if(!routeFrom(test,snap)){message='This blocks a moving creep.';return;}
@@ -86,6 +87,7 @@
   }
   function reroute(){
    for(const creep of creeps){
+    if(creep.air)continue;
     const source=cellFor(creep.x,creep.y);
     const sx=clamp(source.x,0,COLS-1),sy=clamp(source.y,0,ROWS-1);
     creep.path=routeFrom(grid,{x:sx,y:sy})||path;
@@ -109,7 +111,15 @@
    if(state==='won'||state==='lost'||state==='running')return;
    if(wave===50){state='won';return;}
    wave++;state='running';
-   spawning=7+wave*2;spawnDelay=.5;message='WAVE '+wave+' INCOMING.';
+   spawning=8+Math.floor(wave*.9);spawnDelay=.5;message='WAVE '+wave+'/50 • '+creepType(wave).toUpperCase();
+  }
+  function creepType(current) {
+    if(current%10===0)return 'boss';
+    if(current%7===0)return 'flying';
+    if(current%6===0)return 'immune';
+    if(current%5===0)return 'group';
+    if(current%3===0)return 'fast';
+    return 'normal';
   }
   function action(id){
    if(id==='restart'){reset();return;}
@@ -138,16 +148,21 @@
    if(state!=='running')return;
    spawnDelay-=dt;
    if(spawning>0&&spawnDelay<=0){
-    spawning--;spawnDelay=.74*Math.max(.6,1-wave*.014);
-    const p=center(0,Math.floor(ROWS/2));
-    creeps.push({x:p.x,y:p.y,health:22+wave*16,max:22+wave*16,
-      speed:35+Math.min(28,wave*2),path, next:1,reward:4+Math.floor(wave/3)});
+    spawning--;spawnDelay=.76*Math.max(.43,1-wave*.012);
+    const kind=creepType(wave),air=kind==='flying',p=center(0,Math.floor(ROWS/2));
+    const health=Math.floor((17+wave*12)*(kind==='boss'?7:kind==='immune'?1.8:kind==='group'?.67:1));
+    const speed=(35+Math.min(33,wave*1.5))*(kind==='fast'?1.8:kind==='boss'?.72:1);
+    creeps.push({x:p.x,y:p.y,health,max:health,speed,
+      path:air?[{x:0,y:Math.floor(ROWS/2)},{x:COLS-1,y:Math.floor(ROWS/2)}]:path,
+      next:1,reward:3+Math.floor(wave/3),air,kind,slowLeft:0,stunLeft:0});
    }
    for(const cr of creeps){
     const next=cr.path[cr.next];
     if(!next){cr.passed=true;life--;continue;}
     const goal=center(next.x,next.y),length=dist(goal.x,goal.y,cr.x,cr.y);
-    const step=cr.speed*dt;
+    cr.slowLeft=Math.max(0,cr.slowLeft-dt);
+    cr.stunLeft=Math.max(0,cr.stunLeft-dt);
+    const step=cr.stunLeft>0?0:cr.speed*(cr.slowLeft>0?.57:1)*dt;
     if(length<=step){
       cr.x=goal.x;cr.y=goal.y;cr.next++;
       if(cr.next>=cr.path.length){cr.passed=true;life--;}
@@ -160,17 +175,23 @@
     tw.cooldown-=dt;
     if(tw.cooldown>0)continue;
     const k=choices[tw.kind],loc=center(tw.x,tw.y),
-     target=creeps.filter(cr=>!cr.passed&&cr.health>0&&dist(cr.x,cr.y,loc.x,loc.y)<k.range+
-       (tw.level-1)*10).sort((v,z)=>z.next-v.next)[0];
+     target=creeps.filter(cr=>!cr.passed&&cr.health>0 &&
+       (cr.air?k.air:k.ground) &&
+       dist(cr.x,cr.y,loc.x,loc.y)<k.range+(tw.level-1)*9)
+       .sort((v,z)=>z.next-v.next)[0];
     if(!target)continue;
-    const damage=k.damage*(1+(tw.level-1)*.63);
-    target.health-=damage;
-    if(tw.kind===2){
-      creeps.forEach(cr=>{
-        if(cr!==target&&dist(cr.x,cr.y,target.x,target.y)<47)cr.health-=damage*.52;
-      });
-    }
-    effects.push({from:loc,to:{x:target.x,y:target.y},life:.14,color:k.col});
+    const damage=k.damage*(1+(tw.level-1)*.58);
+    const hit=(cr,power)=>{
+      cr.health-=power*(cr.kind==='immune'?.64:1);
+      if(k.slow)cr.slowLeft=Math.max(cr.slowLeft,1.35);
+      if(k.stun&&Math.random()<.24)cr.stunLeft=.34;
+    };
+    hit(target,damage);
+    if(k.splash)creeps.forEach(cr=>{
+      if(cr!==target && cr.health>0 && (cr.air?k.air:k.ground) &&
+        dist(cr.x,cr.y,target.x,target.y)<k.splash)hit(cr,damage*.65);
+    });
+    effects.push({from:loc,to:{x:target.x,y:target.y},life:.17,color:k.col});
     tw.cooldown=k.rate/Math.pow(1.15,tw.level-1);
    }
    for(const cr of creeps)if(cr.health<=0&&!cr.passed){
@@ -179,7 +200,7 @@
    creeps=creeps.filter(cr=>!cr.passed);
    if(life<=0){state='lost';a.saveBest(Math.max(a.getBest(),wave-1));message='The creeps reached your desktop!';}
    if(spawning===0&&creeps.length===0&&state==='running'){
-    state=wave>=50?'won':'ready';money+=8+wave*2;
+    state=wave>=50?'won':'ready';money+=5+Math.floor(wave*.8);
     if(state==='won'){a.saveBest(Math.max(a.getBest(),50));message='You survived all 20 waves!';}
     else message='Wave cleared! Bonus gold. Build and send another.';
    }
@@ -217,7 +238,11 @@
    });
    for(const cr of creeps){
     circle(c,cr.x+2,cr.y+2,8,'rgba(15,31,27,.14)');
-    circle(c,cr.x,cr.y,8,'#79ad60','#385947',2);
+    const col={normal:'#79ad60',fast:'#e6bc5a',immune:'#9c9caf',
+      flying:'#62bfd9',group:'#aa72bc',boss:'#b66c5a'}[cr.kind]||'#79ad60';
+    circle(c,cr.x,cr.y,cr.kind==='boss'?12:8,col,'#385947',2);
+    if(cr.air)line(c,cr.x-14,cr.y-6,cr.x+14,cr.y-6,'#d9f9fb',2);
+    if(cr.slowLeft>0)circle(c,cr.x,cr.y,11,null,'#abedf2',1);
     rect(c,cr.x-9,cr.y-13,18,3,'#e1a99a');
     rect(c,cr.x-9,cr.y-13,18*clamp(cr.health/cr.max,0,1),3,'#68cf71');
    }
