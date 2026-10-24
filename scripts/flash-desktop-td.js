@@ -252,6 +252,8 @@
     {id:'sell',label:'S • SELL'}
    ],
    hint:'Desktop Tower Defense (2007): chọn tháp (1–4), chạm ô để đặt, u nâng cấp, s bán, gửi đợt quái.',
+   keyMap:{Digit1:'t0',Digit2:'t1',Digit3:'t2',Digit4:'t3',
+     KeyU:'upgrade',KeyS:'sell'},
    draw,update,pointer,action,
    getState(){return {wave,life,money,score,state,grid,towers,creeps,path};}
   };
