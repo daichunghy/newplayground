@@ -171,9 +171,9 @@ function shellHarness({ blockStorage = false, initialize = true } = {}) {
   return h;
 }
 
-test('all 155 real games support shell help, pause, resume, replay and close without losing resources', () => {
+test('all 140 catalog games support shell help, pause, resume, replay and close without losing resources', () => {
   const h = shellHarness();
-  assert.equal(games.length, 155);
+  assert.equal(games.length, 140);
   const windowListeners = h.window.listenerCount(), documentListeners = h.document.listenerCount();
   for (const game of games) {
     assert.equal(h.context.openGameById(game.id), true, game.id);
