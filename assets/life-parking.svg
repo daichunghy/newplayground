@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500" role="img" aria-label="ĐỖ XE CHUẨN">
+<defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#1c505b"/><stop offset="1" stop-color="#355063"/></linearGradient>
+<linearGradient id="shade" x2="0" y2="1"><stop stop-color="#091b25" stop-opacity="0"/><stop offset="1" stop-color="#091b25" stop-opacity=".95"/></linearGradient>
+<filter id="glow"><feGaussianBlur stdDeviation="12"/></filter></defs>
+<rect width="800" height="500" fill="url(#sky)"/>
+<rect y="60" width="800" height="440" fill="#364751"/><path d="M0 204h800M0 401h800" stroke="#879f9a" stroke-width="4"/>
+<g stroke="#e8d29b" stroke-width="5" opacity=".9"><path d="M22 88v114m140-114v114m140-114v114m140-114v114m140-114v114m140-114v114M22 402v98m140-98v98m140-98v98m140-98v98m140-98v98m140-98v98"/></g>
+<rect x="456" y="84" width="124" height="116" rx="8" fill="#66dcb1" opacity=".22" stroke="#b0f7d6" stroke-width="6" stroke-dasharray="12 12"/>
+<text x="518" y="105" font-family="Calibri,Arial" font-size="18" fill="#ccffdd" text-anchor="middle">A04</text>
+<g transform="translate(362 293) rotate(-21)"><ellipse rx="140" ry="64" fill="#000" opacity=".34" transform="translate(9 13)"/>
+<rect x="-131" y="-54" width="262" height="108" rx="32" fill="#7bd4f5" stroke="#c6f5ff" stroke-width="7"/>
+<rect x="-44" y="-48" width="99" height="96" rx="19" fill="#366576"/>
+<path d="M56-43q39 16 0 89" fill="#b9e2e5"/><rect x="-108" y="-63" width="37" height="9" rx="3" fill="#eaf0e7"/><rect x="-108" y="54" width="37" height="9" rx="3" fill="#eaf0e7"/><path d="M113-38h17m-17 76h17" stroke="#fff3b8" stroke-width="13"/>
+</g>
+<g transform="translate(88 136)"><rect width="66" height="42" rx="12" fill="#cb8468" stroke="#ebc1aa" stroke-width="3"/></g>
+<g transform="translate(646 128)"><rect width="68" height="46" rx="12" fill="#7baf99" stroke="#d0e7c8" stroke-width="3"/></g>
+<path d="M416 197Q453 167 490 171" fill="none" stroke="#a8f3c4" stroke-width="6" stroke-dasharray="12 12"/>
+
+<rect y="315" width="800" height="185" fill="url(#shade)"/>
+<text x="35" y="42" font-size="17" font-weight="700" font-family="Calibri,Arial,sans-serif" fill="#d9f3e7" letter-spacing="4">NEWPLAYGROUND / LIFE SIM</text>
+<text x="35" y="433" font-size="44" font-weight="700" font-family="Calibri,Arial,sans-serif" fill="#ffffff">ĐỖ XE CHUẨN</text>
+<text x="37" y="466" font-size="19" font-family="Calibri,Arial,sans-serif" fill="#c5dce5">Precision parking / gears & steering</text>
+</svg>

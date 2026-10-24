@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500" role="img" aria-label="ĐỘI CỨU HỎA">
+<defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#172841"/><stop offset="1" stop-color="#95533e"/></linearGradient>
+<linearGradient id="shade" x2="0" y2="1"><stop stop-color="#091b25" stop-opacity="0"/><stop offset="1" stop-color="#091b25" stop-opacity=".95"/></linearGradient>
+<filter id="glow"><feGaussianBlur stdDeviation="12"/></filter></defs>
+<rect width="800" height="500" fill="url(#sky)"/>
+<circle cx="672" cy="99" r="54" fill="#d3d7cb" opacity=".68"/>
+<g fill="#30404b"><rect x="56" y="145" width="212" height="221"/><rect x="284" y="108" width="221" height="268"/><rect x="531" y="164" width="218" height="217"/></g>
+<g fill="#bfdddc" opacity=".7"><path d="M84 171h36v48H84zm68 0h36v48h-36zm-68 76h36v48H84zm68 0h36v48h-36zM310 136h37v50h-37zm74 0h37v50h-37zm74 0h34v50h-34zM552 187h34v47h-34zm66 0h34v47h-34zm66 0h34v47h-34z"/></g>
+<g fill="#ff7a3c" filter="url(#glow)" opacity=".75"><ellipse cx="389" cy="260" rx="109" ry="110"/><ellipse cx="175" cy="300" rx="56" ry="60"/></g>
+<g fill="#f77b3b"><path d="M295 360q-42-77 2-156 10 55 39 18-17-75 36-146 7 60 47 95 59 56 18 123 74-40 43-119 91 156-1 185z"/><path d="M93 366q-17-76 9-106 5 40 26 29 0-64 41-103 8 64 45 87 43 56 12 93z"/></g>
+<g fill="#ffd275"><path d="M334 360q-31-65 25-111 0 41 24 48-4-54 26-83 4 56 28 84 14 37-5 62z"/><path d="M132 363q-10-42 23-68 3 39 25 26 11 24-5 42z"/></g>
+<g transform="translate(70 334)"><rect width="255" height="80" rx="18" fill="#d94e45" stroke="#f3a77c" stroke-width="7"/><rect x="29" y="-50" width="111" height="61" rx="11" fill="#e76050"/><rect x="43" y="-38" width="68" height="41" rx="6" fill="#a8d9e8"/><circle cx="60" cy="82" r="27" fill="#243141" stroke="#a2b5b7" stroke-width="9"/><circle cx="196" cy="82" r="27" fill="#243141" stroke="#a2b5b7" stroke-width="9"/><path d="M189 0 245-92 325-116" fill="none" stroke="#a9e8f6" stroke-width="22"/></g>
+
+<rect y="315" width="800" height="185" fill="url(#shade)"/>
+<text x="35" y="42" font-size="17" font-weight="700" font-family="Calibri,Arial,sans-serif" fill="#d9f3e7" letter-spacing="4">NEWPLAYGROUND / LIFE SIM</text>
+<text x="35" y="433" font-size="44" font-weight="700" font-family="Calibri,Arial,sans-serif" fill="#ffffff">ĐỘI CỨU HỎA</text>
+<text x="37" y="466" font-size="19" font-family="Calibri,Arial,sans-serif" fill="#c5dce5">Emergency response / water & heat</text>
+</svg>

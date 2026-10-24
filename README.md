@@ -94,6 +94,18 @@ Vui lòng tham khảo file [`AGENTS.md`](./AGENTS.md) để nắm rõ:
 
 ---
 
+### Thêm 5 game mô phỏng đời sống (24/10/2026)
+
+Danh mục hiện có **155 mục**, trong đó 5 trò chơi mới có engine riêng, khác nhau về thao tác và quy tắc thắng/thua:
+
+- **Phố Mưa: Giao Hàng:** chạy xe có quán tính và phanh, gặp giao thông, giao đủ bốn đơn.
+- **Đỗ Xe Đúng Chuẩn:** đánh lái, đổi số D/R, vào đúng tâm và góc của ba ô đỗ.
+- **Đội Cứu Hỏa Đêm:** ngắm vòi phun, khống chế lửa lan, quản lý nước và kết cấu.
+- **Thu Ngân Ca Tối:** quét mã hàng, tính hóa đơn, cộng mệnh giá tiền thừa cho năm khách.
+- **Cẩu Container Cảng Biển:** điều khiển xe tời và cáp, hãm dao động tải trọng, đặt hàng đúng bến.
+
+Các game chạy trên Canvas 2D với điều khiển cảm ứng/bàn phím, bảng điểm, thời gian, tạm dừng và chơi lại. Bìa SVG được vẽ riêng, không cần CDN hay build. Đây là **mô phỏng gameplay giản lược**, không phải đồ họa 3D thực tế. Chi tiết tại [đặc tả năm game](./docs/FIVE_LIFE_SIMS_2026_10_24.md).
+
 ### Cải thiện toàn bộ danh mục (20/10/2026)
 
 - Thanh điều khiển chung cho 150 mục: tạm dừng, tiếp tục, chơi lại/mở lại và hướng dẫn theo game thực sự đang chạy. Đổi tab hoặc rời cửa sổ tự tạm dừng; quay lại cần bấm Tiếp tục.
