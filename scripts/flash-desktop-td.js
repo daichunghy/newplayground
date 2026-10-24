@@ -15,11 +15,11 @@
   ];
   let money=75,life=20,wave=0,score=0,choice=0,chosen=-1,
    grid=[], towers=[],creeps=[],effects=[],cooldown=0,spawning=0,spawnDelay=0,
-   path=[],state='ready',pointerPos={x:0,y:0},message='Place towers to build a maze.',best=a.getBest(),t=0;
+   queues=[],path=[],state='ready',pointerPos={x:0,y:0},message='Place towers to build a maze.',best=a.getBest(),t=0;
   function reset(){
    money=75;life=20;wave=0;score=0;choice=0;chosen=-1;
    grid=Array.from({length:ROWS},()=>Array(COLS).fill(0));
-   towers=[];creeps=[];effects=[];cooldown=0;spawning=0;spawnDelay=0;
+   towers=[];creeps=[];effects=[];queues=[];cooldown=0;spawning=0;spawnDelay=0;
    state='ready';path=route(grid);message='Place towers; click SEND NEXT LEVEL.';t=0;
   }
   function center(cx,cy){return{x:X+(cx+.5)*T,y:Y+(cy+.5)*T};}
@@ -108,10 +108,14 @@
    towers.splice(chosen,1);chosen=-1;path=route(grid);reroute();message='Tower sold.';
   }
   function nextWave(){
-   if(state==='won'||state==='lost'||state==='running')return;
-   if(wave===50){state='won';return;}
+   if(state==='won'||state==='lost'||wave>=50)return;
+   const overlap=state==='running';
    wave++;state='running';
-   spawning=8+Math.floor(wave*.9);spawnDelay=.5;message='WAVE '+wave+'/50 • '+creepType(wave).toUpperCase();
+   queues.push({level:wave,kind:creepType(wave),
+     remaining:8+Math.floor(wave*.9),timer:.2});
+   if(overlap)score+=20+Math.round(wave/2);
+   message='WAVE '+wave+'/50 • '+creepType(wave).toUpperCase()+
+     (overlap?' • EARLY SEND BONUS':'');
   }
   function creepType(current) {
     if(current%10===0)return 'boss';
@@ -146,16 +150,24 @@
    t+=dt;
    for(const e of effects)e.life-=dt;effects=effects.filter(e=>e.life>0);
    if(state!=='running')return;
-   spawnDelay-=dt;
-   if(spawning>0&&spawnDelay<=0){
-    spawning--;spawnDelay=.76*Math.max(.43,1-wave*.012);
-    const kind=creepType(wave),air=kind==='flying',p=center(0,Math.floor(ROWS/2));
-    const health=Math.floor((17+wave*12)*(kind==='boss'?7:kind==='immune'?1.8:kind==='group'?.67:1));
-    const speed=(35+Math.min(33,wave*1.5))*(kind==='fast'?1.8:kind==='boss'?.72:1);
-    creeps.push({x:p.x,y:p.y,health,max:health,speed,
-      path:air?[{x:0,y:Math.floor(ROWS/2)},{x:COLS-1,y:Math.floor(ROWS/2)}]:path,
-      next:1,reward:3+Math.floor(wave/3),air,kind,slowLeft:0,stunLeft:0});
+   // Original Desktop Tower Defense allows a next wave to be sent before
+   // the previous one has disappeared, trading risk for an early-send bonus.
+   for(const group of queues){
+     group.timer-=dt;
+     if(group.remaining>0&&group.timer<=0){
+       group.remaining--;
+       group.timer=.76*Math.max(.43,1-group.level*.012);
+       const kind=group.kind,air=kind==='flying',p=center(0,Math.floor(ROWS/2));
+       const health=Math.floor((17+group.level*12)*
+         (kind==='boss'?7:kind==='immune'?1.8:kind==='group'?.67:1));
+       const speed=(35+Math.min(33,group.level*1.5))*
+         (kind==='fast'?1.8:kind==='boss'?.72:1);
+       creeps.push({x:p.x,y:p.y,health,max:health,speed,
+         path:air?[{x:0,y:Math.floor(ROWS/2)},{x:COLS-1,y:Math.floor(ROWS/2)}]:path,
+         next:1,reward:3+Math.floor(group.level/3),air,kind,slowLeft:0,stunLeft:0});
+     }
    }
+   queues=queues.filter(q=>q.remaining>0);
    for(const cr of creeps){
     const next=cr.path[cr.next];
     if(!next){cr.passed=true;life--;continue;}
@@ -199,7 +211,7 @@
    }
    creeps=creeps.filter(cr=>!cr.passed);
    if(life<=0){state='lost';a.saveBest(Math.max(a.getBest(),wave-1));message='The creeps reached your desktop!';}
-   if(spawning===0&&creeps.length===0&&state==='running'){
+   if(queues.length===0&&creeps.length===0&&state==='running'){
     state=wave>=50?'won':'ready';money+=5+Math.floor(wave*.8);
     if(state==='won'){a.saveBest(Math.max(a.getBest(),50));message='You survived all 20 waves!';}
     else message='Wave cleared! Bonus gold. Build and send another.';
@@ -282,7 +294,7 @@
    keyMap:{Digit1:'t0',Digit2:'t1',Digit3:'t2',Digit4:'t3',Digit5:'t4',Digit6:'t5',
      KeyU:'upgrade',KeyS:'sell'},
    draw,update,pointer,action,
-   getState(){return {wave,life,money,score,state,grid,towers,creeps,path};}
+   getState(){return {wave,life,money,score,state,grid,towers,creeps,path,queues,choice,choices};}
   };
  });
 })();
