@@ -13,55 +13,54 @@
     return{hip:{x:hipX,y:hipY},knee,
       foot:{x:knee.x+Math.sin(shinAngle)*segment2,y:knee.y+Math.cos(shinAngle)*segment2}};
   }
+  let lastStride=0,airborne=0;
   function reset(){
-   progress=0;velocity=0;y=310;vy=0;lean=-.04;leanV=0;clock=0;fallen=false;won=false;
-   legA={thigh:-.15,knee:.45};legB={thigh:.12,knee:.45};
+    progress=0;velocity=0;y=274;vy=0;lean=-.04;leanV=0;clock=0;
+    fallen=false;won=false;lastStride=0;airborne=0;
+    legA={thigh:-.11,knee:.19};legB={thigh:.11,knee:.19};
   }
   function update(dt,held){
-   if(fallen||won)return;
-   clock+=dt;
-   const q=Number(held.has('q')),w=Number(held.has('w')),
-      o=Number(held.has('o')),p=Number(held.has('p'));
-   const muscles=(q-w);
-   const calf=(o-p);
-   const aimA=keyAngle(-.09+muscles*.75),aimB=keyAngle(.09-muscles*.75),
-      kneeA=clamp(.34+calf*.75,-.65,1.4),
-      kneeB=clamp(.34-calf*.75,-.65,1.4);
-   const smoothing=1-Math.exp(-dt*9.3);
-   legA.thigh+=(aimA-legA.thigh)*smoothing;
-   legB.thigh+=(aimB-legB.thigh)*smoothing;
-   legA.knee+=(kneeA-legA.knee)*smoothing;
-   legB.knee+=(kneeB-legB.knee)*smoothing;
-   const hipX=183, feet=[
-    calculateLeg(hipX,y,legA.thigh+lean*.28,legA.knee),
-    calculateLeg(hipX,y,legB.thigh+lean*.28,legB.knee)
-   ];
-   const contact=feet.map(leg=>Math.max(0,Math.min(1,(leg.foot.y-ground+9)/17)));
-   const stride=muscles*(1-Math.abs(calf)*.25);
-   const anklePush=contact[0]*Math.max(0,-legA.thigh)
-     +contact[1]*Math.max(0,legB.thigh);
-   let drive=(stride*.8+anklePush*.8)*30;
-   // No automatic running: any forward movement must result from active muscle controls.
-   if(!(q||w||o||p))drive=0;
-   velocity+=drive*dt;
-   velocity*=Math.exp(-dt*(contact[0]+contact[1]>.3?1.4:2.9));
-   velocity=clamp(velocity,-5,30);
-   progress=Math.max(-3,progress+velocity*dt);
-   vy+=(contact[0]+contact[1]>.05?-210:530)*dt;
-   const support=Math.max(contact[0],contact[1]);
-   if(support>.1&&vy>0)vy*=Math.exp(-dt*11);
-   y=clamp(y+vy*dt,283,408);
-   const imbalance=(legA.thigh+legB.thigh)*.3+velocity*.004+
-     (contact[0]-contact[1])*.06;
-   leanV+=(imbalance*5 + (lean*.2) -leanV*2)*dt;
-   // Leg movement alone can also stabilize the torso when timed in alternating phases.
-   if(q!==w&&o!==p)leanV-=lean*.6*dt;
-   lean=clamp(lean+leanV*dt,-1.8,1.8);
-   if(Math.abs(lean)>1.35||y>376 || progress < -2.5){
-    fallen=true;velocity=0;
-    if(progress>best){best=Number(progress.toFixed(1));a.saveBest(best);}
-   }
-   if(progress>=100){won=true;best=100;a.saveBest(100);}
+    if(fallen||won)return;
+    clock+=dt;
+    const q=held.has('q'),w=held.has('w'),o=held.has('o'),p=held.has('p');
+    const thighs=q?1:w?-1:0,calves=o?1:p?-1:0;
+    const aimA=.04+thighs*.73,aimB=-.04-thighs*.73;
+    const kneeA=.24+calves*.74,kneeB=.24-calves*.74;
+    const ease=1-Math.exp(-dt*8.4);
+    legA.thigh+=(aimA-legA.thigh)*ease;
+    legB.thigh+=(aimB-legB.thigh)*ease;
+    legA.knee+=(kneeA-legA.knee)*ease;
+    legB.knee+=(kneeB-legB.knee)*ease;
+    const feet=[
+      calculateLeg(185,y,legA.thigh+lean*.23,legA.knee),
+      calculateLeg(185,y,legB.thigh+lean*.23,legB.knee)
+    ];
+    const reaches=feet.map(leg=>leg.foot.y-y);
+    const support=reaches.some(reach=>y+reach>=ground-10);
+    if(support){
+      airborne=0;
+      const desiredY=ground-Math.max(...reaches);
+      y+=(desiredY-y)*Math.min(1,dt*11);vy=Math.min(vy,0);
+    }else{airborne+=dt;vy+=560*dt;y+=vy*dt;}
+    // QP/WO alternating combinations drive a stride, all four never auto-sprint.
+    const stride=q&&p&&!w&&!o?1:(w&&o&&!q&&!p?-1:0);
+    if(stride&&lastStride!==stride&&support){velocity+=1.9;lastStride=stride;}
+    const torque=(legA.thigh+legB.thigh)*1.3+
+      (reaches[0]-reaches[1])*.012+(thighs*.42+calves*.27)+
+      (support?0:.21)+Math.sin(clock*4.2)*.03;
+    leanV+=(torque*.8+lean*.18-leanV*2.1)*dt;
+    lean=clamp(lean+leanV*dt,-1.65,1.65);
+    if(stride&&support)velocity+=dt*2.5;
+    velocity*=Math.exp(-dt*(support?1.05:2.15));
+    velocity=clamp(velocity,-1,13);
+    progress=Math.max(0,progress+velocity*dt);
+    // Head/torso ground contact rather than a fixed arbitrary hip threshold.
+    const headY=y-Math.cos(lean)*107;
+    if(Math.abs(lean)>1.3||headY+21>ground||y>ground-26||airborne>1.2){
+      fallen=true;velocity=0;
+      if(progress>best){best=Number(progress.toFixed(1));a.saveBest(best);}
+    }
+    if(progress>=100){progress=100;won=true;best=100;a.saveBest(100);}
   }
   function limb(c,from,to,width,shade){
    line(c,from.x+2,from.y+3,to.x+2,to.y+3,'rgba(24,20,27,.5)',width+4);
@@ -135,7 +134,7 @@
    keys:['q','w','o','p'],keyMap:{KeyQ:'q',KeyW:'w',KeyO:'o',KeyP:'p'},
    hint:'QWOP (Bennett Foddy, 2008): Q/W điều khiển hai đùi ngược chiều; O/P điều khiển hai cẳng chân. Chạy 100 mét.',
    update,draw,action(id){if(id==='restart')reset();},
-   getState(){return{progress,fallen,won,lean,legA,legB};}
+   getState(){return{progress,fallen,won,lean,legA,legB,airborne};}
   };
  });
 })();
