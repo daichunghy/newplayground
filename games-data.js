@@ -1,63 +1,63 @@
 window.__NP_GAMES_CACHE__ = [
   {
-    "id": "pho-mua-giao-hang",
-    "title": "Phố Mưa: Giao Hàng",
-    "tagline": "Lái xe qua phố mưa, tránh va chạm và giao đúng bốn đơn.",
-    "category": "Mô phỏng",
+    "id": "worlds-hardest-game",
+    "title": "The World's Hardest Game",
+    "tagline": "Ô vuông đỏ vượt 30 thử thách, né chấm xanh, thu thập xu vàng.",
+    "category": "Kỹ năng",
     "section": "hot",
     "players": "1 người",
-    "duration": "3–5 phút",
-    "mechanic": "Mô phỏng lái xe có quán tính, lực phanh, giao hàng khi giảm tốc, xe giao thông và đèn tín hiệu.",
-    "badge": "Mới",
-    "color": "#37BBAF"
+    "duration": "5–15 phút",
+    "mechanic": "The World's Hardest Game (Snubby Land, 2007): né chấm xanh, thu xu vàng và tới vùng an toàn; điểm chết; 30 màn.",
+    "badge": "Flash kinh điển",
+    "color": "#3C3FED"
   },
   {
-    "id": "do-xe-dung-chuan",
-    "title": "Đỗ Xe Đúng Chuẩn",
-    "tagline": "Căn vô-lăng, vào số lùi và đỗ chính xác từng ô.",
-    "category": "Mô phỏng",
+    "id": "qwop-flash",
+    "title": "QWOP (2008)",
+    "tagline": "Điều khiển bốn nhóm cơ để chạy 100 mét mà không ngã.",
+    "category": "Kỹ năng",
     "section": "hot",
     "players": "1 người",
-    "duration": "3–5 phút",
-    "mechanic": "Mô hình lái xe bánh trước và quán tính, ga phanh, hộp số D/R, căn vị trí, hướng đỗ và va chạm.",
-    "badge": "Mới",
-    "color": "#6BB9E3"
+    "duration": "3–8 phút",
+    "mechanic": "QWOP của Bennett Foddy (2008): Q W O P điều khiển cơ đùi và đầu gối với mô phỏng thăng bằng.",
+    "badge": "Flash kinh điển",
+    "color": "#B5545C"
   },
   {
-    "id": "doi-cuu-hoa-dem",
-    "title": "Đội Cứu Hỏa Đêm",
-    "tagline": "Điều vòi nước, dập lửa lan và cứu cả khu phố.",
-    "category": "Mô phỏng",
+    "id": "helicopter-game",
+    "title": "Helicopter Game (2002)",
+    "tagline": "Giữ chuột để bay lên, thả để rơi xuống, tránh tường và chướng ngại.",
+    "category": "Kỹ năng",
     "section": "hot",
     "players": "1 người",
-    "duration": "3–5 phút",
-    "mechanic": "Phun nước theo tâm ngắm, lửa lan giữa cửa sổ, giám sát kết cấu nhà và nạp nước cứu hỏa.",
-    "badge": "Mới",
-    "color": "#E87D61"
+    "duration": "2–5 phút",
+    "mechanic": "Helicopter Game (Seethru, 2002): điều khiển bằng một nút, bay qua khe tường tạo ngẫu nhiên.",
+    "badge": "Flash kinh điển",
+    "color": "#40CD54"
   },
   {
-    "id": "thu-ngan-ca-toi",
-    "title": "Thu Ngân Ca Tối",
-    "tagline": "Quét mã, tính hóa đơn và trả lại tiền thật chính xác.",
-    "category": "Mô phỏng",
+    "id": "desktop-tower-defense",
+    "title": "Desktop Tower Defense (2007)",
+    "tagline": "Tự dựng mê cung bằng tháp, chặn 20 đợt quái tiến vào desktop.",
+    "category": "Chiến thuật",
     "section": "hot",
     "players": "1 người",
-    "duration": "3–5 phút",
-    "mechanic": "Quét từng sản phẩm, tính giá bằng tiền Việt, nhận tiền của khách, chọn mệnh giá và trả tiền thừa đúng.",
-    "badge": "Mới",
-    "color": "#9BCBA8"
+    "duration": "5–10 phút",
+    "mechanic": "Desktop Tower Defense của Paul Preece (2007): xây tháp trên lưới, tìm đường đi động, nâng cấp, bán tháp, wave.",
+    "badge": "Flash kinh điển",
+    "color": "#C5A773"
   },
   {
-    "id": "cang-cau-container",
-    "title": "Cẩu Container Cảng Biển",
-    "tagline": "Giữ thăng bằng tải nặng, nâng móc và xếp hàng đúng bến.",
-    "category": "Mô phỏng",
+    "id": "red-ball-flash",
+    "title": "Red Ball (Flash)",
+    "tagline": "Lăn bóng đỏ, nhảy qua hố và vượt đủ 17 màn.",
+    "category": "Kỹ năng",
     "section": "hot",
     "players": "1 người",
-    "duration": "3–5 phút",
-    "mechanic": "Điều khiển xe tời, nâng/hạ cáp, quán tính con lắc theo gió và vị trí thả container an toàn.",
-    "badge": "Mới",
-    "color": "#E8BA71"
+    "duration": "3–8 phút",
+    "mechanic": "Red Ball của Evgeniy Fedoseev: điều khiển quả bóng có quán tính, nhảy qua nền cỏ, bẫy gai và tới cờ.",
+    "badge": "Flash kinh điển",
+    "color": "#D52E3E"
   },
   {
     "id": "hang-rong",
@@ -226,18 +226,6 @@ window.__NP_GAMES_CACHE__ = [
     "mechanic": "Đấu cờ tướng cổ điển và giải các thế tàn cuộc hiểm hóc",
     "badge": "Trí tuệ",
     "color": "#C75B3A"
-  },
-  {
-    "id": "ban-bi-ve",
-    "title": "Bắn Bi Ve Tuổi Thơ",
-    "tagline": "Căn góc búng bi đẩy bi đối thủ ra khỏi vòng.",
-    "category": "Kỹ năng",
-    "section": "friends",
-    "players": "2-4 người",
-    "duration": "3-5 phút",
-    "mechanic": "Vật lý va chạm bi ve căn góc và lực búng ngón tay",
-    "badge": "Dân gian",
-    "color": "#3B82F6"
   },
   {
     "id": "o-an-quan",
@@ -780,30 +768,6 @@ window.__NP_GAMES_CACHE__ = [
     "color": "#C75B3A"
   },
   {
-    "id": "nem-lon-truong-lang",
-    "title": "Ném Lon Trường Làng",
-    "tagline": "Căn góc ném chiếc dép trúng chồng lon sữa bò!",
-    "category": "Kỹ năng",
-    "section": "all",
-    "players": "1 người",
-    "duration": "2-4 phút",
-    "mechanic": "Căn lực và góc ném dép hạ gục tháp lon",
-    "badge": "Dân gian",
-    "color": "#EF4444"
-  },
-  {
-    "id": "tat-lon-via-he",
-    "title": "Tạt Lon Vỉa Hè",
-    "tagline": "Chạy nhanh cứu bạn khi lon bị tạt đổ!",
-    "category": "Hành động",
-    "section": "friends",
-    "players": "2-4 người",
-    "duration": "3-5 phút",
-    "mechanic": "Tạt đổ lon và chạy thoát khỏi tầm bắt của người giữ lon",
-    "badge": "Dân gian",
-    "color": "#F4A261"
-  },
-  {
     "id": "ban-ga-vu-tru",
     "title": "Bắn Gà Vũ Trụ (Chicken Invaders)",
     "tagline": "Bắn gà bay lượn né trứng rơi nhặt đùi gà xối mỡ.",
@@ -864,30 +828,6 @@ window.__NP_GAMES_CACHE__ = [
     "color": "#3B82F6"
   },
   {
-    "id": "duo-hinh-bat-chu",
-    "title": "Đoán Hình Bắt Chữ",
-    "tagline": "Ghép 2 bức hình suy luận câu thành ngữ quen.",
-    "category": "Giải đố",
-    "section": "all",
-    "players": "1 người",
-    "duration": "3-5 phút",
-    "mechanic": "Nhìn hình ảnh gợi ý đoán từ khóa thành ngữ tiếng Việt",
-    "badge": "Vui nhộn",
-    "color": "#C8FF4A"
-  },
-  {
-    "id": "tim-diem-khac-biet",
-    "title": "Tìm Điểm Khác Biệt",
-    "tagline": "Soi 2 bức tranh tìm 5 điểm sai khác trước khi hết giờ.",
-    "category": "Chill",
-    "section": "all",
-    "players": "1 người",
-    "duration": "3-5 phút",
-    "mechanic": "Quan sát chi tiết hình ảnh nhấp đúng vị trí khác biệt",
-    "badge": "Chill",
-    "color": "#F4A261"
-  },
-  {
     "id": "thap-ha-noi-tower",
     "title": "Tháp Hà Nội Cổ Điển",
     "tagline": "Chuyển ngăn đĩa từ cọc này sang cọc khác theo thứ tự.",
@@ -946,18 +886,6 @@ window.__NP_GAMES_CACHE__ = [
     "mechanic": "Điều khiển các thanh cầu thủ gạt bóng đối kháng",
     "badge": "Thể thao",
     "color": "#3B82F6"
-  },
-  {
-    "id": "keo-co-doi-khang",
-    "title": "Kéo Co Đối Kháng",
-    "tagline": "Đọ tốc độ bấm phím kéo đối thủ qua vạch đỏ.",
-    "category": "Party",
-    "section": "friends",
-    "players": "2 người",
-    "duration": "1-2 phút",
-    "mechanic": "Bấm phím luân phiên đọ lực kéo dây thừng",
-    "badge": "Dân gian",
-    "color": "#EF4444"
   },
   {
     "id": "lat-the-tri-nho",
@@ -1080,30 +1008,6 @@ window.__NP_GAMES_CACHE__ = [
     "color": "#EF4444"
   },
   {
-    "id": "phi-tieu-bong-bong",
-    "title": "Phi Tiêu Nổ Bóng Bay",
-    "tagline": "Căn góc ném phi tiêu nổ bóng hội chợ.",
-    "category": "Kỹ năng",
-    "section": "all",
-    "players": "1 người",
-    "duration": "2-4 phút",
-    "mechanic": "Căn tọa độ ném phi tiêu nổ bóng chuyển động",
-    "badge": "Hội chợ",
-    "color": "#EF4444"
-  },
-  {
-    "id": "gap-thu-bong-dien-tu",
-    "title": "Gắp Thú Bông Điện Tử",
-    "tagline": "Căn cần gạt gắp đúng chú gấu bông xinh.",
-    "category": "Kỹ năng",
-    "section": "all",
-    "players": "1 người",
-    "duration": "2-4 phút",
-    "mechanic": "Điều khiển cần gạt 2D gắp gấu bông thả vào hộc",
-    "badge": "Kỹ năng",
-    "color": "#F4A261"
-  },
-  {
     "id": "tam-cuc-co-dien",
     "title": "Tổ Tôm Tam Cúc",
     "tagline": "Trò chơi thẻ bài cổ truyền ngày tết.",
@@ -1114,18 +1018,6 @@ window.__NP_GAMES_CACHE__ = [
     "mechanic": "Chơi thẻ bài tướng sĩ tượng xe pháo mã dân tộc",
     "badge": "Dân gian",
     "color": "#C75B3A"
-  },
-  {
-    "id": "nem-vong-co-chai",
-    "title": "Ném Vòng Cổ Chai",
-    "tagline": "Quăng chiếc vòng tre lọt trúng cổ chai ngọt lịm.",
-    "category": "Kỹ năng",
-    "section": "all",
-    "players": "1 người",
-    "duration": "2-4 phút",
-    "mechanic": "Vật lý quỹ đạo ném vòng trúng mục tiêu chai",
-    "badge": "Hội chợ",
-    "color": "#C8FF4A"
   },
   {
     "id": "lac-bau-cua-tom-ca",
@@ -1176,42 +1068,6 @@ window.__NP_GAMES_CACHE__ = [
     "color": "#F4A261"
   },
   {
-    "id": "thoi-bong-xa-phong",
-    "title": "Thổi Bong Bóng Xà Phòng",
-    "tagline": "Chạm ngón tay nổ từng quả bong bóng óng ánh.",
-    "category": "Chill",
-    "section": "all",
-    "players": "1 người",
-    "duration": "2-5 phút",
-    "mechanic": "Tương tác nổ bong bóng thư giãn giải tỏa căng thẳng",
-    "badge": "Chill",
-    "color": "#3B82F6"
-  },
-  {
-    "id": "tiem-banh-ngot-ba-baker",
-    "title": "Tiệm Bánh Ngọt Cupcake",
-    "tagline": "Bắt kem trang trí quả anh đào lên bánh ngọt.",
-    "category": "Chill",
-    "section": "all",
-    "players": "1 người",
-    "duration": "3-5 phút",
-    "mechanic": "Trang trí bánh kem theo mẫu yêu cầu",
-    "badge": "Chill",
-    "color": "#F4A261"
-  },
-  {
-    "id": "dap-ruoi-ban-tay",
-    "title": "Đập Ruồi Bàn Tay Vàng",
-    "tagline": "Canh ruồi vừa đậu là hạ tay đập dính.",
-    "category": "Kỹ năng",
-    "section": "all",
-    "players": "1 người",
-    "duration": "1-3 phút",
-    "mechanic": "Rèn luyện phản xạ tay mắt cực nhanh",
-    "badge": "Kỹ năng",
-    "color": "#EF4444"
-  },
-  {
     "id": "xe-dap-giao-bao",
     "title": "Cậu Bé Giao Báo (Paperboy)",
     "tagline": "Đạp xe ném tờ báo trúng hộp thư trước cửa nhà.",
@@ -1222,42 +1078,6 @@ window.__NP_GAMES_CACHE__ = [
     "mechanic": "Đạp xe né chó dữ và xe hơi ném báo trúng hộp thư",
     "badge": "Arcade",
     "color": "#C8FF4A"
-  },
-  {
-    "id": "dau-truong-xe-dung",
-    "title": "Xe Đụng Hội Chợ",
-    "tagline": "Đạp ga húc xe bạn bè quay cuồng vòng sân.",
-    "category": "Hành động",
-    "section": "friends",
-    "players": "2-4 người",
-    "duration": "3-5 phút",
-    "mechanic": "Lái xe đụng va chạm vật lý đẩy xe đối thủ",
-    "badge": "Hội chợ",
-    "color": "#EF4444"
-  },
-  {
-    "id": "gap-chu-cho-qua-duong",
-    "title": "Dắt Cún Qua Đường",
-    "tagline": "Chờ đèn xanh dắt đàn cún cưng sang đường an toàn.",
-    "category": "Chill",
-    "section": "all",
-    "players": "1 người",
-    "duration": "2-4 phút",
-    "mechanic": "Căn thời điểm vạch kẻ đường dẫn các chú cún qua phố",
-    "badge": "Chill",
-    "color": "#183D32"
-  },
-  {
-    "id": "tiem-sach-cu-pho-co",
-    "title": "Tiệm Sách Cũ Phố Cổ",
-    "tagline": "Sắp xếp những cuốn sách bìa da ngả màu thời gian.",
-    "category": "Chill",
-    "section": "all",
-    "players": "1 người",
-    "duration": "3-7 phút",
-    "mechanic": "Phân loại các cuốn sách theo gáy màu và tựa sách hoài niệm",
-    "badge": "Chill",
-    "color": "#C75B3A"
   },
   {
     "id": "boom-online-bnb",
