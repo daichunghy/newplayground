@@ -84,6 +84,8 @@ test('Desktop Tower Defense restores six 2007 tower families and concurrent wave
   assert.ok(overlap.score >= 20, 'early send bonus');
   gameState.update(.25);
   assert.ok(gameState.getState().creeps.length > 0);
+  gameState.pointer('down', 663, 389);
+  assert.equal(gameState.getState().wave, 3, 'on-canvas SEND NEXT LEVEL is clickable');
   h.context.NP_GameSession.stop();
 });
 
