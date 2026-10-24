@@ -113,6 +113,11 @@
 
   // --- RENDERING ---
   const COVER_MAP = {
+    'pho-mua-giao-hang': 'assets/life-city.svg',
+    'do-xe-dung-chuan': 'assets/life-parking.svg',
+    'doi-cuu-hoa-dem': 'assets/life-fire.svg',
+    'thu-ngan-ca-toi': 'assets/life-cashier.svg',
+    'cang-cau-container': 'assets/life-crane.svg',
     'ca-pho': 'assets/ca_pho_concept_art.jpg',
     'hang-rong': 'assets/hang_rong_cover.png',
     'dao-vang': 'assets/dao_vang_cover.png',
