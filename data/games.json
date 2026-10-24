@@ -1,5 +1,65 @@
 [
   {
+    "id": "pho-mua-giao-hang",
+    "title": "Phố Mưa: Giao Hàng",
+    "tagline": "Lái xe qua phố mưa, tránh va chạm và giao đúng bốn đơn.",
+    "category": "Mô phỏng",
+    "section": "hot",
+    "players": "1 người",
+    "duration": "3–5 phút",
+    "mechanic": "Mô phỏng lái xe có quán tính, lực phanh, giao hàng khi giảm tốc, xe giao thông và đèn tín hiệu.",
+    "badge": "Mới",
+    "color": "#37BBAF"
+  },
+  {
+    "id": "do-xe-dung-chuan",
+    "title": "Đỗ Xe Đúng Chuẩn",
+    "tagline": "Căn vô-lăng, vào số lùi và đỗ chính xác từng ô.",
+    "category": "Mô phỏng",
+    "section": "hot",
+    "players": "1 người",
+    "duration": "3–5 phút",
+    "mechanic": "Mô hình lái xe bánh trước và quán tính, ga phanh, hộp số D/R, căn vị trí, hướng đỗ và va chạm.",
+    "badge": "Mới",
+    "color": "#6BB9E3"
+  },
+  {
+    "id": "doi-cuu-hoa-dem",
+    "title": "Đội Cứu Hỏa Đêm",
+    "tagline": "Điều vòi nước, dập lửa lan và cứu cả khu phố.",
+    "category": "Mô phỏng",
+    "section": "hot",
+    "players": "1 người",
+    "duration": "3–5 phút",
+    "mechanic": "Phun nước theo tâm ngắm, lửa lan giữa cửa sổ, giám sát kết cấu nhà và nạp nước cứu hỏa.",
+    "badge": "Mới",
+    "color": "#E87D61"
+  },
+  {
+    "id": "thu-ngan-ca-toi",
+    "title": "Thu Ngân Ca Tối",
+    "tagline": "Quét mã, tính hóa đơn và trả lại tiền thật chính xác.",
+    "category": "Mô phỏng",
+    "section": "hot",
+    "players": "1 người",
+    "duration": "3–5 phút",
+    "mechanic": "Quét từng sản phẩm, tính giá bằng tiền Việt, nhận tiền của khách, chọn mệnh giá và trả tiền thừa đúng.",
+    "badge": "Mới",
+    "color": "#9BCBA8"
+  },
+  {
+    "id": "cang-cau-container",
+    "title": "Cẩu Container Cảng Biển",
+    "tagline": "Giữ thăng bằng tải nặng, nâng móc và xếp hàng đúng bến.",
+    "category": "Mô phỏng",
+    "section": "hot",
+    "players": "1 người",
+    "duration": "3–5 phút",
+    "mechanic": "Điều khiển xe tời, nâng/hạ cáp, quán tính con lắc theo gió và vị trí thả container an toàn.",
+    "badge": "Mới",
+    "color": "#E8BA71"
+  },
+  {
     "id": "hang-rong",
     "title": "Hàng Rong",
     "tagline": "Gánh hàng vỉa hè, gom tiền mở rộng tiệm.",
