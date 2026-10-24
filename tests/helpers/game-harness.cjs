@@ -113,7 +113,7 @@ function harness({ loadEngines = true, loadApp = true, ImageClass } = {}) {
   const run = file => vm.runInContext(read(file), context, { filename: file });
   if (ImageClass) context.Image = ImageClass;
   run('scripts/game-session.js'); run('scripts/game-feel.js'); run('scripts/game-art.js');
-  if (loadEngines) for (const file of ['engines.js', 'engines-classics.js', 'engines-popcap.js', 'engines-retro50.js', 'engines-archetypes.js', 'engines-typer-shark.js', 'real-life-core.js', 'life-city.js', 'life-parking.js', 'life-fire.js', 'life-cashier.js', 'life-crane.js']) run('scripts/' + file);
+  if (loadEngines) for (const file of ['engines.js', 'engines-classics.js', 'engines-popcap.js', 'engines-retro50.js', 'engines-archetypes.js', 'engines-typer-shark.js', 'flash-classics-core.js', 'flash-world-hardest.js', 'flash-qwop.js', 'flash-helicopter.js', 'flash-red-ball.js', 'flash-desktop-td.js']) run('scripts/' + file);
   if (loadApp) vm.runInContext(read('app.js').replace('let allGames = [];', 'let allGames = globalThis.__testGames;'), context, { filename: 'app.js' });
   return {
     context, window, document, timers, frames, errors, vibrations, stored, drawImageCalls,

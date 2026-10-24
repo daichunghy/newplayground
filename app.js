@@ -113,11 +113,11 @@
 
   // --- RENDERING ---
   const COVER_MAP = {
-    'pho-mua-giao-hang': 'assets/life-city.svg',
-    'do-xe-dung-chuan': 'assets/life-parking.svg',
-    'doi-cuu-hoa-dem': 'assets/life-fire.svg',
-    'thu-ngan-ca-toi': 'assets/life-cashier.svg',
-    'cang-cau-container': 'assets/life-crane.svg',
+    'worlds-hardest-game': 'assets/flash-world-hardest.svg',
+    'qwop-flash': 'assets/flash-qwop.svg',
+    'helicopter-game': 'assets/flash-helicopter.svg',
+    'desktop-tower-defense': 'assets/flash-desktop-td.svg',
+    'red-ball-flash': 'assets/flash-red-ball.svg',
     'ca-pho': 'assets/ca_pho_concept_art.jpg',
     'hang-rong': 'assets/hang_rong_cover.png',
     'dao-vang': 'assets/dao_vang_cover.png',
@@ -1098,7 +1098,7 @@
       if (!activeGame) return;
       if (event.ctrlKey || event.metaKey || event.altKey) return;
       const editable = event.target?.closest?.('input, textarea, select, [contenteditable="true"]');
-      if (event.key === 'Escape' || (!editable && (event.key === 'p' || event.key === 'P'))) {
+      if (event.key === 'Escape' || (!editable && activeGame?.id !== 'qwop-flash' && (event.key === 'p' || event.key === 'P'))) {
         event.preventDefault(); event.stopImmediatePropagation();
         if (!event.repeat) {
           if (currentSession()?.isPaused()) resumeGame(); else showGameOverlay();
@@ -1150,8 +1150,8 @@
 
     const gId = typeof game.id === 'string' ? game.id.toLowerCase() : '';
     try {
-      if (window.NP_LifeSim && window.NP_LifeSim.hasGame(gId)) {
-        window.NP_LifeSim.launchGame(container, game);
+      if (window.NP_ClassicWeb && window.NP_ClassicWeb.hasGame(gId)) {
+        window.NP_ClassicWeb.launchGame(container, game);
       } else if (window.NP_Retro50Engines && window.NP_Retro50Engines.hasGame(gId)) {
         window.NP_Retro50Engines.launchGame(container, game);
       } else if (window.NP_Engines) {

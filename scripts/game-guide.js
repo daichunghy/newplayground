@@ -311,36 +311,35 @@
 
   function describe(container, game) {
     if (!container || typeof container.querySelector !== 'function') return { ...generic };
-    // These five titles are purpose-built simulations, not the generic arcade runner.
-    if (container.querySelector('#lifeCanvas')) {
-      const guides = {
-        'pho-mua-giao-hang': {
-          objective: 'Lái xe trong phố mưa, tránh phương tiện và giao đủ bốn đơn với tốc độ thấp tại điểm giao.',
-          keyboard: 'Mũi tên hoặc WASD tăng tốc theo hướng; Space để phanh giảm quán tính.',
-          touch: 'Giữ bốn nút hướng để lái; chạm PHANH trước khi dừng tại vòng giao hàng.'
+    if (container.querySelector('#flashCanvas')) {
+      const byGame = {
+        'worlds-hardest-game': {
+          objective: 'Đưa ô vuông đỏ tới vùng xanh, né chấm xanh và nhặt đủ tiền vàng.',
+          keyboard: 'WASD hoặc mũi tên di chuyển ô vuông đỏ; R đặt lại ván.',
+          touch: 'Giữ bốn nút hướng ở dưới sân; tránh chấm xanh và đưa nhân vật tới cửa ra.'
         },
-        'do-xe-dung-chuan': {
-          objective: 'Đỗ vào đúng tâm và đúng chiều của ba ô được đánh dấu, giữ xe yên ít nhất 1,3 giây.',
-          keyboard: '↑ tăng ga, ↓ phanh, ←/→ đánh lái, Space hoặc E đổi số D/R khi xe đã chậm.',
-          touch: 'Giữ nút GA, PHANH, LÁI và dùng ĐỔI SỐ để chuyển giữa tiến/lùi.'
+        'qwop-flash': {
+          objective: 'Phối hợp hai cơ đùi và hai cẳng chân để chạy 100 mét mà không ngã.',
+          keyboard: 'Q/W đùi, O/P cẳng chân, R khởi động lại; Esc tạm dừng.',
+          touch: 'Giữ đồng thời các nút Q W O P để điều khiển chân.'
         },
-        'doi-cuu-hoa-dem': {
-          objective: 'Khống chế đám cháy lan tại ba nhà, quản lý nước và giữ kết cấu khu phố an toàn.',
-          keyboard: 'WASD/mũi tên di chuyển tâm ngắm; Space phun ngắn; R hoặc E nạp nước.',
-          touch: 'Chạm và giữ trên ngọn lửa để phun; dùng nút NẠP NƯỚC khi bình gần cạn.'
+        'helicopter-game': {
+          objective: 'Bay qua đường hầm càng xa càng tốt, không chạm trần, sàn hoặc chướng ngại.',
+          keyboard: 'Giữ Space hoặc ↑ để lên cao; thả để hạ thấp.',
+          touch: 'Giữ tay trên canvas hoặc nút BAY để tăng lực nâng; thả để rơi.'
         },
-        'thu-ngan-ca-toi': {
-          objective: 'Quét đủ món, nhận tiền và trả chính xác tiền thừa cho năm khách. Ba lỗi sẽ thua.',
-          keyboard: 'Phím 1–4 chọn món, 1–6 chọn mệnh giá khi trả tiền, Enter thanh toán, Backspace xóa.',
-          touch: 'Chạm từng món hàng để quét, chạm các mệnh giá để cộng tiền thừa, sau đó xác nhận.'
+        'red-ball-flash': {
+          objective: 'Lăn bóng đỏ qua nền tảng, nhảy qua hố và gai, đến cờ đỏ để qua màn.',
+          keyboard: '←/→ hoặc A/D di chuyển, ↑ hoặc Space để nhảy.',
+          touch: 'Giữ ← hoặc → để lăn và nút ↑ để nhảy.'
         },
-        'cang-cau-container': {
-          objective: 'Móc ba container, kiểm soát góc lắc và thả an toàn trong khu vực cầu cảng.',
-          keyboard: '←/→ di chuyển xe tời, ↑/↓ nâng/hạ móc cẩu, Space móc hoặc thả.',
-          touch: 'Giữ các nút hướng để lái tời và hạ/nâng móc; chạm MÓC/THẢ đúng lúc.'
+        'desktop-tower-defense': {
+          objective: 'Xây tháp cản đường và tiêu diệt kẻ địch trước khi chúng thoát qua bàn.',
+          keyboard: 'Nhấp chọn tháp, dùng chuột để đặt. Nút U nâng cấp, S bán và SEND để gọi đợt mới.',
+          touch: 'Chọn loại tháp, chạm ô lưới để đặt rồi chạm GỬI ĐỢT.'
         }
       };
-      return { ...(guides[game && game.id] || generic), restartSelector: '#lifeRestartBtn' };
+      return { ...(byGame[game && game.id] || generic), restartSelector: '#flashRestart' };
     }
 
     const entry = entries.find(item => container.querySelector(item.selector));

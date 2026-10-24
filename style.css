@@ -3273,178 +3273,69 @@ body.dark-theme .filter-pill.active {
 }
 
 
-/* Five real-life simulations: readable cockpit, consistent controls and no image dependencies. */
-.life-sim {
-  max-width: 100%;
+/* Flash classics game cabinet: restrained, keyboard-forward, large mobile keys. */
+.np-flash-classic {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 13px;
-  margin: 0 auto;
-  background: #10232e;
-  color: #eaf4f1;
-  border: 1px solid #315564;
-  border-radius: 16px;
-  box-shadow: 0 18px 54px rgba(9, 22, 29, .27);
+  padding: 10px;
+  background: #20282c;
+  border: 1px solid #4a5355;
+  border-radius: 10px;
   font-family: 'Calibri', 'Inter', Arial, sans-serif;
 }
-.life-sim .life-sim-top {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.life-sim .life-sim-kicker {
-  display: block;
-  color: #83cbbd;
-  font-size: .68rem;
-  font-weight: 700;
-  letter-spacing: .15em;
-  margin-bottom: 2px;
-}
-.life-sim .life-sim-name {
-  display: block;
-  color: #fff;
-  font-size: 1.12rem;
-  line-height: 1.15;
-  letter-spacing: -.01em;
-}
-.life-sim .life-sim-scores {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-.life-sim .life-sim-scores span {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  font-size: .69rem;
-  font-weight: 700;
-  color: #a7c4cc;
-  letter-spacing: .04em;
-}
-.life-sim .life-sim-scores b {
-  font-size: 1.15rem;
-  letter-spacing: 0;
-  color: #f4f3de;
-  font-variant-numeric: tabular-nums;
-}
-.life-sim canvas.life-sim-canvas {
-  width: 100%;
-  max-width: 760px;
-  aspect-ratio: 760 / 460;
-  height: auto;
+.np-flash-classic .flash-original-view {
   display: block;
   margin: 0 auto;
-  border-radius: 11px;
-  border: 1px solid rgba(179, 220, 218, .2);
+  width: 100%;
+  max-width: 760px;
+  height: auto;
+  aspect-ratio: 760 / 500;
+  background: #000;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 3px;
   image-rendering: auto;
   touch-action: none;
-  cursor: crosshair;
-  background: #142a36;
 }
-.life-sim canvas.life-sim-canvas:focus-visible {
-  outline: 3px solid #a9f2c6;
-  outline-offset: 2px;
-}
-.life-sim .life-sim-bottom {
+.np-flash-classic .flash-original-view:focus-visible,
+.np-flash-classic button:focus-visible { outline: 3px solid #a6e5b4; outline-offset: 2px; }
+.np-flash-classic .flash-controls {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: center;
+  gap: 7px;
 }
-.life-sim .life-sim-objective {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-}
-.life-sim .life-sim-objective strong {
-  color: #c3f7d8;
-  font-size: .91rem;
-}
-.life-sim .life-sim-objective span {
-  font-size: .83rem;
-  color: #abc6cd;
-  line-height: 1.3;
-}
-.life-sim .life-sim-restart,
-.life-sim .life-sim-control {
-  border: 1px solid #547786;
-  border-radius: 10px;
-  color: #edfaf9;
-  font-family: inherit;
-  font-weight: 700;
-  font-size: .86rem;
-  line-height: 1.15;
-  background: #284553;
+.np-flash-classic .flash-control,
+.np-flash-classic .flash-reset {
+  flex: 1 1 83px;
+  max-width: 180px;
+  min-width: 54px;
+  min-height: 48px;
+  padding: 7px 12px;
+  background: #415157;
+  border: 1px solid #72848c;
+  color: #f2f5f2;
+  border-radius: 6px;
+  font: 700 14px/1.2 Calibri, Arial, sans-serif;
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
-  transition: background .12s, border-color .12s, transform .12s;
 }
-.life-sim .life-sim-restart {
-  flex: 0 0 auto;
-  padding: 10px 13px;
-  min-height: 44px;
-  background: #254b47;
-  border-color: #5b9787;
+.np-flash-classic .flash-control:active { background: #819d91; transform: translateY(1px); }
+.np-flash-classic .flash-reset {
+  background: #ebe8d4;
+  color: #38484c;
 }
-.life-sim .life-sim-controls {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-}
-.life-sim .life-sim-control {
-  flex: 1 1 82px;
-  min-height: 48px;
-  min-width: 60px;
-  max-width: 176px;
-  padding: 9px 12px;
-}
-.life-sim .life-sim-control[data-life-control="primary"] {
-  background: #a1f1c1;
-  color: #17352b;
-  border-color: #c4ffe0;
-}
-.life-sim .life-sim-control[data-life-control="secondary"] {
-  background: #42616d;
-}
-.life-sim .life-sim-control:hover,
-.life-sim .life-sim-control:focus-visible {
-  border-color: #b6eecf;
-  background: #426f79;
-  outline-offset: 2px;
-}
-.life-sim .life-sim-control[data-life-control="primary"]:hover,
-.life-sim .life-sim-control[data-life-control="primary"]:focus-visible {
-  background: #b5ffcd;
-}
-.life-sim .life-sim-control:active,
-.life-sim .life-sim-restart:active {
-  transform: translateY(1px);
-}
-.life-sim .life-sim-hint {
-  margin: 0;
-  font-size: .76rem;
+.np-flash-classic .flash-hint {
+  font: 400 13px/1.35 Calibri, Arial, sans-serif;
+  color: #d0dad8;
   text-align: center;
-  color: #9dbaC3;
 }
-@media (max-width: 650px) {
-  .life-sim { padding: 8px; gap: 8px; }
-  .life-sim .life-sim-name { font-size: .97rem; }
-  .life-sim .life-sim-scores { width: 100%; justify-content: space-between; gap: 5px; }
-  .life-sim .life-sim-scores b { font-size: 1rem; }
-  .life-sim .life-sim-bottom { align-items: flex-start; }
-  .life-sim .life-sim-objective span { font-size: .78rem; }
-  .life-sim .life-sim-controls { gap: 6px; }
-  .life-sim .life-sim-control { flex-basis: 26%; max-width: none; min-height: 48px; font-size: .81rem; }
-  .life-sim .life-sim-hint { font-size: .71rem; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .life-sim .life-sim-control,
-  .life-sim .life-sim-restart { transition: none; }
+@media(max-width:640px){
+  .np-flash-classic { padding: 5px; gap: 7px; }
+  .np-flash-classic .flash-controls { gap: 5px; }
+  .np-flash-classic .flash-control,.np-flash-classic .flash-reset {
+    flex-basis: 29%;max-width: none;min-height:48px;padding:8px 4px;font-size:12px;
+  }
 }
