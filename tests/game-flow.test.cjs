@@ -10,13 +10,13 @@ test('one specialized or generic launcher per catalog selection; Retro50 has pri
   const h = harness(); const calls = [];
   for (const name of Object.keys(h.context.NP_Engines)) h.context.NP_Engines[name] = () => calls.push(name);
   h.context.NP_Retro50Engines.launchGame = () => calls.push('retro50');
-  h.context.NP_LifeSim.launchGame = () => calls.push('life-sim');
+  h.context.NP_ClassicWeb.launchGame = () => calls.push('flash-classic');
   for (const game of games) {
     calls.length = 0;
     assert.equal(h.context.openGameById(game.id), true);
     assert.equal(calls.length, 1, game.id + ' must start exactly one engine');
   }
-  for (const [id, expected] of [['hang-rong', 'launchHangRong'], ['zuma-ech-ban-ngoc', 'launchZuma'], ['line-98', 'launchLine98'], ['ran-san-moi-snake', 'launchSnake'], ['boom-online-bnb', 'retro50'], ['bubble-bobble-khung-long-bong-bong', 'retro50'], ['lemonade-tycoon', 'launchRetroArcade'], ['pho-mua-giao-hang', 'life-sim'], ['cang-cau-container', 'life-sim']]) {
+  for (const [id, expected] of [['hang-rong', 'launchHangRong'], ['zuma-ech-ban-ngoc', 'launchZuma'], ['line-98', 'launchLine98'], ['ran-san-moi-snake', 'launchSnake'], ['boom-online-bnb', 'retro50'], ['bubble-bobble-khung-long-bong-bong', 'retro50'], ['lemonade-tycoon', 'launchRetroArcade'], ['worlds-hardest-game', 'flash-classic'], ['desktop-tower-defense', 'flash-classic']]) {
     calls.length = 0; h.context.openGameById(id); assert.deepEqual(calls, [expected]);
   }
   assert.equal(h.context.openGameById('not-in-catalog'), false);
