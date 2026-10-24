@@ -94,17 +94,11 @@ Vui lòng tham khảo file [`AGENTS.md`](./AGENTS.md) để nắm rõ:
 
 ---
 
-### Thêm 5 game mô phỏng đời sống (24/10/2026)
+### Kiểm toán bản gốc và game Flash quốc tế (24/10/2026)
 
-Danh mục hiện có **155 mục**, trong đó 5 trò chơi mới có engine riêng, khác nhau về thao tác và quy tắc thắng/thua:
+Danh mục hiện có **140 game**. Đã loại **20 mục** thiếu tựa game điện tử gốc xác định được (gồm 5 game mô phỏng do dự án vừa tự tạo), thêm **5 trò Flash có xuất xứ thật**: **The World's Hardest Game (2007)**, **QWOP (2008)**, **Helicopter Game (2002)**, **Desktop Tower Defense (2007)** và **Red Ball (Flash)**. Mỗi trò mới có cơ chế và đồ họa riêng bằng Canvas 2D, không sử dụng tài nguyên có bản quyền của nhà phát triển gốc.
 
-- **Phố Mưa: Giao Hàng:** chạy xe có quán tính và phanh, gặp giao thông, giao đủ bốn đơn.
-- **Đỗ Xe Đúng Chuẩn:** đánh lái, đổi số D/R, vào đúng tâm và góc của ba ô đỗ.
-- **Đội Cứu Hỏa Đêm:** ngắm vòi phun, khống chế lửa lan, quản lý nước và kết cấu.
-- **Thu Ngân Ca Tối:** quét mã hàng, tính hóa đơn, cộng mệnh giá tiền thừa cho năm khách.
-- **Cẩu Container Cảng Biển:** điều khiển xe tời và cáp, hãm dao động tải trọng, đặt hàng đúng bến.
-
-Các game chạy trên Canvas 2D với điều khiển cảm ứng/bàn phím, bảng điểm, thời gian, tạm dừng và chơi lại. Bìa SVG được vẽ riêng, không cần CDN hay build. Đây là **mô phỏng gameplay giản lược**, không phải đồ họa 3D thực tế. Chi tiết tại [đặc tả năm game](./docs/FIVE_LIFE_SIMS_2026_10_24.md).
+**Lưu ý:** tên game có thật không có nghĩa rằng bản trên website đã tái tạo trung thành. Nhiều mục cũ vẫn chạy engine chung theo thể loại và chưa đúng luật của trò gốc. Xem [báo cáo kiểm toán và toàn bộ ma trận game](./docs/GAME_ORIGIN_AUDIT_2026_10_24.md).
 
 ### Cải thiện toàn bộ danh mục (20/10/2026)
 
