@@ -111,7 +111,7 @@
    circle(c,head.x+10,head.y-1,2,'#2a2223');
    line(c,head.x+12,head.y+13,head.x+19,head.y+13,'#703b37',2);
    label(c,'QWOP',380,22,17,'#e9eaeb','center');
-   label(c,'© Foddy.net 2008',380,43,14,'#dce8f0','center','400');
+   label(c,'Inspired by Bennett Foddy • 2008',380,43,14,'#dce8f0','center','400');
    label(c,Math.max(0,progress).toFixed(1)+' metres',380,85,38,'#fff','center');
    if(best>0)label(c,'BEST: '+best.toFixed(1)+' metres',380,117,17,'#d9eaf2','center');
    for(const [i,key] of ['Q','W','O','P'].entries()){
