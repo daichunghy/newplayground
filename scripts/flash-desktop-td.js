@@ -143,7 +143,11 @@
    if(px>589&&px<744&&py>80&&py<371){
     const index=Math.floor((py-82)/46);
     if(index>=0&&index<choices.length)action('t'+index);
+    return;
    }
+   if(px>602&&px<734&&py>=373&&py<=410)action('send');
+   else if(px>602&&px<734&&py>413&&py<443)action('upgrade');
+   else if(px>602&&px<734&&py>=443&&py<468)action('sell');
   }
   function update(dt){
    if(state==='lost'||state==='won')return;
