@@ -35,7 +35,7 @@ jobs:
         run: node --test tests/*.test.cjs
       - name: Validate game catalog
         run: |
-          node -e 'const data = require("./data/games.json"); if (!Array.isArray(data) || data.length !== 150 || new Set(data.map(g => g.id)).size !== data.length) process.exit(1);'
+          node -e 'const data = require("./data/games.json"); if (!Array.isArray(data) || data.length !== 155 || new Set(data.map(g => g.id)).size !== data.length) process.exit(1);'
 
   deploy:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
