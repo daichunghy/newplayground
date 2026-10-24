@@ -95,12 +95,12 @@
     }
     function pointer(type, x, y) {
       if (type !== 'down' || phase !== 'scan') return;
-      const index = Math.floor((x - 28) / 132);
-      if (y >= 213 && y <= 338 && x >= 28 && x <= 28 + 132 * baskets[customer].length) scan(index);
+      const index = Math.floor((x - 28) / 118);
+      if (y >= 213 && y <= 338 && x >= 28 && x <= 28 + 118 * baskets[customer].length) scan(index);
     }
     function drawProduct(c, item, x, y, i, done) {
-      rounded(c, x + 3, y + 5, 116, 127, 10, 'rgba(0,0,0,.26)');
-      rounded(c, x, y, 116, 127, 10, done ? '#3b5760' : '#f0ede1', done ? '#538778' : '#fff7d9');
+      rounded(c, x + 3, y + 5, 106, 127, 10, 'rgba(0,0,0,.26)');
+      rounded(c, x, y, 106, 127, 10, done ? '#3b5760' : '#f0ede1', done ? '#538778' : '#fff7d9');
       rounded(c, x + 32, y + 14, 53, 62, 7, item.color, '#acaba5');
       rect(c, x + 38, y + 23, 41, 11, item.accent);
       circle(c, x + 58, y + 49, 10, item.accent);
@@ -128,7 +128,7 @@
       rounded(c, 23, 337, 480, 27, 11, '#182b33');
       for (let x = 35; x < 500; x += 24) rect(c, x, 343, 2, 16, '#46616b');
       const basket = baskets[customer];
-      basket.forEach((idx, i) => drawProduct(c, products[idx], 28 + i * 132, 207, i, scanned.has(i)));
+      basket.forEach((idx, i) => drawProduct(c, products[idx], 28 + i * 118, 207, i, scanned.has(i)));
       rounded(c, 20, 173, 480, 26, 5, scanFlash ? '#b1f5cb' : '#36525c');
       text(c, phase === 'scan' ? 'CHẠM MẶT HÀNG ĐỂ QUÉT MÃ VẠCH  /  PHÍM 1–4' :
         'ĐÃ QUÉT XONG • CHỌN MỆNH GIÁ TIỀN THỪA', 32, 186, 13,
