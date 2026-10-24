@@ -93,8 +93,8 @@
    line(c,-6,12,-6,16,'#bacad0',2);
    line(c,20,12,20,16,'#bacad0',2);
    c.restore();
-   label(c,'DISTANCE: '+Math.floor(distance),18,472,21,'#080808');
-   label(c,'BEST: '+Math.max(best,Math.floor(distance)),745,472,20,'#080808','right');
+   label(c,'DISTANCE: '+Math.floor(distance),18,472,21,'#ffffff');
+   label(c,'BEST: '+Math.max(best,Math.floor(distance)),745,472,20,'#ffffff','right');
    if(!started){
     rect(c,0,156,W,155,'rgba(0,0,0,.78)');
     label(c,lost?'GAME OVER':'THE HELICOPTER GAME',380,194,32,'#67fa56','center');
