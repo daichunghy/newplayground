@@ -113,3 +113,53 @@ test('Helicopter Game keeps the original hold-to-rise and release-to-drop flight
   gameState.update(.02, new Set());
   h.context.NP_GameSession.stop();
 });
+
+
+test('all 30 Worlds Hardest Game stages have distinct walkable layouts and advance', () => {
+  const { h, gameState } = modeFor('worlds-hardest-game');
+  const layouts = new Set();
+  const all = [];
+  for (let stage = 1; stage <= 30; stage++) {
+    const before = gameState.getState();
+    assert.equal(before.level, stage);
+    const key = JSON.stringify(before.walk);
+    assert.equal(layouts.has(key), false, 'maze layout should change at level ' + stage);
+    layouts.add(key);
+    all.push(before.route.map(([x,y]) => x + ',' + y).join(';'));
+    // Verify progression independently from player dexterity: collect required
+    // coins and position at the known goal after verifying maze existence.
+    before.coins.forEach(coin => { coin.collected = true; });
+    before.orbs.forEach(orb => { orb.cx = -999; orb.cy = -999; });
+    const goal = before.route[before.route.length - 1];
+    before.player.x = 92 + (goal[0] + .5) * 24;
+    before.player.y = 80 + (goal[1] + .5) * 24;
+    gameState.update(.016, new Set());
+    if (stage < 30) assert.equal(gameState.getState().level, stage + 1);
+    else assert.equal(gameState.getState().done, true);
+  }
+  assert.equal(layouts.size, 30);
+  assert.equal(new Set(all).size, 30);
+  h.context.NP_GameSession.stop();
+});
+
+test('all 17 Red Ball stages can transition to the next flag/end screen', () => {
+  const { h, gameState } = modeFor('red-ball-flash');
+  gameState.action('start');
+  const names = new Set();
+  const mechanics = new Set();
+  for (let stage = 1; stage <= 17; stage++) {
+    const state = gameState.getState();
+    assert.equal(state.level, stage);
+    assert.equal(state.phase, 'playing');
+    names.add(state.stage.name);
+    mechanics.add(state.stage.feature);
+    state.ball.x = state.goalX + 1;
+    gameState.update(.016, new Set());
+    assert.equal(gameState.getState().phase, stage === 17 ? 'won' : 'clear',
+      'stage ' + stage + ' reaches its finishing screen');
+    if (stage < 17) gameState.action('start');
+  }
+  assert.equal(names.size, 17);
+  assert.ok(mechanics.size >= 12);
+  h.context.NP_GameSession.stop();
+});
